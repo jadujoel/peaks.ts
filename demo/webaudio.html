@@ -108,8 +108,8 @@
 
     <script src="/peaks.js"></script>
     <script>
-      (function(Peaks) {
-        var renderSegments = function(peaks) {
+      ((Peaks) => {
+        var renderSegments = (peaks) => {
           var segmentsContainer = document.getElementById('segments');
           var segments = peaks.segments.getSegments();
           var html = '';
@@ -136,7 +136,7 @@
           }
         }
 
-        var renderPoints = function(peaks) {
+        var renderPoints = (peaks) => {
           var pointsContainer = document.getElementById('points');
           var points = peaks.points.getPoints();
           var html = '';
@@ -185,7 +185,7 @@
           zoomLevels: [128, 256, 512, 1024, 2048, 4096]
         };
 
-        Peaks.init(options, function(err, peaksInstance) {
+        Peaks.init(options, (err, peaksInstance) => {
           if (err) {
             console.error(err.message);
             return;
@@ -193,15 +193,15 @@
 
           console.log('Peaks instance ready');
 
-          document.querySelector('[data-action="zoom-in"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-in"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomIn();
           });
 
-          document.querySelector('[data-action="zoom-out"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-out"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomOut();
           });
 
-          document.querySelector('button[data-action="add-segment"]').addEventListener('click', function() {
+          document.querySelector('button[data-action="add-segment"]').addEventListener('click', () => {
             peaksInstance.segments.add({
               startTime: peaksInstance.player.getCurrentTime(),
               endTime: peaksInstance.player.getCurrentTime() + 2,
@@ -210,7 +210,7 @@
             });
           });
 
-          document.querySelector('button[data-action="add-point"]').addEventListener('click', function() {
+          document.querySelector('button[data-action="add-point"]').addEventListener('click', () => {
             peaksInstance.points.add({
               time: peaksInstance.player.getCurrentTime(),
               labelText: "Test point",
@@ -218,12 +218,12 @@
             });
           });
 
-          document.querySelector('button[data-action="log-data"]').addEventListener('click', function(event) {
+          document.querySelector('button[data-action="log-data"]').addEventListener('click', (event) => {
             renderSegments(peaksInstance);
             renderPoints(peaksInstance);
           });
 
-          document.querySelector('button[data-action="seek"]').addEventListener('click', function(event) {
+          document.querySelector('button[data-action="seek"]').addEventListener('click', (event) => {
             var time = document.getElementById('seek-time').value;
             var seconds = parseFloat(time);
 
@@ -232,7 +232,7 @@
             }
           });
 
-          document.querySelector('body').addEventListener('click', function(event) {
+          document.querySelector('body').addEventListener('click', (event) => {
             var element = event.target;
             var action  = element.getAttribute('data-action');
             var id      = element.getAttribute('data-id');

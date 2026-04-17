@@ -347,12 +347,12 @@ The build also creates an associated [source map](https://web.dev/source-maps/) 
 
 ## Testing
 
-Tests run in Karma using Mocha, Chai, and Sinon.
+Tests run in Vitest with Playwright browser mode.
 
- - `npm test` should work for simple one time testing.
- - `npm test -- --glob %pattern%` to run selected tests only
- - `npm run test-watch` if you are developing and want to repeatedly run tests in a browser on your machine.
- - `npm run test-watch -- --glob %pattern%` is also available
+ - `bun run test` to run all tests once.
+ - `bun run test:watch` to watch for changes and re-run tests.
+ - `bun run test:coverage` to run tests with coverage reporting.
+ - `bun run test:e2e` to run end-to-end tests with Playwright.
 
 # Contributing
 

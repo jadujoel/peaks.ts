@@ -1,0 +1,522 @@
+// @ts-nocheck
+/**
+ * @file
+ *
+ * Defines the {@link WaveformView} class.
+ *
+ * @module waveform-view
+ */
+
+import Konva from "konva/lib/Core";
+import PlayheadLayer from "./playhead-layer";
+import PointsLayer from "./points-layer";
+import SegmentsLayer from "./segments-layer";
+import { formatTime, getMarkerObject, isFinite, isNumber } from "./utils";
+import WaveformAxis from "./waveform-axis";
+import WaveformShape from "./waveform-shape";
+
+function WaveformView(waveformData, container, peaks, viewOptions) {
+	this._container = container;
+	this._peaks = peaks;
+	this._options = peaks.options;
+	this._viewOptions = viewOptions;
+
+	this._originalWaveformData = waveformData;
+	this._data = waveformData;
+
+	// The pixel offset of the current frame being displayed
+	this._frameOffset = 0;
+	this._width = container.clientWidth;
+	this._height = container.clientHeight;
+
+	this._amplitudeScale = 1.0;
+
+	this._waveformColor = this._viewOptions.waveformColor;
+	this._playedWaveformColor = this._viewOptions.playedWaveformColor;
+
+	this._timeLabelPrecision = this._viewOptions.timeLabelPrecision;
+
+	if (this._viewOptions.formatPlayheadTime) {
+		this._formatPlayheadTime = this._viewOptions.formatPlayheadTime;
+	} else {
+		this._formatPlayheadTime = (time) =>
+			formatTime(time, this._timeLabelPrecision);
+	}
+
+	this._enableSeek = true;
+
+	this.initWaveformData();
+
+	// Disable warning: The stage has 6 layers.
+	// Recommended maximum number of layers is 3-5.
+	Konva.showWarnings = false;
+
+	this._stage = new Konva.Stage({
+		container: container,
+		width: this._width,
+		height: this._height,
+	});
+
+	this._createWaveform();
+
+	if (this._viewOptions.enableSegments) {
+		this._segmentsLayer = new SegmentsLayer(
+			peaks,
+			this,
+			this._viewOptions.enableEditing,
+		);
+		this._segmentsLayer.addToStage(this._stage);
+	}
+
+	if (this._viewOptions.enablePoints) {
+		this._pointsLayer = new PointsLayer(
+			peaks,
+			this,
+			this._viewOptions.enableEditing,
+		);
+		this._pointsLayer.addToStage(this._stage);
+	}
+
+	this.initHighlightLayer();
+
+	this._createAxisLabels();
+
+	this._playheadLayer = new PlayheadLayer(
+		this._peaks.player,
+		this,
+		this._viewOptions,
+	);
+
+	this._playheadLayer.addToStage(this._stage);
+
+	this._onClick = this._onClick.bind(this);
+	this._onDblClick = this._onDblClick.bind(this);
+	this._onContextMenu = this._onContextMenu.bind(this);
+
+	this._stage.on("click", this._onClick);
+	this._stage.on("dblclick", this._onDblClick);
+	this._stage.on("contextmenu", this._onContextMenu);
+}
+
+WaveformView.prototype.getViewOptions = function () {
+	return this._viewOptions;
+};
+
+/**
+ * @returns {WaveformData} The view's waveform data.
+ */
+
+WaveformView.prototype.getWaveformData = function () {
+	return this._data;
+};
+
+WaveformView.prototype.setWaveformData = function (waveformData) {
+	this._data = waveformData;
+};
+
+/**
+ * Returns the pixel index for a given time, for the current zoom level.
+ *
+ * @param {Number} time Time, in seconds.
+ * @returns {Number} Pixel index.
+ */
+
+WaveformView.prototype.timeToPixels = function (time) {
+	return Math.floor((time * this._data.sample_rate) / this._data.scale);
+};
+
+/**
+ * Returns the time for a given pixel index, for the current zoom level.
+ *
+ * @param {Number} pixels Pixel index.
+ * @returns {Number} Time, in seconds.
+ */
+
+WaveformView.prototype.pixelsToTime = function (pixels) {
+	return (pixels * this._data.scale) / this._data.sample_rate;
+};
+
+/**
+ * Returns the time for a given pixel offset (relative to the
+ * current scroll position), for the current zoom level.
+ *
+ * @param {Number} offset Offset from left-visible-edge of view
+ * @returns {Number} Time, in seconds.
+ */
+
+WaveformView.prototype.pixelOffsetToTime = function (offset) {
+	const pixels = this._frameOffset + offset;
+
+	return (pixels * this._data.scale) / this._data.sample_rate;
+};
+
+WaveformView.prototype.timeToPixelOffset = function (time) {
+	return (
+		Math.floor((time * this._data.sample_rate) / this._data.scale) -
+		this._frameOffset
+	);
+};
+
+/**
+ * @returns {Number} The start position of the waveform shown in the view,
+ *   in pixels.
+ */
+
+WaveformView.prototype.getFrameOffset = function () {
+	return this._frameOffset;
+};
+
+/**
+ * @returns {Number} The width of the view, in pixels.
+ */
+
+WaveformView.prototype.getWidth = function () {
+	return this._width;
+};
+
+/**
+ * @returns {Number} The height of the view, in pixels.
+ */
+
+WaveformView.prototype.getHeight = function () {
+	return this._height;
+};
+
+/**
+ * @returns {Number} The time at the left edge of the waveform view.
+ */
+
+WaveformView.prototype.getStartTime = function () {
+	return this.pixelOffsetToTime(0);
+};
+
+/**
+ * @returns {Number} The time at the right edge of the waveform view.
+ */
+
+WaveformView.prototype.getEndTime = function () {
+	return this.pixelOffsetToTime(this._width);
+};
+
+/**
+ * @returns {Number} The media duration, in seconds.
+ */
+
+WaveformView.prototype._getDuration = function () {
+	return this._peaks.player.getDuration();
+};
+
+WaveformView.prototype._createWaveform = function () {
+	this._waveformLayer = new Konva.Layer({ listening: false });
+
+	this._createWaveformShapes();
+
+	this._stage.add(this._waveformLayer);
+};
+
+WaveformView.prototype._createWaveformShapes = function () {
+	if (!this._waveformShape) {
+		this._waveformShape = new WaveformShape({
+			color: this._waveformColor,
+			view: this,
+		});
+
+		this._waveformShape.addToLayer(this._waveformLayer);
+	}
+
+	if (this._playedWaveformColor && !this._playedWaveformShape) {
+		const time = this._peaks.player.getCurrentTime();
+
+		this._playedSegment = {
+			startTime: 0,
+			endTime: time,
+		};
+
+		this._unplayedSegment = {
+			startTime: time,
+			endTime: this._getDuration(),
+		};
+
+		this._waveformShape.setSegment(this._unplayedSegment);
+
+		this._playedWaveformShape = new WaveformShape({
+			color: this._playedWaveformColor,
+			view: this,
+			segment: this._playedSegment,
+		});
+
+		this._playedWaveformShape.addToLayer(this._waveformLayer);
+	}
+};
+
+WaveformView.prototype.setWaveformColor = function (color) {
+	this._waveformColor = color;
+	this._waveformShape.setWaveformColor(color);
+};
+
+WaveformView.prototype.setPlayedWaveformColor = function (color) {
+	this._playedWaveformColor = color;
+
+	if (color) {
+		if (!this._playedWaveformShape) {
+			this._createWaveformShapes();
+		}
+
+		this._playedWaveformShape.setWaveformColor(color);
+	} else {
+		if (this._playedWaveformShape) {
+			this._destroyPlayedWaveformShape();
+		}
+	}
+};
+
+WaveformView.prototype._destroyPlayedWaveformShape = function () {
+	this._waveformShape.setSegment(null);
+
+	this._playedWaveformShape.destroy();
+	this._playedWaveformShape = null;
+
+	this._playedSegment = null;
+	this._unplayedSegment = null;
+};
+
+WaveformView.prototype._createAxisLabels = function () {
+	this._axisLayer = new Konva.Layer({ listening: false });
+	this._axis = new WaveformAxis(this, this._viewOptions);
+
+	this._axis.addToLayer(this._axisLayer);
+	this._stage.add(this._axisLayer);
+};
+
+WaveformView.prototype.showAxisLabels = function (show, options) {
+	this._axis.showAxisLabels(show, options);
+	this._axisLayer.draw();
+};
+
+WaveformView.prototype.setAxisLabelColor = function (color) {
+	this._axis.setAxisLabelColor(color);
+	this._axisLayer.draw();
+};
+
+WaveformView.prototype.setAxisGridlineColor = function (color) {
+	this._axis.setAxisGridlineColor(color);
+	this._axisLayer.draw();
+};
+
+WaveformView.prototype.showPlayheadTime = function (show) {
+	this._playheadLayer.showPlayheadTime(show);
+};
+
+WaveformView.prototype.setTimeLabelPrecision = function (precision) {
+	this._timeLabelPrecision = precision;
+	this._playheadLayer.updatePlayheadText();
+};
+
+WaveformView.prototype.formatTime = function (time) {
+	return this._formatPlayheadTime(time);
+};
+
+/**
+ * Adjusts the amplitude scale of waveform shown in the view, which allows
+ * users to zoom the waveform vertically.
+ *
+ * @param {Number} scale The new amplitude scale factor
+ */
+
+WaveformView.prototype.setAmplitudeScale = function (scale) {
+	if (!isNumber(scale) || !isFinite(scale)) {
+		throw new Error("view.setAmplitudeScale(): Scale must be a valid number");
+	}
+
+	this._amplitudeScale = scale;
+
+	this.drawWaveformLayer();
+
+	if (this._segmentsLayer) {
+		this._segmentsLayer.draw();
+	}
+};
+
+WaveformView.prototype.getAmplitudeScale = function () {
+	return this._amplitudeScale;
+};
+
+WaveformView.prototype.enableSeek = function (enable) {
+	this._enableSeek = enable;
+};
+
+WaveformView.prototype.isSeekEnabled = function () {
+	return this._enableSeek;
+};
+
+WaveformView.prototype._onClick = function (event) {
+	this._clickHandler(event, "click");
+};
+
+WaveformView.prototype._onDblClick = function (event) {
+	this._clickHandler(event, "dblclick");
+};
+
+WaveformView.prototype._onContextMenu = function (event) {
+	this._clickHandler(event, "contextmenu");
+};
+
+WaveformView.prototype._clickHandler = function (event, eventName) {
+	let offsetX = event.evt.offsetX;
+
+	if (offsetX < 0) {
+		offsetX = 0;
+	}
+
+	let emitViewEvent = true;
+
+	if (event.target !== this._stage) {
+		const marker = getMarkerObject(event.target);
+
+		if (marker) {
+			if (marker.attrs.name === "point-marker") {
+				const point = marker.getAttr("point");
+
+				if (point) {
+					this._peaks.emit("points." + eventName, {
+						point: point,
+						evt: event.evt,
+						preventViewEvent: () => {
+							emitViewEvent = false;
+						},
+					});
+				}
+			} else if (marker.attrs.name === "segment-overlay") {
+				const segment = marker.getAttr("segment");
+
+				if (segment) {
+					const clickEvent = {
+						segment: segment,
+						evt: event.evt,
+						preventViewEvent: () => {
+							emitViewEvent = false;
+						},
+					};
+
+					if (this._segmentsLayer) {
+						this._segmentsLayer.segmentClicked(eventName, clickEvent);
+					}
+				}
+			}
+		}
+	}
+
+	if (emitViewEvent) {
+		const time = this.pixelOffsetToTime(offsetX);
+		const viewName = this.getName();
+
+		this._peaks.emit(viewName + "." + eventName, {
+			time: time,
+			evt: event.evt,
+		});
+	}
+};
+
+WaveformView.prototype.updatePlayheadTime = function (time) {
+	this._playheadLayer.updatePlayheadTime(time);
+};
+
+WaveformView.prototype.playheadPosChanged = function (time) {
+	if (this._playedWaveformShape) {
+		this._playedSegment.endTime = time;
+		this._unplayedSegment.startTime = time;
+
+		this.drawWaveformLayer();
+	}
+};
+
+WaveformView.prototype.drawWaveformLayer = function () {
+	this._waveformLayer.draw();
+};
+
+WaveformView.prototype.enableMarkerEditing = function (enable) {
+	if (this._segmentsLayer) {
+		this._segmentsLayer.enableEditing(enable);
+	}
+
+	if (this._pointsLayer) {
+		this._pointsLayer.enableEditing(enable);
+	}
+};
+
+/**
+ * Called when the user starts or stops dragging the playhead.
+ * We use this to disable interaction with the points and segments layers,
+ * e.g., so that when the user drags the playhead over a marker, the timestamp
+ * labels don't appear.
+ */
+
+WaveformView.prototype.dragSeek = function (dragging) {
+	if (this._segmentsLayer) {
+		this._segmentsLayer.setListening(!dragging);
+	}
+
+	if (this._pointsLayer) {
+		this._pointsLayer.setListening(!dragging);
+	}
+};
+
+WaveformView.prototype.fitToContainer = function () {
+	if (this._container.clientWidth === 0 && this._container.clientHeight === 0) {
+		return;
+	}
+
+	let updateWaveform = false;
+
+	if (this._container.clientWidth !== this._width) {
+		this._width = this._container.clientWidth;
+		this._stage.setWidth(this._width);
+
+		updateWaveform = this.containerWidthChange();
+	}
+
+	let heightChanged = false;
+
+	if (this._container.clientHeight !== this._height) {
+		this._height = this._container.clientHeight;
+		this._stage.setHeight(this._height);
+
+		this._waveformShape.fitToView();
+		this._playheadLayer.fitToView();
+
+		this.containerHeightChange();
+
+		heightChanged = true;
+	}
+
+	if (updateWaveform) {
+		this.updateWaveform(this._frameOffset, true);
+	} else if (heightChanged) {
+		if (this._segmentsLayer) {
+			this._segmentsLayer.fitToView();
+		}
+
+		if (this._pointsLayer) {
+			this._pointsLayer.fitToView();
+		}
+	}
+};
+
+WaveformView.prototype.destroy = function () {
+	this._playheadLayer.destroy();
+
+	if (this._segmentsLayer) {
+		this._segmentsLayer.destroy();
+	}
+
+	if (this._pointsLayer) {
+		this._pointsLayer.destroy();
+	}
+
+	if (this._stage) {
+		this._stage.destroy();
+		this._stage = null;
+	}
+};
+
+export default WaveformView;

@@ -7,47 +7,51 @@
  * @module player
  */
 
-import { isValidTime } from './utils';
+import { isValidTime } from "./utils";
 
 function getAllPropertiesFrom(adapter) {
-  const allProperties = [];
-  let obj = adapter;
+	const allProperties = [];
+	let obj = adapter;
 
-  while (obj) {
-    Object.getOwnPropertyNames(obj).forEach(function(p) {
-      allProperties.push(p);
-    });
+	while (obj) {
+		Object.getOwnPropertyNames(obj).forEach((p) => {
+			allProperties.push(p);
+		});
 
-    obj = Object.getPrototypeOf(obj);
-  }
+		obj = Object.getPrototypeOf(obj);
+	}
 
-  return allProperties;
+	return allProperties;
 }
 
 function validateAdapter(adapter) {
-  const publicAdapterMethods = [
-    'init',
-    'destroy',
-    'play',
-    'pause',
-    'isPlaying',
-    'isSeeking',
-    'getCurrentTime',
-    'getDuration',
-    'seek'
-  ];
+	const publicAdapterMethods = [
+		"init",
+		"destroy",
+		"play",
+		"pause",
+		"isPlaying",
+		"isSeeking",
+		"getCurrentTime",
+		"getDuration",
+		"seek",
+	];
 
-  const allProperties = getAllPropertiesFrom(adapter);
+	const allProperties = getAllPropertiesFrom(adapter);
 
-  publicAdapterMethods.forEach(function(method) {
-    if (!allProperties.includes(method)) {
-      throw new TypeError('Peaks.init(): Player method ' + method + ' is undefined');
-    }
+	publicAdapterMethods.forEach((method) => {
+		if (!allProperties.includes(method)) {
+			throw new TypeError(
+				"Peaks.init(): Player method " + method + " is undefined",
+			);
+		}
 
-    if ((typeof adapter[method]) !== 'function') {
-      throw new TypeError('Peaks.init(): Player method ' + method + ' is not a function');
-    }
-  });
+		if (typeof adapter[method] !== "function") {
+			throw new TypeError(
+				"Peaks.init(): Player method " + method + " is not a function",
+			);
+		}
+	});
 }
 
 /**
@@ -61,27 +65,30 @@ function validateAdapter(adapter) {
  */
 
 function Player(peaks, adapter) {
-  this._peaks = peaks;
+	this._peaks = peaks;
 
-  this._playingSegment = false;
-  this._segment = null;
-  this._loop = false;
-  this._playSegmentTimerCallback = this._playSegmentTimerCallback.bind(this);
+	this._playingSegment = false;
+	this._segment = null;
+	this._loop = false;
+	this._playSegmentTimerCallback = this._playSegmentTimerCallback.bind(this);
 
-  validateAdapter(adapter);
-  this._adapter = adapter;
+	validateAdapter(adapter);
+	this._adapter = adapter;
 }
 
-Player.prototype.init = function() {
-  return this._adapter.init(this._peaks);
+Player.prototype.init = function () {
+	return this._adapter.init(this._peaks);
 };
 
 /**
  * Cleans up the player object.
  */
 
-Player.prototype.destroy = function() {
-  this._adapter.destroy();
+Player.prototype.destroy = function () {
+	this._playingSegment = false;
+	this._loop = false;
+	this._segment = null;
+	this._adapter.destroy();
 };
 
 /**
@@ -89,16 +96,16 @@ Player.prototype.destroy = function() {
  * @returns {Promise}
  */
 
-Player.prototype.play = function() {
-  return this._adapter.play();
+Player.prototype.play = function () {
+	return this._adapter.play();
 };
 
 /**
  * Pauses playback.
  */
 
-Player.prototype.pause = function() {
-  this._adapter.pause();
+Player.prototype.pause = function () {
+	this._adapter.pause();
 };
 
 /**
@@ -106,16 +113,16 @@ Player.prototype.pause = function() {
  * otherwise.
  */
 
-Player.prototype.isPlaying = function() {
-  return this._adapter.isPlaying();
+Player.prototype.isPlaying = function () {
+	return this._adapter.isPlaying();
 };
 
 /**
  * @returns {boolean} <code>true</code> if seeking
  */
 
-Player.prototype.isSeeking = function() {
-  return this._adapter.isSeeking();
+Player.prototype.isSeeking = function () {
+	return this._adapter.isSeeking();
 };
 
 /**
@@ -124,8 +131,8 @@ Player.prototype.isSeeking = function() {
  * @returns {Number}
  */
 
-Player.prototype.getCurrentTime = function() {
-  return this._adapter.getCurrentTime();
+Player.prototype.getCurrentTime = function () {
+	return this._adapter.getCurrentTime();
 };
 
 /**
@@ -134,8 +141,8 @@ Player.prototype.getCurrentTime = function() {
  * @returns {Number}
  */
 
-Player.prototype.getDuration = function() {
-  return this._adapter.getDuration();
+Player.prototype.getDuration = function () {
+	return this._adapter.getDuration();
 };
 
 /**
@@ -144,13 +151,15 @@ Player.prototype.getDuration = function() {
  * @param {Number} time The time position, in seconds.
  */
 
-Player.prototype.seek = function(time) {
-  if (!isValidTime(time)) {
-    this._peaks._logger('peaks.player.seek(): parameter must be a valid time, in seconds');
-    return;
-  }
+Player.prototype.seek = function (time) {
+	if (!isValidTime(time)) {
+		this._peaks._logger(
+			"peaks.player.seek(): parameter must be a valid time, in seconds",
+		);
+		return;
+	}
 
-  this._adapter.seek(time);
+	this._adapter.seek(time);
 };
 
 /**
@@ -160,59 +169,59 @@ Player.prototype.seek = function(time) {
  * @param {Boolean} loop If true, playback is looped.
  */
 
-Player.prototype.playSegment = function(segment, loop) {
-  const self = this;
+Player.prototype.playSegment = function (segment, loop) {
+	if (
+		!segment ||
+		!isValidTime(segment.startTime) ||
+		!isValidTime(segment.endTime)
+	) {
+		return Promise.reject(
+			new Error(
+				"peaks.player.playSegment(): parameter must be a segment object",
+			),
+		);
+	}
 
-  if (!segment ||
-    !isValidTime(segment.startTime) ||
-    !isValidTime(segment.endTime)) {
-    return Promise.reject(
-      new Error('peaks.player.playSegment(): parameter must be a segment object')
-    );
-  }
+	this._segment = segment;
+	this._loop = loop;
 
-  self._segment = segment;
-  self._loop = loop;
+	// Set audio time to segment start time
+	this.seek(segment.startTime);
 
-  // Set audio time to segment start time
-  self.seek(segment.startTime);
+	this._peaks.once("player.playing", () => {
+		if (!this._playingSegment) {
+			this._playingSegment = true;
 
-  self._peaks.once('player.playing', function() {
-    if (!self._playingSegment) {
-      self._playingSegment = true;
+			// We need to use requestAnimationFrame here as the timeupdate event
+			// doesn't fire often enough.
+			window.requestAnimationFrame(this._playSegmentTimerCallback);
+		}
+	});
 
-      // We need to use requestAnimationFrame here as the timeupdate event
-      // doesn't fire often enough.
-      window.requestAnimationFrame(self._playSegmentTimerCallback);
-    }
-  });
-
-  // Start playing audio
-  return self.play();
+	// Start playing audio
+	return this.play();
 };
 
-Player.prototype._playSegmentTimerCallback = function() {
-  if (!this.isPlaying()) {
-    this._playingSegment = false;
-    return;
-  }
-  else if (this.getCurrentTime() >= this._segment.endTime) {
-    if (this._loop) {
-      this.seek(this._segment.startTime);
-    }
-    else {
-      this.pause();
-      this._peaks.emit('player.ended');
-      this._playingSegment = false;
-      return;
-    }
-  }
+Player.prototype._playSegmentTimerCallback = function () {
+	if (!this.isPlaying()) {
+		this._playingSegment = false;
+		return;
+	} else if (this.getCurrentTime() >= this._segment.endTime) {
+		if (this._loop) {
+			this.seek(this._segment.startTime);
+		} else {
+			this.pause();
+			this._peaks.emit("player.ended");
+			this._playingSegment = false;
+			return;
+		}
+	}
 
-  window.requestAnimationFrame(this._playSegmentTimerCallback);
+	window.requestAnimationFrame(this._playSegmentTimerCallback);
 };
 
-Player.prototype._setSource = function(options) {
-  return this._adapter.setSource(options);
+Player.prototype._setSource = function (options) {
+	return this._adapter.setSource(options);
 };
 
 export default Player;

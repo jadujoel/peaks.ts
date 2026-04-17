@@ -77,7 +77,7 @@
 
     <script src="/peaks.js"></script>
     <script>
-      (function(Peaks) {
+      ((Peaks) => {
         var options = {
           zoomview: {
             container: document.getElementById('zoomview-container'),
@@ -103,7 +103,7 @@
           zoomLevels: [512, 1024, 2048, 4096]
         };
 
-        Peaks.init(options, function(err, peaksInstance) {
+        Peaks.init(options, (err, peaksInstance) => {
           if (err) {
             console.error(err.message);
             return;
@@ -111,15 +111,15 @@
 
           console.log("Peaks instance ready");
 
-          document.querySelector('[data-action="zoom-in"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-in"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomIn();
           });
 
-          document.querySelector('[data-action="zoom-out"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-out"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomOut();
           });
 
-          document.querySelector('button[data-action="seek"]').addEventListener('click', function(event) {
+          document.querySelector('button[data-action="seek"]').addEventListener('click', (event) => {
             var time = document.getElementById('seek-time').value;
             var seconds = parseFloat(time);
 
@@ -128,20 +128,20 @@
             }
           });
 
-          document.getElementById('mousewheel-mode').addEventListener('change', function(event) {
+          document.getElementById('mousewheel-mode').addEventListener('change', (event) => {
             var mode = event.target.value;
             var view = peaksInstance.views.getView('zoomview');
 
             view.setWheelMode(mode);
           });
 
-          document.getElementById('auto-scroll').addEventListener('change', function(event) {
+          document.getElementById('auto-scroll').addEventListener('change', (event) => {
             var view = peaksInstance.views.getView('zoomview');
             view.enableAutoScroll(event.target.checked);
           });
 
-          document.querySelector('button[data-action="resize-width"]').addEventListener('click', function(event) {
-            document.querySelectorAll('.waveform-container').forEach(function(container) {
+          document.querySelector('button[data-action="resize-width"]').addEventListener('click', (event) => {
+            document.querySelectorAll('.waveform-container').forEach((container) => {
               container.style.width = container.offsetWidth === 1000 ? "700px" : "1000px";
             });
 
@@ -164,7 +164,7 @@
             }
           });
 
-          document.querySelector('button[data-action="resize-height"]').addEventListener('click', function(event) {
+          document.querySelector('button[data-action="resize-height"]').addEventListener('click', (event) => {
             const zoomviewContainer = document.getElementById('zoomview-container');
             const overviewContainer = document.getElementById('overview-container');
 
