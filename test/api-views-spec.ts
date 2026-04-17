@@ -3,7 +3,7 @@ import WaveformOverview from "../src/waveform-overview";
 import WaveformZoomView from "../src/waveform-zoomview";
 
 describe("Peaks.views", () => {
-	let p;
+	let p = null;
 
 	afterEach(() => {
 		if (p) {
@@ -12,7 +12,7 @@ describe("Peaks.views", () => {
 	});
 
 	describe("createZoomview", () => {
-		context("with existing zoomview", () => {
+		describe("with existing zoomview", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {
@@ -42,7 +42,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("without existing zoomview", () => {
+		describe("without existing zoomview", () => {
 			beforeEach((done) => {
 				const options = {
 					overview: {
@@ -76,7 +76,7 @@ describe("Peaks.views", () => {
 	});
 
 	describe("createOverview", () => {
-		context("with existing overview", () => {
+		describe("with existing overview", () => {
 			beforeEach((done) => {
 				const options = {
 					overview: {
@@ -106,7 +106,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("without existing overview", () => {
+		describe("without existing overview", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {
@@ -140,7 +140,7 @@ describe("Peaks.views", () => {
 	});
 
 	describe("getView", () => {
-		context("with zoomview and overview containers", () => {
+		describe("with zoomview and overview containers", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {
@@ -183,7 +183,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("with only a zoomview container", () => {
+		describe("with only a zoomview container", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {
@@ -223,7 +223,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("with only an overview container", () => {
+		describe("with only an overview container", () => {
 			beforeEach((done) => {
 				const options = {
 					overview: {
@@ -265,7 +265,7 @@ describe("Peaks.views", () => {
 	});
 
 	describe("destroyZoomview", () => {
-		context("with zoomview and overview containers", () => {
+		describe("with zoomview and overview containers", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {
@@ -298,7 +298,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("with only a zoomview", () => {
+		describe("with only a zoomview", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {
@@ -326,7 +326,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("with no zoomview", () => {
+		describe("with no zoomview", () => {
 			beforeEach((done) => {
 				const options = {
 					overview: {
@@ -354,7 +354,7 @@ describe("Peaks.views", () => {
 	});
 
 	describe("destroyOverview", () => {
-		context("with zoomview and overview containers", () => {
+		describe("with zoomview and overview containers", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {
@@ -387,7 +387,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("with only an overview", () => {
+		describe("with only an overview", () => {
 			beforeEach((done) => {
 				const options = {
 					overview: {
@@ -415,7 +415,7 @@ describe("Peaks.views", () => {
 			});
 		});
 
-		context("with no overview", () => {
+		describe("with no overview", () => {
 			beforeEach((done) => {
 				const options = {
 					zoomview: {

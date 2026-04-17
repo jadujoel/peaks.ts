@@ -1,7 +1,7 @@
 import Peaks from "../src/main";
 
 describe("SegmentsLayer", () => {
-	let p;
+	let p = null;
 
 	beforeEach((done) => {
 		const options = {
@@ -31,7 +31,7 @@ describe("SegmentsLayer", () => {
 		}
 	});
 
-	context("when adding a segment", () => {
+	describe("when adding a segment", () => {
 		it("should create a segment shape if the segment is visible", () => {
 			const zoomview = p.views.getView("zoomview");
 			expect(zoomview).to.be.ok;
@@ -65,7 +65,7 @@ describe("SegmentsLayer", () => {
 		});
 	});
 
-	context("when updating a segment", () => {
+	describe("when updating a segment", () => {
 		it("should move the segment start marker if its time has changed", () => {
 			const zoomview = p.views.getView("zoomview");
 			expect(zoomview).to.be.ok;

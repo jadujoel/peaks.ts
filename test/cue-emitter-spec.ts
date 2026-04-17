@@ -3,8 +3,8 @@ import CueEmitter from "../src/cue-emitter";
 import Peaks from "../src/main";
 
 describe("CueEmitter", () => {
-	let p;
-	let cueEmitter;
+	let p = null;
+	let cueEmitter = null;
 
 	beforeEach((done) => {
 		const options = {

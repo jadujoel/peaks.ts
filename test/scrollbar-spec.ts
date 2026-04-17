@@ -7,7 +7,7 @@ describe("Scrollbar", () => {
 	let inputController = null;
 	let zoomview = null;
 
-	context("with only a zoomview waveform", () => {
+	describe("with only a zoomview waveform", () => {
 		beforeEach((done) => {
 			const options = {
 				zoomview: {
@@ -43,7 +43,7 @@ describe("Scrollbar", () => {
 			}
 		});
 
-		context("when dragging the scrollbox to the right", () => {
+		describe("when dragging the scrollbox to the right", () => {
 			it("should update the scroll position", () => {
 				const distance = 50;
 
@@ -58,7 +58,7 @@ describe("Scrollbar", () => {
 			});
 		});
 
-		context("when dragging the scrollbox to the left", () => {
+		describe("when dragging the scrollbox to the left", () => {
 			beforeEach(() => {
 				zoomview.updateWaveform(1000);
 			});
@@ -77,7 +77,7 @@ describe("Scrollbar", () => {
 			});
 		});
 
-		context("when clicking to the left of the scrollbox", () => {
+		describe("when clicking to the left of the scrollbox", () => {
 			beforeEach(() => {
 				zoomview.updateWaveform(1000);
 			});
@@ -93,7 +93,7 @@ describe("Scrollbar", () => {
 			});
 		});
 
-		context("when clicking to the right of the scrollbox", () => {
+		describe("when clicking to the right of the scrollbox", () => {
 			beforeEach(() => {
 				zoomview.updateWaveform(1000);
 			});
@@ -110,7 +110,7 @@ describe("Scrollbar", () => {
 		});
 	});
 
-	context("with only an overview waveform", () => {
+	describe("with only an overview waveform", () => {
 		beforeEach((done) => {
 			const options = {
 				overview: {
@@ -151,7 +151,7 @@ describe("Scrollbar", () => {
 			expect(scrollbar._scrollboxRect.getWidth()).to.equal(1000);
 		});
 
-		context("when a zoomview is created", () => {
+		describe("when a zoomview is created", () => {
 			it("should update the scrollbar state", () => {
 				const container = document.getElementById("zoomview-container");
 				p.views.createZoomview(container);

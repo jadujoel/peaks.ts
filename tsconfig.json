@@ -9,7 +9,7 @@
 		// See also https://aka.ms/tsconfig/module
 		"module": "esnext",
 		"target": "esnext",
-		"types": ["bun"],
+		"types": ["bun", "vitest/globals"],
 
 		// Other Outputs
 		"sourceMap": true,

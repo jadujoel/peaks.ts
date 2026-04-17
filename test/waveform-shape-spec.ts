@@ -2,7 +2,7 @@ import WaveformShape from "../src/waveform-shape";
 
 describe("WaveformShape", () => {
 	describe("scaleY", () => {
-		context("with default scale", () => {
+		describe("with default scale", () => {
 			it("should scale the maximum amplitude value", () => {
 				expect(WaveformShape.scaleY(127, 500, 1.0)).to.equal(0);
 			});
@@ -12,7 +12,7 @@ describe("WaveformShape", () => {
 			});
 		});
 
-		context("with half scale", () => {
+		describe("with half scale", () => {
 			it("should scale the maximum amplitude value", () => {
 				expect(WaveformShape.scaleY(127, 500, 0.5)).to.equal(124);
 			});
@@ -22,7 +22,7 @@ describe("WaveformShape", () => {
 			});
 		});
 
-		context("with double scale", () => {
+		describe("with double scale", () => {
 			it("should scale and clamp the maximum amplitude value", () => {
 				expect(WaveformShape.scaleY(127, 500, 2.0)).to.equal(0);
 			});

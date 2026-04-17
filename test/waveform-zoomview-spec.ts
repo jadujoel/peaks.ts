@@ -43,7 +43,7 @@ describe("WaveformZoomView", () => {
 			}
 		});
 
-		context("with a fixed zoom level", () => {
+		describe("with a fixed zoom level", () => {
 			it("should update the waveform start position", () => {
 				const pointsLayerUpdate = sinon.spy(
 					zoomview._pointsLayer,
@@ -103,7 +103,7 @@ describe("WaveformZoomView", () => {
 			});
 		});
 
-		context("with auto zoom level", () => {
+		describe("with auto zoom level", () => {
 			beforeEach(() => {
 				zoomview.setZoom({ seconds: "auto" });
 			});
@@ -173,13 +173,13 @@ describe("WaveformZoomView", () => {
 			}
 		});
 
-		context("when enabled", () => {
+		describe("when enabled", () => {
 			beforeEach(() => {
 				zoomview.enableSegmentDragging(true);
 				zoomview.setWaveformDragMode("scroll");
 			});
 
-			context("when dragging a segment", () => {
+			describe("when dragging a segment", () => {
 				it("should move the segment to the right", () => {
 					const distance = 50;
 
@@ -245,7 +245,7 @@ describe("WaveformZoomView", () => {
 				});
 			});
 
-			context("when dragging the waveform", () => {
+			describe("when dragging the waveform", () => {
 				it("should scroll the waveform to the right", () => {
 					const distance = -50;
 
@@ -317,12 +317,12 @@ describe("WaveformZoomView", () => {
 			});
 		});
 
-		context("when disabled", () => {
+		describe("when disabled", () => {
 			beforeEach(() => {
 				zoomview.enableSegmentDragging(false);
 			});
 
-			context("when dragging the waveform view", () => {
+			describe("when dragging the waveform view", () => {
 				it("should scroll the waveform to the right", () => {
 					const spy = sinon.spy();
 
@@ -399,7 +399,7 @@ describe("WaveformZoomView", () => {
 			{ name: "with marker segments", markers: true, overlay: false },
 			{ name: "with overlay segments", markers: false, overlay: true },
 		].forEach((test) => {
-			context(test.name, () => {
+			describe(test.name, () => {
 				let p = null;
 				let zoomview = null;
 				let inputController = null;
@@ -463,12 +463,12 @@ describe("WaveformZoomView", () => {
 					}
 				});
 
-				context("overlap", () => {
+				describe("overlap", () => {
 					beforeEach(() => {
 						zoomview.setSegmentDragMode("overlap");
 					});
 
-					context("when dragging a segment over the next segment", () => {
+					describe("when dragging a segment over the next segment", () => {
 						it("should emit a segments.dragged event", () => {
 							const view = p.views.getView("zoomview");
 							const emit = sinon.spy(p, "emit");
@@ -506,7 +506,7 @@ describe("WaveformZoomView", () => {
 						});
 					});
 
-					context("when dragging a segment over the previous segment", () => {
+					describe("when dragging a segment over the previous segment", () => {
 						it("should emit a segments.dragged event", () => {
 							const view = p.views.getView("zoomview");
 							const emit = sinon.spy(p, "emit");
@@ -544,7 +544,7 @@ describe("WaveformZoomView", () => {
 						});
 					});
 
-					context("when dragging a segment start marker", () => {
+					describe("when dragging a segment start marker", () => {
 						it("should not move the start marker beyond the end marker", () => {
 							const clickX = 86;
 							const distance = 150;
@@ -607,75 +607,69 @@ describe("WaveformZoomView", () => {
 							expect(segment.startTime).to.equal(0);
 						});
 
-						context(
-							"and the segment overlaps the end of the waveform view",
-							() => {
-								it("should not move the start marker beyond the waveform view", () => {
-									const clickX = 947;
-									const distance = 100;
+						describe("and the segment overlaps the end of the waveform view", () => {
+							it("should not move the start marker beyond the waveform view", () => {
+								const clickX = 947;
+								const distance = 100;
 
-									inputController.mouseDown({ x: clickX, y: 50 });
-									inputController.mouseMove({ x: clickX + distance, y: 50 });
-									inputController.mouseUp({ x: clickX + distance, y: 50 });
-
-									const view = p.views.getView("zoomview");
-									const segment = p.segments.getSegment("segment3");
-
-									expect(segment.startTime).to.equal(
-										view.pixelsToTime(view.getWidth()),
-									);
-								});
-							},
-						);
-					});
-
-					context(
-						"when a segment start marker has been dragged over the previous segment",
-						() => {
-							it("should be possible to drag the previous segment end marker", () => {
-								const firstClickX = 258;
-								const firstDistance = -150;
-
-								inputController.mouseDown({ x: firstClickX, y: 50 });
-								inputController.mouseMove({
-									x: firstClickX + firstDistance,
-									y: 50,
-								});
-								inputController.mouseUp({
-									x: firstClickX + firstDistance,
-									y: 50,
-								});
-
-								const secondClickX = 172;
-								const secondDistance = 150;
-
-								inputController.mouseDown({ x: secondClickX, y: 50 });
-								inputController.mouseMove({
-									x: secondClickX + secondDistance,
-									y: 50,
-								});
-								inputController.mouseUp({
-									x: secondClickX + secondDistance,
-									y: 50,
-								});
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
 								const view = p.views.getView("zoomview");
-								const segment1 = p.segments.getSegment("segment1");
-								const segment2 = p.segments.getSegment("segment2");
+								const segment = p.segments.getSegment("segment3");
 
-								expect(segment1.startTime).to.equal(1.0);
-								expect(segment1.endTime).to.equal(
-									view.pixelsToTime(view.timeToPixels(2.0) + secondDistance),
+								expect(segment.startTime).to.equal(
+									view.pixelsToTime(view.getWidth()),
 								);
-								expect(segment2.startTime).to.equal(
-									view.pixelsToTime(view.timeToPixels(3.0) + firstDistance),
-								);
-								expect(segment2.endTime).to.equal(4.0);
 							});
-						},
-					);
+						});
+					});
 
-					context("when dragging a segment end marker", () => {
+					describe("when a segment start marker has been dragged over the previous segment", () => {
+						it("should be possible to drag the previous segment end marker", () => {
+							const firstClickX = 258;
+							const firstDistance = -150;
+
+							inputController.mouseDown({ x: firstClickX, y: 50 });
+							inputController.mouseMove({
+								x: firstClickX + firstDistance,
+								y: 50,
+							});
+							inputController.mouseUp({
+								x: firstClickX + firstDistance,
+								y: 50,
+							});
+
+							const secondClickX = 172;
+							const secondDistance = 150;
+
+							inputController.mouseDown({ x: secondClickX, y: 50 });
+							inputController.mouseMove({
+								x: secondClickX + secondDistance,
+								y: 50,
+							});
+							inputController.mouseUp({
+								x: secondClickX + secondDistance,
+								y: 50,
+							});
+
+							const view = p.views.getView("zoomview");
+							const segment1 = p.segments.getSegment("segment1");
+							const segment2 = p.segments.getSegment("segment2");
+
+							expect(segment1.startTime).to.equal(1.0);
+							expect(segment1.endTime).to.equal(
+								view.pixelsToTime(view.timeToPixels(2.0) + secondDistance),
+							);
+							expect(segment2.startTime).to.equal(
+								view.pixelsToTime(view.timeToPixels(3.0) + firstDistance),
+							);
+							expect(segment2.endTime).to.equal(4.0);
+						});
+					});
+
+					describe("when dragging a segment end marker", () => {
 						it("should not move the end marker beyond the start marker", () => {
 							const clickX = 172;
 							const distance = -150;
@@ -736,86 +730,80 @@ describe("WaveformZoomView", () => {
 							);
 						});
 
-						context(
-							"and the segment overlaps the start of the waveform view",
-							() => {
-								beforeEach((done) => {
-									zoomview.setStartTime(1.5);
-									setTimeout(done, 50);
-								});
+						describe("and the segment overlaps the start of the waveform view", () => {
+							beforeEach((done) => {
+								zoomview.setStartTime(1.5);
+								setTimeout(done, 50);
+							});
 
-								it("should not move the end marker beyond the start of the waveform view", () => {
-									const clickX = 43;
-									const distance = -100;
+							it("should not move the end marker beyond the start of the waveform view", () => {
+								const clickX = 43;
+								const distance = -100;
 
-									inputController.mouseDown({ x: clickX, y: 50 });
-									inputController.mouseMove({ x: clickX + distance, y: 50 });
-									inputController.mouseUp({ x: clickX + distance, y: 50 });
-
-									const view = p.views.getView("zoomview");
-									const segment = p.segments.getSegment("segment1");
-
-									expect(segment.endTime).to.equal(
-										view.pixelsToTime(view.getFrameOffset()),
-									);
-								});
-							},
-						);
-					});
-
-					context(
-						"when a segment end marker has been dragged over the next segment",
-						() => {
-							it("should be possible to drag the next segment start marker", () => {
-								const firstClickX = 172;
-								const firstDistance = 150;
-
-								inputController.mouseDown({ x: firstClickX, y: 50 });
-								inputController.mouseMove({
-									x: firstClickX + firstDistance,
-									y: 50,
-								});
-								inputController.mouseUp({
-									x: firstClickX + firstDistance,
-									y: 50,
-								});
-
-								const secondClickX = 258;
-								const secondDistance = -150;
-
-								inputController.mouseDown({ x: secondClickX, y: 50 });
-								inputController.mouseMove({
-									x: secondClickX + secondDistance,
-									y: 50,
-								});
-								inputController.mouseUp({
-									x: secondClickX + secondDistance,
-									y: 50,
-								});
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
 								const view = p.views.getView("zoomview");
-								const segment1 = p.segments.getSegment("segment1");
-								const segment2 = p.segments.getSegment("segment2");
+								const segment = p.segments.getSegment("segment1");
 
-								expect(segment1.startTime).to.equal(1.0);
-								expect(segment1.endTime).to.equal(
-									view.pixelsToTime(view.timeToPixels(2.0) + firstDistance),
+								expect(segment.endTime).to.equal(
+									view.pixelsToTime(view.getFrameOffset()),
 								);
-								expect(segment2.startTime).to.equal(
-									view.pixelsToTime(view.timeToPixels(3.0) + secondDistance),
-								);
-								expect(segment2.endTime).to.equal(4.0);
 							});
-						},
-					);
+						});
+					});
+
+					describe("when a segment end marker has been dragged over the next segment", () => {
+						it("should be possible to drag the next segment start marker", () => {
+							const firstClickX = 172;
+							const firstDistance = 150;
+
+							inputController.mouseDown({ x: firstClickX, y: 50 });
+							inputController.mouseMove({
+								x: firstClickX + firstDistance,
+								y: 50,
+							});
+							inputController.mouseUp({
+								x: firstClickX + firstDistance,
+								y: 50,
+							});
+
+							const secondClickX = 258;
+							const secondDistance = -150;
+
+							inputController.mouseDown({ x: secondClickX, y: 50 });
+							inputController.mouseMove({
+								x: secondClickX + secondDistance,
+								y: 50,
+							});
+							inputController.mouseUp({
+								x: secondClickX + secondDistance,
+								y: 50,
+							});
+
+							const view = p.views.getView("zoomview");
+							const segment1 = p.segments.getSegment("segment1");
+							const segment2 = p.segments.getSegment("segment2");
+
+							expect(segment1.startTime).to.equal(1.0);
+							expect(segment1.endTime).to.equal(
+								view.pixelsToTime(view.timeToPixels(2.0) + firstDistance),
+							);
+							expect(segment2.startTime).to.equal(
+								view.pixelsToTime(view.timeToPixels(3.0) + secondDistance),
+							);
+							expect(segment2.endTime).to.equal(4.0);
+						});
+					});
 				});
 
-				context("no-overlap", () => {
+				describe("no-overlap", () => {
 					beforeEach(() => {
 						zoomview.setSegmentDragMode("no-overlap");
 					});
 
-					context("when dragging a segment over the next segment", () => {
+					describe("when dragging a segment over the next segment", () => {
 						it("should move the segment adjacent to the next segment", () => {
 							const emit = sinon.spy(p, "emit");
 
@@ -848,7 +836,7 @@ describe("WaveformZoomView", () => {
 						});
 					});
 
-					context("when dragging a segment over the previous segment", () => {
+					describe("when dragging a segment over the previous segment", () => {
 						it("should move the segment adjacent to the previous segment", () => {
 							const emit = sinon.spy(p, "emit");
 
@@ -881,33 +869,30 @@ describe("WaveformZoomView", () => {
 						});
 					});
 
-					context("when dragging a segment end marker", () => {
-						context(
-							"and the end marker does not overlap the next segment",
-							() => {
-								it("should move the segment end marker", () => {
-									const clickX = 172;
-									const distance = 50;
+					describe("when dragging a segment end marker", () => {
+						describe("and the end marker does not overlap the next segment", () => {
+							it("should move the segment end marker", () => {
+								const clickX = 172;
+								const distance = 50;
 
-									inputController.mouseDown({ x: clickX, y: 50 });
-									inputController.mouseMove({ x: clickX + distance, y: 50 });
-									inputController.mouseUp({ x: clickX + distance, y: 50 });
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
-									const view = p.views.getView("zoomview");
-									const segment = p.segments.getSegment("segment1");
-									const nextSegment = p.segments.getSegment("segment2");
+								const view = p.views.getView("zoomview");
+								const segment = p.segments.getSegment("segment1");
+								const nextSegment = p.segments.getSegment("segment2");
 
-									expect(segment.startTime).to.equal(1.0);
-									expect(segment.endTime).to.equal(
-										view.pixelsToTime(view.timeToPixels(2.0) + distance),
-									);
-									expect(nextSegment.startTime).to.equal(3.0);
-									expect(nextSegment.endTime).to.equal(4.0);
-								});
-							},
-						);
+								expect(segment.startTime).to.equal(1.0);
+								expect(segment.endTime).to.equal(
+									view.pixelsToTime(view.timeToPixels(2.0) + distance),
+								);
+								expect(nextSegment.startTime).to.equal(3.0);
+								expect(nextSegment.endTime).to.equal(4.0);
+							});
+						});
 
-						context("and the end marker overlaps the next segment", () => {
+						describe("and the end marker overlaps the next segment", () => {
 							it("should move the segment end marker adjacent to the next segment", () => {
 								const clickX = 172;
 								const distance = 150;
@@ -927,99 +912,90 @@ describe("WaveformZoomView", () => {
 						});
 					});
 
-					context("when dragging a segment start marker", () => {
-						context(
-							"and the start marker does not overlap the previous segment",
-							() => {
-								it("should move the segment start marker", () => {
-									const clickX = 258;
-									const distance = -50;
+					describe("when dragging a segment start marker", () => {
+						describe("and the start marker does not overlap the previous segment", () => {
+							it("should move the segment start marker", () => {
+								const clickX = 258;
+								const distance = -50;
 
-									inputController.mouseDown({ x: clickX, y: 50 });
-									inputController.mouseMove({ x: clickX + distance, y: 50 });
-									inputController.mouseUp({ x: clickX + distance, y: 50 });
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
-									const view = p.views.getView("zoomview");
-									const segment = p.segments.getSegment("segment2");
-									const previousSegment = p.segments.getSegment("segment1");
+								const view = p.views.getView("zoomview");
+								const segment = p.segments.getSegment("segment2");
+								const previousSegment = p.segments.getSegment("segment1");
 
-									expect(previousSegment.startTime).to.equal(1.0);
-									expect(previousSegment.endTime).to.equal(2.0);
-									expect(segment.startTime).to.equal(
-										view.pixelsToTime(view.timeToPixels(3.0) + distance),
-									);
-									expect(segment.endTime).to.equal(4.0);
-								});
-							},
-						);
+								expect(previousSegment.startTime).to.equal(1.0);
+								expect(previousSegment.endTime).to.equal(2.0);
+								expect(segment.startTime).to.equal(
+									view.pixelsToTime(view.timeToPixels(3.0) + distance),
+								);
+								expect(segment.endTime).to.equal(4.0);
+							});
+						});
 
-						context(
-							"and the start marker overlaps the previous segment",
-							() => {
-								it("should move the segment start marker adjacent to the previous segment", () => {
-									const clickX = 258;
-									const distance = -150;
+						describe("and the start marker overlaps the previous segment", () => {
+							it("should move the segment start marker adjacent to the previous segment", () => {
+								const clickX = 258;
+								const distance = -150;
 
-									inputController.mouseDown({ x: clickX, y: 50 });
-									inputController.mouseMove({ x: clickX + distance, y: 50 });
-									inputController.mouseUp({ x: clickX + distance, y: 50 });
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
-									const segment = p.segments.getSegment("segment2");
-									const previousSegment = p.segments.getSegment("segment1");
+								const segment = p.segments.getSegment("segment2");
+								const previousSegment = p.segments.getSegment("segment1");
 
-									expect(previousSegment.startTime).to.equal(1.0);
-									expect(previousSegment.endTime).to.equal(2.0);
-									expect(segment.startTime).to.equal(previousSegment.endTime);
-									expect(segment.endTime).to.equal(4.0);
-								});
-							},
-						);
+								expect(previousSegment.startTime).to.equal(1.0);
+								expect(previousSegment.endTime).to.equal(2.0);
+								expect(segment.startTime).to.equal(previousSegment.endTime);
+								expect(segment.endTime).to.equal(4.0);
+							});
+						});
 					});
 				});
 
-				context("compress", () => {
+				describe("compress", () => {
 					beforeEach(() => {
 						zoomview.setSegmentDragMode("compress");
 						zoomview.setMinSegmentDragWidth(20);
 					});
 
-					context("when dragging a segment over the next segment", () => {
-						context(
-							"and does not reach the minimum width of the next segment",
-							() => {
-								it("should move the next segment start time", () => {
-									const view = p.views.getView("zoomview");
-									const emit = sinon.spy(p, "emit");
+					describe("when dragging a segment over the next segment", () => {
+						describe("and does not reach the minimum width of the next segment", () => {
+							it("should move the next segment start time", () => {
+								const view = p.views.getView("zoomview");
+								const emit = sinon.spy(p, "emit");
 
-									const distance = 150;
+								const distance = 150;
 
-									inputController.mouseDown({ x: 100, y: 50 });
-									inputController.mouseMove({ x: 100 + distance, y: 50 });
-									inputController.mouseUp({ x: 100 + distance, y: 50 });
+								inputController.mouseDown({ x: 100, y: 50 });
+								inputController.mouseMove({ x: 100 + distance, y: 50 });
+								inputController.mouseUp({ x: 100 + distance, y: 50 });
 
-									const calls = getEmitCalls(emit, "segments.dragged");
-									expect(calls.length).to.equal(2);
+								const calls = getEmitCalls(emit, "segments.dragged");
+								expect(calls.length).to.equal(2);
 
-									expect(calls[0].args[1].segment).to.be.an.instanceof(Segment);
-									expect(calls[0].args[1].segment.id).to.equal("segment1");
-									expect(calls[0].args[1].segment.startTime).to.equal(
-										1.0 + view.pixelsToTime(distance),
-									);
-									expect(calls[0].args[1].segment.endTime).to.equal(
-										2.0 + view.pixelsToTime(distance),
-									);
+								expect(calls[0].args[1].segment).to.be.an.instanceof(Segment);
+								expect(calls[0].args[1].segment.id).to.equal("segment1");
+								expect(calls[0].args[1].segment.startTime).to.equal(
+									1.0 + view.pixelsToTime(distance),
+								);
+								expect(calls[0].args[1].segment.endTime).to.equal(
+									2.0 + view.pixelsToTime(distance),
+								);
 
-									expect(calls[1].args[1].segment).to.be.an.instanceof(Segment);
-									expect(calls[1].args[1].segment.id).to.equal("segment2");
-									expect(calls[1].args[1].segment.startTime).to.equal(
-										2.0 + view.pixelsToTime(distance),
-									);
-									expect(calls[1].args[1].segment.endTime).to.equal(4.0);
-								});
-							},
-						);
+								expect(calls[1].args[1].segment).to.be.an.instanceof(Segment);
+								expect(calls[1].args[1].segment.id).to.equal("segment2");
+								expect(calls[1].args[1].segment.startTime).to.equal(
+									2.0 + view.pixelsToTime(distance),
+								);
+								expect(calls[1].args[1].segment.endTime).to.equal(4.0);
+							});
+						});
 
-						context("and reaches the minimum width of the next segment", () => {
+						describe("and reaches the minimum width of the next segment", () => {
 							it("should compress the next segment to a minimum width", () => {
 								const view = p.views.getView("zoomview");
 								const emit = sinon.spy(p, "emit");
@@ -1052,188 +1028,164 @@ describe("WaveformZoomView", () => {
 						});
 					});
 
-					context("when dragging a segment over the previous segment", () => {
-						context(
-							"and does not reach the minimum width of the previous segment",
-							() => {
-								it("should move the previous segment end time", () => {
-									const view = p.views.getView("zoomview");
-									const emit = sinon.spy(p, "emit");
+					describe("when dragging a segment over the previous segment", () => {
+						describe("and does not reach the minimum width of the previous segment", () => {
+							it("should move the previous segment end time", () => {
+								const view = p.views.getView("zoomview");
+								const emit = sinon.spy(p, "emit");
 
-									const distance = -150;
+								const distance = -150;
 
-									inputController.mouseDown({ x: 300, y: 50 });
-									inputController.mouseMove({ x: 300 + distance, y: 50 });
-									inputController.mouseUp({ x: 300 + distance, y: 50 });
+								inputController.mouseDown({ x: 300, y: 50 });
+								inputController.mouseMove({ x: 300 + distance, y: 50 });
+								inputController.mouseUp({ x: 300 + distance, y: 50 });
 
-									const calls = getEmitCalls(emit, "segments.dragged");
-									expect(calls.length).to.equal(2);
+								const calls = getEmitCalls(emit, "segments.dragged");
+								expect(calls.length).to.equal(2);
 
-									expect(calls[0].args[1].segment).to.be.an.instanceof(Segment);
-									expect(calls[0].args[1].segment.id).to.equal("segment2");
-									expect(calls[0].args[1].segment.startTime).to.equal(
-										3.0 + view.pixelsToTime(distance),
-									);
-									expect(calls[0].args[1].segment.endTime).to.equal(
-										4.0 + view.pixelsToTime(distance),
-									);
+								expect(calls[0].args[1].segment).to.be.an.instanceof(Segment);
+								expect(calls[0].args[1].segment.id).to.equal("segment2");
+								expect(calls[0].args[1].segment.startTime).to.equal(
+									3.0 + view.pixelsToTime(distance),
+								);
+								expect(calls[0].args[1].segment.endTime).to.equal(
+									4.0 + view.pixelsToTime(distance),
+								);
 
-									expect(calls[1].args[1].segment).to.be.an.instanceof(Segment);
-									expect(calls[1].args[1].segment.id).to.equal("segment1");
-									expect(calls[1].args[1].segment.startTime).to.equal(1.0);
-									expect(calls[1].args[1].segment.endTime).to.equal(
-										3.0 + view.pixelsToTime(distance),
-									);
-								});
-							},
-						);
+								expect(calls[1].args[1].segment).to.be.an.instanceof(Segment);
+								expect(calls[1].args[1].segment.id).to.equal("segment1");
+								expect(calls[1].args[1].segment.startTime).to.equal(1.0);
+								expect(calls[1].args[1].segment.endTime).to.equal(
+									3.0 + view.pixelsToTime(distance),
+								);
+							});
+						});
 
-						context(
-							"and reaches the minimum width of the previous segment",
-							() => {
-								it("should compress the previous segment to a minimum width", () => {
-									const view = p.views.getView("zoomview");
-									const emit = sinon.spy(p, "emit");
+						describe("and reaches the minimum width of the previous segment", () => {
+							it("should compress the previous segment to a minimum width", () => {
+								const view = p.views.getView("zoomview");
+								const emit = sinon.spy(p, "emit");
 
-									const distance = -300;
+								const distance = -300;
 
-									inputController.mouseDown({ x: 300, y: 50 });
-									inputController.mouseMove({ x: 300 + distance, y: 50 });
-									inputController.mouseUp({ x: 300 + distance, y: 50 });
+								inputController.mouseDown({ x: 300, y: 50 });
+								inputController.mouseMove({ x: 300 + distance, y: 50 });
+								inputController.mouseUp({ x: 300 + distance, y: 50 });
 
-									const calls = getEmitCalls(emit, "segments.dragged");
-									expect(calls.length).to.equal(2);
+								const calls = getEmitCalls(emit, "segments.dragged");
+								expect(calls.length).to.equal(2);
 
-									expect(calls[0].args[1].segment).to.be.an.instanceof(Segment);
-									expect(calls[0].args[1].segment.id).to.equal("segment2");
-									expect(calls[0].args[1].segment.startTime).to.equal(
-										1.0 + view.pixelsToTime(20),
-									);
-									expect(calls[0].args[1].segment.endTime).to.be.closeTo(
-										2.0 + view.pixelsToTime(20),
-										1e-15,
-									); // TODO
+								expect(calls[0].args[1].segment).to.be.an.instanceof(Segment);
+								expect(calls[0].args[1].segment.id).to.equal("segment2");
+								expect(calls[0].args[1].segment.startTime).to.equal(
+									1.0 + view.pixelsToTime(20),
+								);
+								expect(calls[0].args[1].segment.endTime).to.be.closeTo(
+									2.0 + view.pixelsToTime(20),
+									1e-15,
+								); // TODO
 
-									expect(calls[1].args[1].segment).to.be.an.instanceof(Segment);
-									expect(calls[1].args[1].segment.id).to.equal("segment1");
-									expect(calls[1].args[1].segment.startTime).to.equal(1.0);
-									expect(calls[1].args[1].segment.endTime).to.equal(
-										1.0 + view.pixelsToTime(20),
-									);
-								});
-							},
-						);
+								expect(calls[1].args[1].segment).to.be.an.instanceof(Segment);
+								expect(calls[1].args[1].segment.id).to.equal("segment1");
+								expect(calls[1].args[1].segment.startTime).to.equal(1.0);
+								expect(calls[1].args[1].segment.endTime).to.equal(
+									1.0 + view.pixelsToTime(20),
+								);
+							});
+						});
 					});
 
-					context(
-						"when dragging a segment end marker over the next segment",
-						() => {
-							context(
-								"and does not reach the minimum width of the next segment",
-								() => {
-									it("should move the next segment start time", () => {
-										const clickX = 172;
-										const distance = 100;
+					describe("when dragging a segment end marker over the next segment", () => {
+						describe("and does not reach the minimum width of the next segment", () => {
+							it("should move the next segment start time", () => {
+								const clickX = 172;
+								const distance = 100;
 
-										inputController.mouseDown({ x: clickX, y: 50 });
-										inputController.mouseMove({ x: clickX + distance, y: 50 });
-										inputController.mouseUp({ x: clickX + distance, y: 50 });
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
-										const view = p.views.getView("zoomview");
-										const segment = p.segments.getSegment("segment1");
-										const nextSegment = p.segments.getSegment("segment2");
+								const view = p.views.getView("zoomview");
+								const segment = p.segments.getSegment("segment1");
+								const nextSegment = p.segments.getSegment("segment2");
 
-										expect(segment.startTime).to.equal(1.0);
-										expect(segment.endTime).to.equal(
-											view.pixelsToTime(view.timeToPixels(2.0) + distance),
-										);
-										expect(nextSegment.startTime).to.equal(segment.endTime);
-										expect(nextSegment.endTime).to.equal(4.0);
-									});
-								},
-							);
+								expect(segment.startTime).to.equal(1.0);
+								expect(segment.endTime).to.equal(
+									view.pixelsToTime(view.timeToPixels(2.0) + distance),
+								);
+								expect(nextSegment.startTime).to.equal(segment.endTime);
+								expect(nextSegment.endTime).to.equal(4.0);
+							});
+						});
 
-							context(
-								"and reaches the minimum width of the next segment",
-								() => {
-									it("should compress the next segment to a minimum width", () => {
-										const clickX = 172;
-										const distance = 200;
+						describe("and reaches the minimum width of the next segment", () => {
+							it("should compress the next segment to a minimum width", () => {
+								const clickX = 172;
+								const distance = 200;
 
-										inputController.mouseDown({ x: clickX, y: 50 });
-										inputController.mouseMove({ x: clickX + distance, y: 50 });
-										inputController.mouseUp({ x: clickX + distance, y: 50 });
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
-										const view = p.views.getView("zoomview");
-										const segment = p.segments.getSegment("segment1");
-										const nextSegment = p.segments.getSegment("segment2");
+								const view = p.views.getView("zoomview");
+								const segment = p.segments.getSegment("segment1");
+								const nextSegment = p.segments.getSegment("segment2");
 
-										expect(segment.startTime).to.equal(1.0);
-										expect(segment.endTime).to.equal(
-											view.pixelsToTime(view.timeToPixels(4.0) - 50),
-										);
-										expect(nextSegment.startTime).to.equal(segment.endTime);
-										expect(nextSegment.endTime).to.equal(4.0);
-									});
-								},
-							);
-						},
-					);
+								expect(segment.startTime).to.equal(1.0);
+								expect(segment.endTime).to.equal(
+									view.pixelsToTime(view.timeToPixels(4.0) - 50),
+								);
+								expect(nextSegment.startTime).to.equal(segment.endTime);
+								expect(nextSegment.endTime).to.equal(4.0);
+							});
+						});
+					});
 
-					context(
-						"when dragging a segment start marker over the previous segment",
-						() => {
-							context(
-								"and does not reach the minimum width of the previous segment",
-								() => {
-									it("should move the previous segment end time", () => {
-										const clickX = 254;
-										const distance = -100;
+					describe("when dragging a segment start marker over the previous segment", () => {
+						describe("and does not reach the minimum width of the previous segment", () => {
+							it("should move the previous segment end time", () => {
+								const clickX = 254;
+								const distance = -100;
 
-										inputController.mouseDown({ x: clickX, y: 50 });
-										inputController.mouseMove({ x: clickX + distance, y: 50 });
-										inputController.mouseUp({ x: clickX + distance, y: 50 });
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
-										const view = p.views.getView("zoomview");
-										const segment = p.segments.getSegment("segment2");
-										const previousSegment = p.segments.getSegment("segment1");
+								const view = p.views.getView("zoomview");
+								const segment = p.segments.getSegment("segment2");
+								const previousSegment = p.segments.getSegment("segment1");
 
-										expect(segment.startTime).to.equal(
-											view.pixelsToTime(view.timeToPixels(3.0) + distance),
-										);
-										expect(segment.endTime).to.equal(4.0);
-										expect(previousSegment.startTime).to.equal(1.0);
-										expect(previousSegment.endTime).to.equal(segment.startTime);
-									});
-								},
-							);
+								expect(segment.startTime).to.equal(
+									view.pixelsToTime(view.timeToPixels(3.0) + distance),
+								);
+								expect(segment.endTime).to.equal(4.0);
+								expect(previousSegment.startTime).to.equal(1.0);
+								expect(previousSegment.endTime).to.equal(segment.startTime);
+							});
+						});
 
-							context(
-								"and reaches the minimum width of the previous segment",
-								() => {
-									it("should compress the previous segment to the minimum width", () => {
-										const clickX = 254;
-										const distance = -200;
+						describe("and reaches the minimum width of the previous segment", () => {
+							it("should compress the previous segment to the minimum width", () => {
+								const clickX = 254;
+								const distance = -200;
 
-										inputController.mouseDown({ x: clickX, y: 50 });
-										inputController.mouseMove({ x: clickX + distance, y: 50 });
-										inputController.mouseUp({ x: clickX + distance, y: 50 });
+								inputController.mouseDown({ x: clickX, y: 50 });
+								inputController.mouseMove({ x: clickX + distance, y: 50 });
+								inputController.mouseUp({ x: clickX + distance, y: 50 });
 
-										const view = p.views.getView("zoomview");
-										const segment = p.segments.getSegment("segment2");
-										const previousSegment = p.segments.getSegment("segment1");
+								const view = p.views.getView("zoomview");
+								const segment = p.segments.getSegment("segment2");
+								const previousSegment = p.segments.getSegment("segment1");
 
-										expect(segment.startTime).to.equal(
-											view.pixelsToTime(view.timeToPixels(1.0) + 50),
-										);
-										expect(segment.endTime).to.equal(4.0);
-										expect(previousSegment.startTime).to.equal(1.0);
-										expect(previousSegment.endTime).to.equal(segment.startTime);
-									});
-								},
-							);
-						},
-					);
+								expect(segment.startTime).to.equal(
+									view.pixelsToTime(view.timeToPixels(1.0) + 50),
+								);
+								expect(segment.endTime).to.equal(4.0);
+								expect(previousSegment.startTime).to.equal(1.0);
+								expect(previousSegment.endTime).to.equal(segment.startTime);
+							});
+						});
+					});
 				});
 			});
 		});
@@ -1291,7 +1243,7 @@ describe("WaveformZoomView", () => {
 				}
 			});
 
-			context("when dragging the waveform to the right", () => {
+			describe("when dragging the waveform to the right", () => {
 				it("should insert a new segment", () => {
 					const clickX = 430;
 					const distance = 172;
@@ -1361,7 +1313,7 @@ describe("WaveformZoomView", () => {
 				});
 			});
 
-			context("when dragging the waveform over an existing segment", () => {
+			describe("when dragging the waveform over an existing segment", () => {
 				it("should insert a new segment", () => {
 					const clickX = 129; // Click within segment1
 					const distance = 172;
@@ -1401,7 +1353,7 @@ describe("WaveformZoomView", () => {
 				});
 			});
 
-			context("when dragging the waveform from to the left", () => {
+			describe("when dragging the waveform from to the left", () => {
 				it("should insert a new segment with zero width", () => {
 					const clickX = 430;
 					const distance = -172;
@@ -1465,8 +1417,8 @@ describe("WaveformZoomView", () => {
 			}
 		});
 
-		context("when enabled", () => {
-			context("when clicking on the waveform", () => {
+		describe("when enabled", () => {
+			describe("when clicking on the waveform", () => {
 				it("should set the playback position", () => {
 					inputController.mouseDown({ x: 100, y: 50 });
 					inputController.mouseUp({ x: 100, y: 50 });
@@ -1480,13 +1432,13 @@ describe("WaveformZoomView", () => {
 				});
 			});
 
-			context("when dragging the playhead", () => {
+			describe("when dragging the playhead", () => {
 				beforeEach(() => {
 					const view = p.views.getView("zoomview");
 					view.enableSegmentDragging(true);
 				});
 
-				context("when the playhead is not over a segment", () => {
+				describe("when the playhead is not over a segment", () => {
 					it("should set the playback position", (done) => {
 						const view = p.views.getView("zoomview");
 
@@ -1509,7 +1461,7 @@ describe("WaveformZoomView", () => {
 					});
 				});
 
-				context("when the playhead is over a draggable segment", () => {
+				describe("when the playhead is over a draggable segment", () => {
 					it("should set the playback position and not move the segment", (done) => {
 						const view = p.views.getView("zoomview");
 
@@ -1538,7 +1490,7 @@ describe("WaveformZoomView", () => {
 					});
 				});
 
-				context("when the playhead is over a non-draggable segment", () => {
+				describe("when the playhead is over a non-draggable segment", () => {
 					it("should set the playback position and not move the segment", (done) => {
 						const view = p.views.getView("zoomview");
 
@@ -1569,13 +1521,13 @@ describe("WaveformZoomView", () => {
 			});
 		});
 
-		context("when disabled", () => {
+		describe("when disabled", () => {
 			beforeEach(() => {
 				const view = p.views.getView("zoomview");
 				view.enableSeek(false);
 			});
 
-			context("when clicking on the waveform", () => {
+			describe("when clicking on the waveform", () => {
 				it("should not change the playback position", () => {
 					const time = p.player.getCurrentTime();
 
@@ -1588,7 +1540,7 @@ describe("WaveformZoomView", () => {
 		});
 	});
 
-	context("when dragging a point", () => {
+	describe("when dragging a point", () => {
 		let p = null;
 		let zoomview = null;
 		let inputController = null;

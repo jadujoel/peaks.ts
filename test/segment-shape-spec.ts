@@ -4,7 +4,7 @@ import { extend } from "../src/utils";
 import WaveformShape from "../src/waveform-shape";
 
 describe("SegmentShape", () => {
-	let p;
+	let p = null;
 
 	function createPeaksInstance(options, done) {
 		const opts = {
@@ -47,12 +47,12 @@ describe("SegmentShape", () => {
 		}
 	});
 
-	context("with marker style segments", () => {
+	describe("with marker style segments", () => {
 		[
 			{ name: "editable", editable: true },
 			{ name: "non-editable", editable: false },
 		].forEach((test) => {
-			context(`with ${test.name} segments`, () => {
+			describe(`with ${test.name} segments`, () => {
 				it("should create marker handles", (done) => {
 					createPeaksInstance(
 						{
@@ -133,7 +133,7 @@ describe("SegmentShape", () => {
 			});
 		});
 
-		context("with no given waveform color", () => {
+		describe("with no given waveform color", () => {
 			it("should use the default color", (done) => {
 				createPeaksInstance(
 					{
@@ -167,7 +167,7 @@ describe("SegmentShape", () => {
 			});
 		});
 
-		context("with a given waveform color", () => {
+		describe("with a given waveform color", () => {
 			it("should create a waveform segment", (done) => {
 				createPeaksInstance(
 					{
@@ -244,7 +244,7 @@ describe("SegmentShape", () => {
 		});
 	});
 
-	context("with overlay style segments", () => {
+	describe("with overlay style segments", () => {
 		it("should not create marker handles", (done) => {
 			createPeaksInstance(
 				{

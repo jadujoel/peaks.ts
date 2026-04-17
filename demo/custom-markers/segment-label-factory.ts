@@ -1,7 +1,14 @@
 import { Label, Tag } from "konva/lib/shapes/Label";
 import { Text } from "konva/lib/shapes/Text";
 
-export function createSegmentLabel(options) {
+interface SegmentLabelOptions {
+	view: string;
+	segment: {
+		labelText: string;
+	};
+}
+
+export function createSegmentLabel(options: SegmentLabelOptions): Label | null {
 	if (options.view === "overview") {
 		return null;
 	}

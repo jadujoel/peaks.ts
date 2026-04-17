@@ -2,10 +2,10 @@ import Peaks from "../src/main";
 import Player from "../src/player";
 
 describe("Player", () => {
-	context("with stub player", () => {
-		let p;
-		let player;
-		let logger;
+	describe("with stub player", () => {
+		let p = null;
+		let player = null;
+		let logger = null;
 
 		beforeEach((done) => {
 			logger = sinon.spy();
@@ -201,9 +201,9 @@ describe("Player", () => {
 		});
 	});
 
-	context("with media element player", () => {
-		let p;
-		let logger;
+	describe("with media element player", () => {
+		let p = null;
+		let logger = null;
 
 		beforeEach((done) => {
 			logger = sinon.spy();
@@ -366,8 +366,8 @@ describe("Player", () => {
 		});
 	});
 
-	context("with custom player that fails to initialize", () => {
-		let p;
+	describe("with custom player that fails to initialize", () => {
+		let p = null;
 
 		afterEach(() => {
 			if (p) {

@@ -4,7 +4,7 @@ import InputController from "./helpers/input-controller";
 
 describe("WaveformOverview", () => {
 	describe("constructor", () => {
-		context("with waveform longer than the container width", () => {
+		describe("with waveform longer than the container width", () => {
 			it("should rescale the waveform to fit the container width", (done) => {
 				const container = document.getElementById("overview-container");
 
@@ -34,7 +34,7 @@ describe("WaveformOverview", () => {
 			});
 		});
 
-		context("with waveform shorter than the container width", () => {
+		describe("with waveform shorter than the container width", () => {
 			it("should use default waveform scale", (done) => {
 				const options = {
 					overview: {
@@ -93,8 +93,8 @@ describe("WaveformOverview", () => {
 			}
 		});
 
-		context("when enabled", () => {
-			context("when clicking on the waveform", () => {
+		describe("when enabled", () => {
+			describe("when clicking on the waveform", () => {
 				it("should set the playback position", () => {
 					inputController.mouseDown({ x: 100, y: 50 });
 					inputController.mouseUp({ x: 100, y: 50 });
@@ -108,7 +108,7 @@ describe("WaveformOverview", () => {
 				});
 			});
 
-			context("when dragging the waveform to the left", () => {
+			describe("when dragging the waveform to the left", () => {
 				it("should set the playback position", () => {
 					const distance = -50;
 
@@ -130,7 +130,7 @@ describe("WaveformOverview", () => {
 				});
 			});
 
-			context("when dragging the waveform to the right", () => {
+			describe("when dragging the waveform to the right", () => {
 				it("should set the playback position", () => {
 					const distance = 100;
 
@@ -158,13 +158,13 @@ describe("WaveformOverview", () => {
 			});
 		});
 
-		context("when disabled", () => {
+		describe("when disabled", () => {
 			beforeEach(() => {
 				const view = p.views.getView("overview");
 				view.enableSeek(false);
 			});
 
-			context("when clicking on the waveform", () => {
+			describe("when clicking on the waveform", () => {
 				it("should not change the playback position", () => {
 					const time = p.player.getCurrentTime();
 
@@ -175,7 +175,7 @@ describe("WaveformOverview", () => {
 				});
 			});
 
-			context("when dragging the waveform", () => {
+			describe("when dragging the waveform", () => {
 				it("should not change the playback position", () => {
 					const distance = 100;
 					const time = p.player.getCurrentTime();

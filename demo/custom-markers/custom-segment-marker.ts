@@ -2,12 +2,43 @@ import { Label, Tag } from "konva/lib/shapes/Label";
 import { Line } from "konva/lib/shapes/Line";
 import { Text } from "konva/lib/shapes/Text";
 
+interface MarkerGroup {
+	add(node: unknown): void;
+	on(eventName: string, handler: () => void): void;
+	y(value: number): void;
+}
+
+interface MarkerLayer {
+	getHeight(): number;
+}
+
+interface SegmentMarkerOptions {
+	color: string;
+	segment: {
+		labelText: string;
+	};
+	startMarker: boolean;
+	layer: MarkerLayer;
+}
+
+interface MarkerUpdateOptions {
+	labelText?: string;
+	color?: string;
+}
+
 class CustomSegmentMarker {
-	constructor(options) {
+	private readonly _options: SegmentMarkerOptions;
+	private _group: MarkerGroup | null = null;
+	private _label: Label | null = null;
+	private _tag: Tag | null = null;
+	private _text: Text | null = null;
+	private _line: Line | null = null;
+
+	constructor(options: SegmentMarkerOptions) {
 		this._options = options;
 	}
 
-	init(group) {
+	init(group: MarkerGroup): void {
 		this._group = group;
 
 		this._label = new Label({
@@ -52,8 +83,6 @@ class CustomSegmentMarker {
 
 		this._label.add(this._text);
 
-		// Vertical Line - create with default y and points, the real values
-		// are set in fitToView().
 		this._line = new Line({
 			x: 0,
 			y: 0,
@@ -65,29 +94,30 @@ class CustomSegmentMarker {
 		group.add(this._line);
 
 		this.fitToView();
-
 		this.bindEventHandlers();
 	}
 
-	bindEventHandlers() {
-		this._group.on("mouseenter", () => {
+	private bindEventHandlers(): void {
+		this._group?.on("mouseenter", () => {
 			document.body.style.cursor = "move";
 		});
 
-		this._group.on("mouseleave", () => {
+		this._group?.on("mouseleave", () => {
 			document.body.style.cursor = "default";
 		});
 	}
 
-	fitToView() {
-		const height = this._options.layer.getHeight();
+	fitToView(): void {
+		if (!this._group || !this._text || !this._line) {
+			return;
+		}
 
+		const height = this._options.layer.getHeight();
 		const labelHeight = this._text.height() + 2 * this._text.padding();
 		const offsetTop = 14;
 		const offsetBottom = 26;
 
 		this._group.y(offsetTop + labelHeight + 0.5);
-
 		this._line.points([
 			0.5,
 			0,
@@ -96,15 +126,15 @@ class CustomSegmentMarker {
 		]);
 	}
 
-	update(options) {
+	update(options: MarkerUpdateOptions): void {
 		if (options.labelText !== undefined) {
-			this._text.text(options.labelText);
+			this._text?.text(options.labelText);
 		}
 
 		if (options.color !== undefined) {
-			this._tag.fill(options.color);
-			this._tag.stroke(options.color);
-			this._line.stroke(options.color);
+			this._tag?.fill(options.color);
+			this._tag?.stroke(options.color);
+			this._line?.stroke(options.color);
 		}
 	}
 }

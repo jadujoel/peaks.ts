@@ -1,9 +1,9 @@
 import Peaks from "../src/main";
 
 describe("WaveformView", () => {
-	let p;
-	let drawWaveformLayer;
-	let logger;
+	let p = null;
+	let drawWaveformLayer = null;
+	let logger = null;
 
 	beforeEach((done) => {
 		logger = sinon.spy();
@@ -163,7 +163,7 @@ describe("WaveformView", () => {
 
 	describe("scrollWaveform", () => {
 		describe("zoomview", () => {
-			let zoomview;
+			let zoomview = null;
 
 			beforeEach(() => {
 				zoomview = p.views.getView("zoomview");
@@ -224,36 +224,30 @@ describe("WaveformView", () => {
 
 	describe("setZoom", () => {
 		describe("zoomview", () => {
-			context("with scale option", () => {
-				context(
-					"with target scale greater than the original waveform data",
-					() => {
-						it("should set the new zoom level", () => {
-							const view = p.views.getView("zoomview");
+			describe("with scale option", () => {
+				describe("with target scale greater than the original waveform data", () => {
+					it("should set the new zoom level", () => {
+						const view = p.views.getView("zoomview");
 
-							view.setZoom({ scale: 512 });
+						view.setZoom({ scale: 512 });
 
-							expect(view._scale).to.equal(512);
-							expect(logger.notCalled).to.equal(true);
-						});
-					},
-				);
+						expect(view._scale).to.equal(512);
+						expect(logger.notCalled).to.equal(true);
+					});
+				});
 
-				context(
-					"with target scale lower than the original waveform data",
-					() => {
-						it("should log an error and not change the zoom level", () => {
-							const view = p.views.getView("zoomview");
+				describe("with target scale lower than the original waveform data", () => {
+					it("should log an error and not change the zoom level", () => {
+						const view = p.views.getView("zoomview");
 
-							view.setZoom({ scale: 128 });
+						view.setZoom({ scale: 128 });
 
-							expect(view._scale).to.equal(256);
-							expect(logger.calledOnce).to.equal(true);
-						});
-					},
-				);
+						expect(view._scale).to.equal(256);
+						expect(logger.calledOnce).to.equal(true);
+					});
+				});
 
-				context("with non-integer scale", () => {
+				describe("with non-integer scale", () => {
 					it("should round the scale down to an integer value", () => {
 						const view = p.views.getView("zoomview");
 
@@ -267,7 +261,7 @@ describe("WaveformView", () => {
 					});
 				});
 
-				context("with auto option", () => {
+				describe("with auto option", () => {
 					it("should fit the waveform to the width of the view", () => {
 						const view = p.views.getView("zoomview");
 
@@ -279,36 +273,30 @@ describe("WaveformView", () => {
 				});
 			});
 
-			context("with seconds option", () => {
-				context(
-					"with target scale greater than the original waveform data",
-					() => {
-						it("should set the new zoom level", () => {
-							const view = p.views.getView("zoomview");
+			describe("with seconds option", () => {
+				describe("with target scale greater than the original waveform data", () => {
+					it("should set the new zoom level", () => {
+						const view = p.views.getView("zoomview");
 
-							view.setZoom({ seconds: 10.0 });
+						view.setZoom({ seconds: 10.0 });
 
-							expect(view._scale).to.equal(441);
-							expect(logger.notCalled).to.equal(true);
-						});
-					},
-				);
+						expect(view._scale).to.equal(441);
+						expect(logger.notCalled).to.equal(true);
+					});
+				});
 
-				context(
-					"with target scale lower than the original waveform data",
-					() => {
-						it("should log an error and not change the zoom level", () => {
-							const view = p.views.getView("zoomview");
+				describe("with target scale lower than the original waveform data", () => {
+					it("should log an error and not change the zoom level", () => {
+						const view = p.views.getView("zoomview");
 
-							view.setZoom({ seconds: 1.0 });
+						view.setZoom({ seconds: 1.0 });
 
-							expect(view._scale).to.equal(256);
-							expect(logger.calledOnce).to.equal(true);
-						});
-					},
-				);
+						expect(view._scale).to.equal(256);
+						expect(logger.calledOnce).to.equal(true);
+					});
+				});
 
-				context("with auto option", () => {
+				describe("with auto option", () => {
 					it("should fit the waveform to the width of the view", () => {
 						const view = p.views.getView("zoomview");
 

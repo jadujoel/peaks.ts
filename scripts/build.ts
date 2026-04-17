@@ -100,4 +100,25 @@ if (!demoMinResult.success) {
 }
 
 console.log("✓ demo/peaks.min.js");
+
+const customMarkersResult = await Bun.build({
+	entrypoints: [
+		resolve(import.meta.dir, "..", "demo", "custom-markers", "main.ts"),
+	],
+	outdir: resolve(import.meta.dir, "..", "demo", "custom-markers"),
+	format: "esm",
+	sourcemap: "external",
+	naming: "custom-markers.js",
+	target: "browser",
+});
+
+if (!customMarkersResult.success) {
+	console.error("Custom markers demo build failed:");
+	for (const log of customMarkersResult.logs) {
+		console.error(log);
+	}
+	process.exit(1);
+}
+
+console.log("✓ demo/custom-markers/custom-markers.js");
 console.log("Build complete.");

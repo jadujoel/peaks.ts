@@ -4,14 +4,14 @@ import { createPointMarker, createSegmentMarker } from "./marker-factories";
 import { createSegmentLabel } from "./segment-label-factory";
 
 function renderSegments(peaks) {
-	var segmentsContainer = document.getElementById("segments");
-	var segments = peaks.segments.getSegments();
-	var html = "";
+	const segmentsContainer = document.getElementById("segments");
+	const segments = peaks.segments.getSegments();
+	let html = "";
 
-	for (var i = 0; i < segments.length; i++) {
-		var segment = segments[i];
+	for (let i = 0; i < segments.length; i++) {
+		const segment = segments[i];
 
-		var row =
+		const row =
 			"<tr>" +
 			"<td>" +
 			segment.id +
@@ -60,12 +60,12 @@ function renderSegments(peaks) {
 		.querySelectorAll('input[data-action="update-segment-start-time"]')
 		.forEach((inputElement) => {
 			inputElement.addEventListener("input", (event) => {
-				var element = event.target;
-				var id = element.getAttribute("data-id");
-				var segment = peaks.segments.getSegment(id);
+				const element = event.target;
+				const id = element.getAttribute("data-id");
+				const segment = peaks.segments.getSegment(id);
 
 				if (segment) {
-					var startTime = parseFloat(element.value);
+					let startTime = parseFloat(element.value);
 
 					if (startTime < 0) {
 						startTime = 0;
@@ -86,12 +86,12 @@ function renderSegments(peaks) {
 		.querySelectorAll('input[data-action="update-segment-end-time"]')
 		.forEach((inputElement) => {
 			inputElement.addEventListener("input", (event) => {
-				var element = event.target;
-				var id = element.getAttribute("data-id");
-				var segment = peaks.segments.getSegment(id);
+				const element = event.target;
+				const id = element.getAttribute("data-id");
+				const segment = peaks.segments.getSegment(id);
 
 				if (segment) {
-					var endTime = parseFloat(element.value);
+					let endTime = parseFloat(element.value);
 
 					if (endTime < 0) {
 						endTime = 0;
@@ -112,10 +112,10 @@ function renderSegments(peaks) {
 		.querySelectorAll('input[data-action="update-segment-label"]')
 		.forEach((inputElement) => {
 			inputElement.addEventListener("input", (event) => {
-				var element = event.target;
-				var id = element.getAttribute("data-id");
-				var segment = peaks.segments.getSegment(id);
-				var labelText = element.labelText;
+				const element = event.target;
+				const id = element.getAttribute("data-id");
+				const segment = peaks.segments.getSegment(id);
+				const labelText = element.value;
 
 				if (segment) {
 					segment.update({ labelText: labelText });
@@ -125,14 +125,14 @@ function renderSegments(peaks) {
 }
 
 function renderPoints(peaks) {
-	var pointsContainer = document.getElementById("points");
-	var points = peaks.points.getPoints();
-	var html = "";
+	const pointsContainer = document.getElementById("points");
+	const points = peaks.points.getPoints();
+	let html = "";
 
-	for (var i = 0; i < points.length; i++) {
-		var point = points[i];
+	for (let i = 0; i < points.length; i++) {
+		const point = points[i];
 
-		var row =
+		const row =
 			"<tr>" +
 			"<td>" +
 			point.id +
@@ -169,12 +169,12 @@ function renderPoints(peaks) {
 		.querySelectorAll('input[data-action="update-point-time"]')
 		.forEach((inputElement) => {
 			inputElement.addEventListener("input", (event) => {
-				var element = event.target;
-				var id = element.getAttribute("data-id");
-				var point = peaks.points.getPoint(id);
+				const element = event.target;
+				const id = element.getAttribute("data-id");
+				const point = peaks.points.getPoint(id);
 
 				if (point) {
-					var time = parseFloat(element.value);
+					let time = parseFloat(element.value);
 
 					if (time < 0) {
 						time = 0;
@@ -190,10 +190,10 @@ function renderPoints(peaks) {
 		.querySelectorAll('input[data-action="update-point-label"]')
 		.forEach((inputElement) => {
 			inputElement.addEventListener("input", (event) => {
-				var element = event.target;
-				var id = element.getAttribute("data-id");
-				var point = peaks.points.getPoint(id);
-				var labelText = element.labelText;
+				const element = event.target;
+				const id = element.getAttribute("data-id");
+				const point = peaks.points.getPoint(id);
+				const labelText = element.value;
 
 				if (point) {
 					point.update({ labelText: labelText });
@@ -202,7 +202,7 @@ function renderPoints(peaks) {
 		});
 }
 
-var options = {
+const options = {
 	zoomview: {
 		container: document.getElementById("zoomview-container"),
 		waveformColor: {
@@ -259,7 +259,7 @@ Peaks.init(options, (err, peaksInstance) => {
 			peaksInstance.zoom.zoomOut();
 		});
 
-	var segmentCounter = 1;
+	let segmentCounter = 1;
 
 	document
 		.querySelector('button[data-action="add-segment"]')
@@ -277,7 +277,7 @@ Peaks.init(options, (err, peaksInstance) => {
 			});
 		});
 
-	var pointCounter = 1;
+	let pointCounter = 1;
 
 	document
 		.querySelector('button[data-action="add-point"]')
@@ -300,8 +300,8 @@ Peaks.init(options, (err, peaksInstance) => {
 	document
 		.querySelector('button[data-action="seek"]')
 		.addEventListener("click", (_event) => {
-			var time = document.getElementById("seek-time").value;
-			var seconds = parseFloat(time);
+			const time = document.getElementById("seek-time").value;
+			const seconds = parseFloat(time);
 
 			if (!Number.isNaN(seconds)) {
 				peaksInstance.player.seek(seconds);
@@ -315,17 +315,17 @@ Peaks.init(options, (err, peaksInstance) => {
 		});
 
 	document.getElementById("auto-scroll").addEventListener("change", (event) => {
-		var view = peaksInstance.views.getView("zoomview");
+		const view = peaksInstance.views.getView("zoomview");
 		view.enableAutoScroll(event.target.checked);
 	});
 
 	document.querySelector("body").addEventListener("click", (event) => {
-		var element = event.target;
-		var action = element.getAttribute("data-action");
-		var id = element.getAttribute("data-id");
+		const element = event.target;
+		const action = element.getAttribute("data-action");
+		const id = element.getAttribute("data-id");
 
 		if (action === "play-segment") {
-			var segment = peaksInstance.segments.getSegment(id);
+			const segment = peaksInstance.segments.getSegment(id);
 			peaksInstance.player.playSegment(segment);
 		} else if (action === "remove-point") {
 			peaksInstance.points.removeById(id);
@@ -334,7 +334,7 @@ Peaks.init(options, (err, peaksInstance) => {
 		}
 	});
 
-	var amplitudeScales = {
+	const amplitudeScales = {
 		0: 0.0,
 		1: 0.1,
 		2: 0.25,
@@ -351,7 +351,7 @@ Peaks.init(options, (err, peaksInstance) => {
 	document
 		.getElementById("amplitude-scale")
 		.addEventListener("input", (event) => {
-			var scale = amplitudeScales[event.target.value];
+			const scale = amplitudeScales[event.target.value];
 
 			peaksInstance.views.getView("zoomview").setAmplitudeScale(scale);
 			peaksInstance.views.getView("overview").setAmplitudeScale(scale);
@@ -409,8 +409,8 @@ Peaks.init(options, (err, peaksInstance) => {
 		});
 
 	document.getElementById("enable-seek").addEventListener("change", (event) => {
-		var overview = peaksInstance.views.getView("overview");
-		var zoomview = peaksInstance.views.getView("zoomview");
+		const overview = peaksInstance.views.getView("overview");
+		const zoomview = peaksInstance.views.getView("zoomview");
 
 		zoomview.enableSeek(event.target.checked);
 		overview.enableSeek(event.target.checked);
@@ -419,7 +419,7 @@ Peaks.init(options, (err, peaksInstance) => {
 	document
 		.getElementById("waveform-drag-mode")
 		.addEventListener("change", (event) => {
-			var view = peaksInstance.views.getView("zoomview");
+			const view = peaksInstance.views.getView("zoomview");
 
 			view.setWaveformDragMode(event.target.value);
 		});
@@ -427,7 +427,7 @@ Peaks.init(options, (err, peaksInstance) => {
 	document
 		.getElementById("enable-segment-dragging")
 		.addEventListener("change", (event) => {
-			var zoomview = peaksInstance.views.getView("zoomview");
+			const zoomview = peaksInstance.views.getView("zoomview");
 
 			zoomview.enableSegmentDragging(event.target.checked);
 		});
@@ -435,7 +435,7 @@ Peaks.init(options, (err, peaksInstance) => {
 	document
 		.getElementById("segment-drag-mode")
 		.addEventListener("change", (event) => {
-			var view = peaksInstance.views.getView("zoomview");
+			const view = peaksInstance.views.getView("zoomview");
 
 			view.setSegmentDragMode(event.target.value);
 		});

@@ -1,9 +1,9 @@
 import Peaks from "../src/main";
 
 describe("Peaks.zoom", () => {
-	let p;
+	let p = null;
 
-	context("with overview and zoomview", () => {
+	describe("with overview and zoomview", () => {
 		beforeEach((done) => {
 			const options = {
 				overview: {
@@ -104,7 +104,7 @@ describe("Peaks.zoom", () => {
 		});
 	});
 
-	context("with overview only", () => {
+	describe("with overview only", () => {
 		beforeEach((done) => {
 			const options = {
 				overview: {

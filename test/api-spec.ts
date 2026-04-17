@@ -46,7 +46,7 @@ describe("Peaks", () => {
 			}).to.throw(Error, /callback/);
 		});
 
-		context("with valid options", () => {
+		describe("with valid options", () => {
 			it("should invoke callback when initialised", (done) => {
 				Peaks.init(
 					{
@@ -90,7 +90,7 @@ describe("Peaks", () => {
 				);
 			});
 
-			context("with zoomview and overview options", () => {
+			describe("with zoomview and overview options", () => {
 				it("should construct a Peaks object with overview and zoomable waveforms", (done) => {
 					Peaks.init(
 						{
@@ -361,7 +361,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with scrollbar option", () => {
+			describe("with scrollbar option", () => {
 				it("should construct a Peaks object with scrollbar", (done) => {
 					Peaks.init(
 						{
@@ -387,7 +387,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with precomputed stereo waveform data", () => {
+			describe("with precomputed stereo waveform data", () => {
 				it("should initialise correctly", (done) => {
 					Peaks.init(
 						{
@@ -411,7 +411,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with valid JSON waveform data", () => {
+			describe("with valid JSON waveform data", () => {
 				it("should initialise correctly", (done) => {
 					Peaks.init(
 						{
@@ -437,7 +437,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with valid binary waveform data", () => {
+			describe("with valid binary waveform data", () => {
 				it("should initialise correctly", (done) => {
 					fetch("/base/test/data/sample.dat")
 						.then((response) => response.arrayBuffer())
@@ -467,7 +467,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with audioContext and multiChannel enabled", () => {
+			describe("with audioContext and multiChannel enabled", () => {
 				it("should initialise correctly", (done) => {
 					Peaks.init(
 						{
@@ -494,7 +494,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with audioBuffer", () => {
+			describe("with audioBuffer", () => {
 				it("should initialise correctly", (done) => {
 					const audioContext = new TestAudioContext();
 
@@ -529,7 +529,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with external player", () => {
+			describe("with external player", () => {
 				it("should ignore mediaUrl if using an external player", (done) => {
 					Peaks.init(
 						{
@@ -555,8 +555,8 @@ describe("Peaks", () => {
 				});
 			});
 
-			context("with audio element in error state", () => {
-				let mediaElement;
+			describe("with audio element in error state", () => {
+				let mediaElement = null;
 
 				beforeEach(() => {
 					mediaElement = document.createElement("audio");
@@ -593,7 +593,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with invalid options", () => {
+		describe("with invalid options", () => {
 			it("should invoke callback with an error if options is not an object", (done) => {
 				Peaks.init([], (err, instance) => {
 					expect(err).to.be.an.instanceOf(Error);
@@ -1007,7 +1007,7 @@ describe("Peaks", () => {
 	});
 
 	describe("setSource", () => {
-		let drawWaveformLayer;
+		let drawWaveformLayer = null;
 
 		beforeEach((done) => {
 			const options = {
@@ -1035,7 +1035,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with invalid media url", () => {
+		describe("with invalid media url", () => {
 			it("should return an error", (done) => {
 				const options = {
 					mediaUrl: "/base/test/data/unknown.mp3",
@@ -1072,7 +1072,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with invalid json waveform data", () => {
+		describe("with invalid json waveform data", () => {
 			it("should return an error", (done) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
@@ -1088,7 +1088,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with valid json waveform data", () => {
+		describe("with valid json waveform data", () => {
 			it("should update the waveform", (done) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
@@ -1105,7 +1105,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with waveform data url", () => {
+		describe("with waveform data url", () => {
 			it("should update the waveform", (done) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
@@ -1122,7 +1122,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with audioContext", () => {
+		describe("with audioContext", () => {
 			it("should update the waveform", (done) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
@@ -1139,7 +1139,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with audioBuffer", () => {
+		describe("with audioBuffer", () => {
 			it("should update the waveform", (done) => {
 				const audioContext = new TestAudioContext();
 
@@ -1164,7 +1164,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with binary waveform data", () => {
+		describe("with binary waveform data", () => {
 			it("should update the waveform", (done) => {
 				fetch("/base/test/data/sample.dat")
 					.then((response) => response.arrayBuffer())
@@ -1185,7 +1185,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with invalid binary waveform data", () => {
+		describe("with invalid binary waveform data", () => {
 			it("should return an error", (done) => {
 				fetch("/base/test/data/unknown.dat")
 					.then((response) => response.arrayBuffer())
@@ -1205,7 +1205,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with zoom levels", () => {
+		describe("with zoom levels", () => {
 			it("should update the instance zoom levels", (done) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
@@ -1224,7 +1224,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with stereo waveform", () => {
+		describe("with stereo waveform", () => {
 			it("should update the waveform", (done) => {
 				const options = {
 					mediaUrl: "/base/test/data/07023003.mp3",
@@ -1243,7 +1243,7 @@ describe("Peaks", () => {
 			});
 		});
 
-		context("with missing mediaUrl", () => {
+		describe("with missing mediaUrl", () => {
 			it("should return an error", (done) => {
 				const options = {
 					webAudio: {

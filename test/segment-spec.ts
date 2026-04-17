@@ -3,7 +3,7 @@ import { Segment } from "../src/segment";
 
 describe("Segment", () => {
 	describe("update", () => {
-		let p;
+		let p = null;
 
 		beforeEach((done) => {
 			const options = {

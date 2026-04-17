@@ -82,7 +82,7 @@ globalThis.sinon = sinon;
 globalThis.it = wrapTestRegistrar(registerIt);
 globalThis.test = wrapTestRegistrar(registerTest);
 
-await import("./setup.js");
+await import("./setup");
 
 registerAfterEach(() => {
 	sinon.restore();

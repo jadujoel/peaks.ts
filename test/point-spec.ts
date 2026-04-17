@@ -3,7 +3,7 @@ import { Point } from "../src/point";
 
 describe("Point", () => {
 	describe("update", () => {
-		let p;
+		let p = null;
 
 		beforeEach((done) => {
 			const options = {

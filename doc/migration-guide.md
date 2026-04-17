@@ -147,8 +147,8 @@ class CustomSegmentMarker {
 
     // Create Konva.js objects to render the marker.
     //
-    // See demo/custom-markers/custom-point-marker.js
-    // and demo/custom-markers/custom-segment-marker.js
+    // See demo/custom-markers/custom-point-marker.ts
+    // and demo/custom-markers/custom-segment-marker.ts
     // for complete examples.
 
     this.fitToView();

@@ -2,7 +2,7 @@ import {
 	clamp,
 	extend,
 	formatTime,
-	isFinite,
+	isFinite as isFiniteValue,
 	isFunction,
 	isInAscendingOrder,
 	isLinearGradientColor,
@@ -15,7 +15,7 @@ import {
 
 describe("Utils", () => {
 	describe("formatTime", () => {
-		context("with hundredths", () => {
+		describe("with hundredths", () => {
 			const tests = [
 				{ input: 0, output: "00:00.00" },
 				{ input: 1, output: "00:01.00" },
@@ -26,7 +26,7 @@ describe("Utils", () => {
 			];
 
 			tests.forEach((test) => {
-				context(`given ${test.input}`, () => {
+				describe(`given ${test.input}`, () => {
 					it(`should output ${test.output}`, () => {
 						expect(formatTime(test.input, 2)).to.equal(test.output);
 					});
@@ -34,7 +34,7 @@ describe("Utils", () => {
 			});
 		});
 
-		context("with thousandths", () => {
+		describe("with thousandths", () => {
 			const tests = [
 				{ input: 0, output: "00:00.000" },
 				{ input: 1, output: "00:01.000" },
@@ -47,7 +47,7 @@ describe("Utils", () => {
 			];
 
 			tests.forEach((test) => {
-				context(`given ${test.input}`, () => {
+				describe(`given ${test.input}`, () => {
 					it(`should output ${test.output}`, () => {
 						expect(formatTime(test.input, 3)).to.equal(test.output);
 					});
@@ -55,7 +55,7 @@ describe("Utils", () => {
 			});
 		});
 
-		context("without fraction seconds", () => {
+		describe("without fraction seconds", () => {
 			const tests = [
 				{ input: 0, output: "00:00" },
 				{ input: 1, output: "00:01" },
@@ -66,7 +66,7 @@ describe("Utils", () => {
 			];
 
 			tests.forEach((test) => {
-				context(`given ${test.input}`, () => {
+				describe(`given ${test.input}`, () => {
 					it(`should output ${test.output}`, () => {
 						expect(formatTime(test.input, 0)).to.equal(test.output);
 					});
@@ -228,19 +228,19 @@ describe("Utils", () => {
 
 	describe("isFinite", () => {
 		it("should accept finite numbers", () => {
-			expect(isFinite(1.0)).to.equal(true);
+			expect(isFiniteValue(1.0)).to.equal(true);
 		});
 
 		it("should reject non-finite numbers", () => {
-			expect(isFinite(Infinity)).to.equal(false);
-			expect(isFinite(-Infinity)).to.equal(false);
-			expect(isFinite(NaN)).to.equal(false);
+			expect(isFiniteValue(Infinity)).to.equal(false);
+			expect(isFiniteValue(-Infinity)).to.equal(false);
+			expect(isFiniteValue(NaN)).to.equal(false);
 		});
 
 		it("should reject non-numbers", () => {
-			expect(isFinite("a")).to.equal(false);
-			expect(isFinite(null)).to.equal(false);
-			expect(isFinite(undefined)).to.equal(false);
+			expect(isFiniteValue("a")).to.equal(false);
+			expect(isFiniteValue(null)).to.equal(false);
+			expect(isFiniteValue(undefined)).to.equal(false);
 		});
 	});
 

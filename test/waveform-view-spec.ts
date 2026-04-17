@@ -32,7 +32,7 @@ function initOptions(view, viewOptions) {
 ].forEach((test) => {
 	describe(test.name, () => {
 		describe("playedWaveformColor option", () => {
-			context("with a valid color", () => {
+			describe("with a valid color", () => {
 				it("should create a played waveform shape", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -56,7 +56,7 @@ function initOptions(view, viewOptions) {
 		});
 
 		describe("setPlayedWaveformColor", () => {
-			context("with a valid color", () => {
+			describe("with a valid color", () => {
 				it("should create a played waveform shape", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -79,7 +79,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("with null", () => {
+			describe("with null", () => {
 				it("should remove the played waveform shape", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -105,7 +105,7 @@ function initOptions(view, viewOptions) {
 		});
 
 		describe("showPlayheadTime option", () => {
-			context("with default options", () => {
+			describe("with default options", () => {
 				it("should not show the playhead time", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -123,7 +123,7 @@ function initOptions(view, viewOptions) {
 					});
 				});
 			});
-			context("when the global option is true", () => {
+			describe("when the global option is true", () => {
 				it("should show playhead time in the zoomview only", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -151,7 +151,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("when the global option is false", () => {
+			describe("when the global option is false", () => {
 				it("should not show playhead time", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -172,7 +172,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("when the view-specific option is true", () => {
+			describe("when the view-specific option is true", () => {
 				it("should show the current playback position next to the playhead", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -195,7 +195,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("when the view-specific option is false", () => {
+			describe("when the view-specific option is false", () => {
 				it("should not show the current playback position next to the playhead", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -217,7 +217,7 @@ function initOptions(view, viewOptions) {
 		});
 
 		describe("showPlayheadTime", () => {
-			context("when enabled", () => {
+			describe("when enabled", () => {
 				it("should show the current playback position next to the playhead", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -242,7 +242,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("when disabled", () => {
+			describe("when disabled", () => {
 				it("should not show the current playback position next to the playhead", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -266,7 +266,7 @@ function initOptions(view, viewOptions) {
 		});
 
 		describe("timeLabelPrecision option", () => {
-			context("with default options", () => {
+			describe("with default options", () => {
 				it("should use 2 decimal places for the current playback time", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -289,7 +289,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("with zero", () => {
+			describe("with zero", () => {
 				it("should set the number of decimal places for the current playback time", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -313,7 +313,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("with non-zero", () => {
+			describe("with non-zero", () => {
 				it("should set the number of decimal places for the current playback time", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -339,7 +339,7 @@ function initOptions(view, viewOptions) {
 		});
 
 		describe("setTimeLabelPrecision", () => {
-			context("with zero", () => {
+			describe("with zero", () => {
 				it("should set the number of decimal places for the current playback time", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -364,7 +364,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("with non-zero", () => {
+			describe("with non-zero", () => {
 				it("should set the number of decimal places for the current playback time", (done) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
@@ -425,7 +425,7 @@ function initOptions(view, viewOptions) {
 				}
 			});
 
-			context("when clicking on the waveform", () => {
+			describe("when clicking on the waveform", () => {
 				it(`should emit a ${test.view}.click event`, () => {
 					const emit = sinon.spy(p, "emit");
 
@@ -467,10 +467,10 @@ function initOptions(view, viewOptions) {
 			});
 
 			["scroll", "insert-segment"].forEach((waveformDragMode) => {
-				context(`with waveformDragMode(${waveformDragMode})`, () => {
+				describe(`with waveformDragMode(${waveformDragMode})`, () => {
 					["no-overlap", "compress"].forEach((segmentDragMode) => {
-						context(`with segmentDragMode(${segmentDragMode})`, () => {
-							context("when clicking on a segment", () => {
+						describe(`with segmentDragMode(${segmentDragMode})`, () => {
+							describe("when clicking on a segment", () => {
 								beforeEach((done) => {
 									if (test.view === "zoomview") {
 										const view = p.views.getView("zoomview");
@@ -750,7 +750,7 @@ function initOptions(view, viewOptions) {
 				});
 			});
 
-			context("when clicking on a point", () => {
+			describe("when clicking on a point", () => {
 				beforeEach((done) => {
 					p.points.add({ id: "point1", time: 1.0, editable: true });
 					setTimeout(done, 50);

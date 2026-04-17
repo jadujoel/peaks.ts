@@ -2,7 +2,7 @@ import Peaks from "../src/main";
 import { Point } from "../src/point";
 
 describe("Peaks.points", () => {
-	let p;
+	let p = null;
 
 	beforeEach((done) => {
 		const options = {

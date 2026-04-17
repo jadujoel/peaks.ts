@@ -2,7 +2,8 @@ import Peaks from "../src/main";
 import { Segment } from "../src/segment";
 
 describe("Peaks.segments", () => {
-	let p, logger;
+	let p = null;
+	let logger = null;
 
 	beforeEach((done) => {
 		logger = sinon.spy();

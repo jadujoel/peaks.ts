@@ -1,7 +1,7 @@
 import Peaks from "../src/main";
 
 describe("PointsLayer", () => {
-	let p;
+	let p = null;
 
 	beforeEach((done) => {
 		const options = {
@@ -31,7 +31,7 @@ describe("PointsLayer", () => {
 		}
 	});
 
-	context("when adding a point", () => {
+	describe("when adding a point", () => {
 		it("should create a point marker if the point is visible", () => {
 			const zoomview = p.views.getView("zoomview");
 			expect(zoomview).to.be.ok;
@@ -61,7 +61,7 @@ describe("PointsLayer", () => {
 		});
 	});
 
-	context("when updating a point", () => {
+	describe("when updating a point", () => {
 		it("should move the point marker if its time has changed", () => {
 			const zoomview = p.views.getView("zoomview");
 			expect(zoomview).to.be.ok;

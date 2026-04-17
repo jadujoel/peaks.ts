@@ -99,8 +99,8 @@ export default defineConfig({
 	plugins: [serveTestData()],
 	test: {
 		globals: true,
-		include: ["test/**/*-spec.js"],
-		setupFiles: ["./test/vitest.setup.js"],
+		include: ["test/**/*-spec.{js,ts}"],
+		setupFiles: ["./test/vitest.setup.ts"],
 		fileParallelism: false,
 		browser: {
 			enabled: true,
