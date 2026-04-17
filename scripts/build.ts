@@ -3,6 +3,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 
 const distDir = resolve(import.meta.dir, "..", "dist");
+const demoDir = resolve(import.meta.dir, "..", "demo");
 
 // Clean dist
 rmSync(distDir, { recursive: true, force: true });
@@ -58,4 +59,45 @@ if (!minResult.success) {
 }
 
 console.log("✓ dist/peaks.min.js");
+
+// Build bundled demo ESM bundle for the browser demo pages
+const demoResult = await Bun.build({
+	entrypoints: [resolve(import.meta.dir, "..", "src", "main.ts")],
+	outdir: demoDir,
+	format: "esm",
+	sourcemap: "external",
+	naming: "peaks.esm.js",
+	target: "browser",
+});
+
+if (!demoResult.success) {
+	console.error("Demo ESM build failed:");
+	for (const log of demoResult.logs) {
+		console.error(log);
+	}
+	process.exit(1);
+}
+
+console.log("✓ demo/peaks.esm.js");
+
+// Build bundled minified demo bundle for the browser demo pages
+const demoMinResult = await Bun.build({
+	entrypoints: [resolve(import.meta.dir, "..", "src", "main.ts")],
+	outdir: demoDir,
+	format: "esm",
+	sourcemap: "external",
+	naming: "peaks.min.js",
+	minify: true,
+	target: "browser",
+});
+
+if (!demoMinResult.success) {
+	console.error("Demo minified build failed:");
+	for (const log of demoMinResult.logs) {
+		console.error(log);
+	}
+	process.exit(1);
+}
+
+console.log("✓ demo/peaks.min.js");
 console.log("Build complete.");

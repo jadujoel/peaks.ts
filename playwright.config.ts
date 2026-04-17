@@ -8,7 +8,7 @@ export default defineConfig({
 		trace: "retain-on-failure",
 	},
 	webServer: {
-		command: "bun run preview",
+		command: "bun run start",
 		url: "http://127.0.0.1:8080",
 		reuseExistingServer: !process.env.CI,
 	},

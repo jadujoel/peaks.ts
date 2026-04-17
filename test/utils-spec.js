@@ -26,8 +26,8 @@ describe("Utils", () => {
 			];
 
 			tests.forEach((test) => {
-				context("given " + test.input, () => {
-					it("should output " + test.output, () => {
+				context(`given ${test.input}`, () => {
+					it(`should output ${test.output}`, () => {
 						expect(formatTime(test.input, 2)).to.equal(test.output);
 					});
 				});
@@ -47,8 +47,8 @@ describe("Utils", () => {
 			];
 
 			tests.forEach((test) => {
-				context("given " + test.input, () => {
-					it("should output " + test.output, () => {
+				context(`given ${test.input}`, () => {
+					it(`should output ${test.output}`, () => {
 						expect(formatTime(test.input, 3)).to.equal(test.output);
 					});
 				});
@@ -66,8 +66,8 @@ describe("Utils", () => {
 			];
 
 			tests.forEach((test) => {
-				context("given " + test.input, () => {
-					it("should output " + test.output, () => {
+				context(`given ${test.input}`, () => {
+					it(`should output ${test.output}`, () => {
 						expect(formatTime(test.input, 0)).to.equal(test.output);
 					});
 				});

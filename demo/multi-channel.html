@@ -86,8 +86,9 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       ((Peaks) => {
         var AudioContext = window.AudioContext || window.webkitAudioContext;
         var audioContext = new AudioContext();
@@ -193,7 +194,7 @@
             view.setWaveformColor(event.target.value);
           });
         });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

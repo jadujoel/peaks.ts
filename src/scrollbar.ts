@@ -215,7 +215,7 @@ class Scrollbar {
 				this._getScrollbarRange(),
 		);
 
-		this._zoomview.updateWaveform(offset, false);
+		this._zoomview.updateWaveform(offset);
 	}
 
 	fitToContainer(): void {

@@ -76,8 +76,9 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       ((Peaks) => {
         var options = {
           overview: {
@@ -102,7 +103,7 @@
 
           console.log('Peaks instance ready');
 
-          document.querySelector('button[data-action="seek"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="seek"]').addEventListener('click', (_event) => {
             var time = document.getElementById('seek-time').value;
             var seconds = parseFloat(time);
 
@@ -156,7 +157,7 @@
             view.setAxisGridlineColor(event.target.value);
           });
         });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

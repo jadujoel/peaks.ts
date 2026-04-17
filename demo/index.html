@@ -143,8 +143,9 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       ((Peaks) => {
         var renderSegments = (peaks) => {
           var segmentsContainer = document.getElementById('segments');
@@ -334,7 +335,7 @@
             peaksInstance.segments.add({
               startTime: peaksInstance.player.getCurrentTime(),
               endTime: peaksInstance.player.getCurrentTime() + 2,
-              labelText: 'Test segment ' + segmentCounter++,
+              labelText: `Test segment ${segmentCounter++}`,
               editable: true
             });
           });
@@ -347,12 +348,12 @@
             });
           });
 
-          document.querySelector('button[data-action="log-data"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="log-data"]').addEventListener('click', (_event) => {
             renderSegments(peaksInstance);
             renderPoints(peaksInstance);
           });
 
-          document.querySelector('button[data-action="seek"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="seek"]').addEventListener('click', (_event) => {
             var time = document.getElementById('seek-time').value;
             var seconds = parseFloat(time);
 
@@ -368,7 +369,7 @@
             view.setWheelMode(mode);
           });
 
-          document.querySelector('button[data-action="destroy"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="destroy"]').addEventListener('click', (_event) => {
             peaksInstance.destroy();
           });
 
@@ -450,7 +451,7 @@
             peaksInstance.views.getView('overview').setAmplitudeScale(scale);
           });
 
-          document.querySelector('button[data-action="resize-width"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="resize-width"]').addEventListener('click', (_event) => {
             document.querySelectorAll('.waveform-container').forEach((container) => {
               container.style.width = container.offsetWidth === 1000 ? "700px" : "1000px";
             });
@@ -474,7 +475,7 @@
             }
           });
 
-          document.querySelector('button[data-action="resize-height"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="resize-height"]').addEventListener('click', (_event) => {
             const zoomviewContainer = document.getElementById('zoomview-container');
             const overviewContainer = document.getElementById('overview-container');
 
@@ -494,7 +495,7 @@
             }
           });
 
-          document.querySelector('button[data-action="toggle-zoomview"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="toggle-zoomview"]').addEventListener('click', (_event) => {
             var container = document.getElementById('zoomview-container');
             var zoomview = peaksInstance.views.getView('zoomview');
 
@@ -508,7 +509,7 @@
             }
           });
 
-          document.querySelector('button[data-action="toggle-overview"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="toggle-overview"]').addEventListener('click', (_event) => {
             var container = document.getElementById('overview-container');
             var overview = peaksInstance.views.getView('overview');
 
@@ -678,7 +679,7 @@
             console.log('zoom.update', event);
           });
         });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

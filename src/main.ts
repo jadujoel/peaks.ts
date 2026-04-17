@@ -315,7 +315,7 @@ class Peaks extends EventEmitter {
 	_keyboardHandler: KeyboardHandler | null = null;
 	_waveformBuilder: WaveformBuilder | null = null;
 	_waveformData: WaveformData | null = null;
-	_cueEmitter: CueEmitter | null = null;
+	_cueEmitter: CueEmitter | undefined;
 
 	constructor() {
 		super();

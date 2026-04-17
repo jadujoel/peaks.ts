@@ -65,10 +65,11 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js" integrity="sha512-gwSDP1iEKl4KG0wi3N89RAJU91s78jb/TGC6lsbF5IyR2c19Rn7Jl1icK4K4kUiJNwQUEPI7o98T+GJVWNuvIQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       function getSources() {
         return [
           {
@@ -224,7 +225,7 @@
                 peaksInstance.player.pause();
               });
 
-              document.querySelector('button[data-action="seek"]').addEventListener('click', (event) => {
+              document.querySelector('button[data-action="seek"]').addEventListener('click', (_event) => {
                 const time = document.getElementById('seek-time').value;
                 const seconds = parseFloat(time);
 
@@ -266,7 +267,7 @@
               });
             });
           });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

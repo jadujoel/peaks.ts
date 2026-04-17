@@ -267,7 +267,7 @@ Peaks.init(options, (err, peaksInstance) => {
 			peaksInstance.segments.add({
 				startTime: peaksInstance.player.getCurrentTime(),
 				endTime: peaksInstance.player.getCurrentTime() + 10,
-				labelText: "Segment " + segmentCounter++,
+				labelText: `Segment ${segmentCounter++}`,
 				editable: true,
 				color: {
 					linearGradientStart: 20,
@@ -284,7 +284,7 @@ Peaks.init(options, (err, peaksInstance) => {
 		.addEventListener("click", () => {
 			peaksInstance.points.add({
 				time: peaksInstance.player.getCurrentTime(),
-				labelText: "Point " + pointCounter++,
+				labelText: `Point ${pointCounter++}`,
 				color: "#006eb0",
 				editable: true,
 			});
@@ -292,14 +292,14 @@ Peaks.init(options, (err, peaksInstance) => {
 
 	document
 		.querySelector('button[data-action="log-data"]')
-		.addEventListener("click", (event) => {
+		.addEventListener("click", (_event) => {
 			renderSegments(peaksInstance);
 			renderPoints(peaksInstance);
 		});
 
 	document
 		.querySelector('button[data-action="seek"]')
-		.addEventListener("click", (event) => {
+		.addEventListener("click", (_event) => {
 			var time = document.getElementById("seek-time").value;
 			var seconds = parseFloat(time);
 
@@ -310,7 +310,7 @@ Peaks.init(options, (err, peaksInstance) => {
 
 	document
 		.querySelector('button[data-action="destroy"]')
-		.addEventListener("click", (event) => {
+		.addEventListener("click", (_event) => {
 			peaksInstance.destroy();
 		});
 
@@ -359,7 +359,7 @@ Peaks.init(options, (err, peaksInstance) => {
 
 	document
 		.querySelector('button[data-action="resize-width"]')
-		.addEventListener("click", (event) => {
+		.addEventListener("click", (_event) => {
 			document.querySelectorAll(".waveform-container").forEach((container) => {
 				container.style.width =
 					container.offsetWidth === 1000 ? "700px" : "1000px";
@@ -386,7 +386,7 @@ Peaks.init(options, (err, peaksInstance) => {
 
 	document
 		.querySelector('button[data-action="resize-height"]')
-		.addEventListener("click", (event) => {
+		.addEventListener("click", (_event) => {
 			const zoomviewContainer = document.getElementById("zoomview-container");
 			const overviewContainer = document.getElementById("overview-container");
 

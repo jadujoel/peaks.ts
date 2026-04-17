@@ -78,8 +78,9 @@
     </div>
     <div id="margin-right">
     </div>
-    <script src="/peaks.js"></script>
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       ((Peaks) => {
         var AudioContext = window.AudioContext || window.webkitAudioContext;
         var audioContext = new AudioContext();
@@ -118,7 +119,7 @@
           var zoom = document.getElementById('zoom');
 
           for (var i = 0; i < zoomLevels.length; i++) {
-            var text = zoomLevels[i] === 'auto' ? 'Fit width' : (zoomLevels[i] + " seconds");
+            var text = zoomLevels[i] === 'auto' ? 'Fit width' : (`${zoomLevels[i]} seconds`);
             zoom.options[i] = new Option(text, i);
           }
 
@@ -128,7 +129,7 @@
             zoomview.setZoom({ seconds: zoomLevel });
           });
 
-          document.querySelector('button[data-action="seek"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="seek"]').addEventListener('click', (_event) => {
             var time = document.getElementById('seek-time').value;
             var seconds = parseFloat(time);
 
@@ -182,7 +183,7 @@
             view.setAxisGridlineColor(event.target.value);
           });
 
-          document.querySelector('button[data-action="set-start-time"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="set-start-time"]').addEventListener('click', (_event) => {
             var time = document.getElementById('start-time').value;
             var seconds = parseFloat(time);
 
@@ -199,7 +200,7 @@
             console.log('zoomview.update:', event);
           });
         });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

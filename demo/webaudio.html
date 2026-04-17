@@ -106,8 +106,9 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       ((Peaks) => {
         var renderSegments = (peaks) => {
           var segmentsContainer = document.getElementById('segments');
@@ -218,12 +219,12 @@
             });
           });
 
-          document.querySelector('button[data-action="log-data"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="log-data"]').addEventListener('click', (_event) => {
             renderSegments(peaksInstance);
             renderPoints(peaksInstance);
           });
 
-          document.querySelector('button[data-action="seek"]').addEventListener('click', (event) => {
+          document.querySelector('button[data-action="seek"]').addEventListener('click', (_event) => {
             var time = document.getElementById('seek-time').value;
             var seconds = parseFloat(time);
 
@@ -249,7 +250,7 @@
             }
           });
         });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

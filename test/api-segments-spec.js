@@ -348,21 +348,18 @@ describe("Peaks.segments", () => {
 			"_borderColor",
 			"_editable",
 		].forEach((name) => {
-			it(
-				"should not allow an invalid user data attribute name: " + name,
-				() => {
-					expect(() => {
-						const segment = {
-							startTime: 0,
-							endTime: 10,
-						};
+			it(`should not allow an invalid user data attribute name: ${name}`, () => {
+				expect(() => {
+					const segment = {
+						startTime: 0,
+						endTime: 10,
+					};
 
-						segment[name] = "test";
+					segment[name] = "test";
 
-						p.segments.add(segment);
-					}).to.throw(Error);
-				},
-			);
+					p.segments.add(segment);
+				}).to.throw(Error);
+			});
 		});
 
 		it("should add segments atomically", () => {

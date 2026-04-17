@@ -280,20 +280,17 @@ describe("Peaks.points", () => {
 			"_color",
 			"_editable",
 		].forEach((name) => {
-			it(
-				"should not allow an invalid user data attribute name: " + name,
-				() => {
-					expect(() => {
-						const point = {
-							time: 0,
-						};
+			it(`should not allow an invalid user data attribute name: ${name}`, () => {
+				expect(() => {
+					const point = {
+						time: 0,
+					};
 
-						point[name] = "test";
+					point[name] = "test";
 
-						p.points.add(point);
-					}).to.throw(Error);
-				},
-			);
+					p.points.add(point);
+				}).to.throw(Error);
+			});
 		});
 
 		it("should add points atomically", () => {

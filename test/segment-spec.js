@@ -270,29 +270,26 @@ describe("Segment", () => {
 			"_markers",
 			"_editable",
 		].forEach((name) => {
-			it(
-				"should not allow an invalid user data attribute name: " + name,
-				() => {
-					expect(() => {
-						const peaks = { emit: () => {} };
-						const pid = 0;
+			it(`should not allow an invalid user data attribute name: ${name}`, () => {
+				expect(() => {
+					const peaks = { emit: () => {} };
+					const pid = 0;
 
-						const segment = new Segment(peaks, pid, {
-							id: "segment.1",
-							startTime: 0.0,
-							endTime: 10.0,
-							labelText: "",
-							editable: true,
-						});
+					const segment = new Segment(peaks, pid, {
+						id: "segment.1",
+						startTime: 0.0,
+						endTime: 10.0,
+						labelText: "",
+						editable: true,
+					});
 
-						const attributes = {};
+					const attributes = {};
 
-						attributes[name] = "test";
+					attributes[name] = "test";
 
-						segment.update(attributes);
-					}).to.throw(Error);
-				},
-			);
+					segment.update(attributes);
+				}).to.throw(Error);
+			});
 		});
 	});
 

@@ -252,29 +252,26 @@ describe("Point", () => {
 			"_color",
 			"_editable",
 		].forEach((name) => {
-			it(
-				"should not allow an invalid user data attribute name: " + name,
-				() => {
-					expect(() => {
-						const peaks = { emit: () => {} };
-						const pid = 0;
+			it(`should not allow an invalid user data attribute name: ${name}`, () => {
+				expect(() => {
+					const peaks = { emit: () => {} };
+					const pid = 0;
 
-						const point = new Point(peaks, pid, {
-							id: "point.1",
-							time: 0.0,
-							editable: false,
-							color: "#000000",
-							labelText: "",
-						});
+					const point = new Point(peaks, pid, {
+						id: "point.1",
+						time: 0.0,
+						editable: false,
+						color: "#000000",
+						labelText: "",
+					});
 
-						const attributes = {};
+					const attributes = {};
 
-						attributes[name] = "test";
+					attributes[name] = "test";
 
-						point.update(attributes);
-					}).to.throw(Error);
-				},
-			);
+					point.update(attributes);
+				}).to.throw(Error);
+			});
 		});
 	});
 

@@ -42,7 +42,7 @@ class SegmentShape {
 	_draggable: boolean;
 	_dragging: boolean;
 	_overlayOffset: number;
-	_waveformShape: WaveformShape | null;
+	_waveformShape: WaveformShape | undefined;
 	_overlay!: Group;
 	_overlayRect!: Rect;
 	_overlayText: Text | null = null;
@@ -106,8 +106,6 @@ class SegmentShape {
 		const segmentOptions = viewOptions.segmentOptions;
 
 		this._overlayOffset = segmentOptions.overlayOffset;
-
-		this._waveformShape = null;
 
 		if (!segment.overlay) {
 			this._waveformShape = new WaveformShape({

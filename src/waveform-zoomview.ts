@@ -511,7 +511,7 @@ class WaveformZoomView extends WaveformView {
 	 * Updates the region of waveform shown in the view.
 	 */
 
-	override updateWaveform(frameOffset: number, forceUpdate: boolean): void {
+	override updateWaveform(frameOffset: number, forceUpdate = false): void {
 		let upperLimit: number;
 
 		if (this._pixelLength < this._width) {

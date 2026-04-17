@@ -467,9 +467,9 @@ function initOptions(view, viewOptions) {
 			});
 
 			["scroll", "insert-segment"].forEach((waveformDragMode) => {
-				context("with waveformDragMode(" + waveformDragMode + ")", () => {
+				context(`with waveformDragMode(${waveformDragMode})`, () => {
 					["no-overlap", "compress"].forEach((segmentDragMode) => {
-						context("with segmentDragMode(" + segmentDragMode + ")", () => {
+						context(`with segmentDragMode(${segmentDragMode})`, () => {
 							context("when clicking on a segment", () => {
 								beforeEach((done) => {
 									if (test.view === "zoomview") {

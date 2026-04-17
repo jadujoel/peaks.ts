@@ -67,8 +67,9 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       ((Peaks) => {
         var AudioContext = window.AudioContext || window.webkitAudioContext;
         var audioContext = new AudioContext();
@@ -177,7 +178,7 @@
                 bindEventHandlers(peaksInstance, sources);
               }, errorHandler);
           }, errorHandler);
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

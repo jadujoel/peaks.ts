@@ -30,7 +30,7 @@ class PlayheadLayer {
 	private _playheadLayer: Layer;
 	private _playheadLine!: Line;
 	private _playheadGroup!: Group;
-	private _playheadText: Text | null = null;
+	private _playheadText: Text | undefined;
 	private _useAnimation: boolean;
 
 	constructor(
@@ -286,7 +286,7 @@ class PlayheadLayer {
 			if (this._playheadText) {
 				this._playheadText.remove();
 				this._playheadText.destroy();
-				this._playheadText = null;
+				this._playheadText = undefined;
 			}
 		}
 	}
