@@ -1,10 +1,11 @@
-// biome-ignore lint/suspicious/noExplicitAny: peaks instance
+import type { PeaksInstance } from "./types";
+
 export default class ZoomController {
-	private _peaks: any;
+	private _peaks: PeaksInstance;
 	private _zoomLevels: number[];
 	private _zoomLevelIndex: number;
 
-	constructor(peaks: any, zoomLevels: number[]) {
+	constructor(peaks: PeaksInstance, zoomLevels: number[]) {
 		this._peaks = peaks;
 		this._zoomLevels = zoomLevels;
 		this._zoomLevelIndex = 0;
@@ -44,7 +45,11 @@ export default class ZoomController {
 			return;
 		}
 
-		zoomview.setZoom({ scale: this._zoomLevels[zoomLevelIndex] });
+		const scale = this._zoomLevels[zoomLevelIndex];
+
+		if (scale !== undefined) {
+			zoomview.setZoom?.({ scale });
+		}
 	}
 
 	getZoom(): number {
@@ -52,6 +57,6 @@ export default class ZoomController {
 	}
 
 	getZoomLevel(): number {
-		return this._zoomLevels[this._zoomLevelIndex]!;
+		return this._zoomLevels[this._zoomLevelIndex] ?? 0;
 	}
 }

@@ -1,14 +1,18 @@
 import MouseDragHandler from "./mouse-drag-handler";
+import type { PeaksInstance, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
 
 class SeekMouseDragHandler {
-	private _peaks: any;
-	private _view: any;
+	private _peaks: PeaksInstance;
+	private _view: WaveformViewAPI & {
+		_stage: import("konva/lib/Stage").Stage;
+		dragSeek(dragging: boolean): void;
+	};
 	private _firstMove: boolean;
 	private _width!: number;
 	private _mouseDragHandler: MouseDragHandler;
 
-	constructor(peaks: any, view: any) {
+	constructor(peaks: PeaksInstance, view: SeekMouseDragHandler["_view"]) {
 		this._peaks = peaks;
 		this._view = view;
 		this._firstMove = false;

@@ -1,297 +1,287 @@
-// @ts-nocheck
-/**
- * @file
- *
- * Defines the {@link SegmentsLayer} class.
- *
- * @module segments-layer
- */
-
 import Konva from "konva/lib/Core";
+import type { Layer } from "konva/lib/Layer";
+import type { Stage } from "konva/lib/Stage";
+import type { Segment } from "./segment";
 import SegmentShape from "./segment-shape";
+import type {
+	PeaksInstance,
+	SegmentClickEvent,
+	SegmentUpdateOptions,
+	WaveformViewAPI,
+} from "./types";
 import { objectHasProperty } from "./utils";
 
 /**
  * Creates a Konva.Layer that displays segment markers against the audio
  * waveform.
- *
- * @class
- * @alias SegmentsLayer
- *
- * @param {Peaks} peaks
- * @param {WaveformOverview|WaveformZoomView} view
- * @param {Boolean} enableEditing
  */
 
-function SegmentsLayer(peaks, view, enableEditing) {
-	this._peaks = peaks;
-	this._view = view;
-	this._enableEditing = enableEditing;
-	this._segmentShapes = {};
-	this._layer = new Konva.Layer();
+class SegmentsLayer {
+	private _peaks: PeaksInstance;
+	private _view: WaveformViewAPI;
+	private _enableEditing: boolean;
+	private _segmentShapes: Record<string, SegmentShape>;
+	private _layer: Layer;
 
-	this._onSegmentsUpdate = this._onSegmentsUpdate.bind(this);
-	this._onSegmentsAdd = this._onSegmentsAdd.bind(this);
-	this._onSegmentsRemove = this._onSegmentsRemove.bind(this);
-	this._onSegmentsRemoveAll = this._onSegmentsRemoveAll.bind(this);
-	this._onSegmentsDragged = this._onSegmentsDragged.bind(this);
+	constructor(
+		peaks: PeaksInstance,
+		view: WaveformViewAPI,
+		enableEditing: boolean,
+	) {
+		this._peaks = peaks;
+		this._view = view;
+		this._enableEditing = enableEditing;
+		this._segmentShapes = {};
+		this._layer = new Konva.Layer();
 
-	this._peaks.on("segments.update", this._onSegmentsUpdate);
-	this._peaks.on("segments.add", this._onSegmentsAdd);
-	this._peaks.on("segments.remove", this._onSegmentsRemove);
-	this._peaks.on("segments.remove_all", this._onSegmentsRemoveAll);
-	this._peaks.on("segments.dragged", this._onSegmentsDragged);
-}
+		this._onSegmentsUpdate = this._onSegmentsUpdate.bind(this);
+		this._onSegmentsAdd = this._onSegmentsAdd.bind(this);
+		this._onSegmentsRemove = this._onSegmentsRemove.bind(this);
+		this._onSegmentsRemoveAll = this._onSegmentsRemoveAll.bind(this);
+		this._onSegmentsDragged = this._onSegmentsDragged.bind(this);
 
-/**
- * Adds the layer to the given {Konva.Stage}.
- *
- * @param {Konva.Stage} stage
- */
-
-SegmentsLayer.prototype.addToStage = function (stage) {
-	stage.add(this._layer);
-};
-
-SegmentsLayer.prototype.setListening = function (listening) {
-	this._layer.listening(listening);
-};
-
-SegmentsLayer.prototype.enableEditing = function (enable) {
-	this._enableEditing = enable;
-};
-
-SegmentsLayer.prototype.isEditingEnabled = function () {
-	return this._enableEditing;
-};
-
-SegmentsLayer.prototype.enableSegmentDragging = function (enable) {
-	for (const segmentPid in this._segmentShapes) {
-		if (objectHasProperty(this._segmentShapes, segmentPid)) {
-			this._segmentShapes[segmentPid].enableSegmentDragging(enable);
-		}
-	}
-};
-
-SegmentsLayer.prototype.getSegmentShape = function (segment) {
-	return this._segmentShapes[segment.pid];
-};
-
-SegmentsLayer.prototype.formatTime = function (time) {
-	return this._view.formatTime(time);
-};
-
-SegmentsLayer.prototype._onSegmentsUpdate = function (segment, options) {
-	const frameStartTime = this._view.getStartTime();
-	const frameEndTime = this._view.getEndTime();
-
-	let segmentShape = this.getSegmentShape(segment);
-	const isVisible = segment.isVisible(frameStartTime, frameEndTime);
-
-	if (segmentShape && !isVisible) {
-		// Remove segment shape that is no longer visible.
-
-		if (!segmentShape.isDragging()) {
-			this._removeSegment(segment);
-		}
-	} else if (!segmentShape && isVisible) {
-		// Add segment shape for visible segment.
-		segmentShape = this._updateSegment(segment);
-	} else if (segmentShape && isVisible) {
-		// Update the segment shape with the changed attributes.
-		segmentShape.update(options);
-	}
-};
-
-SegmentsLayer.prototype._onSegmentsAdd = function (event) {
-	const frameStartTime = this._view.getStartTime();
-	const frameEndTime = this._view.getEndTime();
-
-	event.segments.forEach((segment) => {
-		if (segment.isVisible(frameStartTime, frameEndTime)) {
-			const segmentShape = this._addSegmentShape(segment);
-
-			segmentShape.update();
-		}
-	});
-
-	// Ensure segment markers are always draggable.
-	this.moveSegmentMarkersToTop();
-};
-
-SegmentsLayer.prototype._onSegmentsRemove = function (event) {
-	event.segments.forEach((segment) => {
-		this._removeSegment(segment);
-	});
-};
-
-SegmentsLayer.prototype._onSegmentsRemoveAll = function () {
-	this._layer.removeChildren();
-	this._segmentShapes = {};
-};
-
-SegmentsLayer.prototype._onSegmentsDragged = function (event) {
-	this._updateSegment(event.segment);
-};
-
-/**
- * Creates the Konva UI objects for a given segment.
- *
- * @private
- * @param {Segment} segment
- * @returns {SegmentShape}
- */
-
-SegmentsLayer.prototype._createSegmentShape = function (segment) {
-	return new SegmentShape(segment, this._peaks, this, this._view);
-};
-
-/**
- * Adds a Konva UI object to the layer for a given segment.
- *
- * @private
- * @param {Segment} segment
- * @returns {SegmentShape}
- */
-
-SegmentsLayer.prototype._addSegmentShape = function (segment) {
-	const segmentShape = this._createSegmentShape(segment);
-
-	segmentShape.addToLayer(this._layer);
-
-	this._segmentShapes[segment.pid] = segmentShape;
-
-	return segmentShape;
-};
-
-/**
- * Updates the positions of all displayed segments in the view.
- *
- * @param {Number} startTime The start of the visible range in the view,
- *   in seconds.
- * @param {Number} endTime The end of the visible range in the view,
- *   in seconds.
- */
-
-SegmentsLayer.prototype.updateSegments = function (startTime, endTime) {
-	// Update segments in visible time range.
-	const segments = this._peaks.segments.find(startTime, endTime);
-
-	segments.forEach(this._updateSegment.bind(this));
-
-	// TODO: In the overview all segments are visible, so no need to do this.
-	this._removeInvisibleSegments(startTime, endTime);
-};
-
-/**
- * @private
- * @param {Segment} segment
- */
-
-SegmentsLayer.prototype._updateSegment = function (segment) {
-	let segmentShape = this.getSegmentShape(segment);
-
-	if (!segmentShape) {
-		segmentShape = this._addSegmentShape(segment);
+		this._peaks.on("segments.update", this._onSegmentsUpdate);
+		this._peaks.on("segments.add", this._onSegmentsAdd);
+		this._peaks.on("segments.remove", this._onSegmentsRemove);
+		this._peaks.on("segments.remove_all", this._onSegmentsRemoveAll);
+		this._peaks.on("segments.dragged", this._onSegmentsDragged);
 	}
 
-	segmentShape.update();
-};
+	/**
+	 * Adds the layer to the given Konva.Stage.
+	 */
 
-/**
- * Removes any segments that are not visible, i.e., are not within and do not
- * overlap the given time range.
- *
- * @private
- * @param {Number} startTime The start of the visible time range, in seconds.
- * @param {Number} endTime The end of the visible time range, in seconds.
- */
+	addToStage(stage: Stage): void {
+		stage.add(this._layer);
+	}
 
-SegmentsLayer.prototype._removeInvisibleSegments = function (
-	startTime,
-	endTime,
-) {
-	for (const segmentPid in this._segmentShapes) {
-		if (objectHasProperty(this._segmentShapes, segmentPid)) {
-			const segment = this._segmentShapes[segmentPid].getSegment();
+	setListening(listening: boolean): void {
+		this._layer.listening(listening);
+	}
 
-			if (!segment.isVisible(startTime, endTime)) {
-				this._removeSegment(segment);
+	enableEditing(enable: boolean): void {
+		this._enableEditing = enable;
+	}
+
+	isEditingEnabled(): boolean {
+		return this._enableEditing;
+	}
+
+	enableSegmentDragging(enable: boolean): void {
+		for (const segmentPid in this._segmentShapes) {
+			if (objectHasProperty(this._segmentShapes, segmentPid)) {
+				this._segmentShapes[segmentPid]?.enableSegmentDragging(enable);
 			}
 		}
 	}
-};
 
-/**
- * Removes the given segment from the view.
- *
- * @param {Segment} segment
- */
-
-SegmentsLayer.prototype._removeSegment = function (segment) {
-	const segmentShape = this._segmentShapes[segment.pid];
-
-	if (segmentShape) {
-		segmentShape.destroy();
-		delete this._segmentShapes[segment.pid];
+	getSegmentShape(segment: Segment): SegmentShape | undefined {
+		return this._segmentShapes[segment.pid];
 	}
-};
 
-/**
- * Moves all segment markers to the top of the z-order,
- * so the user can always drag them.
- */
+	formatTime(time: number): string {
+		return this._view.formatTime(time);
+	}
 
-SegmentsLayer.prototype.moveSegmentMarkersToTop = function () {
-	for (const segmentPid in this._segmentShapes) {
-		if (objectHasProperty(this._segmentShapes, segmentPid)) {
-			this._segmentShapes[segmentPid].moveMarkersToTop();
+	private _onSegmentsUpdate(
+		segment: Segment,
+		options: SegmentUpdateOptions,
+	): void {
+		const frameStartTime = this._view.getStartTime();
+		const frameEndTime = this._view.getEndTime();
+
+		const segmentShape = this.getSegmentShape(segment);
+		const isVisible = segment.isVisible(frameStartTime, frameEndTime);
+
+		if (segmentShape && !isVisible) {
+			// Remove segment shape that is no longer visible.
+
+			if (!segmentShape.isDragging()) {
+				this._removeSegment(segment);
+			}
+		} else if (!segmentShape && isVisible) {
+			// Add segment shape for visible segment.
+			this._updateSegment(segment);
+		} else if (segmentShape && isVisible) {
+			// Update the segment shape with the changed attributes.
+			segmentShape.update(options);
 		}
 	}
-};
 
-/**
- * Toggles visibility of the segments layer.
- *
- * @param {Boolean} visible
- */
+	private _onSegmentsAdd(event: {
+		segments: Segment[];
+		insert: boolean;
+	}): void {
+		const frameStartTime = this._view.getStartTime();
+		const frameEndTime = this._view.getEndTime();
 
-SegmentsLayer.prototype.setVisible = function (visible) {
-	this._layer.setVisible(visible);
-};
+		event.segments.forEach((segment: Segment) => {
+			if (segment.isVisible(frameStartTime, frameEndTime)) {
+				const segmentShape = this._addSegmentShape(segment);
 
-SegmentsLayer.prototype.segmentClicked = function (eventName, event) {
-	const segmentShape = this._segmentShapes[event.segment.pid];
+				segmentShape.update();
+			}
+		});
 
-	if (segmentShape) {
-		segmentShape.segmentClicked(eventName, event);
+		// Ensure segment markers are always draggable.
+		this.moveSegmentMarkersToTop();
 	}
-};
 
-SegmentsLayer.prototype.destroy = function () {
-	this._peaks.off("segments.update", this._onSegmentsUpdate);
-	this._peaks.off("segments.add", this._onSegmentsAdd);
-	this._peaks.off("segments.remove", this._onSegmentsRemove);
-	this._peaks.off("segments.remove_all", this._onSegmentsRemoveAll);
-	this._peaks.off("segments.dragged", this._onSegmentsDragged);
-};
+	private _onSegmentsRemove(event: { segments: Segment[] }): void {
+		event.segments.forEach((segment: Segment) => {
+			this._removeSegment(segment);
+		});
+	}
 
-SegmentsLayer.prototype.fitToView = function () {
-	for (const segmentPid in this._segmentShapes) {
-		if (objectHasProperty(this._segmentShapes, segmentPid)) {
-			const segmentShape = this._segmentShapes[segmentPid];
+	private _onSegmentsRemoveAll(): void {
+		this._layer.removeChildren();
+		this._segmentShapes = {};
+	}
 
-			segmentShape.fitToView();
+	private _onSegmentsDragged(event: { segment: Segment }): void {
+		this._updateSegment(event.segment);
+	}
+
+	/**
+	 * Creates the Konva UI objects for a given segment.
+	 */
+
+	private _createSegmentShape(segment: Segment): SegmentShape {
+		return new SegmentShape(segment, this._peaks, this, this._view);
+	}
+
+	/**
+	 * Adds a Konva UI object to the layer for a given segment.
+	 */
+
+	private _addSegmentShape(segment: Segment): SegmentShape {
+		const segmentShape = this._createSegmentShape(segment);
+
+		segmentShape.addToLayer(this._layer);
+
+		this._segmentShapes[segment.pid] = segmentShape;
+
+		return segmentShape;
+	}
+
+	/**
+	 * Updates the positions of all displayed segments in the view.
+	 *
+	 * @param startTime The start of the visible range in the view,
+	 *   in seconds.
+	 * @param endTime The end of the visible range in the view,
+	 *   in seconds.
+	 */
+
+	updateSegments(startTime: number, endTime: number): void {
+		// Update segments in visible time range.
+		const segments = this._peaks.segments.find(startTime, endTime);
+
+		segments.forEach(this._updateSegment.bind(this));
+
+		// TODO: In the overview all segments are visible, so no need to do this.
+		this._removeInvisibleSegments(startTime, endTime);
+	}
+
+	private _updateSegment(segment: Segment): void {
+		let segmentShape = this.getSegmentShape(segment);
+
+		if (!segmentShape) {
+			segmentShape = this._addSegmentShape(segment);
+		}
+
+		segmentShape.update();
+	}
+
+	/**
+	 * Removes any segments that are not visible, i.e., are not within and do not
+	 * overlap the given time range.
+	 *
+	 * @param startTime The start of the visible time range, in seconds.
+	 * @param endTime The end of the visible time range, in seconds.
+	 */
+
+	private _removeInvisibleSegments(startTime: number, endTime: number): void {
+		for (const segmentPid in this._segmentShapes) {
+			if (objectHasProperty(this._segmentShapes, segmentPid)) {
+				const segment = this._segmentShapes[segmentPid]?.getSegment();
+
+				if (segment && !segment.isVisible(startTime, endTime)) {
+					this._removeSegment(segment);
+				}
+			}
 		}
 	}
-};
 
-SegmentsLayer.prototype.draw = function () {
-	this._layer.draw();
-};
+	/**
+	 * Removes the given segment from the view.
+	 */
 
-SegmentsLayer.prototype.getHeight = function () {
-	return this._layer.getHeight();
-};
+	private _removeSegment(segment: Segment): void {
+		const segmentShape = this._segmentShapes[segment.pid];
+
+		if (segmentShape) {
+			segmentShape.destroy();
+			delete this._segmentShapes[segment.pid];
+		}
+	}
+
+	/**
+	 * Moves all segment markers to the top of the z-order,
+	 * so the user can always drag them.
+	 */
+
+	moveSegmentMarkersToTop(): void {
+		for (const segmentPid in this._segmentShapes) {
+			if (objectHasProperty(this._segmentShapes, segmentPid)) {
+				this._segmentShapes[segmentPid]?.moveMarkersToTop();
+			}
+		}
+	}
+
+	/**
+	 * Toggles visibility of the segments layer.
+	 */
+
+	setVisible(visible: boolean): void {
+		this._layer.visible(visible);
+	}
+
+	segmentClicked(eventName: string, event: SegmentClickEvent): void {
+		const segmentShape = this._segmentShapes[event.segment.pid];
+
+		if (segmentShape) {
+			segmentShape.segmentClicked(eventName, event);
+		}
+	}
+
+	destroy(): void {
+		this._peaks.off("segments.update", this._onSegmentsUpdate);
+		this._peaks.off("segments.add", this._onSegmentsAdd);
+		this._peaks.off("segments.remove", this._onSegmentsRemove);
+		this._peaks.off("segments.remove_all", this._onSegmentsRemoveAll);
+		this._peaks.off("segments.dragged", this._onSegmentsDragged);
+	}
+
+	fitToView(): void {
+		for (const segmentPid in this._segmentShapes) {
+			if (objectHasProperty(this._segmentShapes, segmentPid)) {
+				const segmentShape = this._segmentShapes[segmentPid];
+
+				if (segmentShape) {
+					segmentShape.fitToView();
+				}
+			}
+		}
+	}
+
+	draw(): void {
+		this._layer.draw();
+	}
+
+	getHeight(): number {
+		return this._layer.getHeight() ?? 0;
+	}
+}
 
 export default SegmentsLayer;

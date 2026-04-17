@@ -1,19 +1,15 @@
-// @ts-nocheck
+import type { PeaksInstance, SetSourceOptions } from "./types";
+
 /**
- * @file
- *
- * Implementation of {@link Player} adapter based on an <code>&lt;audio&gt;</code>
- * or <code>&lt;video&gt;</code> HTML element.
- *
- * @module mediaelement-player
+ * Implementation of Player adapter based on an <audio> or <video> HTML element.
  */
 
 /**
  * Checks whether the given HTMLMediaElement has either a src attribute
- * or any child <code>&lt;source&gt;</code> nodes.
+ * or any child <source> nodes.
  */
 
-function mediaElementHasSource(mediaElement) {
+function mediaElementHasSource(mediaElement: HTMLMediaElement): boolean {
 	if (mediaElement.src) {
 		return true;
 	}
@@ -25,245 +21,270 @@ function mediaElementHasSource(mediaElement) {
 	return false;
 }
 
+class SetSourceHandler {
+	private _eventEmitter: PeaksInstance;
+	private _mediaElement: HTMLMediaElement;
+	private _playerCanPlayHandler: () => void;
+	private _playerErrorHandler: (err: MediaError) => void;
+	private _resolve: (() => void) | null = null;
+	private _reject: ((reason: MediaError) => void) | null = null;
+
+	constructor(eventEmitter: PeaksInstance, mediaElement: HTMLMediaElement) {
+		this._eventEmitter = eventEmitter;
+		this._mediaElement = mediaElement;
+		this._playerCanPlayHandler = this._onPlayerCanPlay.bind(this);
+		this._playerErrorHandler = this._onPlayerError.bind(this);
+	}
+
+	setSource(options: SetSourceOptions): Promise<void> {
+		return new Promise((resolve, reject) => {
+			this._resolve = resolve;
+			this._reject = reject;
+
+			this._eventEmitter.on("player.canplay", this._playerCanPlayHandler);
+			this._eventEmitter.on("player.error", this._playerErrorHandler);
+
+			this._mediaElement.setAttribute("src", options.mediaUrl ?? "");
+
+			// Force the media element to load, in case the media element
+			// has preload="none".
+			if (this._mediaElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
+				this._mediaElement.load();
+			}
+		});
+	}
+
+	private _reset(): void {
+		this._eventEmitter.removeListener(
+			"player.canplay",
+			this._playerCanPlayHandler,
+		);
+		this._eventEmitter.removeListener("player.error", this._playerErrorHandler);
+	}
+
+	private _onPlayerCanPlay(): void {
+		this._reset();
+
+		this._resolve?.();
+	}
+
+	private _onPlayerError(err: MediaError): void {
+		this._reset();
+
+		// Return the MediaError object from the media element
+		this._reject?.(err);
+	}
+}
+
+interface MediaListener {
+	type: string;
+	callback: EventListener;
+}
+
 /**
  * A wrapper for interfacing with the HTMLMediaElement API.
  * Initializes the player for a given media element.
  *
- * @class
- * @alias MediaElementPlayer
- * @param {HTMLMediaElement} mediaElement The HTML <code>&lt;audio&gt;</code>
- *   or <code>&lt;video&gt;</code> element to associate with the
- *   {@link Peaks} instance.
+ * @param mediaElement The HTML <audio> or <video> element to associate
+ *   with the Peaks instance.
  */
 
-function MediaElementPlayer(mediaElement) {
-	this._mediaElement = mediaElement;
-}
+class MediaElementPlayer {
+	private _mediaElement: HTMLMediaElement | null;
+	private _eventEmitter: PeaksInstance | null;
+	private _listeners: MediaListener[];
 
-/**
- * Adds an event listener to the media element.
- *
- * @private
- * @param {String} type The event type to listen for.
- * @param {Function} callback An event handler function.
- */
-
-MediaElementPlayer.prototype._addMediaListener = function (type, callback) {
-	this._listeners.push({ type: type, callback: callback });
-	this._mediaElement.addEventListener(type, callback);
-};
-
-MediaElementPlayer.prototype.init = function (eventEmitter) {
-	const self = this;
-
-	self._eventEmitter = eventEmitter;
-	self._listeners = [];
-	self._duration = self.getDuration();
-
-	self._addMediaListener("timeupdate", () => {
-		self._eventEmitter.emit("player.timeupdate", self.getCurrentTime());
-	});
-
-	self._addMediaListener("playing", () => {
-		self._eventEmitter.emit("player.playing", self.getCurrentTime());
-	});
-
-	self._addMediaListener("pause", () => {
-		self._eventEmitter.emit("player.pause", self.getCurrentTime());
-	});
-
-	self._addMediaListener("ended", () => {
-		self._eventEmitter.emit("player.ended");
-	});
-
-	self._addMediaListener("seeked", () => {
-		self._eventEmitter.emit("player.seeked", self.getCurrentTime());
-	});
-
-	self._addMediaListener("canplay", () => {
-		self._eventEmitter.emit("player.canplay");
-	});
-
-	self._addMediaListener("error", (event) => {
-		self._eventEmitter.emit("player.error", event.target.error);
-	});
-
-	self._interval = null;
-
-	if (!mediaElementHasSource(self._mediaElement)) {
-		return Promise.resolve();
-	} else if (
-		self._mediaElement.error &&
-		self._mediaElement.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
-	) {
-		// The media element has a source, but the format is not supported.
-		return Promise.reject(self._mediaElement.error);
+	constructor(mediaElement: HTMLMediaElement) {
+		this._mediaElement = mediaElement;
+		this._eventEmitter = null;
+		this._listeners = [];
 	}
 
-	return new Promise((resolve, reject) => {
-		function cleanup() {
-			self._mediaElement.removeEventListener("loadedmetadata", eventHandler);
-			self._mediaElement.removeEventListener("canplay", eventHandler);
-			self._mediaElement.removeEventListener("error", eventHandler);
+	/**
+	 * Adds an event listener to the media element.
+	 *
+	 * @param type The event type to listen for.
+	 * @param callback An event handler function.
+	 */
+
+	private _addMediaListener(type: string, callback: EventListener): void {
+		this._listeners.push({ type: type, callback: callback });
+		this._mediaElement?.addEventListener(type, callback);
+	}
+
+	init(eventEmitter: PeaksInstance): Promise<void> {
+		this._eventEmitter = eventEmitter;
+		this._listeners = [];
+
+		this._addMediaListener("timeupdate", () => {
+			this._eventEmitter?.emit("player.timeupdate", this.getCurrentTime());
+		});
+
+		this._addMediaListener("playing", () => {
+			this._eventEmitter?.emit("player.playing", this.getCurrentTime());
+		});
+
+		this._addMediaListener("pause", () => {
+			this._eventEmitter?.emit("player.pause", this.getCurrentTime());
+		});
+
+		this._addMediaListener("ended", () => {
+			this._eventEmitter?.emit("player.ended");
+		});
+
+		this._addMediaListener("seeked", () => {
+			this._eventEmitter?.emit("player.seeked", this.getCurrentTime());
+		});
+
+		this._addMediaListener("canplay", () => {
+			this._eventEmitter?.emit("player.canplay");
+		});
+
+		this._addMediaListener("error", (event: Event) => {
+			this._eventEmitter?.emit(
+				"player.error",
+				(event.target as HTMLMediaElement).error,
+			);
+		});
+
+		if (!this._mediaElement) {
+			return Promise.resolve();
 		}
 
-		function resolveIfPlayable() {
-			if (self._mediaElement.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-				cleanup();
-				resolve();
-				return true;
-			}
+		if (!mediaElementHasSource(this._mediaElement)) {
+			return Promise.resolve();
+		} else if (
+			this._mediaElement.error &&
+			this._mediaElement.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+		) {
+			// The media element has a source, but the format is not supported.
+			return Promise.reject(this._mediaElement.error);
+		}
 
+		const mediaElement = this._mediaElement;
+
+		return new Promise((resolve, reject) => {
+			const cleanup = () => {
+				mediaElement.removeEventListener("loadedmetadata", eventHandler);
+				mediaElement.removeEventListener("canplay", eventHandler);
+				mediaElement.removeEventListener("error", eventHandler);
+			};
+
+			const resolveIfPlayable = (): boolean => {
+				if (mediaElement.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+					cleanup();
+					resolve();
+					return true;
+				}
+
+				return false;
+			};
+
+			const eventHandler = (event: Event) => {
+				if (event.type === "error") {
+					cleanup();
+					reject((event.target as HTMLMediaElement).error);
+				} else {
+					resolveIfPlayable();
+				}
+			};
+
+			// If the media element has preload="none", clicking to seek in the
+			// waveform won't work, so here we force the media to load.
+			if (mediaElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
+				// Wait until the media can actually be played and sought reliably.
+				mediaElement.addEventListener("loadedmetadata", eventHandler);
+				mediaElement.addEventListener("canplay", eventHandler);
+				mediaElement.addEventListener("error", eventHandler);
+				mediaElement.load();
+			} else if (!resolveIfPlayable()) {
+				mediaElement.addEventListener("canplay", eventHandler);
+				mediaElement.addEventListener("error", eventHandler);
+			} else {
+				resolve();
+			}
+		});
+	}
+
+	/**
+	 * Cleans up the player object, removing all event listeners from the
+	 * associated media element.
+	 */
+
+	destroy(): void {
+		if (!this._mediaElement) {
+			return;
+		}
+
+		for (const listener of this._listeners) {
+			this._mediaElement.removeEventListener(listener.type, listener.callback);
+		}
+
+		this._listeners.length = 0;
+
+		this._mediaElement = null;
+	}
+
+	play(): Promise<void> {
+		if (!this._mediaElement) {
+			return Promise.resolve();
+		}
+
+		return this._mediaElement.play();
+	}
+
+	pause(): void {
+		this._mediaElement?.pause();
+	}
+
+	isPlaying(): boolean {
+		if (!this._mediaElement) {
 			return false;
 		}
 
-		function eventHandler(event) {
-			if (event.type === "error") {
-				cleanup();
-				reject(event.target.error);
-			} else {
-				resolveIfPlayable();
-			}
-		}
-
-		// If the media element has preload="none", clicking to seek in the
-		// waveform won't work, so here we force the media to load.
-		if (self._mediaElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
-			// Wait until the media can actually be played and sought reliably.
-			self._mediaElement.addEventListener("loadedmetadata", eventHandler);
-			self._mediaElement.addEventListener("canplay", eventHandler);
-			self._mediaElement.addEventListener("error", eventHandler);
-			self._mediaElement.load();
-		} else if (!resolveIfPlayable()) {
-			self._mediaElement.addEventListener("canplay", eventHandler);
-			self._mediaElement.addEventListener("error", eventHandler);
-		} else {
-			resolve();
-		}
-	});
-};
-
-/**
- * Cleans up the player object, removing all event listeners from the
- * associated media element.
- */
-
-MediaElementPlayer.prototype.destroy = function () {
-	if (!this._mediaElement) {
-		return;
+		return !this._mediaElement.paused;
 	}
 
-	for (let i = 0; i < this._listeners.length; i++) {
-		const listener = this._listeners[i];
-
-		this._mediaElement.removeEventListener(listener.type, listener.callback);
+	isSeeking(): boolean {
+		return this._mediaElement?.seeking ?? false;
 	}
 
-	this._listeners.length = 0;
-
-	this._mediaElement = null;
-};
-
-MediaElementPlayer.prototype.play = function () {
-	return this._mediaElement.play();
-};
-
-MediaElementPlayer.prototype.pause = function () {
-	this._mediaElement.pause();
-};
-
-MediaElementPlayer.prototype.isPlaying = function () {
-	if (!this._mediaElement) {
-		return false;
+	getCurrentTime(): number {
+		return this._mediaElement?.currentTime ?? 0;
 	}
 
-	return !this._mediaElement.paused;
-};
+	getDuration(): number {
+		return this._mediaElement?.duration ?? 0;
+	}
 
-MediaElementPlayer.prototype.isSeeking = function () {
-	return this._mediaElement.seeking;
-};
-
-MediaElementPlayer.prototype.getCurrentTime = function () {
-	return this._mediaElement.currentTime;
-};
-
-MediaElementPlayer.prototype.getDuration = function () {
-	return this._mediaElement.duration;
-};
-
-MediaElementPlayer.prototype.seek = function (time) {
-	this._mediaElement.currentTime = time;
-};
-
-function SetSourceHandler(eventEmitter, mediaElement) {
-	this._eventEmitter = eventEmitter;
-	this._mediaElement = mediaElement;
-	this._playerCanPlayHandler = this._playerCanPlayHandler.bind(this);
-	this._playerErrorHandler = this._playerErrorHandler.bind(this);
-}
-
-SetSourceHandler.prototype.setSource = function (options, callback) {
-	this._options = options;
-	this._callback = callback;
-
-	this._eventEmitter.on("player.canplay", this._playerCanPlayHandler);
-	this._eventEmitter.on("player.error", this._playerErrorHandler);
-
-	return new Promise((resolve, reject) => {
-		this._resolve = resolve;
-		this._reject = reject;
-
-		this._eventEmitter.on("player.canplay", this._playerCanPlayHandler);
-		this._eventEmitter.on("player.error", this._playerErrorHandler);
-
-		this._mediaElement.setAttribute("src", options.mediaUrl);
-
-		// Force the media element to load, in case the media element
-		// has preload="none".
-		if (this._mediaElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
-			this._mediaElement.load();
+	seek(time: number): void {
+		if (this._mediaElement) {
+			this._mediaElement.currentTime = time;
 		}
-	});
-};
+	}
 
-SetSourceHandler.prototype._reset = function () {
-	this._eventEmitter.removeListener(
-		"player.canplay",
-		this._playerCanPlayHandler,
-	);
-	this._eventEmitter.removeListener("player.error", this._playerErrorHandler);
-};
+	setSource(options: SetSourceOptions): Promise<void> {
+		if (!options.mediaUrl) {
+			return Promise.reject(
+				new Error(
+					"peaks.setSource(): options must contain a mediaUrl when using mediaElement",
+				),
+			);
+		}
 
-SetSourceHandler.prototype._playerCanPlayHandler = function () {
-	this._reset();
+		if (!this._eventEmitter || !this._mediaElement) {
+			return Promise.reject(
+				new Error("peaks.setSource(): player not initialized"),
+			);
+		}
 
-	this._resolve();
-};
-
-SetSourceHandler.prototype._playerErrorHandler = function (err) {
-	this._reset();
-
-	// Return the MediaError object from the media element
-	this._reject(err);
-};
-
-MediaElementPlayer.prototype.setSource = function (options) {
-	if (!options.mediaUrl) {
-		// eslint-disable-next-line @stylistic/js/max-len
-		return Promise.reject(
-			new Error(
-				"peaks.setSource(): options must contain a mediaUrl when using mediaElement",
-			),
+		const setSourceHandler = new SetSourceHandler(
+			this._eventEmitter,
+			this._mediaElement,
 		);
+
+		return setSourceHandler.setSource(options);
 	}
-
-	const setSourceHandler = new SetSourceHandler(
-		this._eventEmitter,
-		this._mediaElement,
-	);
-
-	return setSourceHandler.setSource(options);
-};
+}
 
 export default MediaElementPlayer;

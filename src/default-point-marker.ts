@@ -1,21 +1,23 @@
+import type { Group } from "konva/lib/Group";
 import { Line } from "konva/lib/shapes/Line";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
+import type { CreatePointMarkerOptions, PointUpdateOptions } from "./types";
 
 class DefaultPointMarker {
-	private _options: any;
+	private _options: CreatePointMarkerOptions;
 	private _draggable: boolean;
 	private _label: Text | undefined;
 	private _handle!: Rect;
 	private _line!: Line;
 	private _time!: Text;
 
-	constructor(options: any) {
+	constructor(options: CreatePointMarkerOptions) {
 		this._options = options;
 		this._draggable = options.editable;
 	}
 
-	init(group: any): void {
+	init(group: Group): void {
 		const handleWidth = 10;
 		const handleHeight = 20;
 		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
@@ -86,7 +88,7 @@ class DefaultPointMarker {
 		this.bindEventHandlers(group);
 	}
 
-	bindEventHandlers(group: any): void {
+	bindEventHandlers(group: Group): void {
 		this._handle.on("mouseover touchstart", () => {
 			if (this._draggable) {
 				// Position text to the left of the marker
@@ -129,7 +131,7 @@ class DefaultPointMarker {
 		}
 	}
 
-	update(options: any): void {
+	update(options: PointUpdateOptions): void {
 		if (options.time !== undefined) {
 			if (this._time) {
 				this._time.setText(this._options.layer.formatTime(options.time));

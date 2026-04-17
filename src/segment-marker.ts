@@ -1,21 +1,38 @@
 import Konva from "konva/lib/Core";
+import type { Group } from "konva/lib/Group";
+import type { Layer } from "konva/lib/Layer";
+import type { KonvaEventObject } from "konva/lib/Node";
+import type { Segment } from "./segment";
+import type {
+	KonvaMouseEvent,
+	Marker,
+	SegmentMarkerAPI,
+	SegmentMarkerOptions,
+} from "./types";
 
 class SegmentMarker {
-	private _segment: any;
-	private _marker: any;
-	private _segmentShape: any;
+	private _segment: Segment;
+	private _marker: Marker;
 	private _editable: boolean;
 	private _startMarker: boolean;
-	private _onClick: any;
-	private _onDragStart: any;
-	private _onDragMove: any;
-	private _onDragEnd: any;
-	private _group: any;
+	private _onClick: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
+	private _onDragStart: (
+		marker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => void;
+	private _onDragMove: (
+		marker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => void;
+	private _onDragEnd: (
+		marker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => void;
+	private _group: Group;
 
-	constructor(options: any) {
+	constructor(options: SegmentMarkerOptions) {
 		this._segment = options.segment;
 		this._marker = options.marker;
-		this._segmentShape = options.segmentShape;
 		this._editable = options.editable;
 		this._startMarker = options.startMarker;
 
@@ -29,7 +46,8 @@ class SegmentMarker {
 			segment: this._segment,
 			draggable: this._editable,
 			visible: this._editable,
-			dragBoundFunc: (pos: any) => options.dragBoundFunc(this, pos),
+			dragBoundFunc: (pos: { x: number; y: number }) =>
+				options.dragBoundFunc(this, pos),
 		});
 
 		this._bindDefaultEventHandlers();
@@ -38,24 +56,24 @@ class SegmentMarker {
 	}
 
 	private _bindDefaultEventHandlers(): void {
-		this._group.on("click", (event: any) => {
+		this._group.on("click", (event: KonvaEventObject<MouseEvent>) => {
 			this._onClick(this, event);
 		});
 
-		this._group.on("dragstart", (event: any) => {
+		this._group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
 			this._onDragStart(this, event);
 		});
 
-		this._group.on("dragmove", (event: any) => {
+		this._group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
 			this._onDragMove(this, event);
 		});
 
-		this._group.on("dragend", (event: any) => {
+		this._group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
 			this._onDragEnd(this, event);
 		});
 	}
 
-	addToLayer(layer: any): void {
+	addToLayer(layer: Layer): void {
 		layer.add(this._group);
 	}
 
@@ -67,23 +85,23 @@ class SegmentMarker {
 		this._marker.fitToView();
 	}
 
-	getSegment(): any {
+	getSegment(): Segment {
 		return this._segment;
 	}
 
 	getX(): number {
-		return this._group.getX();
+		return this._group.x();
 	}
 
 	setX(x: number): void {
-		this._group.setX(x);
+		this._group.x(x);
 	}
 
 	getWidth(): number {
-		return this._group.getWidth();
+		return this._group.width();
 	}
 
-	getAbsolutePosition(): any {
+	getAbsolutePosition(): { x: number; y: number } {
 		return this._group.getAbsolutePosition();
 	}
 
@@ -91,10 +109,10 @@ class SegmentMarker {
 		return this._startMarker;
 	}
 
-	update(options: any): void {
+	update(options: Record<string, unknown>): void {
 		if (options.editable !== undefined) {
-			this._group.visible(options.editable);
-			this._group.draggable(options.editable);
+			this._group.visible(options.editable as boolean);
+			this._group.draggable(options.editable as boolean);
 		}
 
 		if (this._marker.update) {

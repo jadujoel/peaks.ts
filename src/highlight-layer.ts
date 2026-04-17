@@ -1,13 +1,15 @@
-import Konva from "konva/lib/Core";
+import { Layer } from "konva/lib/Layer";
+import type { Stage } from "konva/lib/Stage";
 import { Rect } from "konva/lib/shapes/Rect";
 
+import type { OverviewOptions, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
 
 class HighlightLayer {
-	private _view: any;
+	private _view: WaveformViewAPI;
 	private _offset: number;
 	private _color: string;
-	private _layer: Konva.Layer;
+	private _layer: Layer;
 	private _highlightRect: Rect | null;
 	private _startTime: number | null;
 	private _endTime: number | null;
@@ -15,11 +17,11 @@ class HighlightLayer {
 	private _opacity: number;
 	private _cornerRadius: number;
 
-	constructor(view: any, options: any) {
+	constructor(view: WaveformViewAPI, options: OverviewOptions) {
 		this._view = view;
 		this._offset = options.highlightOffset;
 		this._color = options.highlightColor;
-		this._layer = new Konva.Layer({ listening: false });
+		this._layer = new Layer({ listening: false });
 		this._highlightRect = null;
 		this._startTime = null;
 		this._endTime = null;
@@ -28,7 +30,7 @@ class HighlightLayer {
 		this._cornerRadius = options.highlightCornerRadius;
 	}
 
-	addToStage(stage: Konva.Stage): void {
+	addToStage(stage: Stage): void {
 		stage.add(this._layer);
 	}
 

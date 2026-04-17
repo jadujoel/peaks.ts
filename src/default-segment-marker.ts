@@ -1,20 +1,22 @@
+import type { Group } from "konva/lib/Group";
 import { Line } from "konva/lib/shapes/Line";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
+import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
 class DefaultSegmentMarker {
-	private _options: any;
+	private _options: CreateSegmentMarkerOptions;
 	private _editable: boolean;
 	private _label!: Text;
 	private _handle!: Rect;
 	private _line!: Line;
 
-	constructor(options: any) {
+	constructor(options: CreateSegmentMarkerOptions) {
 		this._options = options;
 		this._editable = options.editable;
 	}
 
-	init(group: any): void {
+	init(group: Group): void {
 		const handleWidth = 10;
 		const handleHeight = 20;
 		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
@@ -71,7 +73,7 @@ class DefaultSegmentMarker {
 		this.bindEventHandlers(group);
 	}
 
-	bindEventHandlers(group: any): void {
+	bindEventHandlers(group: Group): void {
 		const xPosition = this._options.startMarker ? -24 : 24;
 
 		group.on("dragstart", () => {
@@ -107,7 +109,7 @@ class DefaultSegmentMarker {
 		this._line.points([0.5, 0, 0.5, height]);
 	}
 
-	update(options: any): void {
+	update(options: SegmentUpdateOptions): void {
 		if (options.startTime !== undefined && this._options.startMarker) {
 			this._label.text(this._options.layer.formatTime(options.startTime));
 		}

@@ -1,137 +1,24 @@
-// @ts-nocheck
-/**
- * @file
- *
- * Defines the {@link WaveformBuilder} class.
- *
- * @module waveform-builder
- */
-
 import WaveformData from "waveform-data";
+import type {
+	PeaksInstance,
+	WaveformBuilderCallback,
+	WebAudioOptions,
+} from "./types";
 import { isArrayBuffer, isObject } from "./utils";
+
+interface WaveformBuilderOptions {
+	dataUri?: Record<string, string> | null;
+	waveformData?: Record<string, unknown> | null;
+	webAudio?: WebAudioOptions | null;
+	audioContext?: AudioContext;
+	withCredentials?: boolean;
+	zoomLevels?: number[];
+	[key: string]: unknown;
+}
 
 const isXhr2 = "withCredentials" in new XMLHttpRequest();
 
-/**
- * Creates and returns a WaveformData object, either by requesting the
- * waveform data from the server, or by creating the waveform data using the
- * Web Audio API.
- *
- * @class
- * @alias WaveformBuilder
- *
- * @param {Peaks} peaks
- */
-
-function WaveformBuilder(peaks) {
-	this._peaks = peaks;
-}
-
-/**
- * Options for requesting remote waveform data.
- *
- * @typedef {Object} RemoteWaveformDataOptions
- * @global
- * @property {String=} arraybuffer
- * @property {String=} json
- */
-
-/**
- * Options for supplying local waveform data.
- *
- * @typedef {Object} LocalWaveformDataOptions
- * @global
- * @property {ArrayBuffer=} arraybuffer
- * @property {Object=} json
- */
-
-/**
- * Options for the Web Audio waveform builder.
- *
- * @typedef {Object} WaveformBuilderWebAudioOptions
- * @global
- * @property {AudioContext} audioContext
- * @property {AudioBuffer=} audioBuffer
- * @property {Number=} scale
- * @property {Boolean=} multiChannel
- */
-
-/**
- * Options for [WaveformBuilder.init]{@link WaveformBuilder#init}.
- *
- * @typedef {Object} WaveformBuilderInitOptions
- * @global
- * @property {RemoteWaveformDataOptions=} dataUri
- * @property {LocalWaveformDataOptions=} waveformData
- * @property {WaveformBuilderWebAudioOptions=} webAudio
- * @property {Boolean=} withCredentials
- * @property {Array<Number>=} zoomLevels
- */
-
-/**
- * Callback for receiving the waveform data.
- *
- * @callback WaveformBuilderInitCallback
- * @global
- * @param {Error} error
- * @param {WaveformData} waveformData
- */
-
-/**
- * Loads or creates the waveform data.
- *
- * @private
- * @param {WaveformBuilderInitOptions} options
- * @param {WaveformBuilderInitCallback} callback
- */
-
-WaveformBuilder.prototype.init = function (options, callback) {
-	if (
-		(options.dataUri && (options.webAudio || options.audioContext)) ||
-		(options.waveformData && (options.webAudio || options.audioContext)) ||
-		(options.dataUri && options.waveformData)
-	) {
-		// eslint-disable-next-line @stylistic/js/max-len
-		callback(
-			new TypeError(
-				"Peaks.init(): You may only pass one source (webAudio, dataUri, or waveformData) to render waveform data.",
-			),
-		);
-		return;
-	}
-
-	if (options.audioContext) {
-		// eslint-disable-next-line @stylistic/js/max-len
-		this._peaks._logger(
-			"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
-		);
-
-		options.webAudio = {
-			audioContext: options.audioContext,
-		};
-	}
-
-	if (options.dataUri) {
-		return this._getRemoteWaveformData(options, callback);
-	} else if (options.waveformData) {
-		return this._buildWaveformFromLocalData(options, callback);
-	} else if (options.webAudio) {
-		if (options.webAudio.audioBuffer) {
-			return this._buildWaveformDataFromAudioBuffer(options, callback);
-		} else {
-			return this._buildWaveformDataUsingWebAudio(options, callback);
-		}
-	} else {
-		// eslint-disable-next-line @stylistic/js/max-len
-		callback(
-			new Error(
-				"Peaks.init(): You must pass an audioContext, or dataUri, or waveformData to render waveform data",
-			),
-		);
-	}
-};
-
-function hasValidContentRangeHeader(xhr) {
+function hasValidContentRangeHeader(xhr: XMLHttpRequest): boolean {
 	const contentRange = xhr.getResponseHeader("content-range");
 
 	if (!contentRange) {
@@ -141,9 +28,9 @@ function hasValidContentRangeHeader(xhr) {
 	const matches = contentRange.match(/^bytes (\d+)-(\d+)\/(\d+)$/);
 
 	if (matches && matches.length === 4) {
-		const firstPos = parseInt(matches[1], 10);
-		const lastPos = parseInt(matches[2], 10);
-		const length = parseInt(matches[3], 10);
+		const firstPos = parseInt(matches[1] as string, 10);
+		const lastPos = parseInt(matches[2] as string, 10);
+		const length = parseInt(matches[3] as string, 10);
 
 		if (firstPos === 0 && lastPos + 1 === length) {
 			return true;
@@ -155,394 +42,433 @@ function hasValidContentRangeHeader(xhr) {
 	return false;
 }
 
-/* eslint-disable @stylistic/js/max-len */
+class WaveformBuilder {
+	_peaks: PeaksInstance;
+	_xhr: XMLHttpRequest | null = null;
 
-/**
- * Fetches waveform data, based on the given options.
- *
- * @private
- * @param {Object} options
- * @param {String|Object} options.dataUri
- * @param {String} options.dataUri.arraybuffer Waveform data URL
- *   (binary format)
- * @param {String} options.dataUri.json Waveform data URL (JSON format)
- * @param {String} options.defaultUriFormat Either 'arraybuffer' (for binary
- *   data) or 'json'
- * @param {WaveformBuilderInitCallback} callback
- *
- * @see Refer to the <a href="https://github.com/bbc/audiowaveform/blob/master/doc/DataFormat.md">data format documentation</a>
- *   for details of the binary and JSON waveform data formats.
- */
-
-/* eslint-enable @stylistic/js/max-len */
-
-WaveformBuilder.prototype._getRemoteWaveformData = function (
-	options,
-	callback,
-) {
-	const self = this;
-
-	let dataUri = null;
-	let requestType = null;
-	let url;
-
-	if (isObject(options.dataUri)) {
-		dataUri = options.dataUri;
-	} else {
-		callback(
-			new TypeError("Peaks.init(): The dataUri option must be an object"),
-		);
-		return;
+	constructor(peaks: PeaksInstance) {
+		this._peaks = peaks;
 	}
 
-	["ArrayBuffer", "JSON"].some((connector) => {
-		if (window[connector]) {
-			requestType = connector.toLowerCase();
-			url = dataUri[requestType];
-
-			return Boolean(url);
+	init(
+		options: WaveformBuilderOptions,
+		callback: WaveformBuilderCallback,
+	): void {
+		if (
+			(options.dataUri && (options.webAudio || options.audioContext)) ||
+			(options.waveformData && (options.webAudio || options.audioContext)) ||
+			(options.dataUri && options.waveformData)
+		) {
+			callback(
+				new TypeError(
+					"Peaks.init(): You may only pass one source (webAudio, dataUri, or waveformData) to render waveform data.",
+				),
+			);
+			return;
 		}
 
-		return false;
-	});
+		if (options.audioContext) {
+			this._peaks._logger(
+				"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
+			);
 
-	if (!url) {
-		// eslint-disable-next-line @stylistic/js/max-len
-		callback(
-			new Error(
-				"Peaks.init(): Unable to determine a compatible dataUri format for this browser",
-			),
-		);
-		return;
+			options.webAudio = {
+				audioContext: options.audioContext,
+			};
+		}
+
+		if (options.dataUri) {
+			this._getRemoteWaveformData(options, callback);
+		} else if (options.waveformData) {
+			this._buildWaveformFromLocalData(options, callback);
+		} else if (options.webAudio) {
+			if (options.webAudio.audioBuffer) {
+				this._buildWaveformDataFromAudioBuffer(options, callback);
+			} else {
+				this._buildWaveformDataUsingWebAudio(options, callback);
+			}
+		} else {
+			callback(
+				new Error(
+					"Peaks.init(): You must pass an audioContext, or dataUri, or waveformData to render waveform data",
+				),
+			);
+		}
 	}
 
-	self._xhr = self._createXHR(
-		url,
-		requestType,
-		options.withCredentials,
-		function (event) {
-			if (this.readyState !== 4) {
-				return;
+	_getRemoteWaveformData(
+		options: WaveformBuilderOptions,
+		callback: WaveformBuilderCallback,
+	): void {
+		const self = this;
+
+		let dataUri: Record<string, string> | null = null;
+		let requestType: string | null = null;
+		let url: string | undefined;
+
+		if (isObject(options.dataUri)) {
+			dataUri = options.dataUri;
+		} else {
+			callback(
+				new TypeError("Peaks.init(): The dataUri option must be an object"),
+			);
+			return;
+		}
+
+		["ArrayBuffer", "JSON"].some((connector) => {
+			if (connector in window) {
+				requestType = connector.toLowerCase();
+				url = dataUri?.[requestType] ?? undefined;
+
+				return Boolean(url);
 			}
 
-			// See https://github.com/bbc/peaks.js/issues/491
+			return false;
+		});
+
+		if (!url || !requestType) {
+			callback(
+				new Error(
+					"Peaks.init(): Unable to determine a compatible dataUri format for this browser",
+				),
+			);
+			return;
+		}
+
+		self._xhr = self._createXHR(
+			url,
+			requestType,
+			options.withCredentials ?? false,
+			function (this: XMLHttpRequest, _event: ProgressEvent<EventTarget>) {
+				if (this.readyState !== 4) {
+					return;
+				}
+
+				// See https://github.com/bbc/peaks.js/issues/491
+
+				if (
+					this.status !== 200 &&
+					!(this.status === 206 && hasValidContentRangeHeader(this))
+				) {
+					callback(
+						new Error(
+							`Unable to fetch remote data. HTTP status ${this.status}`,
+						),
+					);
+
+					return;
+				}
+
+				self._xhr = null;
+
+				const waveformData = WaveformData.create(this.response as ArrayBuffer);
+
+				if (waveformData.channels !== 1 && waveformData.channels !== 2) {
+					callback(
+						new Error(
+							"Peaks.init(): Only mono or stereo waveforms are currently supported",
+						),
+					);
+					return;
+				} else if (waveformData.bits !== 8) {
+					callback(
+						new Error("Peaks.init(): 16-bit waveform data is not supported"),
+					);
+					return;
+				}
+
+				callback(null, waveformData);
+			},
+			() => {
+				callback(new Error("XHR failed"));
+			},
+			() => {
+				callback(new Error("XHR aborted"));
+			},
+		);
+
+		self._xhr.send();
+	}
+
+	_buildWaveformFromLocalData(
+		options: WaveformBuilderOptions,
+		callback: WaveformBuilderCallback,
+	): void {
+		let waveformData: Record<string, unknown> | null = null;
+		let data: unknown = null;
+
+		if (isObject(options.waveformData)) {
+			waveformData = options.waveformData;
+		} else {
+			callback(
+				new Error("Peaks.init(): The waveformData option must be an object"),
+			);
+			return;
+		}
+
+		if (isObject(waveformData.json)) {
+			data = waveformData.json;
+		} else if (isArrayBuffer(waveformData.arraybuffer)) {
+			data = waveformData.arraybuffer;
+		}
+
+		if (!data) {
+			callback(
+				new Error(
+					"Peaks.init(): Unable to determine a compatible waveformData format",
+				),
+			);
+			return;
+		}
+
+		try {
+			const createdWaveformData = WaveformData.create(data as ArrayBuffer);
 
 			if (
-				this.status !== 200 &&
-				!(this.status === 206 && hasValidContentRangeHeader(this))
+				createdWaveformData.channels !== 1 &&
+				createdWaveformData.channels !== 2
 			) {
-				callback(
-					new Error("Unable to fetch remote data. HTTP status " + this.status),
-				);
-
-				return;
-			}
-
-			self._xhr = null;
-
-			const waveformData = WaveformData.create(event.target.response);
-
-			if (waveformData.channels !== 1 && waveformData.channels !== 2) {
 				callback(
 					new Error(
 						"Peaks.init(): Only mono or stereo waveforms are currently supported",
 					),
 				);
 				return;
-			} else if (waveformData.bits !== 8) {
+			} else if (createdWaveformData.bits !== 8) {
 				callback(
 					new Error("Peaks.init(): 16-bit waveform data is not supported"),
 				);
 				return;
 			}
 
-			callback(null, waveformData);
-		},
-		() => {
-			callback(new Error("XHR failed"));
-		},
-		() => {
-			callback(new Error("XHR aborted"));
-		},
-	);
-
-	self._xhr.send();
-};
-
-/* eslint-disable @stylistic/js/max-len */
-
-/**
- * Creates a waveform from given data, based on the given options.
- *
- * @private
- * @param {Object} options
- * @param {Object} options.waveformData
- * @param {ArrayBuffer} options.waveformData.arraybuffer Waveform data (binary format)
- * @param {Object} options.waveformData.json Waveform data (JSON format)
- * @param {WaveformBuilderInitCallback} callback
- *
- * @see Refer to the <a href="https://github.com/bbc/audiowaveform/blob/master/doc/DataFormat.md">data format documentation</a>
- *   for details of the binary and JSON waveform data formats.
- */
-
-/* eslint-enable @stylistic/js/max-len */
-
-WaveformBuilder.prototype._buildWaveformFromLocalData = (options, callback) => {
-	let waveformData = null;
-	let data = null;
-
-	if (isObject(options.waveformData)) {
-		waveformData = options.waveformData;
-	} else {
-		callback(
-			new Error("Peaks.init(): The waveformData option must be an object"),
-		);
-		return;
+			callback(null, createdWaveformData);
+		} catch (err) {
+			callback(err as Error);
+		}
 	}
 
-	if (isObject(waveformData.json)) {
-		data = waveformData.json;
-	} else if (isArrayBuffer(waveformData.arraybuffer)) {
-		data = waveformData.arraybuffer;
-	}
+	_buildWaveformDataUsingWebAudio(
+		options: WaveformBuilderOptions,
+		callback: WaveformBuilderCallback,
+	): void {
+		const audioContext =
+			window.AudioContext ||
+			(window as unknown as { webkitAudioContext: typeof AudioContext })
+				.webkitAudioContext;
 
-	if (!data) {
-		callback(
-			new Error(
-				"Peaks.init(): Unable to determine a compatible waveformData format",
-			),
-		);
-		return;
-	}
-
-	try {
-		const createdWaveformData = WaveformData.create(data);
-
-		if (
-			createdWaveformData.channels !== 1 &&
-			createdWaveformData.channels !== 2
-		) {
+		if (!(options.webAudio?.audioContext instanceof audioContext)) {
 			callback(
-				new Error(
-					"Peaks.init(): Only mono or stereo waveforms are currently supported",
+				new TypeError(
+					"Peaks.init(): The webAudio.audioContext option must be a valid AudioContext",
 				),
 			);
 			return;
-		} else if (createdWaveformData.bits !== 8) {
-			callback(
-				new Error("Peaks.init(): 16-bit waveform data is not supported"),
-			);
+		}
+
+		const webAudioOptions = options.webAudio;
+
+		if (!webAudioOptions) {
+			callback(new TypeError("Peaks.init(): Missing webAudio options"));
 			return;
 		}
 
-		callback(null, createdWaveformData);
-	} catch (err) {
-		callback(err);
-	}
-};
+		const firstZoomLevel = options.zoomLevels?.[0];
 
-/**
- * Creates waveform data using the Web Audio API.
- *
- * @private
- * @param {Object} options
- * @param {AudioContext} options.audioContext
- * @param {HTMLMediaElement} options.mediaElement
- * @param {WaveformBuilderInitCallback} callback
- */
+		if (
+			firstZoomLevel !== undefined &&
+			webAudioOptions.scale !== firstZoomLevel
+		) {
+			webAudioOptions.scale = firstZoomLevel;
+		}
 
-WaveformBuilder.prototype._buildWaveformDataUsingWebAudio = function (
-	options,
-	callback,
-) {
-	const audioContext = window.AudioContext || window.webkitAudioContext;
+		// If the media element has already selected which source to play, its
+		// currentSrc attribute will contain the source media URL. Otherwise,
+		// we wait for a canplay event to tell us when the media is ready.
 
-	if (!(options.webAudio.audioContext instanceof audioContext)) {
-		// eslint-disable-next-line @stylistic/js/max-len
-		callback(
-			new TypeError(
-				"Peaks.init(): The webAudio.audioContext option must be a valid AudioContext",
-			),
-		);
-		return;
-	}
+		const mediaSourceUrl = this._peaks.options.mediaElement?.currentSrc;
 
-	const webAudioOptions = options.webAudio;
-
-	if (webAudioOptions.scale !== options.zoomLevels[0]) {
-		webAudioOptions.scale = options.zoomLevels[0];
-	}
-
-	// If the media element has already selected which source to play, its
-	// currentSrc attribute will contain the source media URL. Otherwise,
-	// we wait for a canplay event to tell us when the media is ready.
-
-	const mediaSourceUrl = this._peaks.options.mediaElement.currentSrc;
-
-	if (mediaSourceUrl) {
-		this._requestAudioAndBuildWaveformData(
-			mediaSourceUrl,
-			webAudioOptions,
-			options.withCredentials,
-			callback,
-		);
-	} else {
-		this._peaks.once("player.canplay", () => {
+		if (mediaSourceUrl) {
 			this._requestAudioAndBuildWaveformData(
-				this._peaks.options.mediaElement.currentSrc,
+				mediaSourceUrl,
 				webAudioOptions,
-				options.withCredentials,
+				options.withCredentials ?? false,
 				callback,
 			);
-		});
-	}
-};
-
-WaveformBuilder.prototype._buildWaveformDataFromAudioBuffer = (
-	options,
-	callback,
-) => {
-	const webAudioOptions = options.webAudio;
-
-	if (webAudioOptions.scale !== options.zoomLevels[0]) {
-		webAudioOptions.scale = options.zoomLevels[0];
-	}
-
-	const webAudioBuilderOptions = {
-		audio_buffer: webAudioOptions.audioBuffer,
-		split_channels: webAudioOptions.multiChannel,
-		scale: webAudioOptions.scale,
-		disable_worker: true,
-	};
-
-	WaveformData.createFromAudio(webAudioBuilderOptions, (err, waveformData) => {
-		callback(err ?? null, waveformData);
-	});
-};
-
-/**
- * Fetches the audio content, based on the given options, and creates waveform
- * data using the Web Audio API.
- *
- * @private
- * @param {url} The media source URL
- * @param {WaveformBuilderWebAudioOptions} webAudio
- * @param {Boolean} withCredentials
- * @param {WaveformBuilderInitCallback} callback
- */
-
-WaveformBuilder.prototype._requestAudioAndBuildWaveformData = function (
-	url,
-	webAudio,
-	withCredentials,
-	callback,
-) {
-	const self = this;
-
-	if (!url) {
-		self._peaks._logger("Peaks.init(): The mediaElement src is invalid");
-		return;
-	}
-
-	self._xhr = self._createXHR(
-		url,
-		"arraybuffer",
-		withCredentials,
-		function (event) {
-			if (this.readyState !== 4) {
-				return;
-			}
-
-			// See https://github.com/bbc/peaks.js/issues/491
-
-			if (
-				this.status !== 200 &&
-				!(this.status === 206 && hasValidContentRangeHeader(this))
-			) {
-				callback(
-					new Error("Unable to fetch remote data. HTTP status " + this.status),
+		} else {
+			this._peaks.once("player.canplay", () => {
+				this._requestAudioAndBuildWaveformData(
+					this._peaks.options.mediaElement?.currentSrc ?? "",
+					webAudioOptions,
+					options.withCredentials ?? false,
+					callback,
 				);
-
-				return;
-			}
-
-			self._xhr = null;
-
-			const webAudioBuilderOptions = {
-				audio_context: webAudio.audioContext,
-				array_buffer: event.target.response,
-				split_channels: webAudio.multiChannel,
-				scale: webAudio.scale,
-			};
-
-			WaveformData.createFromAudio(
-				webAudioBuilderOptions,
-				(err, waveformData) => {
-					callback(err ?? null, waveformData);
-				},
-			);
-		},
-		() => {
-			callback(new Error("XHR failed"));
-		},
-		() => {
-			callback(new Error("XHR aborted"));
-		},
-	);
-
-	self._xhr.send();
-};
-
-WaveformBuilder.prototype.abort = function () {
-	if (this._xhr) {
-		this._xhr.abort();
-	}
-};
-
-/**
- * @private
- * @param {String} url
- * @param {String} requestType
- * @param {Boolean} withCredentials
- * @param {Function} onLoad
- * @param {Function} onError
- *
- * @returns {XMLHttpRequest}
- */
-
-WaveformBuilder.prototype._createXHR = (
-	url,
-	requestType,
-	withCredentials,
-	onLoad,
-	onError,
-	onAbort,
-) => {
-	const xhr = new XMLHttpRequest();
-
-	// open an XHR request to the data source file
-	xhr.open("GET", url, true);
-
-	if (isXhr2) {
-		try {
-			xhr.responseType = requestType;
-		} catch (error) {
-			// eslint-disable-line no-unused-vars
-			// Some browsers like Safari 6 do handle XHR2 but not the json
-			// response type, doing only a try/catch fails in IE9
+			});
 		}
 	}
 
-	xhr.onload = onLoad;
-	xhr.onerror = onError;
+	_buildWaveformDataFromAudioBuffer(
+		options: WaveformBuilderOptions,
+		callback: WaveformBuilderCallback,
+	): void {
+		const webAudioOptions = options.webAudio;
 
-	if (isXhr2 && withCredentials) {
-		xhr.withCredentials = true;
+		if (!webAudioOptions) {
+			callback(new TypeError("Peaks.init(): Missing webAudio options"));
+			return;
+		}
+
+		const firstZoomLevel = options.zoomLevels?.[0];
+		if (
+			firstZoomLevel !== undefined &&
+			webAudioOptions.scale !== firstZoomLevel
+		) {
+			webAudioOptions.scale = firstZoomLevel;
+		}
+
+		if (!webAudioOptions.audioBuffer) {
+			callback(new TypeError("Peaks.init(): Missing webAudio.audioBuffer"));
+			return;
+		}
+
+		const webAudioBuilderOptions: {
+			audio_buffer: AudioBuffer;
+			split_channels: boolean;
+			scale?: number;
+			disable_worker: boolean;
+		} = {
+			audio_buffer: webAudioOptions.audioBuffer,
+			split_channels: webAudioOptions.multiChannel ?? false,
+			disable_worker: true,
+		};
+
+		if (webAudioOptions.scale !== undefined) {
+			webAudioBuilderOptions.scale = webAudioOptions.scale;
+		}
+
+		WaveformData.createFromAudio(
+			webAudioBuilderOptions,
+			(err: Error | undefined, waveformData: WaveformData | undefined) => {
+				callback(err ?? null, waveformData);
+			},
+		);
 	}
 
-	xhr.addEventListener("abort", onAbort);
+	_requestAudioAndBuildWaveformData(
+		url: string,
+		webAudio: WebAudioOptions,
+		withCredentials: boolean,
+		callback: WaveformBuilderCallback,
+	): void {
+		const self = this;
 
-	return xhr;
-};
+		if (!url) {
+			self._peaks._logger("Peaks.init(): The mediaElement src is invalid");
+			return;
+		}
+
+		self._xhr = self._createXHR(
+			url,
+			"arraybuffer",
+			withCredentials,
+			function (this: XMLHttpRequest) {
+				if (this.readyState !== 4) {
+					return;
+				}
+
+				// See https://github.com/bbc/peaks.js/issues/491
+
+				if (
+					this.status !== 200 &&
+					!(this.status === 206 && hasValidContentRangeHeader(this))
+				) {
+					callback(
+						new Error(
+							`Unable to fetch remote data. HTTP status ${this.status}`,
+						),
+					);
+
+					return;
+				}
+
+				self._xhr = null;
+
+				if (!webAudio.audioContext) {
+					callback(new Error("Missing audioContext"));
+					return;
+				}
+
+				const webAudioBuilderOptions: {
+					audio_context: AudioContext;
+					array_buffer: ArrayBuffer;
+					split_channels: boolean;
+					scale?: number;
+				} = {
+					audio_context: webAudio.audioContext,
+					array_buffer: this.response as ArrayBuffer,
+					split_channels: webAudio.multiChannel ?? false,
+				};
+
+				if (webAudio.scale !== undefined) {
+					webAudioBuilderOptions.scale = webAudio.scale;
+				}
+
+				WaveformData.createFromAudio(
+					webAudioBuilderOptions,
+					(err: Error | undefined, waveformData: WaveformData | undefined) => {
+						callback(err ?? null, waveformData);
+					},
+				);
+			},
+			() => {
+				callback(new Error("XHR failed"));
+			},
+			() => {
+				callback(new Error("XHR aborted"));
+			},
+		);
+
+		self._xhr.send();
+	}
+
+	abort(): void {
+		if (this._xhr) {
+			this._xhr.abort();
+		}
+	}
+
+	_createXHR(
+		url: string,
+		requestType: string,
+		withCredentials: boolean,
+		onLoad: (this: XMLHttpRequest, event: ProgressEvent<EventTarget>) => void,
+		onError: () => void,
+		onAbort: () => void,
+	): XMLHttpRequest {
+		const xhr = new XMLHttpRequest();
+
+		// open an XHR request to the data source file
+		xhr.open("GET", url, true);
+
+		if (isXhr2) {
+			try {
+				xhr.responseType = requestType as XMLHttpRequestResponseType;
+			} catch {
+				// Some browsers like Safari 6 do handle XHR2 but not the json
+				// response type, doing only a try/catch fails in IE9
+			}
+		}
+
+		xhr.onload = onLoad;
+		xhr.onerror = onError;
+
+		if (isXhr2 && withCredentials) {
+			xhr.withCredentials = true;
+		}
+
+		xhr.addEventListener("abort", onAbort);
+
+		return xhr;
+	}
+}
 
 export default WaveformBuilder;

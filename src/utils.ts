@@ -1,4 +1,5 @@
 import Konva from "konva/lib/Core";
+import type { Node } from "konva/lib/Node";
 
 export interface LinearGradientColor {
 	linearGradientStart: number;
@@ -12,7 +13,7 @@ function zeroPad(number: number | string, precision: number): string {
 	let str = number.toString();
 
 	while (str.length < precision) {
-		str = "0" + str;
+		str = `0${str}`;
 	}
 
 	return str;
@@ -35,7 +36,7 @@ export function formatTime(time: number, precision: number): string {
 	let result = parts.join(":");
 
 	if (precision > 0) {
-		result += "." + zeroPad(fractionSeconds, precision);
+		result += `.${zeroPad(fractionSeconds, precision)}`;
 	}
 
 	return result;
@@ -73,11 +74,13 @@ export function objectHasProperty(object: object, field: PropertyKey): boolean {
 	return Object.hasOwn(object, field);
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: generic extend utility
-export function extend(to: any, from: any): any {
+export function extend<T extends Record<string, unknown>>(
+	to: T,
+	from: Record<string, unknown>,
+): T {
 	for (const key in from) {
 		if (objectHasProperty(from, key)) {
-			to[key] = from[key];
+			(to as Record<string, unknown>)[key] = from[key];
 		}
 	}
 
@@ -89,14 +92,16 @@ export function isInAscendingOrder(array: number[]): boolean {
 		return true;
 	}
 
-	let value = array[0]!;
+	let value = array[0] as number;
 
 	for (let i = 1; i < array.length; i++) {
-		if (value >= array[i]!) {
+		const current = array[i] as number;
+
+		if (value >= current) {
 			return false;
 		}
 
-		value = array[i]!;
+		value = current;
 	}
 
 	return true;
@@ -106,7 +111,6 @@ export function isNumber(value: unknown): value is number {
 	return typeof value === "number";
 }
 
-// biome-ignore lint/suspicious/noShadowRestrictedNames: intentional shadow
 export function isFinite(value: unknown): value is number {
 	if (typeof value !== "number") {
 		return false;
@@ -172,14 +176,15 @@ export function isLinearGradientColor(
 	);
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Konva node types are complex
-export function getMarkerObject(obj: any): any {
-	while (obj.parent !== null) {
-		if (obj.parent instanceof Konva.Layer) {
-			return obj;
+export function getMarkerObject(obj: Node): Node | null {
+	let current: Node | null = obj;
+
+	while (current?.parent !== null && current?.parent !== undefined) {
+		if (current.parent instanceof Konva.Layer) {
+			return current;
 		}
 
-		obj = obj.parent;
+		current = current.parent;
 	}
 
 	return null;

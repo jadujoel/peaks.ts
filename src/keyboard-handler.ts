@@ -1,3 +1,5 @@
+import type { PeaksInstance } from "./types";
+
 const nodes = ["OBJECT", "TEXTAREA", "INPUT", "SELECT", "OPTION"];
 
 const SPACE = 32;
@@ -5,12 +7,11 @@ const TAB = 9;
 const LEFT_ARROW = 37;
 const RIGHT_ARROW = 39;
 
-// biome-ignore lint/suspicious/noExplicitAny: event emitter
 export default class KeyboardHandler {
-	private eventEmitter: any;
+	private eventEmitter: PeaksInstance;
 	private _handleKeyEvent: (event: KeyboardEvent) => void;
 
-	constructor(eventEmitter: any) {
+	constructor(eventEmitter: PeaksInstance) {
 		this.eventEmitter = eventEmitter;
 
 		this._handleKeyEvent = this._onKeyEvent.bind(this);

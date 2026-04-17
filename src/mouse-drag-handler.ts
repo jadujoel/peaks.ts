@@ -1,3 +1,7 @@
+import type { Group } from "konva/lib/Group";
+import type { KonvaEventObject } from "konva/lib/Node";
+import type { Stage } from "konva/lib/Stage";
+import type { MouseDragHandlers } from "./types";
 import { getMarkerObject } from "./utils";
 
 /**
@@ -6,12 +10,12 @@ import { getMarkerObject } from "./utils";
  */
 
 class MouseDragHandler {
-	private _stage: any;
-	private _handlers: any;
+	private _stage: Stage;
+	private _handlers: MouseDragHandlers;
 	private _dragging: boolean;
 	private _lastMouseClientX: number | null;
 
-	constructor(stage: any, handlers: any) {
+	constructor(stage: Stage, handlers: MouseDragHandlers) {
 		this._stage = stage;
 		this._handlers = handlers;
 		this._dragging = false;
@@ -24,10 +28,12 @@ class MouseDragHandler {
 	/**
 	 * Mouse down event handler.
 	 */
-	private _mouseDown = (event: any): void => {
-		let segment = null;
+	private _mouseDown = (
+		event: KonvaEventObject<MouseEvent | TouchEvent>,
+	): void => {
+		let segment: Group | null = null;
 
-		if (event.type === "mousedown" && event.evt.button !== 0) {
+		if (event.type === "mousedown" && (event.evt as MouseEvent).button !== 0) {
 			// Mouse drag only applies to the primary mouse button.
 			// The secondary button may be used to show a context menu
 			// and we don't want to also treat this as a mouse drag operation.
@@ -47,14 +53,14 @@ class MouseDragHandler {
 
 			// Check if we're dragging a segment.
 			if (marker.attrs.name === "segment-overlay") {
-				segment = marker;
+				segment = marker as unknown as Group;
 			}
 		}
 
 		this._lastMouseClientX = Math.floor(
 			event.type === "touchstart"
-				? event.evt.touches[0].clientX
-				: event.evt.clientX,
+				? ((event.evt as TouchEvent).touches[0]?.clientX ?? 0)
+				: (event.evt as MouseEvent).clientX,
 		);
 
 		if (this._handlers.onMouseDown) {
@@ -90,11 +96,11 @@ class MouseDragHandler {
 	/**
 	 * Mouse move event handler.
 	 */
-	private _mouseMove = (event: any): void => {
+	private _mouseMove = (event: MouseEvent | TouchEvent): void => {
 		const clientX = Math.floor(
 			event.type === "touchmove"
-				? event.changedTouches[0].clientX
-				: event.clientX,
+				? ((event as TouchEvent).changedTouches[0]?.clientX ?? 0)
+				: (event as MouseEvent).clientX,
 		);
 
 		// Don't update on vertical mouse movement.
@@ -116,17 +122,19 @@ class MouseDragHandler {
 	/**
 	 * Mouse up event handler.
 	 */
-	private _mouseUp = (event: any): void => {
+	private _mouseUp = (event: MouseEvent | TouchEvent | FocusEvent): void => {
 		let clientX: number;
 
 		if (event.type === "touchend") {
-			clientX = Math.floor(event.changedTouches[0].clientX);
+			clientX = Math.floor(
+				(event as TouchEvent).changedTouches[0]?.clientX ?? 0,
+			);
 
 			if (event.cancelable) {
 				event.preventDefault();
 			}
 		} else {
-			clientX = Math.floor(event.clientX);
+			clientX = Math.floor((event as MouseEvent).clientX);
 		}
 
 		if (this._handlers.onMouseUp) {
@@ -153,7 +161,7 @@ class MouseDragHandler {
 	 * received the mouse down event.
 	 */
 	private _getMousePosX(clientX: number): number {
-		const containerPos = this._stage.getContainer().getBoundingClientRect();
+		const containerPos = this._stage.container().getBoundingClientRect();
 
 		return Math.floor(clientX - containerPos.left);
 	}

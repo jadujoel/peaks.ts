@@ -14,10 +14,9 @@ try {
 
 	const requiredFiles = [
 		"package/package.json",
-		"package/peaks.js.d.ts",
-		"package/dist/peaks.js",
-		"package/dist/peaks.min.js",
+		"package/dist/esm/main.d.ts",
 		"package/dist/peaks.esm.js",
+		"package/dist/peaks.min.js",
 	];
 
 	for (const relativePath of requiredFiles) {

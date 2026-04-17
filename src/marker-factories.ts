@@ -1,6 +1,13 @@
+import type { Shape } from "konva/lib/Shape";
 import { Text } from "konva/lib/shapes/Text";
 import DefaultPointMarker from "./default-point-marker";
 import DefaultSegmentMarker from "./default-segment-marker";
+import type {
+	CreatePointMarkerOptions,
+	CreateSegmentLabelOptions,
+	CreateSegmentMarkerOptions,
+	Marker,
+} from "./types";
 
 /**
  * Creates a left or right side segment marker handle.
@@ -9,7 +16,9 @@ import DefaultSegmentMarker from "./default-segment-marker";
  * @returns {Marker}
  */
 
-export function createSegmentMarker(options: any): any {
+export function createSegmentMarker(
+	options: CreateSegmentMarkerOptions,
+): Marker | null {
 	if (options.view === "zoomview") {
 		return new DefaultSegmentMarker(options);
 	}
@@ -25,7 +34,7 @@ export function createSegmentMarker(options: any): any {
  * @returns {Konva.Text}
  */
 
-export function createSegmentLabel(options: any): Text {
+export function createSegmentLabel(options: CreateSegmentLabelOptions): Shape {
 	return new Text({
 		x: 12,
 		y: 12,
@@ -45,6 +54,6 @@ export function createSegmentLabel(options: any): Text {
  * @returns {Marker}
  */
 
-export function createPointMarker(options: any): any {
+export function createPointMarker(options: CreatePointMarkerOptions): Marker {
 	return new DefaultPointMarker(options);
 }

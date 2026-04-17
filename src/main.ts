@@ -1,13 +1,5 @@
-// @ts-nocheck
-/**
- * @file
- *
- * Defines the {@link Peaks} class.
- *
- * @module main
- */
-
 import EventEmitter from "eventemitter3";
+import type WaveformData from "waveform-data";
 import CueEmitter from "./cue-emitter";
 import KeyboardHandler from "./keyboard-handler";
 import {
@@ -17,6 +9,15 @@ import {
 } from "./marker-factories";
 import MediaElementPlayer from "./mediaelement-player";
 import Player from "./player";
+import type {
+	Logger,
+	PeaksInitOptions,
+	PeaksInstance,
+	PeaksOptions,
+	PlayerAdapter,
+	SegmentDisplayOptions,
+	SetSourceOptions,
+} from "./types";
 import {
 	extend,
 	isFunction,
@@ -31,50 +32,7 @@ import WaveformPoints from "./waveform-points";
 import WaveformSegments from "./waveform-segments";
 import ZoomController from "./zoom-controller";
 
-/**
- * Initialises a new Peaks instance with default option settings.
- *
- * @class
- * @alias Peaks
- *
- * @param {Object} opts Configuration options
- */
-
-function Peaks() {
-	EventEmitter.call(this);
-
-	// Set default options
-	this.options = {
-		zoomLevels: [512, 1024, 2048, 4096],
-		waveformCache: true,
-
-		mediaElement: null,
-		mediaUrl: null,
-
-		dataUri: null,
-		withCredentials: false,
-
-		waveformData: null,
-		webAudio: null,
-
-		nudgeIncrement: 1.0,
-
-		pointMarkerColor: "#39cccc",
-
-		createSegmentMarker: createSegmentMarker,
-		createSegmentLabel: createSegmentLabel,
-		createPointMarker: createPointMarker,
-
-		// eslint-disable-next-line no-console
-		logger: console.error.bind(console),
-	};
-
-	return this;
-}
-
-Peaks.prototype = Object.create(EventEmitter.prototype);
-
-const defaultViewOptions = {
+const defaultViewOptions: Record<string, unknown> = {
 	playheadColor: "#111111",
 	playheadTextColor: "#aaaaaa",
 	playheadBackgroundColor: "transparent",
@@ -93,7 +51,7 @@ const defaultViewOptions = {
 	enableSegments: true,
 };
 
-const defaultZoomviewOptions = {
+const defaultZoomviewOptions: Record<string, unknown> = {
 	// showPlayheadTime:    true,
 	playheadClickTolerance: 3,
 	waveformColor: "rgba(0, 225, 128, 1)",
@@ -103,7 +61,7 @@ const defaultZoomviewOptions = {
 	enableEditing: true,
 };
 
-const defaultOverviewOptions = {
+const defaultOverviewOptions: Record<string, unknown> = {
 	// showPlayheadTime:    false,
 	waveformColor: "rgba(0, 0, 0, 0.2)",
 	highlightColor: "#aaaaaa",
@@ -114,7 +72,7 @@ const defaultOverviewOptions = {
 	enableEditing: false,
 };
 
-const defaultSegmentOptions = {
+const defaultSegmentOptions: Record<string, unknown> = {
 	overlay: false,
 	markers: true,
 	startMarkerColor: "#aaaaaa",
@@ -135,15 +93,15 @@ const defaultSegmentOptions = {
 	overlayFontStyle: "normal",
 };
 
-const defaultScrollbarOptions = {
+const defaultScrollbarOptions: Record<string, unknown> = {
 	color: "#888888",
 	minWidth: 50,
 };
 
-function getOverviewOptions(opts) {
-	const overviewOptions = {};
+function getOverviewOptions(opts: PeaksInitOptions) {
+	const overviewOptions: Record<string, unknown> = {};
 
-	if (opts.overview && opts.overview.showPlayheadTime) {
+	if (opts.overview?.showPlayheadTime) {
 		overviewOptions.showPlayheadTime = opts.overview.showPlayheadTime;
 	}
 
@@ -194,12 +152,12 @@ function getOverviewOptions(opts) {
 	return overviewOptions;
 }
 
-function getZoomviewOptions(opts) {
-	const zoomviewOptions = {};
+function getZoomviewOptions(opts: PeaksInitOptions) {
+	const zoomviewOptions: Record<string, unknown> = {};
 
 	if (opts.showPlayheadTime) {
 		zoomviewOptions.showPlayheadTime = opts.showPlayheadTime;
-	} else if (opts.zoomview && opts.zoomview.showPlayheadTime) {
+	} else if (opts.zoomview?.showPlayheadTime) {
 		zoomviewOptions.showPlayheadTime = opts.zoomview.showPlayheadTime;
 	}
 
@@ -249,18 +207,20 @@ function getZoomviewOptions(opts) {
 	return zoomviewOptions;
 }
 
-function getScrollbarOptions(opts) {
-	if (!objectHasProperty(opts, "scrollbar")) {
+function getScrollbarOptions(opts: PeaksInitOptions) {
+	const scrollbar = opts.scrollbar;
+
+	if (!scrollbar) {
 		return null;
 	}
 
-	const scrollbarOptions = {};
+	const scrollbarOptions: Record<string, unknown> = {};
 
 	const optNames = ["container", "color", "minWidth"];
 
 	optNames.forEach((optName) => {
-		if (objectHasProperty(opts.scrollbar, optName)) {
-			scrollbarOptions[optName] = opts.scrollbar[optName];
+		if (objectHasProperty(scrollbar, optName)) {
+			scrollbarOptions[optName] = scrollbar[optName];
 		} else {
 			scrollbarOptions[optName] = defaultScrollbarOptions[optName];
 		}
@@ -269,7 +229,10 @@ function getScrollbarOptions(opts) {
 	return scrollbarOptions;
 }
 
-function extendOptions(to, from) {
+function extendOptions(
+	to: Record<string, unknown>,
+	from: Record<string, unknown>,
+) {
 	for (const key in from) {
 		if (objectHasProperty(from, key) && objectHasProperty(to, key)) {
 			to[key] = from[key];
@@ -279,42 +242,44 @@ function extendOptions(to, from) {
 	return to;
 }
 
-function addSegmentOptions(options, opts) {
-	options.segmentOptions = {};
+function addSegmentOptions(options: PeaksOptions, opts: PeaksInitOptions) {
+	options.segmentOptions = {} as SegmentDisplayOptions;
 
 	extend(options.segmentOptions, defaultSegmentOptions);
 
 	if (opts.segmentOptions) {
-		extendOptions(options.segmentOptions, opts.segmentOptions);
-	}
-
-	options.zoomview.segmentOptions = {};
-	extend(options.zoomview.segmentOptions, options.segmentOptions);
-
-	if (opts.zoomview && opts.zoomview.segmentOptions) {
 		extendOptions(
-			options.zoomview.segmentOptions,
-			opts.zoomview.segmentOptions,
+			options.segmentOptions as unknown as Record<string, unknown>,
+			opts.segmentOptions as unknown as Record<string, unknown>,
 		);
 	}
 
-	options.overview.segmentOptions = {};
+	options.zoomview.segmentOptions = {} as SegmentDisplayOptions;
+	extend(options.zoomview.segmentOptions, options.segmentOptions);
+
+	if (opts.zoomview?.segmentOptions) {
+		extendOptions(
+			options.zoomview.segmentOptions as unknown as Record<string, unknown>,
+			opts.zoomview.segmentOptions as unknown as Record<string, unknown>,
+		);
+	}
+
+	options.overview.segmentOptions = {} as SegmentDisplayOptions;
 	extend(options.overview.segmentOptions, options.segmentOptions);
 
-	if (opts.overview && opts.overview.segmentOptions) {
+	if (opts.overview?.segmentOptions) {
 		extendOptions(
-			options.overview.segmentOptions,
-			opts.overview.segmentOptions,
+			options.overview.segmentOptions as unknown as Record<string, unknown>,
+			opts.overview.segmentOptions as unknown as Record<string, unknown>,
 		);
 	}
 }
 
-function checkContainerElements(options) {
+function checkContainerElements(options: PeaksOptions) {
 	const zoomviewContainer = options.zoomview.container;
 	const overviewContainer = options.overview.container;
 
 	if (!isHTMLElement(zoomviewContainer) && !isHTMLElement(overviewContainer)) {
-		// eslint-disable-next-line @stylistic/js/max-len
 		return new TypeError(
 			"Peaks.init(): The zoomview and/or overview container options must be valid HTML elements",
 		);
@@ -324,7 +289,6 @@ function checkContainerElements(options) {
 		zoomviewContainer &&
 		(zoomviewContainer.clientWidth <= 0 || zoomviewContainer.clientHeight <= 0)
 	) {
-		// eslint-disable-next-line @stylistic/js/max-len
 		return new Error(
 			"Peaks.init(): The zoomview container must be visible and have non-zero width and height",
 		);
@@ -334,316 +298,336 @@ function checkContainerElements(options) {
 		overviewContainer &&
 		(overviewContainer.clientWidth <= 0 || overviewContainer.clientHeight <= 0)
 	) {
-		// eslint-disable-next-line @stylistic/js/max-len
 		return new Error(
 			"Peaks.init(): The overview container must be visible and have non-zero width and height",
 		);
 	}
 }
 
-/**
- * Creates and initialises a new Peaks instance with the given options.
- *
- * @param {Object} opts Configuration options
- * @param {Function} callback
- *
- * @return {Peaks}
- */
+class Peaks extends EventEmitter {
+	options: PeaksOptions;
+	player!: Player;
+	segments!: WaveformSegments;
+	points!: WaveformPoints;
+	zoom!: ZoomController;
+	views!: ViewController;
+	_logger!: Logger;
+	_keyboardHandler: KeyboardHandler | null = null;
+	_waveformBuilder: WaveformBuilder | null = null;
+	_waveformData: WaveformData | null = null;
+	_cueEmitter: CueEmitter | null = null;
 
-Peaks.init = (opts, callback) => {
-	if (!callback) {
-		throw new Error("Peaks.init(): Missing callback function");
+	constructor() {
+		super();
+
+		// Set default options
+		this.options = {
+			zoomLevels: [512, 1024, 2048, 4096],
+			waveformCache: true,
+
+			mediaElement: null,
+			mediaUrl: null,
+
+			dataUri: null,
+			withCredentials: false,
+
+			waveformData: null,
+			webAudio: null,
+
+			nudgeIncrement: 1.0,
+
+			pointMarkerColor: "#39cccc",
+
+			createSegmentMarker: createSegmentMarker,
+			createSegmentLabel: createSegmentLabel,
+			createPointMarker: createPointMarker,
+
+			// eslint-disable-next-line no-console
+			logger: console.error.bind(console),
+		} as PeaksOptions;
 	}
 
-	const instance = new Peaks();
-
-	let err = instance._setOptions(opts);
-
-	if (!err) {
-		err = checkContainerElements(instance.options);
-	}
-
-	if (err) {
-		callback(err);
-		return;
-	}
-
-	let scrollbarContainer = null;
-
-	if (instance.options.scrollbar) {
-		scrollbarContainer = instance.options.scrollbar.container;
-
-		if (!isHTMLElement(scrollbarContainer)) {
-			// eslint-disable-next-line @stylistic/js/max-len
-			callback(
-				new TypeError(
-					"Peaks.init(): The scrollbar container option must be a valid HTML element",
-				),
-			);
-			return;
+	static init(
+		opts: PeaksInitOptions,
+		callback: (err: Error | null, instance?: Peaks) => void,
+	) {
+		if (!callback) {
+			throw new Error("Peaks.init(): Missing callback function");
 		}
 
-		if (scrollbarContainer.clientWidth <= 0) {
-			// eslint-disable-next-line @stylistic/js/max-len
-			callback(
-				new TypeError(
-					"Peaks.init(): The scrollbar container must be visible and have non-zero width",
-				),
-			);
-			return;
+		const instance = new Peaks();
+
+		let err = instance._setOptions(opts);
+
+		if (!err) {
+			err = checkContainerElements(instance.options);
 		}
-	}
 
-	if (opts.keyboard) {
-		instance._keyboardHandler = new KeyboardHandler(instance);
-	}
-
-	const player = opts.player
-		? opts.player
-		: new MediaElementPlayer(instance.options.mediaElement);
-
-	instance.player = new Player(instance, player);
-	instance.segments = new WaveformSegments(instance);
-	instance.points = new WaveformPoints(instance);
-	instance.zoom = new ZoomController(instance, instance.options.zoomLevels);
-	instance.views = new ViewController(instance);
-
-	// Setup the UI components
-	instance._waveformBuilder = new WaveformBuilder(instance);
-
-	instance.player
-		.init(instance)
-		.then(() => {
-			instance._waveformBuilder.init(instance.options, (err, waveformData) => {
-				if (err) {
-					callback(err);
-					return;
-				}
-
-				err = checkContainerElements(instance.options);
-
-				if (err) {
-					callback(err);
-					return;
-				}
-
-				instance._waveformBuilder = null;
-				instance._waveformData = waveformData;
-
-				const zoomviewContainer = instance.options.zoomview.container;
-				const overviewContainer = instance.options.overview.container;
-
-				if (zoomviewContainer) {
-					instance.views.createZoomview(zoomviewContainer);
-				}
-
-				if (overviewContainer) {
-					instance.views.createOverview(overviewContainer);
-				}
-
-				if (scrollbarContainer) {
-					instance.views.createScrollbar(scrollbarContainer);
-				}
-
-				if (opts.segments) {
-					instance.segments.add(opts.segments);
-				}
-
-				if (opts.points) {
-					instance.points.add(opts.points);
-				}
-
-				if (opts.emitCueEvents) {
-					instance._cueEmitter = new CueEmitter(instance);
-				}
-
-				callback(null, instance);
-			});
-		})
-		.catch((err) => {
+		if (err) {
 			callback(err);
-		});
-};
-
-Peaks.prototype._setOptions = function (opts) {
-	if (!isObject(opts)) {
-		return new TypeError(
-			"Peaks.init(): The options parameter should be an object",
-		);
-	}
-
-	if (!opts.player) {
-		if (!opts.mediaElement) {
-			return new Error("Peaks.init(): Missing mediaElement option");
+			return;
 		}
 
-		if (!(opts.mediaElement instanceof HTMLMediaElement)) {
-			return new TypeError(
-				"Peaks.init(): The mediaElement option should be an HTMLMediaElement",
-			);
-		}
-	}
+		let scrollbarContainer = null;
 
-	if (opts.logger && !isFunction(opts.logger)) {
-		return new TypeError(
-			"Peaks.init(): The logger option should be a function",
-		);
-	}
+		if (instance.options.scrollbar) {
+			scrollbarContainer = instance.options.scrollbar.container;
 
-	if (opts.segments && !Array.isArray(opts.segments)) {
-		return new TypeError(
-			"Peaks.init(): options.segments must be an array of segment objects",
-		);
-	}
-
-	if (opts.points && !Array.isArray(opts.points)) {
-		return new TypeError(
-			"Peaks.init(): options.points must be an array of point objects",
-		);
-	}
-
-	extendOptions(this.options, opts);
-
-	this.options.overview = getOverviewOptions(opts);
-	this.options.zoomview = getZoomviewOptions(opts);
-	this.options.scrollbar = getScrollbarOptions(opts);
-
-	addSegmentOptions(this.options, opts);
-
-	if (!Array.isArray(this.options.zoomLevels)) {
-		return new TypeError(
-			"Peaks.init(): The zoomLevels option should be an array",
-		);
-	} else if (this.options.zoomLevels.length === 0) {
-		return new Error("Peaks.init(): The zoomLevels array must not be empty");
-	} else {
-		if (!isInAscendingOrder(this.options.zoomLevels)) {
-			return new Error(
-				"Peaks.init(): The zoomLevels array must be sorted in ascending order",
-			);
-		}
-	}
-
-	this._logger = this.options.logger;
-};
-
-/**
- * Remote waveform data options for [Peaks.setSource]{@link Peaks#setSource}.
- *
- * @typedef {Object} RemoteWaveformDataOptions
- * @global
- * @property {String=} arraybuffer
- * @property {String=} json
- */
-
-/**
- * Local waveform data options for [Peaks.setSource]{@link Peaks#setSource}.
- *
- * @typedef {Object} LocalWaveformDataOptions
- * @global
- * @property {ArrayBuffer=} arraybuffer
- * @property {Object=} json
- */
-
-/**
- * Web Audio options for [Peaks.setSource]{@link Peaks#setSource}.
- *
- * @typedef {Object} WebAudioOptions
- * @global
- * @property {AudioContext=} audioContext
- * @property {AudioBuffer=} audioBuffer
- * @property {Number=} scale
- * @property {Boolean=} multiChannel
- */
-
-/**
- * Options for [Peaks.setSource]{@link Peaks#setSource}.
- *
- * @typedef {Object} PeaksSetSourceOptions
- * @global
- * @property {String=} mediaUrl
- * @property {RemoteWaveformDataOptions=} dataUri
- * @property {LocalWaveformDataOptions=} waveformData
- * @property {WebAudioOptions=} webAudio
- * @property {Boolean=} withCredentials
- * @property {Array<Number>=} zoomLevels
- */
-
-/**
- * Changes the audio or video media source associated with the {@link Peaks}
- * instance.
- *
- * @see SetSourceHandler
- *
- * @param {PeaksSetSourceOptions} options
- * @param {Function} callback
- */
-
-Peaks.prototype.setSource = function (options, callback) {
-	this.player
-		._setSource(options)
-		.then(() => {
-			if (!options.zoomLevels) {
-				options.zoomLevels = this.options.zoomLevels;
+			if (!isHTMLElement(scrollbarContainer)) {
+				callback(
+					new TypeError(
+						"Peaks.init(): The scrollbar container option must be a valid HTML element",
+					),
+				);
+				return;
 			}
 
-			this._waveformBuilder = new WaveformBuilder(this);
+			if (scrollbarContainer.clientWidth <= 0) {
+				callback(
+					new TypeError(
+						"Peaks.init(): The scrollbar container must be visible and have non-zero width",
+					),
+				);
+				return;
+			}
+		}
 
-			this._waveformBuilder.init(options, (err, waveformData) => {
-				if (err) {
-					callback(err);
-					return;
+		if (opts.keyboard) {
+			instance._keyboardHandler = new KeyboardHandler(
+				instance as unknown as PeaksInstance,
+			);
+		}
+
+		let player: PlayerAdapter;
+
+		if (opts.player) {
+			player = opts.player;
+		} else if (instance.options.mediaElement) {
+			player = new MediaElementPlayer(instance.options.mediaElement);
+		} else {
+			callback(new TypeError("Peaks.init(): Missing mediaElement option"));
+			return;
+		}
+
+		instance.player = new Player(instance as unknown as PeaksInstance, player);
+		instance.segments = new WaveformSegments(
+			instance as unknown as PeaksInstance,
+		);
+		instance.points = new WaveformPoints(instance as unknown as PeaksInstance);
+		instance.zoom = new ZoomController(
+			instance as unknown as PeaksInstance,
+			instance.options.zoomLevels,
+		);
+		instance.views = new ViewController(instance as unknown as PeaksInstance);
+
+		// Setup the UI components
+		instance._waveformBuilder = new WaveformBuilder(
+			instance as unknown as PeaksInstance,
+		);
+
+		instance.player
+			.init()
+			.then(() => {
+				instance._waveformBuilder?.init(
+					instance.options,
+					(err: Error | null, waveformData?: WaveformData) => {
+						if (err) {
+							callback(err);
+							return;
+						}
+
+						const containerErr = checkContainerElements(instance.options);
+
+						if (containerErr) {
+							callback(containerErr);
+							return;
+						}
+
+						instance._waveformBuilder = null;
+						instance._waveformData = waveformData ?? null;
+
+						const zoomviewContainer = instance.options.zoomview.container;
+						const overviewContainer = instance.options.overview.container;
+
+						if (zoomviewContainer) {
+							instance.views.createZoomview(
+								zoomviewContainer as HTMLDivElement,
+							);
+						}
+
+						if (overviewContainer) {
+							instance.views.createOverview(
+								overviewContainer as HTMLDivElement,
+							);
+						}
+
+						if (scrollbarContainer) {
+							instance.views.createScrollbar(scrollbarContainer);
+						}
+
+						if (opts.segments) {
+							instance.segments.add(opts.segments);
+						}
+
+						if (opts.points) {
+							instance.points.add(opts.points);
+						}
+
+						if (opts.emitCueEvents) {
+							instance._cueEmitter = new CueEmitter(
+								instance as unknown as PeaksInstance,
+							);
+						}
+
+						callback(null, instance);
+					},
+				);
+			})
+			.catch((err: Error) => {
+				callback(err);
+			});
+	}
+
+	_setOptions(opts: PeaksInitOptions) {
+		if (!isObject(opts)) {
+			return new TypeError(
+				"Peaks.init(): The options parameter should be an object",
+			);
+		}
+
+		if (!opts.player) {
+			if (!opts.mediaElement) {
+				return new Error("Peaks.init(): Missing mediaElement option");
+			}
+
+			if (!(opts.mediaElement instanceof HTMLMediaElement)) {
+				return new TypeError(
+					"Peaks.init(): The mediaElement option should be an HTMLMediaElement",
+				);
+			}
+		}
+
+		if (opts.logger && !isFunction(opts.logger)) {
+			return new TypeError(
+				"Peaks.init(): The logger option should be a function",
+			);
+		}
+
+		if (opts.segments && !Array.isArray(opts.segments)) {
+			return new TypeError(
+				"Peaks.init(): options.segments must be an array of segment objects",
+			);
+		}
+
+		if (opts.points && !Array.isArray(opts.points)) {
+			return new TypeError(
+				"Peaks.init(): options.points must be an array of point objects",
+			);
+		}
+
+		extendOptions(
+			this.options as unknown as Record<string, unknown>,
+			opts as unknown as Record<string, unknown>,
+		);
+
+		this.options.overview = getOverviewOptions(
+			opts,
+		) as unknown as PeaksOptions["overview"];
+		this.options.zoomview = getZoomviewOptions(
+			opts,
+		) as unknown as PeaksOptions["zoomview"];
+		this.options.scrollbar = getScrollbarOptions(
+			opts,
+		) as PeaksOptions["scrollbar"];
+
+		addSegmentOptions(this.options, opts);
+
+		if (!Array.isArray(this.options.zoomLevels)) {
+			return new TypeError(
+				"Peaks.init(): The zoomLevels option should be an array",
+			);
+		} else if (this.options.zoomLevels.length === 0) {
+			return new Error("Peaks.init(): The zoomLevels array must not be empty");
+		} else {
+			if (!isInAscendingOrder(this.options.zoomLevels)) {
+				return new Error(
+					"Peaks.init(): The zoomLevels array must be sorted in ascending order",
+				);
+			}
+		}
+
+		this._logger = this.options.logger;
+	}
+
+	setSource(options: SetSourceOptions, callback: (err?: Error | null) => void) {
+		this.player
+			._setSource(options)
+			.then(() => {
+				if (!options.zoomLevels) {
+					options.zoomLevels = this.options.zoomLevels;
 				}
 
-				this._waveformBuilder = null;
-				this._waveformData = waveformData;
+				this._waveformBuilder = new WaveformBuilder(
+					this as unknown as PeaksInstance,
+				);
 
-				["overview", "zoomview"].forEach((viewName) => {
-					const view = this.views.getView(viewName);
+				this._waveformBuilder?.init(
+					options,
+					(err: Error | null, waveformData?: WaveformData) => {
+						if (err) {
+							callback(err);
+							return;
+						}
 
-					if (view) {
-						view.setWaveformData(waveformData);
-					}
-				});
+						this._waveformBuilder = null;
+						this._waveformData = waveformData ?? null;
 
-				this.zoom.setZoomLevels(options.zoomLevels);
+						(["overview", "zoomview"] as const).forEach((viewName) => {
+							const view = this.views.getView(viewName);
 
-				callback();
+							if (view && waveformData) {
+								view.setWaveformData(waveformData);
+							}
+						});
+
+						if (options.zoomLevels) {
+							this.zoom.setZoomLevels(options.zoomLevels);
+						}
+
+						callback();
+					},
+				);
+			})
+			.catch((err: Error) => {
+				callback(err);
 			});
-		})
-		.catch((err) => {
-			callback(err);
-		});
-};
-
-Peaks.prototype.getWaveformData = function () {
-	return this._waveformData;
-};
-
-/**
- * Cleans up a Peaks instance after use.
- */
-
-Peaks.prototype.destroy = function () {
-	if (this._waveformBuilder) {
-		this._waveformBuilder.abort();
 	}
 
-	if (this._keyboardHandler) {
-		this._keyboardHandler.destroy();
+	getWaveformData(): WaveformData | null {
+		return this._waveformData;
 	}
 
-	if (this.views) {
-		this.views.destroy();
-	}
+	destroy() {
+		if (this._waveformBuilder) {
+			this._waveformBuilder.abort();
+		}
 
-	if (this.player) {
-		this.player.destroy();
-	}
+		if (this._keyboardHandler) {
+			this._keyboardHandler.destroy();
+		}
 
-	if (this._cueEmitter) {
-		this._cueEmitter.destroy();
+		if (this.views) {
+			this.views.destroy();
+		}
+
+		if (this.player) {
+			this.player.destroy();
+		}
+
+		if (this._cueEmitter) {
+			this._cueEmitter.destroy();
+		}
 	}
-};
+}
 
 export default Peaks;

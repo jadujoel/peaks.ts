@@ -41,14 +41,12 @@ function validateAdapter(adapter) {
 
 	publicAdapterMethods.forEach((method) => {
 		if (!allProperties.includes(method)) {
-			throw new TypeError(
-				"Peaks.init(): Player method " + method + " is undefined",
-			);
+			throw new TypeError(`Peaks.init(): Player method ${method} is undefined`);
 		}
 
 		if (typeof adapter[method] !== "function") {
 			throw new TypeError(
-				"Peaks.init(): Player method " + method + " is not a function",
+				`Peaks.init(): Player method ${method} is not a function`,
 			);
 		}
 	});

@@ -231,7 +231,7 @@ WaveformBuilder.prototype._getRemoteWaveformData = function (
 				!(this.status === 206 && hasValidContentRangeHeader(this))
 			) {
 				callback(
-					new Error("Unable to fetch remote data. HTTP status " + this.status),
+					new Error(`Unable to fetch remote data. HTTP status ${this.status}`),
 				);
 
 				return;
@@ -459,7 +459,7 @@ WaveformBuilder.prototype._requestAudioAndBuildWaveformData = function (
 				!(this.status === 206 && hasValidContentRangeHeader(this))
 			) {
 				callback(
-					new Error("Unable to fetch remote data. HTTP status " + this.status),
+					new Error(`Unable to fetch remote data. HTTP status ${this.status}`),
 				);
 
 				return;
@@ -525,7 +525,7 @@ WaveformBuilder.prototype._createXHR = (
 	if (isXhr2) {
 		try {
 			xhr.responseType = requestType;
-		} catch (error) {
+		} catch (_error) {
 			// eslint-disable-line no-unused-vars
 			// Some browsers like Safari 6 do handle XHR2 but not the json
 			// response type, doing only a try/catch fails in IE9

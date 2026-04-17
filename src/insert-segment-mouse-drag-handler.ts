@@ -1,15 +1,21 @@
+import type { Group } from "konva/lib/Group";
 import MouseDragHandler from "./mouse-drag-handler";
+import type { Segment } from "./segment";
+import type { PeaksInstance, SegmentShapeAPI } from "./types";
 
 class InsertSegmentMouseDragHandler {
-	private _peaks: any;
-	private _view: any;
-	private _insertSegment: any;
-	private _insertSegmentShape: any;
+	private _peaks: PeaksInstance;
+	private _view: import("./waveform-zoomview").default;
+	private _insertSegment: Segment | null;
+	private _insertSegmentShape: SegmentShapeAPI | null;
 	private _segmentIsDraggable: boolean;
-	private _segment: any;
+	private _segment: Group | null;
 	private _mouseDragHandler: MouseDragHandler;
 
-	constructor(peaks: any, view: any) {
+	constructor(
+		peaks: PeaksInstance,
+		view: InsertSegmentMouseDragHandler["_view"],
+	) {
 		this._peaks = peaks;
 		this._view = view;
 
@@ -40,7 +46,7 @@ class InsertSegmentMouseDragHandler {
 		this._peaks.segments.setInserting(false);
 	}
 
-	private _onMouseDown(mousePosX: number, segment: any): void {
+	private _onMouseDown(mousePosX: number, segment: Group | null): void {
 		this._reset();
 		this._segment = segment;
 
@@ -67,11 +73,10 @@ class InsertSegmentMouseDragHandler {
 			startTime: time,
 			endTime: time,
 			editable: true,
-		});
+		}) as Segment;
 
-		this._insertSegmentShape = this._view._segmentsLayer.getSegmentShape(
-			this._insertSegment,
-		);
+		this._insertSegmentShape =
+			this._view._segmentsLayer?.getSegmentShape(this._insertSegment) ?? null;
 
 		if (this._insertSegmentShape) {
 			this._insertSegmentShape.moveMarkersToTop();

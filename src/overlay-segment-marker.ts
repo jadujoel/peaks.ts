@@ -1,19 +1,18 @@
-import type Konva from "konva/lib/Core";
+import type { Group } from "konva/lib/Group";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
-
-import { clamp } from "./utils";
+import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
 class OverlaySegmentMarker {
-	private _options: any;
+	private _options: CreateSegmentMarkerOptions;
 	private _label!: Text;
 	private _handle!: Rect;
 
-	constructor(options: any) {
+	constructor(options: CreateSegmentMarkerOptions) {
 		this._options = options;
 	}
 
-	init(group: Konva.Group): void {
+	init(group: Group): void {
 		const handleWidth = 10;
 		const handleHeight = 20;
 		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
@@ -53,12 +52,12 @@ class OverlaySegmentMarker {
 		this.bindEventHandlers(group);
 	}
 
-	bindEventHandlers(group: Konva.Group): void {
+	bindEventHandlers(group: Group): void {
 		const xPosition = this._options.startMarker ? -24 : 24;
 
 		group.on("dragstart", () => {
 			if (this._options.startMarker) {
-				this._label.setX(xPosition - this._label.getWidth());
+				this._label.x(xPosition - this._label.getWidth());
 			}
 
 			this._label.show();
@@ -70,7 +69,7 @@ class OverlaySegmentMarker {
 
 		this._handle.on("mouseover touchstart", () => {
 			if (this._options.startMarker) {
-				this._label.setX(xPosition - this._label.getWidth());
+				this._label.x(xPosition - this._label.getWidth());
 			}
 
 			this._label.show();
@@ -89,14 +88,14 @@ class OverlaySegmentMarker {
 		const viewHeight = this._options.layer.getHeight();
 
 		const overlayOffset = this._options.segmentOptions.overlayOffset;
-		const overlayRectHeight = clamp(0, viewHeight - 2 * overlayOffset);
+		const overlayRectHeight = Math.max(0, viewHeight - 2 * overlayOffset);
 
 		this._label.y(viewHeight / 2 - 5);
 		this._handle.y(overlayOffset);
 		this._handle.height(overlayRectHeight);
 	}
 
-	update(options: any): void {
+	update(options: SegmentUpdateOptions): void {
 		if (options.startTime !== undefined && this._options.startMarker) {
 			this._label.text(this._options.layer.formatTime(options.startTime));
 		}
