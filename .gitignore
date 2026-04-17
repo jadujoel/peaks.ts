@@ -18,3 +18,8 @@
 /dist
 /docs
 /node_modules
+
+AGENTS.md
+.agents
+*.DS_Store
+tasks

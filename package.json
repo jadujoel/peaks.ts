@@ -1,10 +1,15 @@
 {
-  "name": "peaks.js",
-  "version": "4.0.0-beta.2",
-  "description": "JavaScript UI component for displaying audio waveforms",
+  "name": "@jadujoel/peaks.ts",
+  "version": "5.0.0",
+  "description": "Typescript UI component for displaying audio waveforms",
   "main": "./dist/peaks.min.js",
   "module": "./dist/peaks.esm.js",
   "types": "./peaks.js.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
   "files": [
     "peaks.js.d.ts",
     "dist/peaks.js",
@@ -32,7 +37,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/bbc/peaks.js.git"
+    "url": "git://github.com/bbc/peaks.ts.git"
   },
   "license": "LGPL-3.0",
   "engines": {
@@ -44,19 +49,15 @@
     "not IE 11"
   ],
   "scripts": {
-    "prebuild": "npm run lint",
+    "prebuild": "bun run lint",
     "build": "rollup -c",
     "postbuild": "copyfiles --up 1 dist/peaks.js dist/peaks.js.map dist/peaks.min.js dist/peaks.min.js.map dist/peaks.esm.js dist/peaks.esm.js.map dist/peaks.ext.js dist/peaks.ext.js.map dist/peaks.ext.min.js dist/peaks.ext.min.js.map demo",
-    "doc": "jsdoc --private --destination docs --recurse src",
-    "lint": "eslint src/*.js test/*.js eslint.config.mjs karma.conf.cjs rollup.config.mjs",
-    "pretest": "npm run lint",
+    "lint": "biome check --fix",
     "test": "karma start karma.conf.cjs",
-    "test-watch": "npm test -- --auto-watch --no-single-run",
     "build-demo": "cd demo/custom-markers && rollup -c",
     "copy-demo-files": "copyfiles --up 1 test/data/sample.mp3 test/data/07023003.mp3 test/data/07023003-2channel.dat demo",
-    "prestart": "npm run build && npm run build-demo && npm run copy-demo-files",
-    "start": "serve --listen 8080 --no-clipboard --no-request-logging demo",
-    "prepack": "npm run build"
+    "prestart": "bun run build && bun run build-demo && bun run copy-demo-files",
+    "start": "serve --listen 8080 --no-clipboard --no-request-logging demo"
   },
   "devDependencies": {
     "@babel/preset-env": "~7.27.1",
@@ -91,13 +92,18 @@
     "serve": "~14.2.3",
     "sinon": "~20.0.0",
     "sinon-chai": "~3.7.0",
-    "watchify": "~4.0.0"
+    "watchify": "~4.0.0",
+    "@types/bun": "latest"
   },
   "dependencies": {
+    "@biomejs/biome": "2.4.12",
     "eventemitter3": "~5.0.1"
   },
   "peerDependencies": {
     "konva": ">= 8.3.14 < 10",
-    "waveform-data": ">= 4.5.1 < 5"
-  }
+    "waveform-data": ">= 4.5.1 < 5",
+    "typescript": "^5"
+  },
+  "type": "module",
+  "private": false
 }

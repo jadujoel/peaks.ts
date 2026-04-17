@@ -1,3 +1,5 @@
+This is a fork from Peaks.js to migrate the codebase to TypeScript and update dependencies, as well as fix some issues i've had with looping.
+
 **Note:** Ongoing development of this project has moved to https://codeberg.org/chrisn/peaks.js.
 
 [![Build Status](https://github.com/bbc/peaks.js/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/bbc/peaks.js/actions) [![npm](https://img.shields.io/npm/v/peaks.js.svg)](https://www.npmjs.com/package/peaks.js)
