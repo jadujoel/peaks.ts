@@ -1,5 +1,7 @@
 {
 	"name": "@jadujoel/peaks.ts",
+	"type": "module",
+	"private": false,
 	"version": "5.0.0",
 	"description": "Typescript UI component for displaying audio waveforms",
 	"main": "./dist/peaks.esm.js",
@@ -79,7 +81,5 @@
 		"konva": ">= 8.3.14 < 10",
 		"waveform-data": ">= 4.5.1 < 5",
 		"typescript": "^6"
-	},
-	"type": "module",
-	"private": false
+	}
 }
