@@ -5,29 +5,26 @@ import { Rect } from "konva/lib/shapes/Rect";
 import type { OverviewOptions, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
 
-class HighlightLayer {
+export class HighlightLayer {
 	private _view: WaveformViewAPI;
 	private _offset: number;
 	private _color: string;
 	private _layer: Layer;
-	private _highlightRect: Rect | null;
-	private _startTime: number | null;
-	private _endTime: number | null;
+	private _highlightRect?: Rect | undefined;
+	private _startTime?: number;
+	private _endTime?: number;
 	private _strokeColor: string;
 	private _opacity: number;
 	private _cornerRadius: number;
 
 	constructor(view: WaveformViewAPI, options: OverviewOptions) {
 		this._view = view;
-		this._offset = options.highlightOffset;
-		this._color = options.highlightColor;
+		this._offset = options.highlightOffset ?? 0;
+		this._color = options.highlightColor ?? "#000";
 		this._layer = new Layer({ listening: false });
-		this._highlightRect = null;
-		this._startTime = null;
-		this._endTime = null;
-		this._strokeColor = options.highlightStrokeColor;
-		this._opacity = options.highlightOpacity;
-		this._cornerRadius = options.highlightCornerRadius;
+		this._strokeColor = options.highlightStrokeColor ?? "#000";
+		this._opacity = options.highlightOpacity ?? 0.5;
+		this._cornerRadius = options.highlightCornerRadius ?? 0;
 	}
 
 	addToStage(stage: Stage): void {
@@ -92,15 +89,15 @@ class HighlightLayer {
 	removeHighlight(): void {
 		if (this._highlightRect) {
 			this._highlightRect.destroy();
-			this._highlightRect = null;
+			this._highlightRect = undefined;
 		}
 	}
 
 	updateHighlight(): void {
 		if (
 			this._highlightRect &&
-			this._startTime !== null &&
-			this._endTime !== null
+			this._startTime !== undefined &&
+			this._endTime !== undefined
 		) {
 			this._update(this._startTime, this._endTime);
 		}
@@ -118,5 +115,3 @@ class HighlightLayer {
 		}
 	}
 }
-
-export default HighlightLayer;

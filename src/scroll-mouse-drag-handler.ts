@@ -1,5 +1,5 @@
 import type { Group } from "konva/lib/Group";
-import MouseDragHandler from "./mouse-drag-handler";
+import { MouseDragHandler } from "./mouse-drag-handler";
 import type { PeaksInstance } from "./types";
 import { clamp } from "./utils";
 
@@ -8,7 +8,7 @@ import { clamp } from "./utils";
  * waveform view by clicking and dragging the mouse.
  */
 
-class ScrollMouseDragHandler {
+export class ScrollMouseDragHandler {
 	private _peaks: PeaksInstance;
 	private _view: import("./waveform-zoomview").default;
 	private _seeking: boolean;
@@ -159,5 +159,3 @@ class ScrollMouseDragHandler {
 		this._mouseDragHandler.destroy();
 	}
 }
-
-export default ScrollMouseDragHandler;

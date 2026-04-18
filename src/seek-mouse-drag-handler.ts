@@ -1,8 +1,8 @@
-import MouseDragHandler from "./mouse-drag-handler";
+import { MouseDragHandler } from "./mouse-drag-handler";
 import type { PeaksInstance, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
 
-class SeekMouseDragHandler {
+export class SeekMouseDragHandler {
 	private _peaks: PeaksInstance;
 	private _view: WaveformViewAPI & {
 		_stage: import("konva/lib/Stage").Stage;
@@ -73,5 +73,3 @@ class SeekMouseDragHandler {
 		this._mouseDragHandler.destroy();
 	}
 }
-
-export default SeekMouseDragHandler;

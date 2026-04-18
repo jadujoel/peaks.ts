@@ -2,7 +2,7 @@ import type { Segment } from "./segment";
 import type { PeaksInstance, PlayerAdapter, SetSourceOptions } from "./types";
 import { isValidTime } from "./utils";
 
-function getAllPropertiesFrom(adapter: PlayerAdapter): string[] {
+export function getAllPropertiesFrom(adapter: PlayerAdapter): string[] {
 	const allProperties: string[] = [];
 	let obj = adapter;
 
@@ -22,7 +22,7 @@ function getAllPropertiesFrom(adapter: PlayerAdapter): string[] {
  *
  * @throws {TypeError} If a required adapter method is missing or is not a function.
  */
-function validateAdapter(adapter: PlayerAdapter): undefined | never {
+export function validateAdapter(adapter: PlayerAdapter): undefined | never {
 	const publicAdapterMethods = [
 		"init",
 		"destroy",
@@ -57,7 +57,7 @@ function validateAdapter(adapter: PlayerAdapter): undefined | never {
  * A wrapper for interfacing with an external player API.
  */
 
-class Player {
+export class Player {
 	private _peaks: PeaksInstance | null;
 	private _playingSegment: boolean;
 	private _segment: Segment | null;
@@ -243,5 +243,3 @@ class Player {
 		);
 	}
 }
-
-export default Player;

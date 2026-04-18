@@ -1,7 +1,7 @@
 import type { Shape } from "konva/lib/Shape";
 import { Text } from "konva/lib/shapes/Text";
-import DefaultPointMarker from "./default-point-marker";
-import DefaultSegmentMarker from "./default-segment-marker";
+import { DefaultPointMarker } from "./default-point-marker";
+import { DefaultSegmentMarker } from "./default-segment-marker";
 import type {
 	CreatePointMarkerOptions,
 	CreateSegmentLabelOptions,
@@ -38,7 +38,7 @@ export function createSegmentLabel(options: CreateSegmentLabelOptions): Shape {
 	return new Text({
 		x: 12,
 		y: 12,
-		text: options.segment.labelText,
+		text: options.segment?.labelText ?? "",
 		textAlign: "center",
 		fontFamily: options.fontFamily || "sans-serif",
 		fontSize: options.fontSize || 12,

@@ -53,4 +53,3 @@ class SimplePointMarker {
 	}
 }
 
-export default SimplePointMarker;

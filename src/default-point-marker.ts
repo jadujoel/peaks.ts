@@ -4,17 +4,30 @@ import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 import type { CreatePointMarkerOptions, PointUpdateOptions } from "./types";
 
-class DefaultPointMarker {
+export const DefaultOptions = {
+	editable: false,
+	color: "#000",
+	fontFamily: "sans-serif",
+	fontSize: 10,
+	fontStyle: "normal",
+} as const satisfies CreatePointMarkerOptions;
+
+export class DefaultPointMarker {
 	private _options: CreatePointMarkerOptions;
-	private _draggable: boolean;
 	private _label: Text | undefined;
 	private _handle!: Rect;
 	private _line!: Line;
 	private _time!: Text;
+	private _draggable: boolean;
+
+	static DefaultOptions = DefaultOptions;
 
 	constructor(options: CreatePointMarkerOptions) {
-		this._options = options;
-		this._draggable = options.editable;
+		this._options = {
+			...DefaultOptions,
+			...options,
+		};
+		this._draggable = this._options.editable ?? false;
 	}
 
 	init(group: Group): void {
@@ -29,7 +42,7 @@ class DefaultPointMarker {
 			this._label = new Text({
 				x: 2,
 				y: 0,
-				text: this._options.point.labelText,
+				text: this._options.point?.labelText ?? "",
 				textAlign: "left",
 				fontFamily: this._options.fontFamily || "sans-serif",
 				fontSize: this._options.fontSize || 10,
@@ -45,7 +58,7 @@ class DefaultPointMarker {
 			y: 0,
 			width: handleWidth,
 			height: handleHeight,
-			fill: this._options.color,
+			fill: this._options.color ?? DefaultOptions.color,
 			visible: this._draggable,
 		});
 
@@ -54,19 +67,26 @@ class DefaultPointMarker {
 		this._line = new Line({
 			x: 0,
 			y: 0,
-			stroke: this._options.color,
+			stroke: this._options.color ?? DefaultOptions.color,
 			strokeWidth: 1,
 		});
+
+		const point = this._options.point;
+		if (point === undefined) {
+			throw new Error(
+				"Point data is required to initialize DefaultPointMarker",
+			);
+		}
 
 		// Time label - create with default y, the real value is set
 		// in fitToView().
 		this._time = new Text({
 			x: -24,
 			y: 0,
-			text: this._options.layer.formatTime(this._options.point.time),
-			fontFamily: this._options.fontFamily,
-			fontSize: this._options.fontSize,
-			fontStyle: this._options.fontStyle,
+			text: this._options.layer?.formatTime(point.time) ?? "",
+			fontFamily: this._options.fontFamily ?? DefaultOptions.fontFamily,
+			fontSize: this._options.fontSize ?? DefaultOptions.fontSize,
+			fontStyle: this._options.fontStyle ?? DefaultOptions.fontStyle,
 			fill: "#000",
 			textAlign: "center",
 		});
@@ -114,7 +134,7 @@ class DefaultPointMarker {
 	}
 
 	fitToView(): void {
-		const height = this._options.layer.getHeight();
+		const height = this._options.layer?.getHeight() ?? 0;
 
 		this._line.points([0.5, 0, 0.5, height]);
 
@@ -134,7 +154,7 @@ class DefaultPointMarker {
 	update(options: PointUpdateOptions): void {
 		if (options.time !== undefined) {
 			if (this._time) {
-				this._time.setText(this._options.layer.formatTime(options.time));
+				this._time.setText(this._options.layer?.formatTime(options.time) ?? "");
 			}
 		}
 
@@ -154,10 +174,7 @@ class DefaultPointMarker {
 
 		if (options.editable !== undefined) {
 			this._draggable = options.editable;
-
 			this._handle.visible(this._draggable);
 		}
 	}
 }
-
-export default DefaultPointMarker;

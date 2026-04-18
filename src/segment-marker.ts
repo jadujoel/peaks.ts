@@ -10,7 +10,7 @@ import type {
 	SegmentMarkerOptions,
 } from "./types";
 
-class SegmentMarker {
+export class SegmentMarker {
 	private _segment: Segment;
 	private _marker: Marker;
 	private _editable: boolean;
@@ -137,5 +137,3 @@ class SegmentMarker {
 		this._group.stopDrag();
 	}
 }
-
-export default SegmentMarker;

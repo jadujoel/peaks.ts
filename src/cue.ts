@@ -1,4 +1,4 @@
-export default class Cue {
+export class Cue {
 	static readonly POINT = 0;
 	static readonly SEGMENT_START = 1;
 	static readonly SEGMENT_END = 2;
@@ -7,13 +7,9 @@ export default class Cue {
 		return a.time - b.time;
 	}
 
-	time: number;
-	type: number;
-	id: string;
-
-	constructor(time: number, type: number, id: string) {
-		this.time = time;
-		this.type = type;
-		this.id = id;
-	}
+	constructor(
+		public time: number,
+		public type: number,
+		public id: string,
+	) {}
 }

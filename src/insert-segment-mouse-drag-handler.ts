@@ -1,9 +1,9 @@
 import type { Group } from "konva/lib/Group";
-import MouseDragHandler from "./mouse-drag-handler";
+import { MouseDragHandler } from "./mouse-drag-handler";
 import type { Segment } from "./segment";
 import type { PeaksInstance, SegmentShapeAPI } from "./types";
 
-class InsertSegmentMouseDragHandler {
+export class InsertSegmentMouseDragHandler {
 	private _peaks: PeaksInstance;
 	private _view: import("./waveform-zoomview").default;
 	private _insertSegment: Segment | null;
@@ -113,5 +113,3 @@ class InsertSegmentMouseDragHandler {
 		this._mouseDragHandler.destroy();
 	}
 }
-
-export default InsertSegmentMouseDragHandler;

@@ -2,13 +2,14 @@ import Konva from "konva/lib/Core";
 import type { Layer } from "konva/lib/Layer";
 import type { Stage } from "konva/lib/Stage";
 import type { Segment } from "./segment";
-import SegmentShape from "./segment-shape";
+import { SegmentShape } from "./segment-shape";
 import type {
 	PeaksInstance,
 	SegmentClickEvent,
 	SegmentUpdateOptions,
 	WaveformViewAPI,
 } from "./types";
+
 import { objectHasProperty } from "./utils";
 
 /**
@@ -16,7 +17,7 @@ import { objectHasProperty } from "./utils";
  * waveform.
  */
 
-class SegmentsLayer {
+export class SegmentsLayer {
 	private _peaks: PeaksInstance;
 	private _view: WaveformViewAPI;
 	private _enableEditing: boolean;
@@ -283,5 +284,3 @@ class SegmentsLayer {
 		return this._layer.getHeight() ?? 0;
 	}
 }
-
-export default SegmentsLayer;

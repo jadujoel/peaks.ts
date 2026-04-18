@@ -139,4 +139,3 @@ class CustomSegmentMarker {
 	}
 }
 
-export default CustomSegmentMarker;

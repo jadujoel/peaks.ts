@@ -6,7 +6,7 @@ import { objectHasProperty } from "./utils";
 
 const isHeadless = /HeadlessChrome/.test(navigator.userAgent);
 
-function windowIsVisible(): boolean {
+export function isWindowVisible(): boolean {
 	if (isHeadless || navigator.webdriver) {
 		return false;
 	}
@@ -18,11 +18,7 @@ function windowIsVisible(): boolean {
 	);
 }
 
-const requestAnimationFrame = window.requestAnimationFrame;
-
-const cancelAnimationFrame = window.cancelAnimationFrame;
-
-const eventTypes: {
+export const eventTypes: {
 	forward: Record<number, number>;
 	reverse: Record<number, number>;
 } = {
@@ -30,9 +26,9 @@ const eventTypes: {
 	reverse: {},
 };
 
-const EVENT_TYPE_POINT = 0;
-const EVENT_TYPE_SEGMENT_ENTER = 1;
-const EVENT_TYPE_SEGMENT_EXIT = 2;
+export const EVENT_TYPE_POINT = 0;
+export const EVENT_TYPE_SEGMENT_ENTER = 1;
+export const EVENT_TYPE_SEGMENT_EXIT = 2;
 
 eventTypes.forward[Cue.POINT] = EVENT_TYPE_POINT;
 eventTypes.forward[Cue.SEGMENT_START] = EVENT_TYPE_SEGMENT_ENTER;
@@ -59,7 +55,7 @@ eventAttributes[EVENT_TYPE_SEGMENT_EXIT] = "segment";
  *
  * @throws {Error} If the cue refers to a missing point or segment, or to an unknown cue type.
  */
-function getPointOrSegment(
+export function getPointOrSegment(
 	peaks: PeaksInstance,
 	cue: Cue,
 ): Point | Segment | never {
@@ -109,7 +105,7 @@ const events = [
  * CueEmitter is responsible for emitting `points.enter`,
  * `segments.enter`, and `segments.exit` events.
  */
-class CueEmitter {
+export class CueEmitter {
 	private _cues: Cue[];
 	private _peaks: PeaksInstance;
 	private _previousTime: number;
@@ -231,7 +227,7 @@ class CueEmitter {
 	// falling back to timeUpdate.
 
 	private _onTimeUpdate(time: number): void {
-		if (windowIsVisible()) {
+		if (isWindowVisible()) {
 			return;
 		}
 
@@ -339,5 +335,3 @@ class CueEmitter {
 		this._previousTime = -1;
 	}
 }
-
-export default CueEmitter;

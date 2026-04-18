@@ -106,4 +106,3 @@ class OverlaySegmentMarker {
 	}
 }
 
-export default OverlaySegmentMarker;

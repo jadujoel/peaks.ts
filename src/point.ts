@@ -8,13 +8,23 @@ import {
 	objectHasProperty,
 } from "./utils";
 
-const pointOptions = ["id", "pid", "time", "labelText", "color", "editable"];
+/**
+ * A point is a single instant of time, with associated label and color.
+ */
 
-const invalidOptions = ["update", "isVisible", "peaks", "pid"];
+export type PointPeaksLike = {
+	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
+	readonly points?: Pick<PeaksInstance["points"], "updatePointId">;
+};
 
-function setDefaultPointOptions(
+
+export const pointOptions = ["id", "pid", "time", "labelText", "color", "editable"] as const;
+
+export const invalidOptions = ["update", "isVisible", "peaks", "pid"] as const;
+
+export function setDefaultPointOptions(
 	options: PointOptions,
-	peaksOptions: { pointMarkerColor: string },
+	peaksOptions: { readonly pointMarkerColor: string },
 ): void {
 	if (isNullOrUndefined(options.labelText)) {
 		options.labelText = "";
@@ -37,7 +47,7 @@ function setDefaultPointOptions(
  * @throws {RangeError} If time is negative.
  * @throws {Error} If reserved or internal option names are provided.
  */
-function validatePointOptions(
+export function validatePointOptions(
 	options: PointOptions | PointUpdateOptions,
 	updating: boolean,
 ): undefined | never {
@@ -90,16 +100,7 @@ function validatePointOptions(
 	});
 }
 
-/**
- * A point is a single instant of time, with associated label and color.
- */
-
-type PointPeaksLike = {
-	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
-	points?: Pick<PeaksInstance["points"], "updatePointId">;
-};
-
-class Point {
+export class Point {
 	[key: string]: unknown;
 
 	private _peaks: PointPeaksLike;
@@ -191,5 +192,3 @@ class Point {
 		this._time = time;
 	}
 }
-
-export { Point, setDefaultPointOptions, validatePointOptions };

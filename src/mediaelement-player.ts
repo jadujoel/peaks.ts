@@ -287,4 +287,3 @@ class MediaElementPlayer {
 	}
 }
 
-export default MediaElementPlayer;

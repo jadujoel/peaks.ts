@@ -6,9 +6,9 @@ import type { Shape } from "konva/lib/Shape";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 
-import OverlaySegmentMarker from "./overlay-segment-marker";
+import { OverlaySegmentMarker } from "./overlay-segment-marker";
 import type { Segment } from "./segment";
-import SegmentMarker from "./segment-marker";
+import { SegmentMarker } from "./segment-marker";
 import type {
 	CreateSegmentMarkerOptions,
 	KonvaMouseEvent,
@@ -18,70 +18,66 @@ import type {
 	SegmentMarkerAPI,
 	SegmentsLayerAPI,
 	WaveformViewAPI,
+    XY,
 } from "./types";
 import WaveformShape from "./waveform-shape";
 
-function createOverlayMarker(options: CreateSegmentMarkerOptions): Marker {
+export function createOverlayMarker(options: CreateSegmentMarkerOptions): Marker {
 	return new OverlaySegmentMarker(options);
 }
 
-function getDuration(segment: Segment): number {
+export function getDuration(segment: Segment): number {
 	return segment.endTime - segment.startTime;
 }
 
-class SegmentShape {
-	_segment: Segment;
-	_peaks: PeaksInstance;
-	_layer: SegmentsLayerAPI;
-	_view: WaveformViewAPI;
-	_label: Shape | null;
-	_startMarker: SegmentMarker | null;
-	_endMarker: SegmentMarker | null;
-	_color: string | undefined;
-	_borderColor: string | undefined;
-	_draggable: boolean;
-	_dragging: boolean;
-	_overlayOffset: number;
-	_waveformShape: WaveformShape | undefined;
-	_overlay!: Group;
-	_overlayRect!: Rect;
-	_overlayText: Text | null = null;
-	_nextSegment: Segment | undefined = undefined;
-	_previousSegment: Segment | undefined = undefined;
-	_dragStartX = 0;
-	_dragStartTime = 0;
-	_dragEndTime = 0;
-	_startMarkerX = 0;
-	_endMarkerX = 0;
+export type OnSegmentMarker = (
+	marker: SegmentMarkerAPI,
+	event: KonvaMouseEvent,
+) => void;
 
-	_onMouseEnter: (event: KonvaEventObject<MouseEvent>) => void;
-	_onMouseLeave: (event: KonvaEventObject<MouseEvent>) => void;
-	_onMouseDown: (event: KonvaEventObject<MouseEvent>) => void;
-	_onMouseUp: (event: KonvaEventObject<MouseEvent>) => void;
-	_dragBoundFunc: (pos: { x: number; y: number }) => { x: number; y: number };
-	_onSegmentDragStart: (event: KonvaEventObject<MouseEvent>) => void;
-	_onSegmentDragMove: (event: KonvaEventObject<MouseEvent>) => void;
-	_onSegmentDragEnd: (event: KonvaEventObject<MouseEvent>) => void;
-	_onSegmentMarkerClick: (
+export type OnSegmentMove = (event: KonvaEventObject<MouseEvent>) => void
+
+export class SegmentShape {
+	private _segment: Segment;
+	private _peaks: PeaksInstance;
+	private _layer: SegmentsLayerAPI;
+	private _view: WaveformViewAPI;
+	private _label: Shape | null;
+	private _startMarker: SegmentMarker | null;
+	private _endMarker: SegmentMarker | null;
+	private _color: string | undefined;
+	private _borderColor: string | undefined;
+	private _draggable: boolean;
+	private _dragging: boolean;
+	private _overlayOffset: number;
+	private _waveformShape: WaveformShape | undefined;
+	private _overlay!: Group;
+	private _overlayRect!: Rect;
+	private _overlayText: Text | null = null;
+	private _nextSegment: Segment | undefined = undefined;
+	private _previousSegment: Segment | undefined = undefined;
+	private _dragStartX = 0;
+	private _dragStartTime = 0;
+	private _dragEndTime = 0;
+	private _startMarkerX = 0;
+	private _endMarkerX = 0;
+
+	private _onMouseEnter: OnSegmentMove
+	private _onMouseLeave: OnSegmentMove
+	private _onMouseDown: OnSegmentMove
+	private _onMouseUp: OnSegmentMove
+	private _dragBoundFunc: (pos: XY) => XY;
+	private _onSegmentDragStart: OnSegmentMove
+	private _onSegmentDragMove: OnSegmentMove
+	private _onSegmentDragEnd: OnSegmentMove
+	private _onSegmentMarkerClick: OnSegmentMarker
+	private _onSegmentMarkerDragStart: OnSegmentMarker
+	private _onSegmentMarkerDragMove: OnSegmentMarker
+	private _onSegmentMarkerDragEnd: OnSegmentMarker
+	private _segmentMarkerDragBoundFunc: (
 		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	_onSegmentMarkerDragStart: (
-		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	_onSegmentMarkerDragMove: (
-		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	_onSegmentMarkerDragEnd: (
-		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	_segmentMarkerDragBoundFunc: (
-		marker: SegmentMarkerAPI,
-		pos: { x: number; y: number },
-	) => { x: number; y: number };
+		pos: XY,
+	) => XY;
 
 	constructor(
 		segment: Segment,
@@ -335,7 +331,7 @@ class SegmentShape {
 		}
 	}
 
-	#dragBoundFunc(pos: { x: number; y: number }) {
+	#dragBoundFunc(pos: XY) {
 		// Allow the segment to be moved horizontally but not vertically.
 		return {
 			x: pos.x,
@@ -1030,7 +1026,7 @@ class SegmentShape {
 
 	#segmentMarkerDragBoundFunc(
 		segmentMarker: SegmentMarkerAPI,
-		pos: { x: number; y: number },
+		pos: XY,
 	) {
 		// Allow the marker to be moved horizontally but not vertically.
 		return {
@@ -1101,5 +1097,3 @@ class SegmentShape {
 		}
 	}
 }
-
-export default SegmentShape;

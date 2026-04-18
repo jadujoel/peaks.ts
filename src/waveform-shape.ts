@@ -300,5 +300,3 @@ class WaveformShape {
 		return clamp(Math.floor(y), 0, height - 1);
 	}
 }
-
-export default WaveformShape;

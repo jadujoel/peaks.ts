@@ -1,20 +1,19 @@
-import WaveformData from "waveform-data";
+import { WaveformData } from "waveform-data";
 import type { Logger, WaveformBuilderCallback, WebAudioOptions } from "./types";
 import { isArrayBuffer, isObject } from "./utils";
 
-interface WaveformBuilderOptions {
-	dataUri?: Record<string, string> | string | null;
-	waveformData?: Record<string, unknown> | null;
-	webAudio?: WebAudioOptions | null;
-	audioContext?: AudioContext;
-	withCredentials?: boolean;
-	zoomLevels?: number[];
-	[key: string]: unknown;
+export interface WaveformBuilderOptions {
+	readonly dataUri?: Record<string, string> | string | null;
+	readonly waveformData?: Record<string, unknown> | null;
+	readonly webAudio?: WebAudioOptions | null;
+	readonly audioContext?: AudioContext;
+	readonly withCredentials?: boolean;
+	readonly zoomLevels?: readonly number[];
 }
 
 const isXhr2 = "withCredentials" in new XMLHttpRequest();
 
-function hasValidContentRangeHeader(xhr: XMLHttpRequest): boolean {
+export function hasValidContentRangeHeader(xhr: XMLHttpRequest): boolean {
 	const contentRange = xhr.getResponseHeader("content-range");
 
 	if (!contentRange) {
@@ -46,12 +45,10 @@ export type WaveformBuilderPeaksLike = {
 	readonly once?: (eventName: string, listener: () => void) => void;
 };
 
-class WaveformBuilder {
-	_peaks: WaveformBuilderPeaksLike;
-	_xhr: XMLHttpRequest | null = null;
+export class WaveformBuilder {
+	private _xhr: XMLHttpRequest | null = null;
 
-	constructor(peaks: WaveformBuilderPeaksLike) {
-		this._peaks = peaks;
+	constructor(public peaks: WaveformBuilderPeaksLike) {
 	}
 
 	init(
@@ -73,7 +70,7 @@ class WaveformBuilder {
 		}
 
 		if (options.audioContext) {
-			this._peaks._logger?.(
+			this.peaks._logger?.(
 				"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
 			);
 
@@ -299,7 +296,7 @@ class WaveformBuilder {
 		// currentSrc attribute will contain the source media URL. Otherwise,
 		// we wait for a canplay event to tell us when the media is ready.
 
-		const mediaSourceUrl = this._peaks.options.mediaElement?.currentSrc;
+		const mediaSourceUrl = this.peaks.options.mediaElement?.currentSrc;
 
 		if (mediaSourceUrl) {
 			this._requestAudioAndBuildWaveformData(
@@ -309,9 +306,9 @@ class WaveformBuilder {
 				callback,
 			);
 		} else {
-			this._peaks.once?.("player.canplay", () => {
+			this.peaks.once?.("player.canplay", () => {
 				this._requestAudioAndBuildWaveformData(
-					this._peaks.options.mediaElement?.currentSrc ?? "",
+					this.peaks.options.mediaElement?.currentSrc ?? "",
 					webAudioOptions,
 					options.withCredentials ?? false,
 					callback,
@@ -384,7 +381,7 @@ class WaveformBuilder {
 		const self = this;
 
 		if (!url) {
-			self._peaks._logger?.("Peaks.init(): The mediaElement src is invalid");
+			self.peaks._logger?.("Peaks.init(): The mediaElement src is invalid");
 			return;
 		}
 
@@ -495,5 +492,3 @@ class WaveformBuilder {
 		return xhr;
 	}
 }
-
-export default WaveformBuilder;

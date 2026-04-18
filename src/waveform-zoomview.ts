@@ -1,23 +1,23 @@
-import type WaveformData from "waveform-data";
-import InsertSegmentMouseDragHandler from "./insert-segment-mouse-drag-handler";
-import ScrollMouseDragHandler from "./scroll-mouse-drag-handler";
+import type { WaveformData } from "waveform-data";
+import { InsertSegmentMouseDragHandler } from "./insert-segment-mouse-drag-handler";
+import { ScrollMouseDragHandler } from "./scroll-mouse-drag-handler";
 import type { PeaksInstance, ZoomviewOptions } from "./types";
 import { clamp, isValidTime, objectHasProperty } from "./utils";
-import WaveformView from "./waveform-view";
+import { WaveformView } from "./waveform-view";
 
-interface ZoomOptions {
-	scale?: number | "auto";
-	seconds?: number | "auto";
+export interface ZoomOptions {
+	readonly scale?: number | "auto";
+	readonly seconds?: number | "auto";
 }
 
-function isAutoScale(options: ZoomOptions): boolean {
+export function isAutoScale(options: ZoomOptions): boolean {
 	return (
 		(objectHasProperty(options, "scale") && options.scale === "auto") ||
 		(objectHasProperty(options, "seconds") && options.seconds === "auto")
 	);
 }
 
-class WaveformZoomView extends WaveformView {
+export class WaveformZoomView extends WaveformView {
 	declare _autoScroll: boolean;
 	declare _autoScrollOffset: number;
 	declare _enableSegmentDragging: boolean;
@@ -633,5 +633,3 @@ class WaveformZoomView extends WaveformView {
 		super.destroy();
 	}
 }
-
-export default WaveformZoomView;

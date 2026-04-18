@@ -1,6 +1,6 @@
 import type { PeaksInstance } from "./types";
 
-export default class ZoomController {
+export class ZoomController {
 	private _peaks: PeaksInstance;
 	private _zoomLevels: number[];
 	private _zoomLevelIndex: number;

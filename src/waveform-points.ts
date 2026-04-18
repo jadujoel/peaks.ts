@@ -7,7 +7,7 @@ import { extend, isNullOrUndefined, objectHasProperty } from "./utils";
  * of points. A point is a single instant of time.
  */
 
-class WaveformPoints {
+export class WaveformPoints {
 	private _peaks: PeaksInstance;
 	private _points: Point[];
 	private _pointsById: Record<string, Point>;
@@ -265,5 +265,3 @@ class WaveformPoints {
 		this._peaks.emit("points.remove_all");
 	}
 }
-
-export default WaveformPoints;

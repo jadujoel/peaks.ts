@@ -1,13 +1,13 @@
 import type { PeaksInstance } from "./types";
 
-const nodes = ["OBJECT", "TEXTAREA", "INPUT", "SELECT", "OPTION"];
+export const nodes = ["OBJECT", "TEXTAREA", "INPUT", "SELECT", "OPTION"];
 
-const SPACE = 32;
-const TAB = 9;
-const LEFT_ARROW = 37;
-const RIGHT_ARROW = 39;
+export const SPACE = 32;
+export const TAB = 9;
+export const LEFT_ARROW = 37;
+export const RIGHT_ARROW = 39;
 
-export default class KeyboardHandler {
+export class KeyboardHandler {
 	private eventEmitter: PeaksInstance;
 	private _handleKeyEvent: (event: KeyboardEvent) => void;
 

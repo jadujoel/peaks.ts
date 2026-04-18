@@ -15,12 +15,12 @@ export interface ClipNodePlayerOptions {
 	readonly processorUrl?: string;
 }
 
-const PLAYING_STATES: ReadonlySet<ClipNodeState> = new Set([
+export const PLAYING_STATES: ReadonlySet<ClipNodeState> = new Set([
 	"started",
 	"resumed",
 ]);
 
-const STARTABLE_STATES: ReadonlySet<ClipNodeState> = new Set([
+export const STARTABLE_STATES: ReadonlySet<ClipNodeState> = new Set([
 	"initial",
 	"stopped",
 	"ended",
@@ -28,7 +28,7 @@ const STARTABLE_STATES: ReadonlySet<ClipNodeState> = new Set([
 
 const moduleLoads = new WeakMap<BaseAudioContext, Promise<void>>();
 
-function ensureWorkletModule(
+export function ensureWorkletModule(
 	audioContext: BaseAudioContext,
 	processorUrl: string | undefined,
 ): Promise<void> {
@@ -249,5 +249,3 @@ export class ClipNodePlayer implements PlayerAdapter {
 		this._node = null;
 	}
 }
-
-export default ClipNodePlayer;

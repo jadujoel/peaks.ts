@@ -12,12 +12,15 @@ import MediaElementPlayer from "./mediaelement-player";
 import Player from "./player";
 import type {
 	Logger,
+	OverviewOptions,
 	PeaksInitOptions,
 	PeaksInstance,
 	PeaksOptions,
 	PlayerAdapter,
+	ScrollbarDisplayOptions,
 	SegmentDisplayOptions,
 	SetSourceOptions,
+    ViewOptions,
 } from "./types";
 import {
 	extend,
@@ -33,7 +36,7 @@ import WaveformPoints from "./waveform-points";
 import WaveformSegments from "./waveform-segments";
 import ZoomController from "./zoom-controller";
 
-const defaultViewOptions: Record<string, unknown> = {
+export const defaultViewOptions = {
 	playheadColor: "#111111",
 	playheadTextColor: "#aaaaaa",
 	playheadBackgroundColor: "transparent",
@@ -50,9 +53,10 @@ const defaultViewOptions: Record<string, unknown> = {
 	timeLabelPrecision: 2,
 	enablePoints: true,
 	enableSegments: true,
-};
+} as const;
+defaultViewOptions satisfies Partial<ViewOptions>;
 
-const defaultZoomviewOptions: Record<string, unknown> = {
+export const defaultZoomviewOptions = {
 	// showPlayheadTime:    true,
 	playheadClickTolerance: 3,
 	waveformColor: "rgba(0, 225, 128, 1)",
@@ -60,9 +64,10 @@ const defaultZoomviewOptions: Record<string, unknown> = {
 	autoScroll: true,
 	autoScrollOffset: 100,
 	enableEditing: true,
-};
+} as const;
+defaultZoomviewOptions satisfies Partial<ViewOptions>;
 
-const defaultOverviewOptions: Record<string, unknown> = {
+const defaultOverviewOptions ={
 	// showPlayheadTime:    false,
 	waveformColor: "rgba(0, 0, 0, 0.2)",
 	highlightColor: "#aaaaaa",
@@ -71,9 +76,10 @@ const defaultOverviewOptions: Record<string, unknown> = {
 	highlightOffset: 11,
 	highlightCornerRadius: 2,
 	enableEditing: false,
-};
+} as const;
+defaultOverviewOptions satisfies Partial<ViewOptions>;
 
-const defaultSegmentOptions: Record<string, unknown> = {
+const defaultSegmentOptions = {
 	overlay: false,
 	markers: true,
 	startMarkerColor: "#aaaaaa",
@@ -92,18 +98,20 @@ const defaultSegmentOptions: Record<string, unknown> = {
 	overlayFontFamily: "sans-serif",
 	overlayFontSize: 12,
 	overlayFontStyle: "normal",
-};
+} as const;
+defaultSegmentOptions satisfies Partial<SegmentDisplayOptions>;
 
-const defaultScrollbarOptions: Record<string, unknown> = {
+const defaultScrollbarOptions = {
 	color: "#888888",
 	minWidth: 50,
-};
+} as const;
+defaultScrollbarOptions satisfies Partial<ScrollbarDisplayOptions>;
 
-function getOverviewOptions(opts: PeaksInitOptions) {
-	const overviewOptions: Record<string, unknown> = {};
+export function getOverviewOptions(options: PeaksInitOptions) {
+	const overviewOptions: Partial<OverviewOptions> = {};
 
-	if (opts.overview?.showPlayheadTime) {
-		overviewOptions.showPlayheadTime = opts.overview.showPlayheadTime;
+	if (options.overview?.showPlayheadTime) {
+		overviewOptions.showPlayheadTime = options.overview.showPlayheadTime;
 	}
 
 	const optNames = [
@@ -137,10 +145,10 @@ function getOverviewOptions(opts: PeaksInitOptions) {
 	];
 
 	optNames.forEach((optName) => {
-		if (opts.overview && objectHasProperty(opts.overview, optName)) {
-			overviewOptions[optName] = opts.overview[optName];
-		} else if (objectHasProperty(opts, optName)) {
-			overviewOptions[optName] = opts[optName];
+		if (options.overview && objectHasProperty(options.overview, optName)) {
+			overviewOptions[optName] = options.overview[optName];
+		} else if (objectHasProperty(options, optName)) {
+			overviewOptions[optName] = options[optName];
 		} else if (!objectHasProperty(overviewOptions, optName)) {
 			if (objectHasProperty(defaultOverviewOptions, optName)) {
 				overviewOptions[optName] = defaultOverviewOptions[optName];
@@ -153,7 +161,7 @@ function getOverviewOptions(opts: PeaksInitOptions) {
 	return overviewOptions;
 }
 
-function getZoomviewOptions(opts: PeaksInitOptions) {
+export function getZoomviewOptions(opts: PeaksInitOptions) {
 	const zoomviewOptions: Record<string, unknown> = {};
 
 	if (opts.showPlayheadTime) {
@@ -189,7 +197,7 @@ function getZoomviewOptions(opts: PeaksInitOptions) {
 		"enablePoints",
 		"enableSegments",
 		"enableEditing",
-	];
+	] as const;
 
 	optNames.forEach((optName) => {
 		if (opts.zoomview && objectHasProperty(opts.zoomview, optName)) {
@@ -217,20 +225,20 @@ function getScrollbarOptions(opts: PeaksInitOptions) {
 
 	const scrollbarOptions: Record<string, unknown> = {};
 
-	const optNames = ["container", "color", "minWidth"];
+	const optNames = ["container", "color", "minWidth"] as const;
 
-	optNames.forEach((optName) => {
-		if (objectHasProperty(scrollbar, optName)) {
-			scrollbarOptions[optName] = scrollbar[optName];
+	optNames.forEach((key) => {
+		if (objectHasProperty(scrollbar, key)) {
+			scrollbarOptions[key] = scrollbar[key];
 		} else {
-			scrollbarOptions[optName] = defaultScrollbarOptions[optName];
+			scrollbarOptions[key] = defaultScrollbarOptions[key];
 		}
 	});
 
 	return scrollbarOptions;
 }
 
-function extendOptions(
+export function extendOptions(
 	to: Record<string, unknown>,
 	from: Record<string, unknown>,
 ) {
@@ -243,7 +251,7 @@ function extendOptions(
 	return to;
 }
 
-function addSegmentOptions(options: PeaksOptions, opts: PeaksInitOptions) {
+export function addSegmentOptions(options: PeaksOptions, opts: PeaksInitOptions) {
 	options.segmentOptions = {} as SegmentDisplayOptions;
 
 	extend(options.segmentOptions, defaultSegmentOptions);
@@ -276,7 +284,7 @@ function addSegmentOptions(options: PeaksOptions, opts: PeaksInitOptions) {
 	}
 }
 
-function checkContainerElements(options: PeaksOptions) {
+export function checkContainerElements(options: PeaksOptions) {
 	const zoomviewContainer = options.zoomview.container;
 	const overviewContainer = options.overview.container;
 
@@ -305,7 +313,7 @@ function checkContainerElements(options: PeaksOptions) {
 	}
 }
 
-class Peaks extends EventEmitter {
+export class Peaks extends EventEmitter {
 	options: PeaksOptions;
 	player!: Player;
 	segments!: WaveformSegments;
@@ -692,8 +700,3 @@ class Peaks extends EventEmitter {
 		}
 	}
 }
-
-export type { ClipNodePlayerOptions } from "./clip-node-player";
-export { default as ClipNodePlayer } from "./clip-node-player";
-export { default as MediaElementPlayer } from "./mediaelement-player";
-export default Peaks;

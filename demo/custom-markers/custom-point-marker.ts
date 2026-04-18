@@ -2,17 +2,17 @@ import { Label, Tag } from "konva/lib/shapes/Label";
 import { Line } from "konva/lib/shapes/Line";
 import { Text } from "konva/lib/shapes/Text";
 
-interface MarkerGroup {
+export interface MarkerGroup {
 	add(node: unknown): void;
 	on(eventName: string, handler: () => void): void;
 	y(value: number): void;
 }
 
-interface MarkerLayer {
+export interface MarkerLayer {
 	getHeight(): number;
 }
 
-interface PointMarkerOptions {
+export interface PointMarkerOptions {
 	color: string;
 	point: {
 		labelText: string;
@@ -20,12 +20,12 @@ interface PointMarkerOptions {
 	layer: MarkerLayer;
 }
 
-interface MarkerUpdateOptions {
+export interface MarkerUpdateOptions {
 	labelText?: string;
 	color?: string;
 }
 
-class CustomPointMarker {
+export class CustomPointMarker {
 	private readonly _options: PointMarkerOptions;
 	private _group: MarkerGroup | null = null;
 	private _label: Label | null = null;
@@ -127,5 +127,3 @@ class CustomPointMarker {
 		}
 	}
 }
-
-export default CustomPointMarker;

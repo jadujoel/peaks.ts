@@ -12,7 +12,7 @@ import {
 	objectHasProperty,
 } from "./utils";
 
-const segmentOptions = [
+export const segmentOptions = [
 	"id",
 	"pid",
 	"startTime",
@@ -23,11 +23,11 @@ const segmentOptions = [
 	"markers",
 	"overlay",
 	"editable",
-];
+] as const;
 
-const invalidOptions = ["update", "isVisible", "peaks", "pid"];
+export const invalidOptions = ["update", "isVisible", "peaks", "pid"] as const;
 
-function setDefaultSegmentOptions(
+export function setDefaultSegmentOptions(
 	options: SegmentOptions,
 	globalSegmentOptions: Record<string, unknown>,
 ): void {
@@ -68,7 +68,7 @@ function setDefaultSegmentOptions(
  * @throws {RangeError} If a time is negative or endTime is earlier than startTime.
  * @throws {Error} If reserved or internal option names are provided.
  */
-function validateSegmentOptions(
+export function validateSegmentOptions(
 	options: SegmentOptions | SegmentUpdateOptions,
 	updating: boolean,
 ): undefined | never {
@@ -202,12 +202,12 @@ function validateSegmentOptions(
  * A segment is a region of time, with associated label and color.
  */
 
-type SegmentPeaksLike = {
+export type SegmentPeaksLike = {
 	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
-	segments?: Pick<PeaksInstance["segments"], "updateSegmentId">;
+	readonly segments?: Pick<PeaksInstance["segments"], "updateSegmentId">;
 };
 
-class Segment {
+export class Segment {
 	[key: string]: unknown;
 
 	private _peaks: SegmentPeaksLike;
@@ -350,5 +350,3 @@ class Segment {
 		this._endTime = time;
 	}
 }
-
-export { Segment, setDefaultSegmentOptions, validateSegmentOptions };

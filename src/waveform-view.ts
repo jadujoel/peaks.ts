@@ -2,50 +2,51 @@ import Konva from "konva/lib/Core";
 import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
-import type WaveformData from "waveform-data";
-import type HighlightLayer from "./highlight-layer";
-import PlayheadLayer from "./playhead-layer";
-import PointsLayer from "./points-layer";
-import SegmentsLayer from "./segments-layer";
+import type { WaveformData } from "waveform-data";
+import type { HighlightLayer } from "./highlight-layer";
+import { PlayheadLayer } from "./playhead-layer";
+import { PointsLayer } from "./points-layer";
+import { SegmentsLayer } from "./segments-layer";
 import type { OverviewOptions, PeaksInstance, ZoomviewOptions } from "./types";
 import type { WaveformColor } from "./utils";
 import { formatTime, getMarkerObject, isFinite, isNumber } from "./utils";
-import WaveformAxis from "./waveform-axis";
-import WaveformShape from "./waveform-shape";
+import { WaveformAxis } from "./waveform-axis";
+import { WaveformShape } from "./waveform-shape";
 
-interface PlayedSegment {
-	startTime: number;
-	endTime: number;
+export interface PlayedSegment {
+	readonly startTime: number;
+	readonly endTime: number;
 }
 
-class WaveformView {
-	_container: HTMLDivElement;
-	_peaks: PeaksInstance;
-	_options: PeaksInstance["options"];
-	_viewOptions: ZoomviewOptions | OverviewOptions;
-	_originalWaveformData: WaveformData;
-	_data: WaveformData;
-	_frameOffset: number;
-	_width: number;
-	_height: number;
-	_amplitudeScale: number;
-	_waveformColor: WaveformColor;
-	_playedWaveformColor: WaveformColor | undefined;
-	_timeLabelPrecision: number;
-	_formatPlayheadTime: (time: number) => string;
-	_enableSeek: boolean;
-	_stage!: Stage;
-	_waveformLayer!: Layer;
-	_waveformShape!: WaveformShape;
-	_playedWaveformShape!: WaveformShape | null;
-	_playedSegment!: PlayedSegment | null;
-	_unplayedSegment!: PlayedSegment | null;
-	_segmentsLayer!: SegmentsLayer | null;
-	_pointsLayer!: PointsLayer | null;
-	_highlightLayer!: HighlightLayer | null;
-	_axisLayer!: Layer;
-	_axis!: WaveformAxis;
-	_playheadLayer!: PlayheadLayer;
+export class WaveformView {
+	public peaks: PeaksInstance;
+	public _peaks: PeaksInstance;
+	private _container: HTMLDivElement;
+	private _options: PeaksInstance["options"];
+	private _viewOptions: ZoomviewOptions | OverviewOptions;
+	private _originalWaveformData: WaveformData;
+	private _data: WaveformData;
+	private _frameOffset: number;
+	private _width: number;
+	private _height: number;
+	private _amplitudeScale: number;
+	private _waveformColor: WaveformColor;
+	private _playedWaveformColor: WaveformColor | undefined;
+	private _timeLabelPrecision: number;
+	private _formatPlayheadTime: (time: number) => string;
+	private _enableSeek: boolean;
+	private _stage!: Stage;
+	private _waveformLayer!: Layer;
+	private _waveformShape!: WaveformShape;
+	private _playedWaveformShape!: WaveformShape | null;
+	private _playedSegment!: PlayedSegment | null;
+	private _unplayedSegment!: PlayedSegment | null;
+	private _segmentsLayer!: SegmentsLayer | null;
+	private _pointsLayer!: PointsLayer | null;
+	private _highlightLayer!: HighlightLayer | null;
+	private _axisLayer!: Layer;
+	private _axis!: WaveformAxis;
+	private _playheadLayer!: PlayheadLayer;
 
 	constructor(
 		waveformData: WaveformData,
@@ -54,6 +55,7 @@ class WaveformView {
 		viewOptions: ZoomviewOptions | OverviewOptions,
 	) {
 		this._container = container;
+		this.peaks = peaks;
 		this._peaks = peaks;
 		this._options = peaks.options;
 		this._viewOptions = viewOptions;
@@ -119,7 +121,7 @@ class WaveformView {
 		this._createAxisLabels();
 
 		this._playheadLayer = new PlayheadLayer(
-			this._peaks.player,
+			this.peaks.player,
 			this,
 			this._viewOptions,
 		);
@@ -260,7 +262,7 @@ class WaveformView {
 	 */
 
 	_getDuration(): number {
-		return this._peaks.player.getDuration();
+		return this.peaks.player.getDuration();
 	}
 
 	_createWaveform(): void {
@@ -282,7 +284,7 @@ class WaveformView {
 		}
 
 		if (this._playedWaveformColor && !this._playedWaveformShape) {
-			const time = this._peaks.player.getCurrentTime();
+			const time = this.peaks.player.getCurrentTime();
 
 			this._playedSegment = {
 				startTime: 0,
@@ -438,7 +440,7 @@ class WaveformView {
 					const point = marker.getAttr("point");
 
 					if (point) {
-						this._peaks.emit(`points.${eventName}`, {
+						this.peaks.emit(`points.${eventName}`, {
 							point: point,
 							evt: event.evt,
 							preventViewEvent: () => {
@@ -470,7 +472,7 @@ class WaveformView {
 			const time = this.pixelOffsetToTime(offsetX);
 			const viewName = this.getName();
 
-			this._peaks.emit(`${viewName}.${eventName}`, {
+			this.peaks.emit(`${viewName}.${eventName}`, {
 				time: time,
 				evt: event.evt,
 			});
@@ -585,5 +587,3 @@ class WaveformView {
 		}
 	}
 }
-
-export default WaveformView;

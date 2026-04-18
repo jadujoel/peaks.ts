@@ -5,7 +5,7 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Point } from "./point";
 import type { KonvaMouseEvent, Marker, PointMarkerOptions } from "./types";
 
-class PointMarker {
+export class PointMarker {
 	private _point: Point;
 	private _marker: Marker;
 	private _draggable: boolean;
@@ -108,5 +108,3 @@ class PointMarker {
 		this._group.destroy();
 	}
 }
-
-export default PointMarker;

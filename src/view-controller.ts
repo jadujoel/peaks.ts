@@ -1,21 +1,15 @@
-import Scrollbar from "./scrollbar";
+import { Scrollbar } from "./scrollbar";
 import type { PeaksInstance } from "./types";
 import { isNullOrUndefined } from "./utils";
-import WaveformOverview from "./waveform-overview";
-import WaveformZoomView from "./waveform-zoomview";
+import { WaveformOverview } from "./waveform-overview";
+import { WaveformZoomView } from "./waveform-zoomview";
 
-class ViewController {
-	private _peaks: PeaksInstance;
-	private _overview: WaveformOverview | null;
-	private _zoomview: WaveformZoomView | null;
-	private _scrollbar: Scrollbar | null;
+export class ViewController {
+	private _overview?: WaveformOverview | undefined;
+	private _zoomview?: WaveformZoomView | undefined;
+	private _scrollbar?: Scrollbar | undefined;
 
-	constructor(peaks: PeaksInstance) {
-		this._peaks = peaks;
-		this._overview = null;
-		this._zoomview = null;
-		this._scrollbar = null;
-	}
+	constructor(public peaks: PeaksInstance) {}
 
 	/**
 	 * Creates the overview waveform view.
@@ -27,13 +21,13 @@ class ViewController {
 			return this._overview;
 		}
 
-		const waveformData = this._peaks.getWaveformData();
+		const waveformData = this.peaks.getWaveformData();
 
 		if (!waveformData) {
 			throw new Error("No waveform data available");
 		}
 
-		this._overview = new WaveformOverview(waveformData, container, this._peaks);
+		this._overview = new WaveformOverview(waveformData, container, this.peaks);
 
 		if (this._zoomview) {
 			this._overview.showHighlight(
@@ -55,13 +49,13 @@ class ViewController {
 			return this._zoomview;
 		}
 
-		const waveformData = this._peaks.getWaveformData();
+		const waveformData = this.peaks.getWaveformData();
 
 		if (!waveformData) {
 			throw new Error("No waveform data available");
 		}
 
-		this._zoomview = new WaveformZoomView(waveformData, container, this._peaks);
+		this._zoomview = new WaveformZoomView(waveformData, container, this.peaks);
 
 		if (this._scrollbar) {
 			this._scrollbar.setZoomview(this._zoomview);
@@ -76,7 +70,7 @@ class ViewController {
 	 * @throws {Error} If scrollbar options are missing from the Peaks configuration.
 	 */
 	createScrollbar(container: HTMLDivElement): Scrollbar | never {
-		this._scrollbar = new Scrollbar(container, this._peaks);
+		this._scrollbar = new Scrollbar(container, this.peaks);
 
 		return this._scrollbar;
 	}
@@ -104,7 +98,7 @@ class ViewController {
 		}
 
 		this._zoomview.destroy();
-		this._zoomview = null;
+		this._zoomview = undefined;
 
 		this._overview.removeHighlightRect();
 	}
@@ -117,16 +111,16 @@ class ViewController {
 
 		if (this._zoomview) {
 			this._zoomview.destroy();
-			this._zoomview = null;
+			this._zoomview = undefined;
 		}
 
 		if (this._scrollbar) {
 			this._scrollbar.destroy();
-			this._scrollbar = null;
+			this._scrollbar = undefined;
 		}
 	}
 
-	getView(name?: string): WaveformOverview | WaveformZoomView | null {
+	getView(name?: string): WaveformOverview | WaveformZoomView | undefined {
 		if (isNullOrUndefined(name)) {
 			if (this._overview && this._zoomview) {
 				return null;
@@ -146,14 +140,12 @@ class ViewController {
 					return this._zoomview;
 
 				default:
-					return null;
+					return undefined;
 			}
 		}
 	}
 
-	getScrollbar(): Scrollbar | null {
+	getScrollbar(): Scrollbar | undefined {
 		return this._scrollbar;
 	}
 }
-
-export default ViewController;

@@ -307,5 +307,3 @@ class PlayheadLayer {
 		}
 	}
 }
-
-export default PlayheadLayer;

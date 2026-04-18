@@ -9,7 +9,7 @@ import { formatTime, roundUpToNearest } from "./utils";
  * Creates the waveform axis shapes and adds them to the given view layer.
  */
 
-class WaveformAxis {
+export class WaveformAxis {
 	private _axisGridlineColor: string;
 	private _axisLabelColor: string;
 	private _showAxisLabels: boolean;
@@ -48,7 +48,7 @@ class WaveformAxis {
 		});
 	}
 
-	static _buildFontString(
+	private static _buildFontString(
 		fontFamily: string,
 		fontSize: number,
 		fontStyle: string,
@@ -105,7 +105,7 @@ class WaveformAxis {
 	 * every 1, 2, 5, 10, 20, 30 hours).
 	 */
 
-	_getAxisLabelScale(view: WaveformViewAPI): number {
+	private _getAxisLabelScale(view: WaveformViewAPI): number {
 		let baseSecs = 1; // seconds
 		const steps = [1, 2, 5, 10, 20, 30];
 		const minSpacing = 60;
@@ -134,7 +134,7 @@ class WaveformAxis {
 	 * Draws the time axis and labels onto a view.
 	 */
 
-	_drawAxis(context: Context, view: WaveformViewAPI): void {
+	private _drawAxis(context: Context, view: WaveformViewAPI): void {
 		const currentFrameStartTime = view.getStartTime();
 
 		// Time interval between axis markers (seconds)
@@ -204,5 +204,3 @@ class WaveformAxis {
 		}
 	}
 }
-
-export default WaveformAxis;

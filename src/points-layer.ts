@@ -2,7 +2,7 @@ import Konva from "konva/lib/Core";
 import type { Layer } from "konva/lib/Layer";
 import type { Stage } from "konva/lib/Stage";
 import type { Point } from "./point";
-import PointMarker from "./point-marker";
+import { PointMarker } from "./point-marker";
 import type {
 	KonvaMouseEvent,
 	PeaksInstance,
@@ -333,5 +333,3 @@ class PointsLayer {
 		this._layer.draw();
 	}
 }
-
-export default PointsLayer;

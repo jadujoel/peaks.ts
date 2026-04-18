@@ -1,10 +1,10 @@
-import type WaveformData from "waveform-data";
-import HighlightLayer from "./highlight-layer";
-import SeekMouseDragHandler from "./seek-mouse-drag-handler";
+import type { WaveformData } from "waveform-data";
+import { HighlightLayer } from "./highlight-layer";
+import { SeekMouseDragHandler } from "./seek-mouse-drag-handler";
 import type { OverviewOptions, PeaksInstance } from "./types";
-import WaveformView from "./waveform-view";
+import { WaveformView } from "./waveform-view";
 
-class WaveformOverview extends WaveformView {
+export class WaveformOverview extends WaveformView {
 	declare _mouseDragHandler: SeekMouseDragHandler;
 
 	constructor(
@@ -162,5 +162,3 @@ class WaveformOverview extends WaveformView {
 		super.destroy();
 	}
 }
-
-export default WaveformOverview;

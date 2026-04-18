@@ -14,7 +14,7 @@ import type WaveformZoomView from "./waveform-zoomview";
  * @throws {Error} If scrollbar display options are missing from the Peaks configuration.
  */
 
-class Scrollbar {
+export class Scrollbar {
 	private _container: HTMLDivElement;
 	private _peaks: PeaksInstance;
 	private _options: ScrollbarDisplayOptions;
@@ -247,5 +247,3 @@ class Scrollbar {
 		this._stage.destroy();
 	}
 }
-
-export default Scrollbar;

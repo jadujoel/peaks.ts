@@ -10,7 +10,7 @@ import { extend, isNullOrUndefined, objectHasProperty } from "./utils";
  * Handles all functionality related to the adding, removing and manipulation
  * of segments.
  */
-class WaveformSegments {
+export class WaveformSegments {
 	private _peaks: PeaksInstance;
 	private _segments: Segment[];
 	private _segmentsById: Record<string, Segment>;
@@ -282,5 +282,3 @@ class WaveformSegments {
 		return this._isInserting;
 	}
 }
-
-export default WaveformSegments;

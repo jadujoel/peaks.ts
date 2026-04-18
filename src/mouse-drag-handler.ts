@@ -9,7 +9,7 @@ import { getMarkerObject } from "./utils";
  * views by clicking and dragging the mouse.
  */
 
-class MouseDragHandler {
+export class MouseDragHandler {
 	private _stage: Stage;
 	private _handlers: MouseDragHandlers;
 	private _dragging: boolean;
@@ -179,5 +179,3 @@ class MouseDragHandler {
 		this._stage.off("touchstart", this._mouseDown);
 	}
 }
-
-export default MouseDragHandler;

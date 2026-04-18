@@ -6,23 +6,23 @@
  * @module input-controller
  */
 
-type MousePosition = {
-	x: number;
-	y: number;
+export interface MousePosition {
+	readonly x: number;
+	readonly y: number;
 };
 
-const keyCodes = {
+export const keyCodes = {
 	Tab: 9,
 	Space: 32,
 	ArrowLeft: 37,
 	ArrowRight: 39,
 } as const;
 
-type SupportedKey = keyof typeof keyCodes;
-type MouseEventType = "mousedown" | "mousemove" | "mouseup";
-type KeyboardEventType = "keydown" | "keyup";
+export type SupportedKey = keyof typeof keyCodes;
+export type MouseEventType = "mousedown" | "mousemove" | "mouseup";
+export type KeyboardEventType = "keydown" | "keyup";
 
-class InputController {
+export class InputController {
 	private _target: HTMLCanvasElement;
 	private _top: number;
 	private _left: number;
@@ -105,5 +105,3 @@ class InputController {
 		this._target.dispatchEvent(event);
 	}
 }
-
-export default InputController;
