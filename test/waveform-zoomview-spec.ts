@@ -1,16 +1,17 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
-
+import type WaveformZoomView from "../src/waveform-zoomview";
 import InputController from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
 describe("WaveformZoomView", () => {
 	describe("setStartTime", () => {
-		let p = null;
-		let zoomview = null;
+		let p: Peaks | null = null;
+		let zoomview: WaveformZoomView | null = null;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),
@@ -25,8 +26,10 @@ describe("WaveformZoomView", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
-
+				expect(err).to.equal(undefined);
+				if (err === undefined) {
+					throw new Error("Expected error to be null or undefined");
+				}
 				p = instance;
 				zoomview = instance?.views.getView("zoomview");
 				expect(zoomview).to.be.ok;
@@ -131,7 +134,7 @@ describe("WaveformZoomView", () => {
 		let zoomview = null;
 		let inputController = null;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),
@@ -404,7 +407,7 @@ describe("WaveformZoomView", () => {
 				let zoomview = null;
 				let inputController = null;
 
-				beforeEach((done) => {
+				beforeEach((done: DoneCallback) => {
 					const options = {
 						overview: {
 							container: document.getElementById("overview-container"),
@@ -731,7 +734,7 @@ describe("WaveformZoomView", () => {
 						});
 
 						describe("and the segment overlaps the start of the waveform view", () => {
-							beforeEach((done) => {
+							beforeEach((done: DoneCallback) => {
 								zoomview.setStartTime(1.5);
 								setTimeout(done, 50);
 							});
@@ -1197,7 +1200,7 @@ describe("WaveformZoomView", () => {
 			let zoomview = null;
 			let inputController = null;
 
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					overview: {
 						container: document.getElementById("overview-container"),
@@ -1265,7 +1268,7 @@ describe("WaveformZoomView", () => {
 					expect(segment.endTime).to.equal(view.pixelsToTime(430 + 172));
 				});
 
-				it("should emit a segments.add event when the segment is added", (done) => {
+				it("should emit a segments.add event when the segment is added", (done: DoneCallback) => {
 					const clickX = 430;
 					const distance = 172;
 
@@ -1289,7 +1292,7 @@ describe("WaveformZoomView", () => {
 					inputController.mouseUp({ x: clickX + distance, y: 50 });
 				});
 
-				it("should emit a segments.insert event when the drag operation ends", (done) => {
+				it("should emit a segments.insert event when the drag operation ends", (done: DoneCallback) => {
 					const clickX = 430;
 					const distance = 172;
 
@@ -1382,7 +1385,7 @@ describe("WaveformZoomView", () => {
 		let p: Peaks | undefined;
 		let inputController: InputController | undefined;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
@@ -1434,12 +1437,14 @@ describe("WaveformZoomView", () => {
 
 			describe("when dragging the playhead", () => {
 				beforeEach(() => {
-					const view = p?.views.getView("zoomview");
-					view!.enableSegmentDragging(true);
+					const view = p?.views.getView("zoomview") as
+						| WaveformZoomView
+						| undefined;
+					view?.enableSegmentDragging(true);
 				});
 
 				describe("when the playhead is not over a segment", () => {
-					it("should set the playback position", (done) => {
+					it("should set the playback position", (done: DoneCallback) => {
 						const view = p!.views.getView("zoomview");
 
 						p!.once("player.timeupdate", () => {
@@ -1462,10 +1467,10 @@ describe("WaveformZoomView", () => {
 				});
 
 				describe("when the playhead is over a draggable segment", () => {
-					it("should set the playback position and not move the segment", (done) => {
-						const view = p!.views.getView("zoomview");
+					it("should set the playback position and not move the segment", (done: DoneCallback) => {
+						const view = p!.views.getView("zoomview") as WaveformZoomView;
 
-						p1.once("player.timeupdate", () => {
+						p!.once("player.timeupdate", () => {
 							const x = view!.timeToPixels(1.5);
 							const distance = 100;
 
@@ -1491,7 +1496,7 @@ describe("WaveformZoomView", () => {
 				});
 
 				describe("when the playhead is over a non-draggable segment", () => {
-					it("should set the playback position and not move the segment", (done) => {
+					it("should set the playback position and not move the segment", (done: DoneCallback) => {
 						const view = p!.views.getView("zoomview");
 
 						p!.once("player.timeupdate", () => {
@@ -1545,7 +1550,7 @@ describe("WaveformZoomView", () => {
 		let zoomview = null;
 		let inputController = null;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),

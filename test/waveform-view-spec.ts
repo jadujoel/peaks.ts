@@ -1,4 +1,5 @@
 import Konva from "konva";
+import sinon from "sinon";
 import Peaks from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
@@ -50,7 +51,7 @@ function initOptions(
 	describe(test.name, () => {
 		describe("playedWaveformColor option", () => {
 			describe("with a valid color", () => {
-				it("should create a played waveform shape", (done) => {
+				it("should create a played waveform shape", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						waveformColor: "#f00",
@@ -76,7 +77,7 @@ function initOptions(
 
 		describe("setPlayedWaveformColor", () => {
 			describe("with a valid color", () => {
-				it("should create a played waveform shape", (done) => {
+				it("should create a played waveform shape", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						waveformColor: "#f00",
@@ -101,7 +102,7 @@ function initOptions(
 			});
 
 			describe("with null", () => {
-				it("should remove the played waveform shape", (done) => {
+				it("should remove the played waveform shape", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						waveformColor: "#f00",
@@ -129,7 +130,7 @@ function initOptions(
 
 		describe("showPlayheadTime option", () => {
 			describe("with default options", () => {
-				it("should not show the playhead time", (done) => {
+				it("should not show the playhead time", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 					});
@@ -149,7 +150,7 @@ function initOptions(
 				});
 			});
 			describe("when the global option is true", () => {
-				it("should show playhead time in the zoomview only", (done) => {
+				it("should show playhead time in the zoomview only", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 					});
@@ -179,7 +180,7 @@ function initOptions(
 			});
 
 			describe("when the global option is false", () => {
-				it("should not show playhead time", (done) => {
+				it("should not show playhead time", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 					});
@@ -202,7 +203,7 @@ function initOptions(
 			});
 
 			describe("when the view-specific option is true", () => {
-				it("should show the current playback position next to the playhead", (done) => {
+				it("should show the current playback position next to the playhead", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: true,
@@ -227,7 +228,7 @@ function initOptions(
 			});
 
 			describe("when the view-specific option is false", () => {
-				it("should not show the current playback position next to the playhead", (done) => {
+				it("should not show the current playback position next to the playhead", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: false,
@@ -251,7 +252,7 @@ function initOptions(
 
 		describe("showPlayheadTime", () => {
 			describe("when enabled", () => {
-				it("should show the current playback position next to the playhead", (done) => {
+				it("should show the current playback position next to the playhead", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: false,
@@ -278,7 +279,7 @@ function initOptions(
 			});
 
 			describe("when disabled", () => {
-				it("should not show the current playback position next to the playhead", (done) => {
+				it("should not show the current playback position next to the playhead", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: false,
@@ -304,7 +305,7 @@ function initOptions(
 
 		describe("timeLabelPrecision option", () => {
 			describe("with default options", () => {
-				it("should use 2 decimal places for the current playback time", (done) => {
+				it("should use 2 decimal places for the current playback time", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: true,
@@ -329,7 +330,7 @@ function initOptions(
 			});
 
 			describe("with zero", () => {
-				it("should set the number of decimal places for the current playback time", (done) => {
+				it("should set the number of decimal places for the current playback time", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: true,
@@ -355,7 +356,7 @@ function initOptions(
 			});
 
 			describe("with non-zero", () => {
-				it("should set the number of decimal places for the current playback time", (done) => {
+				it("should set the number of decimal places for the current playback time", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: true,
@@ -383,7 +384,7 @@ function initOptions(
 
 		describe("setTimeLabelPrecision", () => {
 			describe("with zero", () => {
-				it("should set the number of decimal places for the current playback time", (done) => {
+				it("should set the number of decimal places for the current playback time", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: true,
@@ -410,7 +411,7 @@ function initOptions(
 			});
 
 			describe("with non-zero", () => {
-				it("should set the number of decimal places for the current playback time", (done) => {
+				it("should set the number of decimal places for the current playback time", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
 						showPlayheadTime: true,
@@ -441,7 +442,7 @@ function initOptions(
 			let p = null;
 			let inputController = null;
 
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				// TODO: Konva.js uses global state to handle double click timing.
 				// Instead of adding time delays, we just reset Konva's internal
 				// flag here.
@@ -522,7 +523,7 @@ function initOptions(
 					["no-overlap", "compress"].forEach((segmentDragMode) => {
 						describe(`with segmentDragMode(${segmentDragMode})`, () => {
 							describe("when clicking on a segment", () => {
-								beforeEach((done) => {
+								beforeEach((done: DoneCallback) => {
 									if (test.view === "zoomview") {
 										const view = p.views.getView("zoomview");
 										view.setWaveformDragMode(waveformDragMode);
@@ -802,7 +803,7 @@ function initOptions(
 			});
 
 			describe("when clicking on a point", () => {
-				beforeEach((done) => {
+				beforeEach((done: DoneCallback) => {
 					p.points.add({ id: "point1", time: 1.0, editable: true });
 					setTimeout(done, 50);
 				});

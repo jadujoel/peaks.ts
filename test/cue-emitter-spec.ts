@@ -10,7 +10,7 @@ describe("CueEmitter", () => {
 	let p = null;
 	let cueEmitter = null;
 
-	beforeEach((done) => {
+	beforeEach((done: DoneCallback) => {
 		const options = {
 			overview: {
 				container: document.getElementById("overview-container"),
@@ -50,7 +50,7 @@ describe("CueEmitter", () => {
 		expect(cueEmitter._cues.length).equals(0, "marker array not empty");
 	});
 
-	it("should initialise with already existing points", (done) => {
+	it("should initialise with already existing points", (done: DoneCallback) => {
 		const options = {
 			overview: {
 				container: document.getElementById("overview-container"),
@@ -78,7 +78,7 @@ describe("CueEmitter", () => {
 		});
 	});
 
-	it("should be destroyed when the Peaks instance is destroyed", (done) => {
+	it("should be destroyed when the Peaks instance is destroyed", (done: DoneCallback) => {
 		const options = {
 			overview: {
 				container: document.getElementById("overview-container"),
@@ -253,7 +253,7 @@ describe("CueEmitter", () => {
 			});
 		}
 
-		it("should emit point events during forward playback", (done) => {
+		it("should emit point events during forward playback", (done: DoneCallback) => {
 			const emitted = [];
 
 			p.points.add({ time: 1.05, id: "p1" });
@@ -274,7 +274,7 @@ describe("CueEmitter", () => {
 			cueEmitter._onUpdate(1.1, 1.0);
 		});
 
-		it("should emit point events during reverse playback", (done) => {
+		it("should emit point events during reverse playback", (done: DoneCallback) => {
 			const emitted = [];
 
 			p.points.add({ time: 1.05, id: "p1" });
@@ -295,7 +295,7 @@ describe("CueEmitter", () => {
 			cueEmitter._onUpdate(1.0, 1.1);
 		});
 
-		it("should emit segment events during forward playback", (done) => {
+		it("should emit segment events during forward playback", (done: DoneCallback) => {
 			const emitted = [];
 
 			p.segments.add({ startTime: 1.05, endTime: 1.09, id: "seg1" });
@@ -317,7 +317,7 @@ describe("CueEmitter", () => {
 			cueEmitter._onUpdate(1.1, 1.0);
 		});
 
-		it("should emit segment events during reverse playback", (done) => {
+		it("should emit segment events during reverse playback", (done: DoneCallback) => {
 			const emitted = [];
 
 			p.segments.add({ startTime: 1.05, endTime: 1.09, id: "seg1" });
@@ -337,7 +337,7 @@ describe("CueEmitter", () => {
 			cueEmitter._onUpdate(1.1, 1.0);
 		});
 
-		it("should emit events on seeking", (done) => {
+		it("should emit events on seeking", (done: DoneCallback) => {
 			// This test uses a custom player object as sometimes
 			// the test would timeout waiting for the media element to seek.
 			const player = {

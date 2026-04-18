@@ -1,10 +1,11 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
 
 describe("Peaks.zoom", () => {
 	let p = null;
 
 	describe("with overview and zoomview", () => {
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),
@@ -105,7 +106,7 @@ describe("Peaks.zoom", () => {
 	});
 
 	describe("with overview only", () => {
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),

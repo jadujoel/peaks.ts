@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
 
 describe("WaveformView", () => {
@@ -5,7 +6,7 @@ describe("WaveformView", () => {
 	let drawWaveformLayer = null;
 	let logger = null;
 
-	beforeEach((done) => {
+	beforeEach((done: DoneCallback) => {
 		logger = sinon.spy();
 
 		const options = {

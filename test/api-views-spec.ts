@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
 import WaveformOverview from "../src/waveform-overview";
 import WaveformZoomView from "../src/waveform-zoomview";
@@ -13,7 +14,7 @@ describe("Peaks.views", () => {
 
 	describe("createZoomview", () => {
 		describe("with existing zoomview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
@@ -43,7 +44,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("without existing zoomview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					overview: {
 						container: document.getElementById("overview-container"),
@@ -77,7 +78,7 @@ describe("Peaks.views", () => {
 
 	describe("createOverview", () => {
 		describe("with existing overview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					overview: {
 						container: document.getElementById("overview-container"),
@@ -107,7 +108,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("without existing overview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
@@ -141,7 +142,7 @@ describe("Peaks.views", () => {
 
 	describe("getView", () => {
 		describe("with zoomview and overview containers", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
@@ -184,7 +185,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("with only a zoomview container", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
@@ -224,7 +225,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("with only an overview container", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					overview: {
 						container: document.getElementById("overview-container"),
@@ -266,7 +267,7 @@ describe("Peaks.views", () => {
 
 	describe("destroyZoomview", () => {
 		describe("with zoomview and overview containers", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
@@ -299,7 +300,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("with only a zoomview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
@@ -327,7 +328,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("with no zoomview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					overview: {
 						container: document.getElementById("overview-container"),
@@ -355,7 +356,7 @@ describe("Peaks.views", () => {
 
 	describe("destroyOverview", () => {
 		describe("with zoomview and overview containers", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
@@ -388,7 +389,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("with only an overview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					overview: {
 						container: document.getElementById("overview-container"),
@@ -416,7 +417,7 @@ describe("Peaks.views", () => {
 		});
 
 		describe("with no overview", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				const options = {
 					zoomview: {
 						container: document.getElementById("zoomview-container"),

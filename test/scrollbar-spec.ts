@@ -1,5 +1,5 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
-
 import InputController from "./helpers/input-controller";
 
 describe("Scrollbar", () => {
@@ -8,7 +8,7 @@ describe("Scrollbar", () => {
 	let zoomview = null;
 
 	describe("with only a zoomview waveform", () => {
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
@@ -111,7 +111,7 @@ describe("Scrollbar", () => {
 	});
 
 	describe("with only an overview waveform", () => {
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),

@@ -188,7 +188,7 @@ class WaveformBuilder {
 					return;
 				}
 
-				callback(undefined, waveformData);
+				callback(null, waveformData);
 			},
 			() => {
 				callback(new Error("XHR failed"), undefined);
@@ -256,7 +256,7 @@ class WaveformBuilder {
 				return;
 			}
 
-			callback(undefined, createdWaveformData);
+			callback(null, createdWaveformData);
 		} catch (err) {
 			callback(err instanceof Error ? err : new Error(String(err)), undefined);
 		}
@@ -366,11 +366,12 @@ class WaveformBuilder {
 		}
 
 		WaveformData.createFromAudio(webAudioBuilderOptions, (err, data) => {
-			if (err) {
+			if (err != null) {
 				callback(err, undefined);
 				return;
 			}
-			callback(err, data);
+
+			callback(null, data);
 		});
 	}
 
@@ -435,18 +436,12 @@ class WaveformBuilder {
 				}
 
 				WaveformData.createFromAudio(webAudioBuilderOptions, (err, data) => {
-					if (err === undefined) {
-						callback(undefined, data);
+					if (err == null) {
+						callback(null, data);
 						return;
 					}
-					if (data === undefined) {
-						callback(err, data);
-						return;
-					}
-					callback(
-						new Error("Unexpected result from WaveformData.createFromAudio"),
-						undefined,
-					);
+
+					callback(err, undefined);
 				});
 			},
 			() => {

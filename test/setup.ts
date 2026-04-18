@@ -1,4 +1,4 @@
-beforeEach((done) => {
+beforeEach((done: DoneCallback) => {
 	const overviewContainer = document.createElement("div");
 	overviewContainer.id = "overview-container";
 	overviewContainer.style.width = "1000px";

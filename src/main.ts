@@ -607,32 +607,29 @@ class Peaks extends EventEmitter {
 					this as unknown as PeaksInstance,
 				);
 
-				this._waveformBuilder?.init(
-					options,
-					(err, data) => {
-						if (err) {
-							callback(err);
-							return;
+				this._waveformBuilder?.init(options, (err, data) => {
+					if (err) {
+						callback(err);
+						return;
+					}
+
+					this._waveformBuilder = null;
+					this._waveformData = data ?? null;
+
+					(["overview", "zoomview"] as const).forEach((viewName) => {
+						const view = this.views.getView(viewName);
+
+						if (view && data) {
+							view.setWaveformData(data);
 						}
+					});
 
-						this._waveformBuilder = null;
-						this._waveformData = data ?? null;
+					if (options.zoomLevels) {
+						this.zoom.setZoomLevels(options.zoomLevels);
+					}
 
-						(["overview", "zoomview"] as const).forEach((viewName) => {
-							const view = this.views.getView(viewName);
-
-							if (view && data) {
-								view.setWaveformData(data);
-							}
-						});
-
-						if (options.zoomLevels) {
-							this.zoom.setZoomLevels(options.zoomLevels);
-						}
-
-						callback();
-					},
-				);
+					callback();
+				});
 			})
 			.catch((err: Error) => {
 				callback(err);

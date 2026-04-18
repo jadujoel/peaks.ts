@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import WaveformData from "waveform-data";
 import type { WaveformBuilderCallback } from "../src/types";
 import WaveformBuilder from "../src/waveform-builder";
@@ -7,7 +8,7 @@ const TestAudioContext = window.AudioContext;
 
 describe("WaveformBuilder", () => {
 	describe("init", () => {
-		it("should not accept a string as dataUri", (done) => {
+		it("should not accept a string as dataUri", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -24,7 +25,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should invoke callback with an error if the data handling fails", (done) => {
+		it("should invoke callback with an error if the data handling fails", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -44,7 +45,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should invoke callback with an error if the data handling fails due to a network error", (done) => {
+		it("should invoke callback with an error if the data handling fails due to a network error", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -65,7 +66,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should fetch JSON format waveform data", (done) => {
+		it("should fetch JSON format waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -91,7 +92,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should fetch binary format waveform data", (done) => {
+		it("should fetch binary format waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -117,7 +118,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should not use credentials if withCredentials is not set", (done) => {
+		it("should not use credentials if withCredentials is not set", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -143,7 +144,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should use credentials if withCredentials is set", (done) => {
+		it("should use credentials if withCredentials is set", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -171,7 +172,7 @@ describe("WaveformBuilder", () => {
 		});
 
 		"ArrayBuffer" in window &&
-			it("should use the arraybuffer dataUri connector", (done) => {
+			it("should use the arraybuffer dataUri connector", (done: DoneCallback) => {
 				const peaks = {
 					options: {
 						mediaElement: document.getElementById("media"),
@@ -198,7 +199,7 @@ describe("WaveformBuilder", () => {
 			});
 
 		!("ArrayBuffer" in window) &&
-			it("should invoke callback with an error if the only available format is browser incompatible", (done) => {
+			it("should invoke callback with an error if the only available format is browser incompatible", (done: DoneCallback) => {
 				const peaks = {
 					options: {
 						mediaElement: document.getElementById("media"),
@@ -219,7 +220,7 @@ describe("WaveformBuilder", () => {
 			});
 
 		"ArrayBuffer" in window &&
-			it("should invoke callback with an error if arraybuffer data is invalid", (done) => {
+			it("should invoke callback with an error if arraybuffer data is invalid", (done: DoneCallback) => {
 				const peaks = {
 					options: {
 						mediaElement: document.getElementById("media"),
@@ -239,7 +240,7 @@ describe("WaveformBuilder", () => {
 				});
 			});
 
-		it("should use the waveformData json data connector", (done) => {
+		it("should use the waveformData json data connector", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -258,7 +259,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should throw if waveformData json data is invalid", (done) => {
+		it("should throw if waveformData json data is invalid", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -277,7 +278,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should prefer binary waveform data over JSON", (done) => {
+		it("should prefer binary waveform data over JSON", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -307,7 +308,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should return an error given 16-bit waveform data", (done) => {
+		it("should return an error given 16-bit waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -328,7 +329,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should build using WebAudio if the API is available and audioContext is provided", (done) => {
+		it("should build using WebAudio if the API is available and audioContext is provided", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -351,7 +352,7 @@ describe("WaveformBuilder", () => {
 	});
 
 	describe("abort", () => {
-		it("should abort an HTTP request for waveform data", (done) => {
+		it("should abort an HTTP request for waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -373,7 +374,7 @@ describe("WaveformBuilder", () => {
 			waveformBuilder.abort();
 		});
 
-		it("should abort an HTTP request for audio data", (done) => {
+		it("should abort an HTTP request for audio data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -397,7 +398,7 @@ describe("WaveformBuilder", () => {
 			waveformBuilder.abort();
 		});
 
-		it("should do nothing if the HTTP request has not yet been sent", (done) => {
+		it("should do nothing if the HTTP request has not yet been sent", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -418,7 +419,7 @@ describe("WaveformBuilder", () => {
 			});
 		});
 
-		it("should do nothing if the HTTP request has completed", (done) => {
+		it("should do nothing if the HTTP request has completed", (done: DoneCallback) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),

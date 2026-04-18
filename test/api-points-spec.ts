@@ -4,7 +4,7 @@ import { Point } from "../src/point";
 describe("Peaks.points", () => {
 	let p = null;
 
-	beforeEach((done) => {
+	beforeEach((done: DoneCallback) => {
 		const options = {
 			overview: {
 				container: document.getElementById("overview-container"),
@@ -181,7 +181,7 @@ describe("Peaks.points", () => {
 			expect(p.points.getPoints()[0].data).to.equal("test");
 		});
 
-		it("should emit an event with an array containing a single point object", (done) => {
+		it("should emit an event with an array containing a single point object", (done: DoneCallback) => {
 			p.on("points.add", (event) => {
 				expect(event.points).to.have.lengthOf(1);
 				expect(event.points[0]).to.be.an.instanceOf(Point);
@@ -192,7 +192,7 @@ describe("Peaks.points", () => {
 			p.points.add({ time: 0 });
 		});
 
-		it("should emit an event with multiple point objects", (done) => {
+		it("should emit an event with multiple point objects", (done: DoneCallback) => {
 			p.on("points.add", (event) => {
 				expect(event.points).to.have.lengthOf(2);
 				expect(event.points[0]).to.be.an.instanceOf(Point);
@@ -353,7 +353,7 @@ describe("Peaks.points", () => {
 			expect(remainingPoints[1].id).to.equal("point3");
 		});
 
-		it("should emit an event with the removed points", (done) => {
+		it("should emit an event with the removed points", (done: DoneCallback) => {
 			p.on("points.remove", (event) => {
 				expect(event.points).to.be.an.instanceOf(Array);
 				expect(event.points).to.have.lengthOf(1);
@@ -412,7 +412,7 @@ describe("Peaks.points", () => {
 			expect(points[1].time).to.equal(3);
 		});
 
-		it("should emit an event with the removed points", (done) => {
+		it("should emit an event with the removed points", (done: DoneCallback) => {
 			p.on("points.remove", (event) => {
 				expect(event.points).to.be.an.instanceOf(Array);
 				expect(event.points).to.have.lengthOf(2);
@@ -454,7 +454,7 @@ describe("Peaks.points", () => {
 			expect(removed[0].time).to.equal(0);
 		});
 
-		it("should emit an event with the removed points", (done) => {
+		it("should emit an event with the removed points", (done: DoneCallback) => {
 			p.on("points.remove", (event) => {
 				expect(event.points).to.be.an.instanceOf(Array);
 				expect(event.points.length).to.equal(1);
@@ -495,7 +495,7 @@ describe("Peaks.points", () => {
 			expect(remainingPoints).to.be.empty;
 		});
 
-		it("should emit an event", (done) => {
+		it("should emit an event", (done: DoneCallback) => {
 			p.on("points.remove_all", (param) => {
 				expect(param).to.be.undefined;
 

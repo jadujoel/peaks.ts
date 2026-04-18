@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
 import { Segment } from "../src/segment";
 
@@ -5,7 +6,7 @@ describe("Segment", () => {
 	describe("update", () => {
 		let p = null;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),

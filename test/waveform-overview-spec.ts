@@ -5,7 +5,7 @@ import InputController from "./helpers/input-controller";
 describe("WaveformOverview", () => {
 	describe("constructor", () => {
 		describe("with waveform longer than the container width", () => {
-			it("should rescale the waveform to fit the container width", (done) => {
+			it("should rescale the waveform to fit the container width", (done: DoneCallback) => {
 				const container = document.getElementById("overview-container");
 
 				const options = {
@@ -35,7 +35,7 @@ describe("WaveformOverview", () => {
 		});
 
 		describe("with waveform shorter than the container width", () => {
-			it("should use default waveform scale", (done) => {
+			it("should use default waveform scale", (done: DoneCallback) => {
 				const options = {
 					overview: {
 						container: document.getElementById("overview-container"),
@@ -63,7 +63,7 @@ describe("WaveformOverview", () => {
 		let p = null;
 		let inputController = null;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),

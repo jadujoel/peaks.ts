@@ -7,7 +7,7 @@ describe("KeyboardHandler", () => {
 	let zoomview = null;
 	let inputController = null;
 
-	beforeEach((done) => {
+	beforeEach((done: DoneCallback) => {
 		const options = {
 			overview: {
 				container: document.getElementById("overview-container"),

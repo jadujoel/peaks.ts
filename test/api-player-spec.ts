@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
 import Player from "../src/player";
 
@@ -7,7 +8,7 @@ describe("Player", () => {
 		let player = null;
 		let logger = null;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			logger = sinon.spy();
 
 			player = {
@@ -178,7 +179,7 @@ describe("Player", () => {
 				});
 			});
 
-			it("should call the player's seek() and play() methods", (done) => {
+			it("should call the player's seek() and play() methods", (done: DoneCallback) => {
 				const segment = { startTime: 10, endTime: 20, editable: true };
 
 				p.player.playSegment(segment).then(() => {
@@ -205,7 +206,7 @@ describe("Player", () => {
 		let p = null;
 		let logger = null;
 
-		beforeEach((done) => {
+		beforeEach((done: DoneCallback) => {
 			logger = sinon.spy();
 
 			const options = {
@@ -237,7 +238,7 @@ describe("Player", () => {
 		});
 
 		describe("play", () => {
-			it("should trigger mediaelement playing event", (done) => {
+			it("should trigger mediaelement playing event", (done: DoneCallback) => {
 				p.on("player.playing", (currentTime) => {
 					expect(currentTime).to.be.lessThan(0.05);
 					done();
@@ -262,7 +263,7 @@ describe("Player", () => {
 				expect(p.player.getCurrentTime()).to.equal(0);
 			});
 
-			it("should return an updated time if it has been modified through the audio element", (done) => {
+			it("should return an updated time if it has been modified through the audio element", (done: DoneCallback) => {
 				p.on("player.seeked", (currentTime) => {
 					expect(currentTime).to.equal(p.player.getCurrentTime());
 
@@ -277,7 +278,7 @@ describe("Player", () => {
 		});
 
 		describe("seek", () => {
-			beforeEach((done) => {
+			beforeEach((done: DoneCallback) => {
 				if (p.player.getCurrentTime() === 0.0) {
 					done();
 					return;
@@ -290,7 +291,7 @@ describe("Player", () => {
 				p.player.seek(0.0);
 			});
 
-			it("should change the currentTime value of the audio element", (done) => {
+			it("should change the currentTime value of the audio element", (done: DoneCallback) => {
 				const newTime = 6.0;
 
 				p.once("player.seeked", (currentTime) => {
@@ -334,7 +335,7 @@ describe("Player", () => {
 				});
 			});
 
-			it("should play a segment if an object with startTime and endTime values is given", (done) => {
+			it("should play a segment if an object with startTime and endTime values is given", (done: DoneCallback) => {
 				const expectedStart = 1;
 				const expectedEnd = 2;
 
@@ -377,7 +378,7 @@ describe("Player", () => {
 		});
 
 		describe("init", () => {
-			it("should cause Peaks.init() to return an error", (done) => {
+			it("should cause Peaks.init() to return an error", (done: DoneCallback) => {
 				const player = {
 					init: sinon.spy(() => Promise.reject(new Error("failed"))),
 					destroy: sinon.spy(),

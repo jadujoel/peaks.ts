@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import Peaks from "../src/main";
 import SegmentShape from "../src/segment-shape";
 import { extend } from "../src/utils";
@@ -53,7 +54,7 @@ describe("SegmentShape", () => {
 			{ name: "non-editable", editable: false },
 		].forEach((test) => {
 			describe(`with ${test.name} segments`, () => {
-				it("should create marker handles", (done) => {
+				it("should create marker handles", (done: DoneCallback) => {
 					createPeaksInstance(
 						{
 							segmentOptions: {
@@ -134,7 +135,7 @@ describe("SegmentShape", () => {
 		});
 
 		describe("with no given waveform color", () => {
-			it("should use the default color", (done) => {
+			it("should use the default color", (done: DoneCallback) => {
 				createPeaksInstance(
 					{
 						segmentOptions: {
@@ -168,7 +169,7 @@ describe("SegmentShape", () => {
 		});
 
 		describe("with a given waveform color", () => {
-			it("should create a waveform segment", (done) => {
+			it("should create a waveform segment", (done: DoneCallback) => {
 				createPeaksInstance(
 					{
 						segmentOptions: {
@@ -202,7 +203,7 @@ describe("SegmentShape", () => {
 			});
 		});
 
-		it("should use view specific segment options", (done) => {
+		it("should use view specific segment options", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {
@@ -245,7 +246,7 @@ describe("SegmentShape", () => {
 	});
 
 	describe("with overlay style segments", () => {
-		it("should not create marker handles", (done) => {
+		it("should not create marker handles", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {
@@ -270,7 +271,7 @@ describe("SegmentShape", () => {
 			);
 		});
 
-		it("should not create a waveform segment", (done) => {
+		it("should not create a waveform segment", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {
@@ -297,7 +298,7 @@ describe("SegmentShape", () => {
 			);
 		});
 
-		it("should create an overlay with default attributes", (done) => {
+		it("should create an overlay with default attributes", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {
@@ -328,7 +329,7 @@ describe("SegmentShape", () => {
 			);
 		});
 
-		it("should create an overlay with given color", (done) => {
+		it("should create an overlay with given color", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {
@@ -361,7 +362,7 @@ describe("SegmentShape", () => {
 			);
 		});
 
-		it("should use view specific segment options", (done) => {
+		it("should use view specific segment options", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {
@@ -404,7 +405,7 @@ describe("SegmentShape", () => {
 			);
 		});
 
-		it("should use global color and border color options", (done) => {
+		it("should use global color and border color options", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {

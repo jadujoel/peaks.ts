@@ -1,11 +1,12 @@
 import Konva from "konva";
+import sinon, { type SinonSpy } from "sinon";
 import Peaks from "../src/main";
 import Scrollbar from "../src/scrollbar";
 import WaveformOverview from "../src/waveform-overview";
 import WaveformZoomView from "../src/waveform-zoomview";
 import sampleJsonData from "./data/sample.json";
 
-const TestAudioContext = window.AudioContext
+const TestAudioContext = window.AudioContext;
 
 const externalPlayer = {
 	init: () => Promise.resolve(),
@@ -46,6 +47,13 @@ type InternalView = {
 	_highlightLayer: InternalHighlightLayer;
 };
 
+function expectPresent<T>(value: T | null | undefined): NonNullable<T> {
+	expect(value).to.not.equal(null);
+	expect(value).to.not.equal(undefined);
+
+	return value as NonNullable<T>;
+}
+
 describe("Peaks", () => {
 	let p: Peaks | null = null;
 
@@ -73,7 +81,7 @@ describe("Peaks", () => {
 		});
 
 		describe("with valid options", () => {
-			it("should invoke callback when initialised", (done) => {
+			it("should invoke callback when initialised", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -94,7 +102,7 @@ describe("Peaks", () => {
 				);
 			});
 
-			it("should return undefined", (done) => {
+			it("should return undefined", (done: DoneCallback) => {
 				const result = Peaks.init(
 					{
 						overview: {
@@ -107,7 +115,7 @@ describe("Peaks", () => {
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
-						expect(err).to.equal(undefined);
+						expect(err).to.equal(null);
 						expect(instance).to.be.an.instanceOf(Peaks);
 						expect(result).to.equal(undefined);
 						instance?.destroy();
@@ -149,7 +157,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with zoomview and overview options", () => {
-				it("should construct a Peaks object with overview and zoomable waveforms", (done) => {
+				it("should construct a Peaks object with overview and zoomable waveforms", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -162,7 +170,7 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(undefined);
+							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 							expect(instance?.views.getView("overview")).to.be.an.instanceOf(
 								WaveformOverview,
@@ -175,7 +183,7 @@ describe("Peaks", () => {
 					);
 				});
 
-				it("should construct a Peaks object with an overview waveform only", (done) => {
+				it("should construct a Peaks object with an overview waveform only", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -185,7 +193,7 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(undefined);
+							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 							expect(instance?.views.getView("overview")).to.be.an.instanceOf(
 								WaveformOverview,
@@ -196,7 +204,7 @@ describe("Peaks", () => {
 					);
 				});
 
-				it("should construct a Peaks object with a zoomable waveform only", (done) => {
+				it("should construct a Peaks object with a zoomable waveform only", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							zoomview: {
@@ -218,7 +226,7 @@ describe("Peaks", () => {
 					);
 				});
 
-				it("should return an error if no containers are given", (done) => {
+				it("should return an error if no containers are given", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							zoomview: {},
@@ -235,7 +243,7 @@ describe("Peaks", () => {
 					);
 				});
 
-				it("should use view-specific options", (done) => {
+				it("should use view-specific options", (done: DoneCallback) => {
 					function overviewFormatPlayheadTime(): string {
 						return "overview";
 					}
@@ -318,7 +326,7 @@ describe("Peaks", () => {
 					);
 				});
 
-				it("should use global options", (done) => {
+				it("should use global options", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -381,7 +389,7 @@ describe("Peaks", () => {
 					);
 				});
 
-				it("should use default options", (done) => {
+				it("should use default options", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -436,7 +444,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with scrollbar option", () => {
-				it("should construct a Peaks object with scrollbar", (done) => {
+				it("should construct a Peaks object with scrollbar", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -465,7 +473,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with precomputed stereo waveform data", () => {
-				it("should initialise correctly", (done) => {
+				it("should initialise correctly", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -479,9 +487,11 @@ describe("Peaks", () => {
 						},
 						(err, instance) => {
 							expect(err).to.equal(null);
-							expect(instance).to.be.an.instanceOf(Peaks);
-							expect(instance.getWaveformData().channels).to.equal(2);
-							instance.destroy();
+							const peaks = expectPresent(instance);
+							const waveformData = expectPresent(peaks.getWaveformData());
+							expect(peaks).to.be.an.instanceOf(Peaks);
+							expect(waveformData.channels).to.equal(2);
+							peaks.destroy();
 							done();
 						},
 					);
@@ -489,7 +499,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with valid JSON waveform data", () => {
-				it("should initialise correctly", (done) => {
+				it("should initialise correctly", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -505,9 +515,11 @@ describe("Peaks", () => {
 						},
 						(err, instance) => {
 							expect(err).to.equal(null);
-							expect(instance).to.be.an.instanceOf(Peaks);
-							expect(instance.getWaveformData().channels).to.equal(1);
-							instance.destroy();
+							const peaks = expectPresent(instance);
+							const waveformData = expectPresent(peaks.getWaveformData());
+							expect(peaks).to.be.an.instanceOf(Peaks);
+							expect(waveformData.channels).to.equal(1);
+							peaks.destroy();
 							done();
 						},
 					);
@@ -515,7 +527,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with valid binary waveform data", () => {
-				it("should initialise correctly", (done) => {
+				it("should initialise correctly", (done: DoneCallback) => {
 					fetch("/base/test/data/sample.dat")
 						.then((response) => response.arrayBuffer())
 						.then((buffer) => {
@@ -534,9 +546,11 @@ describe("Peaks", () => {
 								},
 								(err, instance) => {
 									expect(err).to.equal(null);
-									expect(instance).to.be.an.instanceOf(Peaks);
-									expect(instance.getWaveformData().channels).to.equal(1);
-									instance.destroy();
+									const peaks = expectPresent(instance);
+									const waveformData = expectPresent(peaks.getWaveformData());
+									expect(peaks).to.be.an.instanceOf(Peaks);
+									expect(waveformData.channels).to.equal(1);
+									peaks.destroy();
 									done();
 								},
 							);
@@ -545,7 +559,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with audioContext and multiChannel enabled", () => {
-				it("should initialise correctly", (done) => {
+				it("should initialise correctly", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -562,9 +576,11 @@ describe("Peaks", () => {
 						},
 						(err, instance) => {
 							expect(err).to.equal(null);
-							expect(instance).to.be.an.instanceOf(Peaks);
-							expect(instance.getWaveformData().channels).to.equal(2);
-							instance.destroy();
+							const peaks = expectPresent(instance);
+							const waveformData = expectPresent(peaks.getWaveformData());
+							expect(peaks).to.be.an.instanceOf(Peaks);
+							expect(waveformData.channels).to.equal(2);
+							peaks.destroy();
 							done();
 						},
 					);
@@ -572,7 +588,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with audioBuffer", () => {
-				it("should initialise correctly", (done) => {
+				it("should initialise correctly", (done: DoneCallback) => {
 					const audioContext = new TestAudioContext();
 
 					fetch("/base/test/data/sample.mp3")
@@ -596,9 +612,11 @@ describe("Peaks", () => {
 								},
 								(err, instance) => {
 									expect(err).to.equal(null);
-									expect(instance).to.be.an.instanceOf(Peaks);
-									expect(instance.getWaveformData().channels).to.equal(2);
-									instance.destroy();
+									const peaks = expectPresent(instance);
+									const waveformData = expectPresent(peaks.getWaveformData());
+									expect(peaks).to.be.an.instanceOf(Peaks);
+									expect(waveformData.channels).to.equal(2);
+									peaks.destroy();
 									done();
 								},
 							);
@@ -607,7 +625,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with external player", () => {
-				it("should ignore mediaUrl if using an external player", (done) => {
+				it("should ignore mediaUrl if using an external player", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -624,8 +642,9 @@ describe("Peaks", () => {
 						},
 						(err, instance) => {
 							expect(err).to.equal(null);
-							expect(instance).to.be.an.instanceOf(Peaks);
-							instance.destroy();
+							const peaks = expectPresent(instance);
+							expect(peaks).to.be.an.instanceOf(Peaks);
+							peaks.destroy();
 							done();
 						},
 					);
@@ -633,7 +652,7 @@ describe("Peaks", () => {
 			});
 
 			describe("with audio element in error state", () => {
-				let mediaElement = null;
+				let mediaElement: HTMLAudioElement | null = null;
 
 				beforeEach(() => {
 					mediaElement = document.createElement("audio");
@@ -644,10 +663,11 @@ describe("Peaks", () => {
 				});
 
 				afterEach(() => {
-					document.body.removeChild(mediaElement);
+					document.body.removeChild(expectPresent(mediaElement));
+					mediaElement = null;
 				});
 
-				it("should invoke callback with an error", (done) => {
+				it("should invoke callback with an error", (done: DoneCallback) => {
 					Peaks.init(
 						{
 							overview: {
@@ -675,16 +695,17 @@ describe("Peaks", () => {
 		});
 
 		describe("with invalid options", () => {
-			it("should invoke callback with an error if options is not an object", (done) => {
+			it("should invoke callback with an error if options is not an object", (done: DoneCallback) => {
 				Peaks.init([] as unknown as never, (err, instance) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/should be an object/);
+					const error = expectPresent(err);
+					expect(error).to.be.an.instanceOf(Error);
+					expect(error.message).to.match(/should be an object/);
 					expect(instance).to.equal(undefined);
 					done();
 				});
 			});
 
-			it("should invoke callback with an error if no mediaElement is provided", (done) => {
+			it("should invoke callback with an error if no mediaElement is provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -696,15 +717,16 @@ describe("Peaks", () => {
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(Error);
-						expect(err.message).to.match(/Missing mediaElement option/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(Error);
+						expect(error.message).to.match(/Missing mediaElement option/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if mediaElement is not an HTMLMediaElement", (done) => {
+			it("should invoke callback with an error if mediaElement is not an HTMLMediaElement", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -719,15 +741,16 @@ describe("Peaks", () => {
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(TypeError);
-						expect(err.message).to.match(/HTMLMediaElement/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(TypeError);
+						expect(error.message).to.match(/HTMLMediaElement/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if both a dataUri and audioContext are provided", (done) => {
+			it("should invoke callback with an error if both a dataUri and audioContext are provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -743,15 +766,16 @@ describe("Peaks", () => {
 						},
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(TypeError);
-						expect(err.message).to.match(/only pass one/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(TypeError);
+						expect(error.message).to.match(/only pass one/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if neither a dataUri nor an audioContext are provided", (done) => {
+			it("should invoke callback with an error if neither a dataUri nor an audioContext are provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -763,8 +787,9 @@ describe("Peaks", () => {
 						mediaElement: document.getElementById("media"),
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(Error);
-						expect(err.message).to.match(
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(Error);
+						expect(error.message).to.match(
 							/audioContext, or dataUri, or waveformData/,
 						);
 						expect(instance).to.equal(undefined);
@@ -773,7 +798,7 @@ describe("Peaks", () => {
 				);
 			});
 
-			it("should invoke callback with an error if the dataUri is not an object", (done) => {
+			it("should invoke callback with an error if the dataUri is not an object", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -786,15 +811,16 @@ describe("Peaks", () => {
 						dataUri: true as unknown as Record<string, string>,
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(TypeError);
-						expect(err.message).to.match(/dataUri/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(TypeError);
+						expect(error.message).to.match(/dataUri/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if the provided JSON waveform data is invalid", (done) => {
+			it("should invoke callback with an error if the provided JSON waveform data is invalid", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -816,7 +842,7 @@ describe("Peaks", () => {
 				);
 			});
 
-			it("should invoke callback with an error if provided binary waveform data is invalid", (done) => {
+			it("should invoke callback with an error if provided binary waveform data is invalid", (done: DoneCallback) => {
 				fetch("/base/test/data/unknown.dat")
 					.then((response) => response.arrayBuffer())
 					.then((buffer) => {
@@ -842,22 +868,23 @@ describe("Peaks", () => {
 					});
 			});
 
-			it("should invoke callback with an error if no zoomview or overview options are provided", (done) => {
+			it("should invoke callback with an error if no zoomview or overview options are provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						mediaElement: document.getElementById("media"),
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(Error);
-						expect(err.message).to.match(/must be valid HTML elements/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(Error);
+						expect(error.message).to.match(/must be valid HTML elements/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if the logger is defined and not a function", (done) => {
+			it("should invoke callback with an error if the logger is defined and not a function", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -873,15 +900,16 @@ describe("Peaks", () => {
 						logger: "foo" as unknown as typeof console.error,
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(TypeError);
-						expect(err.message).to.match(/logger/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(TypeError);
+						expect(error.message).to.match(/logger/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if the zoomLevels option is missing", (done) => {
+			it("should invoke callback with an error if the zoomLevels option is missing", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -894,18 +922,19 @@ describe("Peaks", () => {
 						dataUri: {
 							arraybuffer: "base/test/data/sample.dat",
 						},
-						zoomLevels: null,
+						zoomLevels: null as unknown as number[],
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(Error);
-						expect(err.message).to.match(/zoomLevels/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(Error);
+						expect(error.message).to.match(/zoomLevels/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if the zoomLevels option is empty", (done) => {
+			it("should invoke callback with an error if the zoomLevels option is empty", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -921,15 +950,16 @@ describe("Peaks", () => {
 						zoomLevels: [],
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(Error);
-						expect(err.message).to.match(/zoomLevels/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(Error);
+						expect(error.message).to.match(/zoomLevels/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if the zoomLevels option is not in ascending order", (done) => {
+			it("should invoke callback with an error if the zoomLevels option is not in ascending order", (done: DoneCallback) => {
 				Peaks.init(
 					{
 						overview: {
@@ -945,15 +975,16 @@ describe("Peaks", () => {
 						zoomLevels: [1024, 512],
 					},
 					(err, instance) => {
-						expect(err).to.be.an.instanceOf(Error);
-						expect(err.message).to.match(/zoomLevels/);
+						const error = expectPresent(err);
+						expect(error).to.be.an.instanceOf(Error);
+						expect(error.message).to.match(/zoomLevels/);
 						expect(instance).to.equal(undefined);
 						done();
 					},
 				);
 			});
 
-			it("should invoke callback with an error if the zoomview container element has zero width", (done) => {
+			it("should invoke callback with an error if the zoomview container element has zero width", (done: DoneCallback) => {
 				const container = document.getElementById("zoomview-container");
 				container.style.width = "0px";
 
@@ -968,14 +999,15 @@ describe("Peaks", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/width/);
+					const error = expectPresent(err);
+					expect(error).to.be.an.instanceOf(Error);
+					expect(error.message).to.match(/width/);
 					expect(instance).to.equal(undefined);
 					done();
 				});
 			});
 
-			it("should invoke callback with an error if the zoomview container element has zero height", (done) => {
+			it("should invoke callback with an error if the zoomview container element has zero height", (done: DoneCallback) => {
 				const container = document.getElementById("zoomview-container");
 				container.style.height = "0px";
 
@@ -990,14 +1022,15 @@ describe("Peaks", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/height/);
+					const error = expectPresent(err);
+					expect(error).to.be.an.instanceOf(Error);
+					expect(error.message).to.match(/height/);
 					expect(instance).to.equal(undefined);
 					done();
 				});
 			});
 
-			it("should invoke callback with an error if the overview container element has zero width", (done) => {
+			it("should invoke callback with an error if the overview container element has zero width", (done: DoneCallback) => {
 				const container = document.getElementById("overview-container");
 				container.style.width = "0px";
 
@@ -1012,14 +1045,15 @@ describe("Peaks", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/width/);
+					const error = expectPresent(err);
+					expect(error).to.be.an.instanceOf(Error);
+					expect(error.message).to.match(/width/);
 					expect(instance).to.equal(undefined);
 					done();
 				});
 			});
 
-			it("should invoke callback with an error if the overview container element has zero height", (done) => {
+			it("should invoke callback with an error if the overview container element has zero height", (done: DoneCallback) => {
 				const container = document.getElementById("overview-container");
 				container.style.height = "0px";
 
@@ -1034,14 +1068,15 @@ describe("Peaks", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/height/);
+					const error = expectPresent(err);
+					expect(error).to.be.an.instanceOf(Error);
+					expect(error.message).to.match(/height/);
 					expect(instance).to.equal(undefined);
 					done();
 				});
 			});
 
-			it("should invoke callback with an error if the zoomview container element has zero height after initialisation", (done) => {
+			it("should invoke callback with an error if the zoomview container element has zero height after initialisation", (done: DoneCallback) => {
 				const container = document.getElementById("zoomview-container");
 
 				const options = {
@@ -1055,8 +1090,9 @@ describe("Peaks", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/height/);
+					const error = expectPresent(err);
+					expect(error).to.be.an.instanceOf(Error);
+					expect(error.message).to.match(/height/);
 					expect(instance).to.equal(undefined);
 					done();
 				});
@@ -1064,7 +1100,7 @@ describe("Peaks", () => {
 				container.style.height = "0px";
 			});
 
-			it("should invoke callback with an error if the overview container element has zero height after initialisation", (done) => {
+			it("should invoke callback with an error if the overview container element has zero height after initialisation", (done: DoneCallback) => {
 				const container = document.getElementById("overview-container");
 
 				const options = {
@@ -1078,8 +1114,9 @@ describe("Peaks", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/height/);
+					const error = expectPresent(err);
+					expect(error).to.be.an.instanceOf(Error);
+					expect(error.message).to.match(/height/);
 					expect(instance).to.equal(undefined);
 					done();
 				});
@@ -1090,9 +1127,17 @@ describe("Peaks", () => {
 	});
 
 	describe("setSource", () => {
-		let drawWaveformLayer = null;
+		let drawWaveformLayer: SinonSpy | null = null;
 
-		beforeEach((done) => {
+		function getActivePeaks(): Peaks {
+			return expectPresent(p);
+		}
+
+		function getDrawWaveformLayer(): SinonSpy {
+			return expectPresent(drawWaveformLayer);
+		}
+
+		beforeEach((done: DoneCallback) => {
 			const options = {
 				overview: {
 					container: document.getElementById("overview-container"),
@@ -1108,12 +1153,11 @@ describe("Peaks", () => {
 			Peaks.init(options, (err, instance) => {
 				expect(err).to.equal(null);
 
-				p = instance;
+				p = expectPresent(instance);
 
-				const zoomview = instance.views.getView(
-					"zoomview",
-				) as unknown as InternalView;
+				const zoomview = p.views.getView("zoomview") as unknown as InternalView;
 				expect(zoomview).to.be.ok;
+				expectPresent(zoomview.drawWaveformLayer);
 
 				drawWaveformLayer = sinon.spy(zoomview, "drawWaveformLayer");
 				done();
@@ -1121,7 +1165,7 @@ describe("Peaks", () => {
 		});
 
 		describe("with invalid media url", () => {
-			it("should return an error", (done) => {
+			it("should return an error", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/unknown.mp3",
 					dataUri: {
@@ -1129,13 +1173,13 @@ describe("Peaks", () => {
 					},
 				};
 
-				p.setSource(options, (error) => {
+				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.an.instanceOf(MediaError);
 					done();
 				});
 			});
 
-			it("should preserve existing event handlers", (done) => {
+			it("should preserve existing event handlers", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/unknown.mp3",
 					dataUri: {
@@ -1147,18 +1191,19 @@ describe("Peaks", () => {
 					// Nothing
 				}
 
-				p.on("player.error", onError);
+				const peaks = getActivePeaks();
+				peaks.on("player.error", onError);
 
-				p.setSource(options, (error) => {
+				peaks.setSource(options, (error) => {
 					expect(error).to.be.an.instanceOf(MediaError);
-					expect(p.listeners("player.error").length).to.equal(1);
+					expect(peaks.listeners("player.error").length).to.equal(1);
 					done();
 				});
 			});
 		});
 
 		describe("with invalid json waveform data", () => {
-			it("should return an error", (done) => {
+			it("should return an error", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
 					waveformData: {
@@ -1166,7 +1211,7 @@ describe("Peaks", () => {
 					},
 				};
 
-				p.setSource(options, (error) => {
+				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.an.instanceOf(Error);
 					done();
 				});
@@ -1174,7 +1219,7 @@ describe("Peaks", () => {
 		});
 
 		describe("with valid json waveform data", () => {
-			it("should update the waveform", (done) => {
+			it("should update the waveform", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
 					waveformData: {
@@ -1182,16 +1227,16 @@ describe("Peaks", () => {
 					},
 				};
 
-				p.setSource(options, (error) => {
+				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.undefined;
-					expect(drawWaveformLayer.callCount).to.equal(1);
+					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
 				});
 			});
 		});
 
 		describe("with waveform data url", () => {
-			it("should update the waveform", (done) => {
+			it("should update the waveform", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
 					dataUri: {
@@ -1199,16 +1244,16 @@ describe("Peaks", () => {
 					},
 				};
 
-				p.setSource(options, (error) => {
+				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.undefined;
-					expect(drawWaveformLayer.callCount).to.equal(1);
+					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
 				});
 			});
 		});
 
 		describe("with audioContext", () => {
-			it("should update the waveform", (done) => {
+			it("should update the waveform", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
 					webAudio: {
@@ -1216,16 +1261,16 @@ describe("Peaks", () => {
 					},
 				};
 
-				p.setSource(options, (error) => {
+				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.undefined;
-					expect(drawWaveformLayer.callCount).to.equal(1);
+					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
 				});
 			});
 		});
 
 		describe("with audioBuffer", () => {
-			it("should update the waveform", (done) => {
+			it("should update the waveform", (done: DoneCallback) => {
 				const audioContext = new TestAudioContext();
 
 				fetch("/base/test/data/sample.mp3")
@@ -1240,9 +1285,9 @@ describe("Peaks", () => {
 							},
 						};
 
-						p.setSource(options, (error) => {
+						getActivePeaks().setSource(options, (error) => {
 							expect(error).to.be.undefined;
-							expect(drawWaveformLayer.callCount).to.equal(1);
+							expect(getDrawWaveformLayer().callCount).to.equal(1);
 							done();
 						});
 					});
@@ -1250,7 +1295,7 @@ describe("Peaks", () => {
 		});
 
 		describe("with binary waveform data", () => {
-			it("should update the waveform", (done) => {
+			it("should update the waveform", (done: DoneCallback) => {
 				fetch("/base/test/data/sample.dat")
 					.then((response) => response.arrayBuffer())
 					.then((buffer) => {
@@ -1261,9 +1306,9 @@ describe("Peaks", () => {
 							},
 						};
 
-						p.setSource(options, (error) => {
+						getActivePeaks().setSource(options, (error) => {
 							expect(error).to.be.undefined;
-							expect(drawWaveformLayer.callCount).to.equal(1);
+							expect(getDrawWaveformLayer().callCount).to.equal(1);
 							done();
 						});
 					});
@@ -1271,7 +1316,7 @@ describe("Peaks", () => {
 		});
 
 		describe("with invalid binary waveform data", () => {
-			it("should return an error", (done) => {
+			it("should return an error", (done: DoneCallback) => {
 				fetch("/base/test/data/unknown.dat")
 					.then((response) => response.arrayBuffer())
 					.then((buffer) => {
@@ -1282,7 +1327,7 @@ describe("Peaks", () => {
 							},
 						};
 
-						p.setSource(options, (error) => {
+						getActivePeaks().setSource(options, (error) => {
 							expect(error).to.be.an.instanceOf(Error);
 							done();
 						});
@@ -1291,7 +1336,7 @@ describe("Peaks", () => {
 		});
 
 		describe("with zoom levels", () => {
-			it("should update the instance zoom levels", (done) => {
+			it("should update the instance zoom levels", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
 					webAudio: {
@@ -1300,17 +1345,17 @@ describe("Peaks", () => {
 					zoomLevels: [128, 256],
 				};
 
-				p.setSource(options, (error) => {
+				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.undefined;
-					expect(p.zoom.getZoomLevel()).to.equal(128);
-					expect(drawWaveformLayer.callCount).to.equal(1);
+					expect(getActivePeaks().zoom.getZoomLevel()).to.equal(128);
+					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
 				});
 			});
 		});
 
 		describe("with stereo waveform", () => {
-			it("should update the waveform", (done) => {
+			it("should update the waveform", (done: DoneCallback) => {
 				const options = {
 					mediaUrl: "/base/test/data/07023003.mp3",
 					dataUri: {
@@ -1319,26 +1364,29 @@ describe("Peaks", () => {
 					zoomLevels: [128, 256],
 				};
 
-				p.setSource(options, (error) => {
+				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.undefined;
-					expect(p.zoom.getZoomLevel()).to.equal(128);
-					expect(drawWaveformLayer.callCount).to.equal(1);
+					expect(getActivePeaks().zoom.getZoomLevel()).to.equal(128);
+					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
 				});
 			});
 		});
 
 		describe("with missing mediaUrl", () => {
-			it("should return an error", (done) => {
+			it("should return an error", (done: DoneCallback) => {
 				const options = {
 					webAudio: {
 						audioContext: new TestAudioContext(),
 					},
 				};
 
-				p.setSource(options, (error) => {
-					expect(error).to.be.an.instanceOf(Error);
-					expect(error.message).to.match(/options must contain a mediaUrl/);
+				getActivePeaks().setSource(options, (error) => {
+					const setSourceError = expectPresent(error);
+					expect(setSourceError).to.be.an.instanceOf(Error);
+					expect(setSourceError.message).to.match(
+						/options must contain a mediaUrl/,
+					);
 					done();
 				});
 			});
@@ -1346,7 +1394,7 @@ describe("Peaks", () => {
 	});
 
 	describe("destroy", () => {
-		it("should clean up event listeners", (done) => {
+		it("should clean up event listeners", (done: DoneCallback) => {
 			const errorSpy = sinon.spy().named("window.onerror");
 			const oldOnError = window.onerror;
 			window.onerror = errorSpy;
@@ -1367,16 +1415,13 @@ describe("Peaks", () => {
 				(err, instance) => {
 					expect(err).to.equal(null);
 
-					// Give peaks chance to bind its resize listener:
 					setTimeout(() => {
-						instance.destroy();
+						expectPresent(instance).destroy();
 
-						// Fire a resize event, which would normally cause peaks to redraw
 						const e = document.createEvent("HTMLEvents");
 						e.initEvent("resize", true, false);
 						window.dispatchEvent(e);
 
-						// Our resize handler is asynchronously throttled, so give it a little time to settle.
 						setTimeout(() => {
 							window.onerror = oldOnError;
 							expect(errorSpy).to.not.have.been.called;
@@ -1387,7 +1432,7 @@ describe("Peaks", () => {
 			);
 		});
 
-		it("should be safe to call more than once", (done) => {
+		it("should be safe to call more than once", (done: DoneCallback) => {
 			Peaks.init(
 				{
 					overview: {
@@ -1405,8 +1450,9 @@ describe("Peaks", () => {
 				(err, peaks) => {
 					expect(err).to.equal(null);
 
-					peaks.destroy();
-					peaks.destroy();
+					const instance = expectPresent(peaks);
+					instance.destroy();
+					instance.destroy();
 
 					done();
 				},
