@@ -379,9 +379,11 @@ class WaveformView {
 	/**
 	 * Adjusts the amplitude scale of waveform shown in the view, which allows
 	 * users to zoom the waveform vertically.
+	 *
+	 * @throws {Error} If scale is not a finite numeric value.
 	 */
 
-	setAmplitudeScale(scale: number): void {
+	setAmplitudeScale(scale: number): undefined | never {
 		if (!isNumber(scale) || !isFinite(scale)) {
 			throw new Error("view.setAmplitudeScale(): Scale must be a valid number");
 		}

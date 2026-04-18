@@ -11,13 +11,40 @@ const TestAudioContext =
 const externalPlayer = {
 	init: () => Promise.resolve(),
 	destroy: () => {},
-	play: () => {},
+	play: () => Promise.resolve(),
 	pause: () => {},
 	seek: () => {},
-	isPlaying: () => {},
-	isSeeking: () => {},
-	getCurrentTime: () => {},
-	getDuration: () => {},
+	isPlaying: () => false,
+	isSeeking: () => false,
+	getCurrentTime: () => 0,
+	getDuration: () => 0,
+};
+
+type InternalPlayheadLayer = {
+	_playheadColor: string;
+	_playheadTextColor: string;
+	_playheadText?: object;
+};
+
+type InternalAxis = {
+	_axisLabelColor: string;
+	_axisGridlineColor: string;
+};
+
+type InternalHighlightLayer = {
+	_offset: number;
+	_color: string;
+	_strokeColor: string;
+	_opacity: number;
+	_cornerRadius: number;
+};
+
+type InternalView = {
+	_playheadLayer: InternalPlayheadLayer;
+	drawWaveformLayer?: () => void;
+	_formatPlayheadTime?: (time: number) => string;
+	_axis: InternalAxis;
+	_highlightLayer: InternalHighlightLayer;
 };
 
 describe("Peaks", () => {
@@ -33,7 +60,7 @@ describe("Peaks", () => {
 	describe("init", () => {
 		it("should throw if called without a callback", () => {
 			expect(() => {
-				Peaks.init({
+				(Peaks.init as unknown as (options: unknown) => unknown)({
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
@@ -178,8 +205,12 @@ describe("Peaks", () => {
 				});
 
 				it("should use view-specific options", (done) => {
-					function overviewFormatPlayheadTime() {}
-					function zoomviewFormatPlayheadTime() {}
+					function overviewFormatPlayheadTime(): string {
+						return "overview";
+					}
+					function zoomviewFormatPlayheadTime(): string {
+						return "zoomview";
+					}
 
 					Peaks.init(
 						{
@@ -213,8 +244,12 @@ describe("Peaks", () => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 
-							const overview = instance.views.getView("overview");
-							const zoomview = instance.views.getView("zoomview");
+							const overview = instance.views.getView(
+								"overview",
+							) as unknown as InternalView;
+							const zoomview = instance.views.getView(
+								"zoomview",
+							) as unknown as InternalView;
 
 							expect(overview._playheadLayer._playheadColor).to.equal(
 								"#ff0000",
@@ -278,8 +313,12 @@ describe("Peaks", () => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 
-							const overview = instance.views.getView("overview");
-							const zoomview = instance.views.getView("zoomview");
+							const overview = instance.views.getView(
+								"overview",
+							) as unknown as InternalView;
+							const zoomview = instance.views.getView(
+								"zoomview",
+							) as unknown as InternalView;
 
 							expect(overview._playheadLayer._playheadColor).to.equal(
 								"#ff0000",
@@ -327,8 +366,12 @@ describe("Peaks", () => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 
-							const overview = instance.views.getView("overview");
-							const zoomview = instance.views.getView("zoomview");
+							const overview = instance.views.getView(
+								"overview",
+							) as unknown as InternalView;
+							const zoomview = instance.views.getView(
+								"zoomview",
+							) as unknown as InternalView;
 
 							expect(overview._playheadLayer._playheadColor).to.equal(
 								"#111111",
@@ -380,7 +423,10 @@ describe("Peaks", () => {
 						(err, instance) => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
-							expect(instance.views._scrollbar).to.be.an.instanceOf(Scrollbar);
+							const viewController = instance.views as unknown as {
+								_scrollbar: unknown;
+							};
+							expect(viewController._scrollbar).to.be.an.instanceOf(Scrollbar);
 							done();
 						},
 					);
@@ -579,12 +625,16 @@ describe("Peaks", () => {
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
 							},
-							mediaElement: document.getElementById("adpcm"),
+							mediaElement: document.getElementById(
+								"adpcm",
+							) as HTMLMediaElement,
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.be.an.instanceOf(MediaError);
-							expect(err.code).to.equal(MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED);
+							expect((err as unknown as MediaError).code).to.equal(
+								MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED,
+							);
 							expect(instance).to.equal(undefined);
 							done();
 						},
@@ -595,7 +645,7 @@ describe("Peaks", () => {
 
 		describe("with invalid options", () => {
 			it("should invoke callback with an error if options is not an object", (done) => {
-				Peaks.init([], (err, instance) => {
+				Peaks.init([] as unknown as never, (err, instance) => {
 					expect(err).to.be.an.instanceOf(Error);
 					expect(err.message).to.match(/should be an object/);
 					expect(instance).to.equal(undefined);
@@ -632,7 +682,9 @@ describe("Peaks", () => {
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						mediaElement: document.createElement("div"),
+						mediaElement: document.createElement(
+							"div",
+						) as unknown as HTMLMediaElement,
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
@@ -700,7 +752,7 @@ describe("Peaks", () => {
 							container: document.getElementById("zoomview-container"),
 						},
 						mediaElement: document.getElementById("media"),
-						dataUri: true,
+						dataUri: true as unknown as Record<string, string>,
 					},
 					(err, instance) => {
 						expect(err).to.be.an.instanceOf(TypeError);
@@ -787,7 +839,7 @@ describe("Peaks", () => {
 						dataUri: {
 							arraybuffer: "base/test/data/sample.dat",
 						},
-						logger: "foo",
+						logger: "foo" as unknown as typeof console.error,
 					},
 					(err, instance) => {
 						expect(err).to.be.an.instanceOf(TypeError);
@@ -1027,7 +1079,9 @@ describe("Peaks", () => {
 
 				p = instance;
 
-				const zoomview = instance.views.getView("zoomview");
+				const zoomview = instance.views.getView(
+					"zoomview",
+				) as unknown as InternalView;
 				expect(zoomview).to.be.ok;
 
 				drawWaveformLayer = sinon.spy(zoomview, "drawWaveformLayer");

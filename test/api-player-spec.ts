@@ -58,7 +58,7 @@ describe("Player", () => {
 				};
 
 				expect(() => {
-					new Player(null, adapter);
+					new Player(null, adapter as unknown as never);
 				}).to.throw(TypeError);
 			});
 
@@ -76,7 +76,7 @@ describe("Player", () => {
 				};
 
 				expect(() => {
-					new Player(null, adapter);
+					new Player(null, adapter as unknown as never);
 				}).to.throw(TypeError);
 			});
 		});

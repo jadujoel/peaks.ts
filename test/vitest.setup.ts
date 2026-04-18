@@ -19,7 +19,7 @@ function wrapDoneCallback(fn) {
 	}
 
 	return function wrappedDoneCallback() {
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			let finished = false;
 
 			function done(error) {

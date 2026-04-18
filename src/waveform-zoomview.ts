@@ -489,9 +489,14 @@ class WaveformZoomView extends WaveformView {
 
 	/**
 	 * Scrolls the region of waveform shown in the view.
+	 *
+	 * @throws {TypeError} If neither a pixel offset nor a time offset is provided.
 	 */
 
-	scrollWaveform(options: { pixels?: number; seconds?: number }): void {
+	scrollWaveform(options: {
+		pixels?: number;
+		seconds?: number;
+	}): undefined | never {
 		let scrollAmount: number;
 
 		if (options.pixels !== undefined) {

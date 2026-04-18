@@ -10,6 +10,8 @@ import type WaveformZoomView from "./waveform-zoomview";
 
 /**
  * Creates a scrollbar.
+ *
+ * @throws {Error} If scrollbar display options are missing from the Peaks configuration.
  */
 
 class Scrollbar {

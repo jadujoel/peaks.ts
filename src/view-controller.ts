@@ -17,7 +17,12 @@ class ViewController {
 		this._scrollbar = null;
 	}
 
-	createOverview(container: HTMLDivElement): WaveformOverview {
+	/**
+	 * Creates the overview waveform view.
+	 *
+	 * @throws {Error} If waveform data has not been initialized yet.
+	 */
+	createOverview(container: HTMLDivElement): WaveformOverview | never {
 		if (this._overview) {
 			return this._overview;
 		}
@@ -40,7 +45,12 @@ class ViewController {
 		return this._overview;
 	}
 
-	createZoomview(container: HTMLDivElement): WaveformZoomView {
+	/**
+	 * Creates the zoomable waveform view.
+	 *
+	 * @throws {Error} If waveform data has not been initialized yet.
+	 */
+	createZoomview(container: HTMLDivElement): WaveformZoomView | never {
 		if (this._zoomview) {
 			return this._zoomview;
 		}
@@ -60,7 +70,12 @@ class ViewController {
 		return this._zoomview;
 	}
 
-	createScrollbar(container: HTMLDivElement): Scrollbar {
+	/**
+	 * Creates the scrollbar view.
+	 *
+	 * @throws {Error} If scrollbar options are missing from the Peaks configuration.
+	 */
+	createScrollbar(container: HTMLDivElement): Scrollbar | never {
 		this._scrollbar = new Scrollbar(container, this._peaks);
 
 		return this._scrollbar;

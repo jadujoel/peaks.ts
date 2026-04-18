@@ -44,7 +44,14 @@ class WaveformSegments {
 		this._segmentsByPid[segment.pid] = segment;
 	}
 
-	private _createSegment(options: SegmentOptions): Segment {
+	/**
+	 * Creates a new segment object.
+	 *
+	 * @throws {TypeError} If required segment options are missing or have the wrong type.
+	 * @throws {RangeError} If the segment times are invalid.
+	 * @throws {Error} If reserved or internal option names are provided.
+	 */
+	private _createSegment(options: SegmentOptions): Segment | never {
 		const segmentOptions = {} as SegmentOptions;
 
 		extend(segmentOptions, options as unknown as Record<string, unknown>);
@@ -123,8 +130,14 @@ class WaveformSegments {
 
 	/**
 	 * Adds one or more segments to the timeline.
+	 *
+	 * @throws {TypeError} If required segment options are missing or have the wrong type.
+	 * @throws {RangeError} If the segment times are invalid.
+	 * @throws {Error} If a duplicate id or reserved option name is provided.
 	 */
-	add(...args: SegmentOptions[] | [SegmentOptions[]]): Segment | Segment[] {
+	add(
+		...args: SegmentOptions[] | [SegmentOptions[]]
+	): Segment | Segment[] | never {
 		const arrayArgs = Array.isArray(args[0]);
 		const segments: SegmentOptions[] = arrayArgs
 			? (args[0] as SegmentOptions[])
@@ -152,7 +165,12 @@ class WaveformSegments {
 		return arrayArgs ? created : (created[0] as Segment);
 	}
 
-	updateSegmentId(segment: Segment, newSegmentId: string): void {
+	/**
+	 * Updates the lookup tables for a segment id change.
+	 *
+	 * @throws {Error} If the new segment id already exists.
+	 */
+	updateSegmentId(segment: Segment, newSegmentId: string): undefined | never {
 		if (this._segmentsById[segment.id]) {
 			if (this._segmentsById[newSegmentId]) {
 				throw new Error("segment.update(): duplicate id");

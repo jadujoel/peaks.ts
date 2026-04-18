@@ -56,8 +56,13 @@ eventAttributes[EVENT_TYPE_SEGMENT_EXIT] = "segment";
 
 /**
  * Given a cue instance, returns the corresponding Point or Segment.
+ *
+ * @throws {Error} If the cue refers to a missing point or segment, or to an unknown cue type.
  */
-function getPointOrSegment(peaks: PeaksInstance, cue: Cue): Point | Segment {
+function getPointOrSegment(
+	peaks: PeaksInstance,
+	cue: Cue,
+): Point | Segment | never {
 	switch (cue.type) {
 		case Cue.POINT: {
 			const point = peaks.points.getPoint(cue.id);

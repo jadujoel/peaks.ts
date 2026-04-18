@@ -60,10 +60,18 @@ function setDefaultSegmentOptions(
 	}
 }
 
+/**
+ * Validates segment options before creation or update.
+ *
+ * @throws {TypeError} If required times are missing, values have the wrong type,
+ *   or immutable properties are updated.
+ * @throws {RangeError} If a time is negative or endTime is earlier than startTime.
+ * @throws {Error} If reserved or internal option names are provided.
+ */
 function validateSegmentOptions(
 	options: SegmentOptions | SegmentUpdateOptions,
 	updating: boolean,
-): void {
+): undefined | never {
 	const context = updating ? "update()" : "add()";
 
 	if (
@@ -194,10 +202,15 @@ function validateSegmentOptions(
  * A segment is a region of time, with associated label and color.
  */
 
+type SegmentPeaksLike = {
+	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
+	segments?: Pick<PeaksInstance["segments"], "updateSegmentId">;
+};
+
 class Segment {
 	[key: string]: unknown;
 
-	private _peaks: PeaksInstance;
+	private _peaks: SegmentPeaksLike;
 	private _pid: number;
 	private _id!: string;
 	private _startTime!: number;
@@ -209,7 +222,7 @@ class Segment {
 	private _markers!: boolean;
 	private _overlay!: boolean;
 
-	constructor(peaks: PeaksInstance, pid: number, options: SegmentOptions) {
+	constructor(peaks: SegmentPeaksLike, pid: number, options: SegmentOptions) {
 		this._peaks = peaks;
 		this._pid = pid;
 		this._id = options.id ?? `peaks.segment.${pid}`;
@@ -277,7 +290,15 @@ class Segment {
 		return this._editable;
 	}
 
-	update(options: SegmentUpdateOptions): void {
+	/**
+	 * Updates a segment and emits a segments.update event.
+	 *
+	 * @throws {TypeError} If the updated id is invalid, an immutable property is changed,
+	 *   or any option has the wrong type.
+	 * @throws {RangeError} If a provided time is negative or endTime is before startTime.
+	 * @throws {Error} If reserved option names are used or the new id conflicts with an existing segment.
+	 */
+	update(options: SegmentUpdateOptions): undefined | never {
 		validateSegmentOptions(options, true);
 
 		if (objectHasProperty(options, "id")) {
@@ -285,7 +306,7 @@ class Segment {
 				throw new TypeError("segment.update(): invalid id");
 			}
 
-			this._peaks.segments.updateSegmentId(this, options.id);
+			this._peaks.segments?.updateSegmentId(this, options.id);
 		}
 
 		this._setUserData(options);

@@ -17,7 +17,12 @@ function getAllPropertiesFrom(adapter: PlayerAdapter): string[] {
 	return allProperties;
 }
 
-function validateAdapter(adapter: PlayerAdapter): void {
+/**
+ * Validates that the supplied player adapter exposes the required public API.
+ *
+ * @throws {TypeError} If a required adapter method is missing or is not a function.
+ */
+function validateAdapter(adapter: PlayerAdapter): undefined | never {
 	const publicAdapterMethods = [
 		"init",
 		"destroy",
@@ -53,13 +58,18 @@ function validateAdapter(adapter: PlayerAdapter): void {
  */
 
 class Player {
-	private _peaks: PeaksInstance;
+	private _peaks: PeaksInstance | null;
 	private _playingSegment: boolean;
 	private _segment: Segment | null;
 	private _loop: boolean;
 	private _adapter: PlayerAdapter;
 
-	constructor(peaks: PeaksInstance, adapter: PlayerAdapter) {
+	/**
+	 * Creates a player wrapper around the supplied adapter.
+	 *
+	 * @throws {TypeError} If the adapter does not implement the required player methods.
+	 */
+	constructor(peaks: PeaksInstance | null, adapter: PlayerAdapter) {
 		this._peaks = peaks;
 
 		this._playingSegment = false;
@@ -71,7 +81,7 @@ class Player {
 	}
 
 	init(): Promise<void> {
-		return this._adapter.init(this._peaks);
+		return Promise.resolve(this._adapter.init(this._peaks as PeaksInstance));
 	}
 
 	/**
@@ -91,7 +101,7 @@ class Player {
 	 */
 
 	play(): Promise<void> {
-		return this._adapter.play();
+		return Promise.resolve(this._adapter.play());
 	}
 
 	/**
@@ -147,7 +157,7 @@ class Player {
 
 	seek(time: number): void {
 		if (!isValidTime(time)) {
-			this._peaks._logger(
+			this._peaks?._logger(
 				"peaks.player.seek(): parameter must be a valid time, in seconds",
 			);
 			return;
@@ -182,7 +192,7 @@ class Player {
 		// Set audio time to segment start time
 		this.seek(segment.startTime);
 
-		this._peaks.once("player.playing", () => {
+		this._peaks?.once("player.playing", () => {
 			if (!this._playingSegment) {
 				this._playingSegment = true;
 
@@ -208,7 +218,7 @@ class Player {
 				this.seek(this._segment.startTime);
 			} else {
 				this.pause();
-				this._peaks.emit("player.ended");
+				this._peaks?.emit("player.ended");
 				this._playingSegment = false;
 				return;
 			}

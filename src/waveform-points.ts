@@ -54,9 +54,13 @@ class WaveformPoints {
 
 	/**
 	 * Creates a new point object.
+	 *
+	 * @throws {TypeError} If any point option has the wrong type.
+	 * @throws {RangeError} If the point time is negative.
+	 * @throws {Error} If reserved or internal option names are provided.
 	 */
 
-	private _createPoint(options: PointOptions): Point {
+	private _createPoint(options: PointOptions): Point | never {
 		const pointOptions = {} as PointOptions;
 
 		extend(pointOptions, options as unknown as Record<string, unknown>);
@@ -103,9 +107,13 @@ class WaveformPoints {
 
 	/**
 	 * Adds one or more points to the timeline.
+	 *
+	 * @throws {TypeError} If any point option has the wrong type.
+	 * @throws {RangeError} If a point time is negative.
+	 * @throws {Error} If a duplicate id or reserved option name is provided.
 	 */
 
-	add(...args: PointOptions[] | [PointOptions[]]): Point | Point[] {
+	add(...args: PointOptions[] | [PointOptions[]]): Point | Point[] | never {
 		const arrayArgs = Array.isArray(args[0]);
 		const points: PointOptions[] = arrayArgs
 			? (args[0] as PointOptions[])
@@ -132,7 +140,12 @@ class WaveformPoints {
 		return arrayArgs ? created : (created[0] as Point);
 	}
 
-	updatePointId(point: Point, newPointId: string): void {
+	/**
+	 * Updates the lookup tables for a point id change.
+	 *
+	 * @throws {Error} If the new point id already exists.
+	 */
+	updatePointId(point: Point, newPointId: string): undefined | never {
 		if (this._pointsById[point.id]) {
 			if (this._pointsById[newPointId]) {
 				throw new Error("point.update(): duplicate id");

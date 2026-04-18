@@ -2,11 +2,28 @@ import Konva from "konva";
 import Peaks from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
+import type { PeaksInitOptions } from "../src/types";
 import InputController from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
-function initOptions(view, viewOptions) {
-	const options = {
+type InternalPlayheadText = {
+	getText(): string;
+};
+
+type InternalWaveformView = {
+	_waveformShape: { _color: string };
+	_playedWaveformShape: { _color: string } | null;
+	_playheadLayer: { _playheadText?: InternalPlayheadText };
+	setPlayedWaveformColor(color: string | null): void;
+	showPlayheadTime(show: boolean): void;
+	setTimeLabelPrecision(precision: number): void;
+};
+
+function initOptions(
+	view: string,
+	viewOptions: Record<string, unknown>,
+): PeaksInitOptions {
+	const options: PeaksInitOptions = {
 		mediaElement: document.getElementById("media"),
 		dataUri: {
 			arraybuffer: "base/test/data/sample.dat",
@@ -43,7 +60,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._waveformShape._color).to.equal("#f00");
@@ -66,7 +85,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						view.setPlayedWaveformColor("#0f0");
@@ -90,7 +111,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						view.setPlayedWaveformColor(null);
@@ -114,7 +137,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._playheadLayer._playheadText).to.equal(undefined);
@@ -134,7 +159,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						if (test.view === "zoomview") {
@@ -162,7 +189,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._playheadLayer._playheadText).to.equal(undefined);
@@ -182,7 +211,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._playheadLayer._playheadText).to.be.ok;
@@ -205,7 +236,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._playheadLayer._playheadText).to.equal(undefined);
@@ -227,7 +260,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						view.showPlayheadTime(true);
@@ -252,7 +287,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						view.showPlayheadTime(false);
@@ -276,7 +313,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._playheadLayer._playheadText).to.be.ok;
@@ -300,7 +339,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._playheadLayer._playheadText).to.be.ok;
@@ -324,7 +365,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						expect(view._playheadLayer._playheadText).to.be.ok;
@@ -349,7 +392,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						view.setTimeLabelPrecision(0);
@@ -374,7 +419,9 @@ function initOptions(view, viewOptions) {
 					Peaks.init(options, (err, instance) => {
 						expect(err).to.equal(null);
 
-						const view = instance.views.getView(test.view);
+						const view = instance.views.getView(
+							test.view,
+						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
 						view.setTimeLabelPrecision(3);
@@ -398,7 +445,11 @@ function initOptions(view, viewOptions) {
 				// TODO: Konva.js uses global state to handle double click timing.
 				// Instead of adding time delays, we just reset Konva's internal
 				// flag here.
-				Konva._mouseInDblClickWindow = false;
+				(
+					Konva as typeof Konva & {
+						_mouseInDblClickWindow: boolean;
+					}
+				)._mouseInDblClickWindow = false;
 
 				const options = initOptions(test.view, {
 					container: document.getElementById(test.container),

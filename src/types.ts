@@ -20,9 +20,9 @@ export type Logger = (...args: unknown[]) => void;
 
 // ─── Player Adapter ─────────────────────────────────────────────────
 export interface PlayerAdapter {
-	init(eventEmitter: PeaksInstance): Promise<void>;
+	init(eventEmitter: PeaksInstance): Promise<void> | void;
 	destroy(): void;
-	play(): Promise<void>;
+	play(): Promise<void> | void;
 	pause(): void;
 	isPlaying(): boolean;
 	isSeeking(): boolean;
@@ -168,8 +168,14 @@ export interface PeaksInitOptions {
 	createSegmentLabel?: (options: CreateSegmentLabelOptions) => Shape | null;
 	createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
 	logger?: Logger;
-	overview?: Partial<OverviewOptions> & { container?: HTMLDivElement };
-	zoomview?: Partial<ZoomviewOptions> & { container?: HTMLDivElement };
+	overview?: Omit<Partial<OverviewOptions>, "segmentOptions"> & {
+		container?: HTMLDivElement;
+		segmentOptions?: Partial<SegmentDisplayOptions>;
+	};
+	zoomview?: Omit<Partial<ZoomviewOptions>, "segmentOptions"> & {
+		container?: HTMLDivElement;
+		segmentOptions?: Partial<SegmentDisplayOptions>;
+	};
 	scrollbar?: Partial<ScrollbarDisplayOptions>;
 	segmentOptions?: Partial<SegmentDisplayOptions>;
 	keyboard?: boolean;

@@ -29,10 +29,18 @@ function setDefaultPointOptions(
 	}
 }
 
+/**
+ * Validates point options before creation or update.
+ *
+ * @throws {TypeError} If time is not numeric, labelText is not a string,
+ *   editable is not a boolean, or color is not a supported string or gradient.
+ * @throws {RangeError} If time is negative.
+ * @throws {Error} If reserved or internal option names are provided.
+ */
 function validatePointOptions(
 	options: PointOptions | PointUpdateOptions,
 	updating: boolean,
-): void {
+): undefined | never {
 	const context = updating ? "update()" : "add()";
 
 	if (!updating || (updating && objectHasProperty(options, "time"))) {
@@ -86,10 +94,15 @@ function validatePointOptions(
  * A point is a single instant of time, with associated label and color.
  */
 
+type PointPeaksLike = {
+	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
+	points?: Pick<PeaksInstance["points"], "updatePointId">;
+};
+
 class Point {
 	[key: string]: unknown;
 
-	private _peaks: PeaksInstance;
+	private _peaks: PointPeaksLike;
 	private _pid: number;
 	private _id!: string;
 	private _time!: number;
@@ -97,7 +110,7 @@ class Point {
 	private _color!: string;
 	private _editable!: boolean;
 
-	constructor(peaks: PeaksInstance, pid: number, options: PointOptions) {
+	constructor(peaks: PointPeaksLike, pid: number, options: PointOptions) {
 		this._peaks = peaks;
 		this._pid = pid;
 		this._setUserData(options);
@@ -139,7 +152,14 @@ class Point {
 		return this._editable;
 	}
 
-	update(options: PointUpdateOptions): void {
+	/**
+	 * Updates a point and emits a points.update event.
+	 *
+	 * @throws {TypeError} If the updated id is invalid or any option has the wrong type.
+	 * @throws {RangeError} If the updated time is negative.
+	 * @throws {Error} If reserved option names are used or the new id conflicts with an existing point.
+	 */
+	update(options: PointUpdateOptions): undefined | never {
 		validatePointOptions(options, true);
 
 		if (objectHasProperty(options, "id")) {
@@ -147,7 +167,7 @@ class Point {
 				throw new TypeError("point.update(): invalid id");
 			}
 
-			this._peaks.points.updatePointId(this, options.id);
+			this._peaks.points?.updatePointId(this, options.id);
 		}
 
 		this._setUserData(options);

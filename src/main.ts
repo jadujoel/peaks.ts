@@ -347,10 +347,17 @@ class Peaks extends EventEmitter {
 		} as PeaksOptions;
 	}
 
+	/**
+	 * Initializes a Peaks instance and asynchronously builds its waveform views.
+	 *
+	 * @throws {Error} If the callback is missing.
+	 * @throws {TypeError} If initialization reaches a player adapter that does not implement the required methods.
+	 * @throws {Error} If invalid point or segment definitions are supplied and they fail validation during setup.
+	 */
 	static init(
 		opts: PeaksInitOptions,
 		callback: (err: Error | null, instance?: Peaks) => void,
-	) {
+	): undefined | never {
 		if (!callback) {
 			throw new Error("Peaks.init(): Missing callback function");
 		}

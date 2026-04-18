@@ -1,13 +1,9 @@
 import WaveformData from "waveform-data";
-import type {
-	PeaksInstance,
-	WaveformBuilderCallback,
-	WebAudioOptions,
-} from "./types";
+import type { Logger, WaveformBuilderCallback, WebAudioOptions } from "./types";
 import { isArrayBuffer, isObject } from "./utils";
 
 interface WaveformBuilderOptions {
-	dataUri?: Record<string, string> | null;
+	dataUri?: Record<string, string> | string | null;
 	waveformData?: Record<string, unknown> | null;
 	webAudio?: WebAudioOptions | null;
 	audioContext?: AudioContext;
@@ -42,11 +38,19 @@ function hasValidContentRangeHeader(xhr: XMLHttpRequest): boolean {
 	return false;
 }
 
+type WaveformBuilderPeaksLike = {
+	options: {
+		mediaElement?: HTMLMediaElement | null;
+	};
+	_logger?: Logger;
+	once?: (eventName: string, listener: () => void) => void;
+};
+
 class WaveformBuilder {
-	_peaks: PeaksInstance;
+	_peaks: WaveformBuilderPeaksLike;
 	_xhr: XMLHttpRequest | null = null;
 
-	constructor(peaks: PeaksInstance) {
+	constructor(peaks: WaveformBuilderPeaksLike) {
 		this._peaks = peaks;
 	}
 
@@ -68,7 +72,7 @@ class WaveformBuilder {
 		}
 
 		if (options.audioContext) {
-			this._peaks._logger(
+			this._peaks._logger?.(
 				"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
 			);
 
@@ -295,7 +299,7 @@ class WaveformBuilder {
 				callback,
 			);
 		} else {
-			this._peaks.once("player.canplay", () => {
+			this._peaks.once?.("player.canplay", () => {
 				this._requestAudioAndBuildWaveformData(
 					this._peaks.options.mediaElement?.currentSrc ?? "",
 					webAudioOptions,
@@ -362,7 +366,7 @@ class WaveformBuilder {
 		const self = this;
 
 		if (!url) {
-			self._peaks._logger("Peaks.init(): The mediaElement src is invalid");
+			self._peaks._logger?.("Peaks.init(): The mediaElement src is invalid");
 			return;
 		}
 

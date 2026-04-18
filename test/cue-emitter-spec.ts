@@ -2,6 +2,10 @@ import Cue from "../src/cue";
 import CueEmitter from "../src/cue-emitter";
 import Peaks from "../src/main";
 
+type CueEmitterWithCues = {
+	_cues: Array<{ time: number; type: string }>;
+};
+
 describe("CueEmitter", () => {
 	let p = null;
 	let cueEmitter = null;
@@ -67,7 +71,9 @@ describe("CueEmitter", () => {
 			expect(err).to.equal(null);
 			expect(peaks).to.be.an.instanceOf(Peaks);
 			expect(peaks._cueEmitter).to.be.an.instanceOf(CueEmitter);
-			expect(peaks._cueEmitter._cues.length).to.equal(3);
+			expect(
+				(peaks._cueEmitter as unknown as CueEmitterWithCues)._cues.length,
+			).to.equal(3);
 			done();
 		});
 	});
@@ -94,7 +100,9 @@ describe("CueEmitter", () => {
 
 			p.points.add({ time: 1.0 });
 			p.destroy();
-			expect(peaks._cueEmitter._cues.length).to.equal(0, "did not empty cues");
+			expect(
+				(peaks._cueEmitter as unknown as CueEmitterWithCues)._cues.length,
+			).to.equal(0, "did not empty cues");
 			done();
 		});
 	});

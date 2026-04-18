@@ -30,6 +30,11 @@ class WaveformShape {
 	private _view: WaveformViewAPI;
 	private _segment: TimeRange | undefined;
 
+	/**
+	 * Creates a waveform shape for a solid color or linear gradient fill.
+	 *
+	 * @throws {TypeError} If the provided color is neither a string nor a valid linear gradient.
+	 */
 	constructor(options: WaveformShapeConstructorOptions) {
 		this._color = options.color;
 
@@ -74,7 +79,12 @@ class WaveformShape {
 		this._segment = segment;
 	}
 
-	setWaveformColor(color: WaveformColor): void {
+	/**
+	 * Updates the waveform fill color.
+	 *
+	 * @throws {TypeError} If color is neither a string nor a valid linear gradient.
+	 */
+	setWaveformColor(color: WaveformColor): undefined | never {
 		if (isString(color)) {
 			this._shape.fill(color);
 

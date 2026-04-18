@@ -65,6 +65,30 @@ test("precomputed waveform demo handles keyboard navigation without errors", asy
 	expect(consoleErrors).toEqual([]);
 });
 
+test("public init API throws a clear error when callback is missing", async ({
+	page,
+}) => {
+	await page.goto("/index.html");
+
+	const errorMessage = await page.evaluate(async () => {
+		const loadPeaks = new Function(
+			'return import("/peaks.esm.js")',
+		) as () => Promise<{ default: { init: (...args: unknown[]) => void } }>;
+		const peaksModule = await loadPeaks();
+
+		try {
+			peaksModule.default.init({
+				mediaElement: document.getElementById("audio"),
+			});
+			return null;
+		} catch (error) {
+			return error instanceof Error ? error.message : String(error);
+		}
+	});
+
+	expect(errorMessage).toBe("Peaks.init(): Missing callback function");
+});
+
 test("custom markers demo keeps edited labels after rerender", async ({
 	page,
 }) => {
