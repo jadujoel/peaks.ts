@@ -18,12 +18,7 @@
 		"provenance": true
 	},
 	"files": [
-		"dist/esm/**/*.d.ts",
-		"dist/esm/**/*.d.ts.map",
-		"dist/peaks.esm.js",
-		"dist/peaks.esm.js.map",
-		"dist/peaks.min.js",
-		"dist/peaks.min.js.map"
+		"dist"
 	],
 	"contributors": [
 		"Chris Finch (https://github.com/chrisfinch)",
@@ -40,7 +35,7 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/bbc/peaks.ts.git"
+		"url": "git://github.com/jadujoel/peaks.ts.git"
 	},
 	"license": "LGPL-3.0",
 	"engines": {
