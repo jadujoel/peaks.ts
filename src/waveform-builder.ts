@@ -38,12 +38,12 @@ function hasValidContentRangeHeader(xhr: XMLHttpRequest): boolean {
 	return false;
 }
 
-type WaveformBuilderPeaksLike = {
-	options: {
+export type WaveformBuilderPeaksLike = {
+	readonly options: {
 		mediaElement?: HTMLMediaElement | null;
 	};
-	_logger?: Logger;
-	once?: (eventName: string, listener: () => void) => void;
+	readonly _logger?: Logger;
+	readonly once?: (eventName: string, listener: () => void) => void;
 };
 
 class WaveformBuilder {
@@ -67,6 +67,7 @@ class WaveformBuilder {
 				new TypeError(
 					"Peaks.init(): You may only pass one source (webAudio, dataUri, or waveformData) to render waveform data.",
 				),
+				undefined,
 			);
 			return;
 		}
@@ -96,11 +97,12 @@ class WaveformBuilder {
 				new Error(
 					"Peaks.init(): You must pass an audioContext, or dataUri, or waveformData to render waveform data",
 				),
+				undefined,
 			);
 		}
 	}
 
-	_getRemoteWaveformData(
+	private _getRemoteWaveformData(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
@@ -115,6 +117,7 @@ class WaveformBuilder {
 		} else {
 			callback(
 				new TypeError("Peaks.init(): The dataUri option must be an object"),
+				undefined,
 			);
 			return;
 		}
@@ -135,6 +138,7 @@ class WaveformBuilder {
 				new Error(
 					"Peaks.init(): Unable to determine a compatible dataUri format for this browser",
 				),
+				undefined,
 			);
 			return;
 		}
@@ -158,6 +162,7 @@ class WaveformBuilder {
 						new Error(
 							`Unable to fetch remote data. HTTP status ${this.status}`,
 						),
+						undefined,
 					);
 
 					return;
@@ -172,29 +177,31 @@ class WaveformBuilder {
 						new Error(
 							"Peaks.init(): Only mono or stereo waveforms are currently supported",
 						),
+						undefined,
 					);
 					return;
 				} else if (waveformData.bits !== 8) {
 					callback(
 						new Error("Peaks.init(): 16-bit waveform data is not supported"),
+						undefined,
 					);
 					return;
 				}
 
-				callback(null, waveformData);
+				callback(undefined, waveformData);
 			},
 			() => {
-				callback(new Error("XHR failed"));
+				callback(new Error("XHR failed"), undefined);
 			},
 			() => {
-				callback(new Error("XHR aborted"));
+				callback(new Error("XHR aborted"), undefined);
 			},
 		);
 
 		self._xhr.send();
 	}
 
-	_buildWaveformFromLocalData(
+	private _buildWaveformFromLocalData(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
@@ -206,6 +213,7 @@ class WaveformBuilder {
 		} else {
 			callback(
 				new Error("Peaks.init(): The waveformData option must be an object"),
+				undefined,
 			);
 			return;
 		}
@@ -221,6 +229,7 @@ class WaveformBuilder {
 				new Error(
 					"Peaks.init(): Unable to determine a compatible waveformData format",
 				),
+				undefined,
 			);
 			return;
 		}
@@ -236,35 +245,33 @@ class WaveformBuilder {
 					new Error(
 						"Peaks.init(): Only mono or stereo waveforms are currently supported",
 					),
+					undefined,
 				);
 				return;
 			} else if (createdWaveformData.bits !== 8) {
 				callback(
 					new Error("Peaks.init(): 16-bit waveform data is not supported"),
+					undefined,
 				);
 				return;
 			}
 
-			callback(null, createdWaveformData);
+			callback(undefined, createdWaveformData);
 		} catch (err) {
-			callback(err as Error);
+			callback(err instanceof Error ? err : new Error(String(err)), undefined);
 		}
 	}
 
-	_buildWaveformDataUsingWebAudio(
+	private _buildWaveformDataUsingWebAudio(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
-		const audioContext =
-			window.AudioContext ||
-			(window as unknown as { webkitAudioContext: typeof AudioContext })
-				.webkitAudioContext;
-
-		if (!(options.webAudio?.audioContext instanceof audioContext)) {
+		if (!(options.webAudio?.audioContext instanceof AudioContext)) {
 			callback(
 				new TypeError(
 					"Peaks.init(): The webAudio.audioContext option must be a valid AudioContext",
 				),
+				undefined,
 			);
 			return;
 		}
@@ -272,7 +279,10 @@ class WaveformBuilder {
 		const webAudioOptions = options.webAudio;
 
 		if (!webAudioOptions) {
-			callback(new TypeError("Peaks.init(): Missing webAudio options"));
+			callback(
+				new TypeError("Peaks.init(): Missing webAudio options"),
+				undefined,
+			);
 			return;
 		}
 
@@ -310,14 +320,17 @@ class WaveformBuilder {
 		}
 	}
 
-	_buildWaveformDataFromAudioBuffer(
+	private _buildWaveformDataFromAudioBuffer(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
 		const webAudioOptions = options.webAudio;
 
 		if (!webAudioOptions) {
-			callback(new TypeError("Peaks.init(): Missing webAudio options"));
+			callback(
+				new TypeError("Peaks.init(): Missing webAudio options"),
+				undefined,
+			);
 			return;
 		}
 
@@ -330,7 +343,10 @@ class WaveformBuilder {
 		}
 
 		if (!webAudioOptions.audioBuffer) {
-			callback(new TypeError("Peaks.init(): Missing webAudio.audioBuffer"));
+			callback(
+				new TypeError("Peaks.init(): Missing webAudio.audioBuffer"),
+				undefined,
+			);
 			return;
 		}
 
@@ -349,15 +365,16 @@ class WaveformBuilder {
 			webAudioBuilderOptions.scale = webAudioOptions.scale;
 		}
 
-		WaveformData.createFromAudio(
-			webAudioBuilderOptions,
-			(err: Error | undefined, waveformData: WaveformData | undefined) => {
-				callback(err ?? null, waveformData);
-			},
-		);
+		WaveformData.createFromAudio(webAudioBuilderOptions, (err, data) => {
+			if (err) {
+				callback(err, undefined);
+				return;
+			}
+			callback(err, data);
+		});
 	}
 
-	_requestAudioAndBuildWaveformData(
+	private _requestAudioAndBuildWaveformData(
 		url: string,
 		webAudio: WebAudioOptions,
 		withCredentials: boolean,
@@ -389,6 +406,7 @@ class WaveformBuilder {
 						new Error(
 							`Unable to fetch remote data. HTTP status ${this.status}`,
 						),
+						undefined,
 					);
 
 					return;
@@ -397,7 +415,7 @@ class WaveformBuilder {
 				self._xhr = null;
 
 				if (!webAudio.audioContext) {
-					callback(new Error("Missing audioContext"));
+					callback(new Error("Missing audioContext"), undefined);
 					return;
 				}
 
@@ -416,18 +434,26 @@ class WaveformBuilder {
 					webAudioBuilderOptions.scale = webAudio.scale;
 				}
 
-				WaveformData.createFromAudio(
-					webAudioBuilderOptions,
-					(err: Error | undefined, waveformData: WaveformData | undefined) => {
-						callback(err ?? null, waveformData);
-					},
-				);
+				WaveformData.createFromAudio(webAudioBuilderOptions, (err, data) => {
+					if (err === undefined) {
+						callback(undefined, data);
+						return;
+					}
+					if (data === undefined) {
+						callback(err, data);
+						return;
+					}
+					callback(
+						new Error("Unexpected result from WaveformData.createFromAudio"),
+						undefined,
+					);
+				});
 			},
 			() => {
-				callback(new Error("XHR failed"));
+				callback(new Error("XHR failed"), undefined);
 			},
 			() => {
-				callback(new Error("XHR aborted"));
+				callback(new Error("XHR aborted"), undefined);
 			},
 		);
 

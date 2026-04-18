@@ -89,6 +89,45 @@ test("public init API throws a clear error when callback is missing", async ({
 	expect(errorMessage).toBe("Peaks.init(): Missing callback function");
 });
 
+test("public async init API resolves with an instance", async ({ page }) => {
+	await page.goto("/index.html");
+
+	const result = await page.evaluate(async () => {
+		const loadPeaks = new Function(
+			'return import("/peaks.esm.js")',
+		) as () => Promise<{
+			default: {
+				fromOptionsAsync: (options: Record<string, unknown>) => Promise<{
+					destroy: () => void;
+					views: { getView: (name: string) => unknown };
+				}>;
+			};
+		}>;
+		const peaksModule = await loadPeaks();
+		const instance = await peaksModule.default.fromOptionsAsync({
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+				playheadClickTolerance: 3,
+			},
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			mediaElement: document.getElementById("audio"),
+			dataUri: {
+				arraybuffer: "/TOL_6min_720p_download.dat",
+				json: "/TOL_6min_720p_download.json",
+			},
+		});
+
+		const hasZoomview = Boolean(instance.views.getView("zoomview"));
+		instance.destroy();
+
+		return hasZoomview;
+	});
+
+	expect(result).toBe(true);
+});
+
 test("custom markers demo keeps edited labels after rerender", async ({
 	page,
 }) => {

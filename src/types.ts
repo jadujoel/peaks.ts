@@ -6,6 +6,7 @@ import type { Shape } from "konva/lib/Shape";
 import type WaveformData from "waveform-data";
 
 import type { Point } from "./point";
+import type { ResultCallback } from "./result-callback";
 import type { Segment } from "./segment";
 import type { WaveformColor } from "./utils";
 
@@ -169,11 +170,11 @@ export interface PeaksInitOptions {
 	createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
 	logger?: Logger;
 	overview?: Omit<Partial<OverviewOptions>, "segmentOptions"> & {
-		container?: HTMLDivElement;
+		container?: HTMLElement;
 		segmentOptions?: Partial<SegmentDisplayOptions>;
 	};
 	zoomview?: Omit<Partial<ZoomviewOptions>, "segmentOptions"> & {
-		container?: HTMLDivElement;
+		container?: HTMLElement;
 		segmentOptions?: Partial<SegmentDisplayOptions>;
 	};
 	scrollbar?: Partial<ScrollbarDisplayOptions>;
@@ -412,10 +413,10 @@ export interface MouseDragHandlers {
 }
 
 // ─── Waveform builder callback ──────────────────────────────────────
-export type WaveformBuilderCallback = (
-	error: Error | null,
-	waveformData?: WaveformData,
-) => void;
+export type WaveformBuilderCallback = ResultCallback<
+	Error | TypeError | DOMException,
+	WaveformData
+>;
 
 // ─── Segment Shape interfaces ──────────────────────────────────────
 export interface SegmentMarkerOptions {

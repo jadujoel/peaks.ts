@@ -5,8 +5,7 @@ import WaveformOverview from "../src/waveform-overview";
 import WaveformZoomView from "../src/waveform-zoomview";
 import sampleJsonData from "./data/sample.json";
 
-const TestAudioContext =
-	window.AudioContext || window.mozAudioContext || window.webkitAudioContext;
+const TestAudioContext = window.AudioContext
 
 const externalPlayer = {
 	init: () => Promise.resolve(),
@@ -48,7 +47,7 @@ type InternalView = {
 };
 
 describe("Peaks", () => {
-	let p = null;
+	let p: Peaks | null = null;
 
 	afterEach(() => {
 		if (p) {
@@ -89,7 +88,7 @@ describe("Peaks", () => {
 					(err, instance) => {
 						expect(err).to.equal(null);
 						expect(instance).to.be.an.instanceOf(Peaks);
-						instance.destroy();
+						instance?.destroy();
 						done();
 					},
 				);
@@ -108,13 +107,45 @@ describe("Peaks", () => {
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 						expect(instance).to.be.an.instanceOf(Peaks);
 						expect(result).to.equal(undefined);
-						instance.destroy();
+						instance?.destroy();
 						done();
 					},
 				);
+			});
+
+			it("should resolve a Peaks instance with fromOptionsAsync", async () => {
+				p = await Peaks.fromOptionsAsync({
+					overview: {
+						container: document.getElementById("overview-container")!,
+					},
+					zoomview: {
+						container: document.getElementById("zoomview-container")!,
+					},
+					mediaElement: document.getElementById("media") as HTMLMediaElement,
+					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+				});
+
+				expect(p).to.be.an.instanceOf(Peaks);
+			});
+
+			it("should reject fromOptionsAsync when initialization fails", async () => {
+				try {
+					await Peaks.fromOptionsAsync({
+						zoomview: {},
+						overview: {},
+						mediaElement: document.getElementById("media"),
+						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+					});
+					expect.fail("Expected fromOptionsAsync to reject");
+				} catch (error) {
+					expect(error).to.be.an.instanceOf(TypeError);
+					expect((error as Error).message).to.match(
+						/must be valid HTML elements/,
+					);
+				}
 			});
 
 			describe("with zoomview and overview options", () => {
@@ -131,12 +162,12 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
-							expect(instance.views.getView("overview")).to.be.an.instanceOf(
+							expect(instance?.views.getView("overview")).to.be.an.instanceOf(
 								WaveformOverview,
 							);
-							expect(instance.views.getView("zoomview")).to.be.an.instanceOf(
+							expect(instance?.views.getView("zoomview")).to.be.an.instanceOf(
 								WaveformZoomView,
 							);
 							done();
@@ -154,12 +185,12 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
-							expect(instance.views.getView("overview")).to.be.an.instanceOf(
+							expect(instance?.views.getView("overview")).to.be.an.instanceOf(
 								WaveformOverview,
 							);
-							expect(instance.views.getView("zoomview")).to.equal(null);
+							expect(instance?.views.getView("zoomview")).to.equal(null);
 							done();
 						},
 					);
@@ -177,8 +208,8 @@ describe("Peaks", () => {
 						(err, instance) => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
-							expect(instance.views.getView("overview")).to.equal(null);
-							expect(instance.views.getView("zoomview")).to.be.an.instanceOf(
+							expect(instance?.views.getView("overview")).to.equal(null);
+							expect(instance?.views.getView("zoomview")).to.be.an.instanceOf(
 								WaveformZoomView,
 							);
 
@@ -197,7 +228,7 @@ describe("Peaks", () => {
 						},
 						(err, instance) => {
 							expect(err).to.be.an.instanceOf(TypeError);
-							expect(err.message).to.match(/must be valid HTML elements/);
+							expect(err?.message).to.match(/must be valid HTML elements/);
 							expect(instance).to.equal(undefined);
 							done();
 						},
@@ -244,10 +275,10 @@ describe("Peaks", () => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 
-							const overview = instance.views.getView(
+							const overview = instance?.views.getView(
 								"overview",
 							) as unknown as InternalView;
-							const zoomview = instance.views.getView(
+							const zoomview = instance?.views.getView(
 								"zoomview",
 							) as unknown as InternalView;
 
@@ -313,10 +344,10 @@ describe("Peaks", () => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 
-							const overview = instance.views.getView(
+							const overview = instance?.views.getView(
 								"overview",
 							) as unknown as InternalView;
-							const zoomview = instance.views.getView(
+							const zoomview = instance?.views.getView(
 								"zoomview",
 							) as unknown as InternalView;
 
@@ -366,10 +397,10 @@ describe("Peaks", () => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
 
-							const overview = instance.views.getView(
+							const overview = instance?.views.getView(
 								"overview",
 							) as unknown as InternalView;
-							const zoomview = instance.views.getView(
+							const zoomview = instance?.views.getView(
 								"zoomview",
 							) as unknown as InternalView;
 
@@ -423,7 +454,7 @@ describe("Peaks", () => {
 						(err, instance) => {
 							expect(err).to.equal(null);
 							expect(instance).to.be.an.instanceof(Peaks);
-							const viewController = instance.views as unknown as {
+							const viewController = instance?.views as unknown as {
 								_scrollbar: unknown;
 							};
 							expect(viewController._scrollbar).to.be.an.instanceOf(Scrollbar);

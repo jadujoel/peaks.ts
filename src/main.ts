@@ -311,11 +311,11 @@ class Peaks extends EventEmitter {
 	points!: WaveformPoints;
 	zoom!: ZoomController;
 	views!: ViewController;
-	_logger!: Logger;
-	_keyboardHandler: KeyboardHandler | null = null;
-	_waveformBuilder: WaveformBuilder | null = null;
-	_waveformData: WaveformData | null = null;
-	_cueEmitter: CueEmitter | undefined;
+	declare _logger: Logger;
+	private _keyboardHandler: KeyboardHandler | null = null;
+	private _waveformBuilder: WaveformBuilder | null = null;
+	private _waveformData: WaveformData | null = null;
+	declare _cueEmitter: CueEmitter | undefined;
 
 	constructor() {
 		super();
@@ -437,7 +437,7 @@ class Peaks extends EventEmitter {
 			.then(() => {
 				instance._waveformBuilder?.init(
 					instance.options,
-					(err: Error | null, waveformData?: WaveformData) => {
+					(err, waveformData) => {
 						if (err) {
 							callback(err);
 							return;
@@ -495,7 +495,36 @@ class Peaks extends EventEmitter {
 			});
 	}
 
-	_setOptions(opts: PeaksInitOptions) {
+	/**
+	 * Initializes a Peaks instance and resolves with it once the waveform views are ready.
+	 */
+	static fromOptionsAsync(opts: PeaksInitOptions): Promise<Peaks> {
+		return new Promise((resolve, reject) => {
+			try {
+				Peaks.init(opts, (err, instance) => {
+					if (err) {
+						reject(err);
+						return;
+					}
+
+					if (!instance) {
+						reject(
+							new Error(
+								"Peaks.init(): Initialization completed without returning an instance",
+							),
+						);
+						return;
+					}
+
+					resolve(instance);
+				});
+			} catch (error: unknown) {
+				reject(error instanceof Error ? error : new Error(String(error)));
+			}
+		});
+	}
+
+	private _setOptions(opts: PeaksInitOptions) {
 		if (!isObject(opts)) {
 			return new TypeError(
 				"Peaks.init(): The options parameter should be an object",
@@ -580,20 +609,20 @@ class Peaks extends EventEmitter {
 
 				this._waveformBuilder?.init(
 					options,
-					(err: Error | null, waveformData?: WaveformData) => {
+					(err, data) => {
 						if (err) {
 							callback(err);
 							return;
 						}
 
 						this._waveformBuilder = null;
-						this._waveformData = waveformData ?? null;
+						this._waveformData = data ?? null;
 
 						(["overview", "zoomview"] as const).forEach((viewName) => {
 							const view = this.views.getView(viewName);
 
-							if (view && waveformData) {
-								view.setWaveformData(waveformData);
+							if (view && data) {
+								view.setWaveformData(data);
 							}
 						});
 

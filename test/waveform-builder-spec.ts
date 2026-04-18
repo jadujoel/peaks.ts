@@ -1,9 +1,9 @@
 import WaveformData from "waveform-data";
+import type { WaveformBuilderCallback } from "../src/types";
 import WaveformBuilder from "../src/waveform-builder";
 import sampleJsonData from "./data/sample.json";
 
-const TestAudioContext =
-	window.AudioContext || window.mozAudioContext || window.webkitAudioContext;
+const TestAudioContext = window.AudioContext;
 
 describe("WaveformBuilder", () => {
 	describe("init", () => {
@@ -58,7 +58,7 @@ describe("WaveformBuilder", () => {
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.be.an.instanceof(Error);
-				expect(err.message).to.equal("XHR failed");
+				expect(err?.message).to.equal("XHR failed");
 				expect(waveformData).to.equal(undefined);
 
 				done();
@@ -212,7 +212,7 @@ describe("WaveformBuilder", () => {
 
 				waveformBuilder.init(peaks.options, (err, waveformData) => {
 					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/Unable to determine/);
+					expect(err?.message).to.match(/Unable to determine/);
 					expect(waveformData).to.equal(undefined);
 					done();
 				});
@@ -233,7 +233,7 @@ describe("WaveformBuilder", () => {
 
 				waveformBuilder.init(peaks.options, (err, waveformData) => {
 					expect(err).to.be.an.instanceOf(Error);
-					expect(err.message).to.match(/Unable to determine/);
+					expect(err?.message).to.match(/Unable to determine/);
 					expect(waveformData).to.equal(undefined);
 					done();
 				});
@@ -321,7 +321,7 @@ describe("WaveformBuilder", () => {
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
-				expect(err.message).to.match(/16-bit waveform data is not supported/);
+				expect(err?.message).to.match(/16-bit waveform data is not supported/);
 				expect(waveformData).to.equal(undefined);
 
 				done();
@@ -363,11 +363,11 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = new WaveformBuilder(peaks);
 
-			function callback(err, waveformData) {
+			const callback: WaveformBuilderCallback = (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
 				expect(waveformData).to.equal(undefined);
 				done();
-			}
+			};
 
 			waveformBuilder.init(peaks.options, callback);
 			waveformBuilder.abort();
@@ -387,11 +387,11 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = new WaveformBuilder(peaks);
 
-			function callback(err, waveformData) {
+			const callback: WaveformBuilderCallback = (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
 				expect(waveformData).to.equal(undefined);
 				done();
-			}
+			};
 
 			waveformBuilder.init(peaks.options, callback);
 			waveformBuilder.abort();

@@ -28,7 +28,7 @@ describe("WaveformZoomView", () => {
 				expect(err).to.equal(null);
 
 				p = instance;
-				zoomview = instance.views.getView("zoomview");
+				zoomview = instance?.views.getView("zoomview");
 				expect(zoomview).to.be.ok;
 
 				done();
@@ -1379,8 +1379,8 @@ describe("WaveformZoomView", () => {
 	});
 
 	describe("enableSeek", () => {
-		let p = null;
-		let inputController = null;
+		let p: Peaks | undefined;
+		let inputController: InputController | undefined;
 
 		beforeEach((done) => {
 			const options = {
@@ -1412,21 +1412,21 @@ describe("WaveformZoomView", () => {
 		afterEach(() => {
 			if (p) {
 				p.destroy();
-				p = null;
-				inputController = null;
+				p = undefined;
+				inputController = undefined;
 			}
 		});
 
 		describe("when enabled", () => {
 			describe("when clicking on the waveform", () => {
 				it("should set the playback position", () => {
-					inputController.mouseDown({ x: 100, y: 50 });
-					inputController.mouseUp({ x: 100, y: 50 });
+					inputController?.mouseDown({ x: 100, y: 50 });
+					inputController?.mouseUp({ x: 100, y: 50 });
 
-					const view = p.views.getView("zoomview");
+					const view = p?.views.getView("zoomview");
 
-					expect(p.player.getCurrentTime()).to.be.closeTo(
-						view.pixelsToTime(100),
+					expect(p?.player.getCurrentTime()).to.be.closeTo(
+						view!.pixelsToTime(100),
 						0.01,
 					);
 				});
@@ -1434,24 +1434,24 @@ describe("WaveformZoomView", () => {
 
 			describe("when dragging the playhead", () => {
 				beforeEach(() => {
-					const view = p.views.getView("zoomview");
-					view.enableSegmentDragging(true);
+					const view = p?.views.getView("zoomview");
+					view!.enableSegmentDragging(true);
 				});
 
 				describe("when the playhead is not over a segment", () => {
 					it("should set the playback position", (done) => {
-						const view = p.views.getView("zoomview");
+						const view = p!.views.getView("zoomview");
 
-						p.once("player.timeupdate", () => {
-							const x = view.timeToPixels(2.5);
+						p!.once("player.timeupdate", () => {
+							const x = view!.timeToPixels(2.5);
 							const distance = 100;
 
-							inputController.mouseDown({ x: x, y: 50 });
-							inputController.mouseMove({ x: x + distance, y: 50 });
-							inputController.mouseUp({ x: x + distance, y: 50 });
+							inputController?.mouseDown({ x: x, y: 50 });
+							inputController?.mouseMove({ x: x + distance, y: 50 });
+							inputController?.mouseUp({ x: x + distance, y: 50 });
 
-							expect(p.player.getCurrentTime()).to.be.closeTo(
-								view.pixelsToTime(x + distance),
+							expect(p!.player.getCurrentTime()).to.be.closeTo(
+								view!.pixelsToTime(x + distance),
 								0.01,
 							);
 							done();
@@ -1463,38 +1463,38 @@ describe("WaveformZoomView", () => {
 
 				describe("when the playhead is over a draggable segment", () => {
 					it("should set the playback position and not move the segment", (done) => {
-						const view = p.views.getView("zoomview");
+						const view = p!.views.getView("zoomview");
 
-						p.once("player.timeupdate", () => {
-							const x = view.timeToPixels(1.5);
+						p1.once("player.timeupdate", () => {
+							const x = view!.timeToPixels(1.5);
 							const distance = 100;
 
-							inputController.mouseDown({ x: x, y: 50 });
-							inputController.mouseMove({ x: x + distance, y: 50 });
-							inputController.mouseUp({ x: x + distance, y: 50 });
+							inputController!.mouseDown({ x: x, y: 50 });
+							inputController!.mouseMove({ x: x + distance, y: 50 });
+							inputController!.mouseUp({ x: x + distance, y: 50 });
 
-							expect(p.player.getCurrentTime()).to.be.closeTo(
+							expect(p!.player.getCurrentTime()).to.be.closeTo(
 								view.pixelsToTime(x + distance),
 								0.01,
 							);
 
-							const segment = p.segments.getSegment("segment1");
+							const segment = p!.segments.getSegment("segment1");
 
-							expect(segment.startTime).to.equal(1.0);
-							expect(segment.endTime).to.equal(2.0);
+							expect(segment!.startTime).to.equal(1.0);
+							expect(segment!.endTime).to.equal(2.0);
 
 							done();
 						});
 
-						p.player.seek(1.5);
+						p!.player.seek(1.5);
 					});
 				});
 
 				describe("when the playhead is over a non-draggable segment", () => {
 					it("should set the playback position and not move the segment", (done) => {
-						const view = p.views.getView("zoomview");
+						const view = p!.views.getView("zoomview");
 
-						p.once("player.timeupdate", () => {
+						p!.once("player.timeupdate", () => {
 							const x = view.timeToPixels(3.5);
 							const distance = 100;
 
@@ -1570,7 +1570,7 @@ describe("WaveformZoomView", () => {
 				expect(err).to.equal(null);
 
 				p = instance;
-				zoomview = instance.views.getView("zoomview");
+				zoomview = instance?.views.getView("zoomview");
 				expect(zoomview).to.be.ok;
 
 				inputController = new InputController("zoomview-container");
