@@ -27,3 +27,5 @@ tasks
 test/__screenshots__
 playwright-report
 test-results
+.claude
+CLAUDE.md

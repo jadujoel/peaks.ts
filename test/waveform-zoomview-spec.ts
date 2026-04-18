@@ -31,7 +31,10 @@ describe("WaveformZoomView", () => {
 					throw new Error("Expected error to be null or undefined");
 				}
 				p = instance;
-				zoomview = instance?.views.getView("zoomview");
+				zoomview =
+					(instance?.views.getView("zoomview") as
+						| WaveformZoomView
+						| undefined) ?? null;
 				expect(zoomview).to.be.ok;
 
 				done();
@@ -1575,7 +1578,10 @@ describe("WaveformZoomView", () => {
 				expect(err).to.equal(null);
 
 				p = instance;
-				zoomview = instance?.views.getView("zoomview");
+				zoomview =
+					(instance?.views.getView("zoomview") as
+						| WaveformZoomView
+						| undefined) ?? null;
 				expect(zoomview).to.be.ok;
 
 				inputController = new InputController("zoomview-container");

@@ -1,5 +1,6 @@
 import EventEmitter from "eventemitter3";
 import type WaveformData from "waveform-data";
+import { ClipNodePlayer, type ClipNodePlayerOptions } from "./clip-node-player";
 import CueEmitter from "./cue-emitter";
 import KeyboardHandler from "./keyboard-handler";
 import {
@@ -412,8 +413,27 @@ class Peaks extends EventEmitter {
 		} else if (instance.options.mediaElement) {
 			player = new MediaElementPlayer(instance.options.mediaElement);
 		} else {
-			callback(new TypeError("Peaks.init(): Missing mediaElement option"));
-			return;
+			const audioContext =
+				opts.audioContext ?? instance.options.webAudio?.audioContext;
+			const audioBuffer = instance.options.webAudio?.audioBuffer;
+			const url =
+				typeof instance.options.mediaUrl === "string"
+					? instance.options.mediaUrl
+					: undefined;
+
+			if (audioContext && (audioBuffer || url)) {
+				const clipOptions: ClipNodePlayerOptions = audioBuffer
+					? { audioContext, audioBuffer }
+					: { audioContext, url: url as string };
+				player = new ClipNodePlayer(clipOptions);
+			} else {
+				callback(
+					new TypeError(
+						"Peaks.init(): Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
+					),
+				);
+				return;
+			}
 		}
 
 		instance.player = new Player(instance as unknown as PeaksInstance, player);
@@ -532,11 +552,21 @@ class Peaks extends EventEmitter {
 		}
 
 		if (!opts.player) {
-			if (!opts.mediaElement) {
-				return new Error("Peaks.init(): Missing mediaElement option");
+			const hasAudioContextSource =
+				(opts.audioContext ?? opts.webAudio?.audioContext) !== undefined &&
+				(opts.webAudio?.audioBuffer !== undefined ||
+					typeof opts.mediaUrl === "string");
+
+			if (!opts.mediaElement && !hasAudioContextSource) {
+				return new Error(
+					"Peaks.init(): Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
+				);
 			}
 
-			if (!(opts.mediaElement instanceof HTMLMediaElement)) {
+			if (
+				opts.mediaElement &&
+				!(opts.mediaElement instanceof HTMLMediaElement)
+			) {
 				return new TypeError(
 					"Peaks.init(): The mediaElement option should be an HTMLMediaElement",
 				);
@@ -663,4 +693,7 @@ class Peaks extends EventEmitter {
 	}
 }
 
+export type { ClipNodePlayerOptions } from "./clip-node-player";
+export { default as ClipNodePlayer } from "./clip-node-player";
+export { default as MediaElementPlayer } from "./mediaelement-player";
 export default Peaks;

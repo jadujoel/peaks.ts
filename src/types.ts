@@ -30,6 +30,12 @@ export interface PlayerAdapter {
 	getCurrentTime(): number;
 	getDuration(): number;
 	seek(time: number): void;
+	/**
+	 * Optional native segment playback. When implemented, the {@link PlayerInstance}
+	 * delegates segment looping to the adapter (e.g. via sample-accurate
+	 * AudioWorklet loop points) instead of polling boundaries on the main thread.
+	 */
+	playSegment?(segment: Segment, loop: boolean): Promise<void> | void;
 	setSource?(options: SetSourceOptions): Promise<void>;
 }
 

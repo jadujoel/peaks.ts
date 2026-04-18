@@ -189,6 +189,13 @@ class Player {
 		this._segment = segment;
 		this._loop = loop;
 
+		// Adapters that natively support segment playback (e.g. ClipNodePlayer
+		// using sample-accurate loopStart/loopEnd in an AudioWorklet) handle
+		// boundary detection themselves — no main-thread polling needed.
+		if (this._adapter.playSegment) {
+			return Promise.resolve(this._adapter.playSegment(segment, loop));
+		}
+
 		// Set audio time to segment start time
 		this.seek(segment.startTime);
 

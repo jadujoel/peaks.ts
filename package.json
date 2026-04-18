@@ -72,6 +72,7 @@
 		"vitest": "^4.0.7"
 	},
 	"dependencies": {
+		"@jadujoel/web-audio-clip-node": "0.2.8",
 		"eventemitter3": "~5.0.1"
 	},
 	"peerDependencies": {
