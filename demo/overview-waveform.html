@@ -76,9 +76,10 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
-      (function(Peaks) {
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
+      ((Peaks) => {
         var options = {
           overview: {
             container: document.getElementById('overview-container'),
@@ -94,7 +95,7 @@
           keyboard: true
         };
 
-        Peaks.init(options, function(err, peaksInstance) {
+        Peaks.init(options, (err, peaksInstance) => {
           if (err) {
             console.error(err.message);
             return;
@@ -102,7 +103,7 @@
 
           console.log('Peaks instance ready');
 
-          document.querySelector('button[data-action="seek"]').addEventListener('click', function(event) {
+          document.querySelector('button[data-action="seek"]').addEventListener('click', (_event) => {
             var time = document.getElementById('seek-time').value;
             var seconds = parseFloat(time);
 
@@ -125,38 +126,38 @@
             "10": 5.0
           };
 
-          document.getElementById('amplitude-scale').addEventListener('input', function(event) {
+          document.getElementById('amplitude-scale').addEventListener('input', (event) => {
             var scale = amplitudeScales[event.target.value];
             var view = peaksInstance.views.getView();
 
             view.setAmplitudeScale(scale);
           });
 
-          document.getElementById('waveform-color').addEventListener('input', function(event) {
+          document.getElementById('waveform-color').addEventListener('input', (event) => {
             var view = peaksInstance.views.getView();
 
             view.setWaveformColor(event.target.value);
           });
 
-          document.getElementById('played-waveform-color').addEventListener('input', function(event) {
+          document.getElementById('played-waveform-color').addEventListener('input', (event) => {
             var view = peaksInstance.views.getView();
 
             view.setPlayedWaveformColor(event.target.value);
           });
 
-          document.getElementById('axis-label-color').addEventListener('input', function(event) {
+          document.getElementById('axis-label-color').addEventListener('input', (event) => {
             var view = peaksInstance.views.getView();
 
             view.setAxisLabelColor(event.target.value);
           });
 
-          document.getElementById('axis-gridline-color').addEventListener('input', function(event) {
+          document.getElementById('axis-gridline-color').addEventListener('input', (event) => {
             var view = peaksInstance.views.getView();
 
             view.setAxisGridlineColor(event.target.value);
           });
         });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

@@ -1,3 +1,5 @@
+This is a fork from Peaks.js to migrate the codebase to TypeScript and update dependencies, as well as fix some issues i've had with looping.
+
 **Note:** Ongoing development of this project has moved to https://codeberg.org/chrisn/peaks.js.
 
 [![Build Status](https://github.com/bbc/peaks.js/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/bbc/peaks.js/actions) [![npm](https://img.shields.io/npm/v/peaks.js.svg)](https://www.npmjs.com/package/peaks.js)
@@ -345,12 +347,12 @@ The build also creates an associated [source map](https://web.dev/source-maps/) 
 
 ## Testing
 
-Tests run in Karma using Mocha, Chai, and Sinon.
+Tests run in Vitest with Playwright browser mode.
 
- - `npm test` should work for simple one time testing.
- - `npm test -- --glob %pattern%` to run selected tests only
- - `npm run test-watch` if you are developing and want to repeatedly run tests in a browser on your machine.
- - `npm run test-watch -- --glob %pattern%` is also available
+ - `bun run test` to run all tests once.
+ - `bun run test:watch` to watch for changes and re-run tests.
+ - `bun run test:coverage` to run tests with coverage reporting.
+ - `bun run test:e2e` to run end-to-end tests with Playwright.
 
 # Contributing
 

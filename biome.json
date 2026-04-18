@@ -1,0 +1,76 @@
+{
+	"files": {
+		"includes": [
+			"**",
+			"!coverage",
+			"!dist",
+			"!playwright-report",
+			"!test-results",
+			"!demo/custom-markers/custom-markers.js",
+			"!demo/peaks*.js",
+			"!demo/peaks*.map"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["demo/**/*.html"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"useButtonType": "off",
+						"useMediaCaption": "off"
+					},
+					"correctness": {
+						"noInnerDeclarations": "off"
+					},
+					"suspicious": {
+						"noRedeclare": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["demo/**/*.js"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noInnerDeclarations": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["test/**/*.js", "test/**/*.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noNonNullAssertion": "off"
+					},
+					"suspicious": {
+						"noDuplicateTestHooks": "off",
+						"noShadowRestrictedNames": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/**/*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noImplicitAnyLet": "off",
+						"noAssignInExpressions": "off",
+						"noSelfCompare": "off",
+						"noShadowRestrictedNames": "off"
+					}
+				}
+			}
+		}
+	]
+}

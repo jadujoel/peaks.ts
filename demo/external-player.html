@@ -65,10 +65,11 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js" integrity="sha512-gwSDP1iEKl4KG0wi3N89RAJU91s78jb/TGC6lsbF5IyR2c19Rn7Jl1icK4K4kUiJNwQUEPI7o98T+GJVWNuvIQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <script>
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
       function getSources() {
         return [
           {
@@ -89,17 +90,13 @@
       function fetchAndDecode(audioContext, url) {
         // Load audio file into an AudioBuffer
         return fetch(url)
-          .then(function(response) {
-            return response.arrayBuffer();
-          })
-          .then(function(buffer) {
-            return audioContext.decodeAudioData(buffer);
-          });
+          .then((response) => response.arrayBuffer())
+          .then((buffer) => audioContext.decodeAudioData(buffer));
       }
 
       function fetchAndUpdateWaveform(peaksInstance, audioContext, source) {
         return fetchAndDecode(audioContext, source.mediaUrl)
-          .then(function(audioBuffer) {
+          .then((audioBuffer) => {
             // Update the Peaks.js waveform view with the new AudioBuffer.
             // The AudioBuffer is passed through to the external player's setSource()
             // method, to update the player.
@@ -109,7 +106,7 @@
                 scale: 128,
                 multiChannel: false
               }
-            }, function(error) {
+            }, (error) => {
               if (error) {
                 console.error('setSource error', error);
               }
@@ -117,11 +114,11 @@
           });
       }
 
-      (async function(Peaks) {
+      (async (Peaks) => {
         const audioContext = Tone.context;
 
         fetchAndDecode(audioContext, "/TOL_6min_720p_download.mp3")
-          .then(function(audioBuffer) {
+          .then((audioBuffer) => {
             const player = {
               externalPlayer: new Tone.Player(audioBuffer).toDestination(),
               eventEmitter: null,
@@ -176,9 +173,7 @@
                 this.eventEmitter.emit('player.pause', this.getCurrentTime());
               },
 
-              isPlaying: function() {
-                return Tone.Transport.state === "started";
-              },
+              isPlaying: () => Tone.Transport.state === "started",
 
               seek: function(time) {
                 Tone.Transport.seconds = time;
@@ -187,13 +182,9 @@
                 this.eventEmitter.emit('player.timeupdate', this.getCurrentTime());
               },
 
-              isSeeking: function() {
-                return false;
-              },
+              isSeeking: () => false,
 
-              getCurrentTime: function() {
-                return Tone.Transport.seconds;
-              },
+              getCurrentTime: () => Tone.Transport.seconds,
 
               getDuration: function() {
                 return this.externalPlayer.buffer.duration;
@@ -218,7 +209,7 @@
               zoomLevels: [128, 256, 512, 1024, 2048, 4096]
             };
 
-            Peaks.init(options, function(err, peaksInstance) {
+            Peaks.init(options, (err, peaksInstance) => {
               if (err) {
                 console.error(err.message);
                 return;
@@ -226,15 +217,15 @@
 
               console.log('Peaks instance ready');
 
-              document.querySelector('[data-action="play"]').addEventListener('click', function() {
+              document.querySelector('[data-action="play"]').addEventListener('click', () => {
                 peaksInstance.player.play();
               });
 
-              document.querySelector('[data-action="pause"]').addEventListener('click', function() {
+              document.querySelector('[data-action="pause"]').addEventListener('click', () => {
                 peaksInstance.player.pause();
               });
 
-              document.querySelector('button[data-action="seek"]').addEventListener('click', function(event) {
+              document.querySelector('button[data-action="seek"]').addEventListener('click', (_event) => {
                 const time = document.getElementById('seek-time').value;
                 const seconds = parseFloat(time);
 
@@ -243,15 +234,15 @@
                 }
               });
 
-              document.querySelector('[data-action="zoom-in"]').addEventListener('click', function() {
+              document.querySelector('[data-action="zoom-in"]').addEventListener('click', () => {
                 peaksInstance.zoom.zoomIn();
               });
 
-              document.querySelector('[data-action="zoom-out"]').addEventListener('click', function() {
+              document.querySelector('[data-action="zoom-out"]').addEventListener('click', () => {
                 peaksInstance.zoom.zoomOut();
               });
 
-              document.querySelector('[data-action="play-segment"]').addEventListener('click', function () {
+              document.querySelector('[data-action="play-segment"]').addEventListener('click', () => {
                 const start = document.getElementById('segment-start').value;
                 const startInSeconds = parseFloat(start);
 
@@ -269,14 +260,14 @@
                 select.options[i] = new Option(sources[i].title, i);
               }
 
-              select.addEventListener('change', function(event) {
+              select.addEventListener('change', (event) => {
                 const source = sources[event.target.value];
 
                 fetchAndUpdateWaveform(peaksInstance, audioContext, source);
               });
             });
           });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

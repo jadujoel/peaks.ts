@@ -18,3 +18,14 @@
 /dist
 /docs
 /node_modules
+
+AGENTS.md
+.agents
+*.DS_Store
+tasks
+.vitest-attachments
+test/__screenshots__
+playwright-report
+test-results
+.claude
+CLAUDE.md

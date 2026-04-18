@@ -86,10 +86,10 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
-      (function(Peaks) {
-        var AudioContext = window.AudioContext || window.webkitAudioContext;
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
+      ((Peaks) => {
         var audioContext = new AudioContext();
 
         var sources = [
@@ -129,7 +129,7 @@
           zoomLevels: [128, 256, 512, 1024, 2048]
         };
 
-        Peaks.init(options, function(err, peaksInstance) {
+        Peaks.init(options, (err, peaksInstance) => {
           if (err) {
             console.log(err.message);
             return;
@@ -137,11 +137,11 @@
 
           console.log('Peaks instance ready');
 
-          document.querySelector('[data-action="zoom-in"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-in"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomIn();
           });
 
-          document.querySelector('[data-action="zoom-out"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-out"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomOut();
           });
 
@@ -151,10 +151,10 @@
             select.options[i] = new Option(sources[i].title, i);
           }
 
-          select.addEventListener('change', function(event) {
+          select.addEventListener('change', (event) => {
             var source = sources[event.target.value];
 
-            peaksInstance.setSource(source, function(error) {
+            peaksInstance.setSource(source, (error) => {
               if (error) {
                 console.error('setSource error', error);
               }
@@ -175,25 +175,25 @@
             "10": 5.0
           };
 
-          document.getElementById('amplitude-scale').addEventListener('input', function(event) {
+          document.getElementById('amplitude-scale').addEventListener('input', (event) => {
             var scale = amplitudeScales[event.target.value];
 
             peaksInstance.views.getView('zoomview').setAmplitudeScale(scale);
           });
 
-          document.getElementById('zoomview-color').addEventListener('input', function(event) {
+          document.getElementById('zoomview-color').addEventListener('input', (event) => {
             var view = peaksInstance.views.getView('zoomview');
 
             view.setWaveformColor(event.target.value);
           });
 
-          document.getElementById('overview-color').addEventListener('input', function(event) {
+          document.getElementById('overview-color').addEventListener('input', (event) => {
             var view = peaksInstance.views.getView('overview');
 
             view.setWaveformColor(event.target.value);
           });
         });
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>

@@ -1,0 +1,163 @@
+import type { Group } from "konva/lib/Group";
+import MouseDragHandler from "./mouse-drag-handler";
+import type { PeaksInstance } from "./types";
+import { clamp } from "./utils";
+
+/**
+ * Creates a handler for mouse events to allow scrolling the zoomable
+ * waveform view by clicking and dragging the mouse.
+ */
+
+class ScrollMouseDragHandler {
+	private _peaks: PeaksInstance;
+	private _view: import("./waveform-zoomview").default;
+	private _seeking: boolean;
+	private _firstMove: boolean;
+	private _segment: Group | null;
+	private _segmentIsDraggable: boolean;
+	private _initialFrameOffset: number;
+	private _mouseDownX: number;
+	private _mouseDragHandler: MouseDragHandler;
+
+	constructor(peaks: PeaksInstance, view: ScrollMouseDragHandler["_view"]) {
+		this._peaks = peaks;
+		this._view = view;
+		this._seeking = false;
+		this._firstMove = false;
+		this._segment = null;
+		this._segmentIsDraggable = false;
+		this._initialFrameOffset = 0;
+		this._mouseDownX = 0;
+
+		this._mouseDragHandler = new MouseDragHandler(view._stage, {
+			onMouseDown: this._onMouseDown,
+			onMouseMove: this._onMouseMove,
+			onMouseUp: this._onMouseUp,
+		});
+	}
+
+	isDragging(): boolean {
+		return this._mouseDragHandler.isDragging();
+	}
+
+	private _onMouseDown = (mousePosX: number, segment: Group | null): void => {
+		this._seeking = false;
+		this._firstMove = true;
+
+		if (segment && !segment.attrs.draggable) {
+			this._segment = null;
+		} else {
+			this._segment = segment;
+		}
+
+		const playheadOffset = this._view.getPlayheadOffset();
+
+		if (
+			this._view.isSeekEnabled() &&
+			Math.abs(mousePosX - playheadOffset) <=
+				this._view.getPlayheadClickTolerance()
+		) {
+			this._seeking = true;
+
+			// The user has clicked near the playhead, and the playhead is within
+			// a segment. In this case we want to allow the playhead to move, but
+			// prevent the segment from being dragged. So we temporarily make the
+			// segment non-draggable, and restore its draggable state in onMouseUp().
+			if (this._segment) {
+				this._segmentIsDraggable = this._segment.draggable();
+				this._segment.draggable(false);
+			}
+		}
+
+		if (this._seeking) {
+			mousePosX = clamp(mousePosX, 0, this._view.getWidth());
+
+			const time = this._view.pixelsToTime(
+				mousePosX + this._view.getFrameOffset(),
+			);
+
+			this._seek(time);
+		} else {
+			this._initialFrameOffset = this._view.getFrameOffset();
+			this._mouseDownX = mousePosX;
+		}
+	};
+
+	private _onMouseMove = (mousePosX: number): void => {
+		// Prevent scrolling the waveform if the user is dragging a segment.
+		if (this._segment && !this._seeking) {
+			return;
+		}
+
+		if (this._seeking) {
+			if (this._firstMove) {
+				this._view.dragSeek(true);
+				this._firstMove = false;
+			}
+
+			mousePosX = clamp(mousePosX, 0, this._view.getWidth());
+
+			const time = this._view.pixelsToTime(
+				mousePosX + this._view.getFrameOffset(),
+			);
+
+			this._seek(time);
+		} else {
+			// TODO: Prevent scrolling when zoomed to fit the waveform to the
+			// view width. Sometimes the waveform is a few pixels longer.
+			if (!this._view.isAutoZoom()) {
+				// Moving the mouse to the left increases the time position of the
+				// left-hand edge of the visible waveform.
+				const diff = this._mouseDownX - mousePosX;
+				const newFrameOffset = this._initialFrameOffset + diff;
+
+				if (newFrameOffset !== this._initialFrameOffset) {
+					this._view.updateWaveform(newFrameOffset, false);
+				}
+			}
+		}
+	};
+
+	private _onMouseUp = (): void => {
+		if (this._seeking) {
+			this._view.dragSeek(false);
+		} else {
+			// Set playhead position only on click release, when not dragging.
+			if (this._view._enableSeek && !this._mouseDragHandler.isDragging()) {
+				const time = this._view.pixelOffsetToTime(this._mouseDownX);
+
+				this._seek(time);
+			}
+		}
+
+		// If the user was dragging within an existing segment,
+		// restore the segment's original draggable state.
+		if (this._segment && this._seeking) {
+			if (this._segmentIsDraggable) {
+				this._segment.draggable(true);
+			}
+		}
+	};
+
+	private _seek(time: number): void {
+		const duration = this._peaks.player.getDuration();
+
+		// Prevent the playhead position from jumping by limiting click
+		// handling to the waveform duration.
+		if (time > duration) {
+			time = duration;
+		}
+
+		// Update the playhead position. This gives a smoother visual update
+		// than if we only use the player.timeupdate event.
+		this._view.updatePlayheadTime(time);
+
+		this._peaks.player.seek(time);
+	}
+
+	destroy(): void {
+		this._mouseDragHandler.destroy();
+	}
+}
+
+export default ScrollMouseDragHandler;

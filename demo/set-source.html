@@ -67,17 +67,15 @@
       </div>
     </div>
 
-    <script src="/peaks.js"></script>
-    <script>
-      (function(Peaks) {
-        var AudioContext = window.AudioContext || window.webkitAudioContext;
+    <script type="module">
+      import Peaks from "/peaks.esm.js";
+
+      ((Peaks) => {
         var audioContext = new AudioContext();
 
         function requestWaveformData(url) {
           return fetch(url)
-            .then(function(response) {
-              return response.arrayBuffer();
-            });
+            .then((response) => response.arrayBuffer());
         }
 
         function createSources(waveformData) {
@@ -109,8 +107,8 @@
         }
 
         function createPeaksInstance(options) {
-          return new Promise(function(resolve, reject) {
-            Peaks.init(options, function(err, peaksInstance) {
+          return new Promise((resolve, reject) => {
+            Peaks.init(options, (err, peaksInstance) => {
               if (err) {
                 reject(err);
               }
@@ -124,11 +122,11 @@
         }
 
         function bindEventHandlers(peaksInstance, sources) {
-          document.querySelector('[data-action="zoom-in"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-in"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomIn();
           });
 
-          document.querySelector('[data-action="zoom-out"]').addEventListener('click', function() {
+          document.querySelector('[data-action="zoom-out"]').addEventListener('click', () => {
             peaksInstance.zoom.zoomOut();
           });
 
@@ -138,10 +136,10 @@
             select.options[i] = new Option(sources[i].title, i);
           }
 
-          select.addEventListener('change', function(event) {
+          select.addEventListener('change', (event) => {
             var source = sources[event.target.value];
 
-            peaksInstance.setSource(source, function(error) {
+            peaksInstance.setSource(source, (error) => {
               if (error) {
                 console.error('setSource error', error);
               }
@@ -172,16 +170,14 @@
         };
 
         createPeaksInstance(options)
-          .then(function(peaksInstance) {
+          .then((peaksInstance) => {
             requestWaveformData('/07023003-2channel.dat')
-              .then(function(waveformData) {
-                return createSources(waveformData);
-              })
-              .then(function(sources) {
+              .then((waveformData) => createSources(waveformData))
+              .then((sources) => {
                 bindEventHandlers(peaksInstance, sources);
               }, errorHandler);
           }, errorHandler);
-      })(peaks);
+      })(Peaks);
     </script>
   </body>
 </html>
