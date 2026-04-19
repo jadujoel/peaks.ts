@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 
 describe("Peaks.zoom", () => {
 	let p = null;
@@ -21,7 +21,7 @@ describe("Peaks.zoom", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				p = instance;
 				done();
 			});
@@ -119,7 +119,7 @@ describe("Peaks.zoom", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				p = instance;
 				done();
 			});

@@ -17,6 +17,12 @@ import { objectHasProperty } from "./utils";
  * waveform.
  */
 
+export interface SegmentsLayerFromOptions {
+	readonly peaks: PeaksInstance;
+	readonly view: WaveformViewAPI;
+	readonly enableEditing: boolean;
+}
+
 export class SegmentsLayer {
 	private _peaks: PeaksInstance;
 	private _view: WaveformViewAPI;
@@ -24,7 +30,15 @@ export class SegmentsLayer {
 	private _segmentShapes: Record<string, SegmentShape>;
 	private _layer: Layer;
 
-	constructor(
+	static from(options: SegmentsLayerFromOptions): SegmentsLayer {
+		return new SegmentsLayer(
+			options.peaks,
+			options.view,
+			options.enableEditing,
+		);
+	}
+
+	private constructor(
 		peaks: PeaksInstance,
 		view: WaveformViewAPI,
 		enableEditing: boolean,
@@ -116,22 +130,22 @@ export class SegmentsLayer {
 		const frameStartTime = this._view.getStartTime();
 		const frameEndTime = this._view.getEndTime();
 
-		event.segments.forEach((segment: Segment) => {
+		for (const segment of event.segments) {
 			if (segment.isVisible(frameStartTime, frameEndTime)) {
 				const segmentShape = this._addSegmentShape(segment);
 
 				segmentShape.update();
 			}
-		});
+		}
 
 		// Ensure segment markers are always draggable.
 		this.moveSegmentMarkersToTop();
 	}
 
 	private _onSegmentsRemove(event: { segments: Segment[] }): void {
-		event.segments.forEach((segment: Segment) => {
+		for (const segment of event.segments) {
 			this._removeSegment(segment);
-		});
+		}
 	}
 
 	private _onSegmentsRemoveAll(): void {
@@ -148,7 +162,12 @@ export class SegmentsLayer {
 	 */
 
 	private _createSegmentShape(segment: Segment): SegmentShape {
-		return new SegmentShape(segment, this._peaks, this, this._view);
+		return SegmentShape.from({
+			segment,
+			peaks: this._peaks,
+			layer: this,
+			view: this._view,
+		});
 	}
 
 	/**
@@ -178,7 +197,9 @@ export class SegmentsLayer {
 		// Update segments in visible time range.
 		const segments = this._peaks.segments.find(startTime, endTime);
 
-		segments.forEach(this._updateSegment.bind(this));
+		for (const segment of segments) {
+			this._updateSegment(segment);
+		}
 
 		// TODO: In the overview all segments are visible, so no need to do this.
 		this._removeInvisibleSegments(startTime, endTime);

@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 import { Segment } from "../src/segment";
 
 describe("Segment", () => {
@@ -19,7 +19,7 @@ describe("Segment", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				p = instance;
 				done();
 			});
@@ -224,12 +224,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				startTime: 0.0,
-				endTime: 10.0,
-				labelText: "",
-				editable: true,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					startTime: 0.0,
+					endTime: 10.0,
+					labelText: "",
+					editable: true,
+				},
 			});
 
 			segment.update({ data: "test" });
@@ -241,13 +245,17 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				startTime: 0.0,
-				endTime: 10.0,
-				labelText: "",
-				editable: true,
-				data: "test",
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					startTime: 0.0,
+					endTime: 10.0,
+					labelText: "",
+					editable: true,
+					data: "test",
+				},
 			});
 
 			segment.update({ data: "updated" });
@@ -276,12 +284,16 @@ describe("Segment", () => {
 					const peaks = { emit: () => {} };
 					const pid = 0;
 
-					const segment = new Segment(peaks, pid, {
-						id: "segment.1",
-						startTime: 0.0,
-						endTime: 10.0,
-						labelText: "",
-						editable: true,
+					const segment = Segment.from({
+						peaks,
+						pid,
+						options: {
+							id: "segment.1",
+							startTime: 0.0,
+							endTime: 10.0,
+							labelText: "",
+							editable: true,
+						},
 					});
 
 					const attributes = {};
@@ -299,12 +311,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 0.0,
-				endTime: 10.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 0.0,
+					endTime: 10.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(false);
@@ -314,12 +330,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 20.0,
-				endTime: 30.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 20.0,
+					endTime: 30.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(false);
@@ -329,12 +349,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 12.0,
-				endTime: 18.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 12.0,
+					endTime: 18.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -344,12 +368,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 9.0,
-				endTime: 19.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 9.0,
+					endTime: 19.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -359,12 +387,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 9.0,
-				endTime: 20.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 9.0,
+					endTime: 20.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -374,12 +406,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 11.0,
-				endTime: 21.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 11.0,
+					endTime: 21.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -389,12 +425,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 11.0,
-				endTime: 20.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 11.0,
+					endTime: 20.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -404,12 +444,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 10.0,
-				endTime: 20.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 10.0,
+					endTime: 20.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -419,12 +463,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 9.0,
-				endTime: 21.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 9.0,
+					endTime: 21.0,
+				},
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -434,12 +482,16 @@ describe("Segment", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const segment = new Segment(peaks, pid, {
-				id: "segment.1",
-				labelText: "",
-				editable: true,
-				startTime: 0.0,
-				endTime: 0.0,
+			const segment = Segment.from({
+				peaks,
+				pid,
+				options: {
+					id: "segment.1",
+					labelText: "",
+					editable: true,
+					startTime: 0.0,
+					endTime: 0.0,
+				},
 			});
 
 			expect(segment.isVisible(0.0, 10.0)).to.equal(true);

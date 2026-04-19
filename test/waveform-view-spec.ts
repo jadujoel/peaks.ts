@@ -1,10 +1,10 @@
 import Konva from "konva";
 import sinon from "sinon";
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
 import type { PeaksInitOptions } from "../src/types";
-import InputController from "./helpers/input-controller";
+import { InputController } from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
 type InternalPlayheadText = {
@@ -59,7 +59,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -84,7 +84,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -110,7 +110,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -120,7 +120,7 @@ function initOptions(
 						view.setPlayedWaveformColor(null);
 
 						expect(view._waveformShape._color).to.equal("#f00");
-						expect(view._playedWaveformShape).to.equal(null);
+						expect(view._playedWaveformShape).to.equal(undefined);
 
 						done();
 					});
@@ -136,7 +136,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -158,7 +158,7 @@ function initOptions(
 					options.showPlayheadTime = true;
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -188,7 +188,7 @@ function initOptions(
 					options.showPlayheadTime = false;
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -210,7 +210,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -235,7 +235,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -259,7 +259,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -286,7 +286,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -312,7 +312,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -338,7 +338,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -364,7 +364,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -391,7 +391,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,
@@ -418,7 +418,7 @@ function initOptions(
 					});
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
 							test.view,

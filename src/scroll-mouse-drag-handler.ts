@@ -8,31 +8,48 @@ import { clamp } from "./utils";
  * waveform view by clicking and dragging the mouse.
  */
 
+export interface ScrollMouseDragHandlerFromOptions {
+	readonly peaks: PeaksInstance;
+	readonly view: import("./waveform-zoomview").WaveformZoomView;
+}
+
 export class ScrollMouseDragHandler {
 	private _peaks: PeaksInstance;
-	private _view: import("./waveform-zoomview").default;
+	private _view: import("./waveform-zoomview").WaveformZoomView;
 	private _seeking: boolean;
 	private _firstMove: boolean;
-	private _segment: Group | null;
+	private _segment: Group | undefined;
 	private _segmentIsDraggable: boolean;
 	private _initialFrameOffset: number;
 	private _mouseDownX: number;
 	private _mouseDragHandler: MouseDragHandler;
 
-	constructor(peaks: PeaksInstance, view: ScrollMouseDragHandler["_view"]) {
+	static from(
+		options: ScrollMouseDragHandlerFromOptions,
+	): ScrollMouseDragHandler {
+		return new ScrollMouseDragHandler(options.peaks, options.view);
+	}
+
+	private constructor(
+		peaks: PeaksInstance,
+		view: ScrollMouseDragHandler["_view"],
+	) {
 		this._peaks = peaks;
 		this._view = view;
 		this._seeking = false;
 		this._firstMove = false;
-		this._segment = null;
+		this._segment = undefined;
 		this._segmentIsDraggable = false;
 		this._initialFrameOffset = 0;
 		this._mouseDownX = 0;
 
-		this._mouseDragHandler = new MouseDragHandler(view._stage, {
-			onMouseDown: this._onMouseDown,
-			onMouseMove: this._onMouseMove,
-			onMouseUp: this._onMouseUp,
+		this._mouseDragHandler = MouseDragHandler.from({
+			stage: view._stage,
+			handlers: {
+				onMouseDown: this._onMouseDown,
+				onMouseMove: this._onMouseMove,
+				onMouseUp: this._onMouseUp,
+			},
 		});
 	}
 
@@ -40,12 +57,15 @@ export class ScrollMouseDragHandler {
 		return this._mouseDragHandler.isDragging();
 	}
 
-	private _onMouseDown = (mousePosX: number, segment: Group | null): void => {
+	private _onMouseDown = (
+		mousePosX: number,
+		segment: Group | undefined,
+	): void => {
 		this._seeking = false;
 		this._firstMove = true;
 
 		if (segment && !segment.attrs.draggable) {
-			this._segment = null;
+			this._segment = undefined;
 		} else {
 			this._segment = segment;
 		}

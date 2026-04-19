@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 
 describe("Point", () => {
@@ -19,7 +19,7 @@ describe("Point", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				p = instance;
 				done();
 			});
@@ -211,12 +211,16 @@ describe("Point", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const point = new Point(peaks, pid, {
-				id: "point.1",
-				time: 0.0,
-				editable: false,
-				color: "#000000",
-				labelText: "",
+			const point = Point.from({
+				peaks,
+				pid,
+				options: {
+					id: "point.1",
+					time: 0.0,
+					editable: false,
+					color: "#000000",
+					labelText: "",
+				},
 			});
 
 			point.update({ data: "test" });
@@ -228,13 +232,17 @@ describe("Point", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const point = new Point(peaks, pid, {
-				id: "point.1",
-				time: 0.0,
-				editable: false,
-				color: "#000000",
-				labelText: "",
-				data: "test",
+			const point = Point.from({
+				peaks,
+				pid,
+				options: {
+					id: "point.1",
+					time: 0.0,
+					editable: false,
+					color: "#000000",
+					labelText: "",
+					data: "test",
+				},
 			});
 
 			point.update({ data: "updated" });
@@ -258,12 +266,16 @@ describe("Point", () => {
 					const peaks = { emit: () => {} };
 					const pid = 0;
 
-					const point = new Point(peaks, pid, {
-						id: "point.1",
-						time: 0.0,
-						editable: false,
-						color: "#000000",
-						labelText: "",
+					const point = Point.from({
+						peaks,
+						pid,
+						options: {
+							id: "point.1",
+							time: 0.0,
+							editable: false,
+							color: "#000000",
+							labelText: "",
+						},
 					});
 
 					const attributes = {};
@@ -281,11 +293,15 @@ describe("Point", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const point = new Point(peaks, pid, {
-				id: "point.1",
-				labelText: "",
-				editable: true,
-				time: 9.0,
+			const point = Point.from({
+				peaks,
+				pid,
+				options: {
+					id: "point.1",
+					labelText: "",
+					editable: true,
+					time: 9.0,
+				},
 			});
 
 			expect(point.isVisible(10.0, 20.0)).to.equal(false);
@@ -295,11 +311,15 @@ describe("Point", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const point = new Point(peaks, pid, {
-				id: "point.1",
-				labelText: "",
-				editable: true,
-				time: 20.0,
+			const point = Point.from({
+				peaks,
+				pid,
+				options: {
+					id: "point.1",
+					labelText: "",
+					editable: true,
+					time: 20.0,
+				},
 			});
 
 			expect(point.isVisible(10.0, 20.0)).to.equal(false);
@@ -309,11 +329,15 @@ describe("Point", () => {
 			const peaks = { emit: () => {} };
 			const pid = 0;
 
-			const point = new Point(peaks, pid, {
-				id: "point.1",
-				labelText: "",
-				editable: true,
-				time: 10.0,
+			const point = Point.from({
+				peaks,
+				pid,
+				options: {
+					id: "point.1",
+					labelText: "",
+					editable: true,
+					time: 10.0,
+				},
 			});
 
 			expect(point.isVisible(10.0, 20.0)).to.equal(true);

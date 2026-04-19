@@ -2,12 +2,16 @@ import Konva from "konva/lib/Core";
 import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
-import type { WaveformData } from "waveform-data";
-import type { HighlightLayer } from "./highlight-layer";
+import type WaveformData from "waveform-data";
 import { PlayheadLayer } from "./playhead-layer";
 import { PointsLayer } from "./points-layer";
 import { SegmentsLayer } from "./segments-layer";
-import type { OverviewOptions, PeaksInstance, ZoomviewOptions } from "./types";
+import type {
+	OverviewOptions,
+	PeaksInstance,
+	WaveformViewAPI,
+	ZoomviewOptions,
+} from "./types";
 import type { WaveformColor } from "./utils";
 import { formatTime, getMarkerObject, isFinite, isNumber } from "./utils";
 import { WaveformAxis } from "./waveform-axis";
@@ -22,9 +26,7 @@ export class WaveformView {
 	public peaks: PeaksInstance;
 	public _peaks: PeaksInstance;
 	private _container: HTMLDivElement;
-	private _options: PeaksInstance["options"];
 	private _viewOptions: ZoomviewOptions | OverviewOptions;
-	private _originalWaveformData: WaveformData;
 	private _data: WaveformData;
 	private _frameOffset: number;
 	private _width: number;
@@ -38,12 +40,11 @@ export class WaveformView {
 	private _stage!: Stage;
 	private _waveformLayer!: Layer;
 	private _waveformShape!: WaveformShape;
-	private _playedWaveformShape!: WaveformShape | null;
-	private _playedSegment!: PlayedSegment | null;
-	private _unplayedSegment!: PlayedSegment | null;
-	private _segmentsLayer!: SegmentsLayer | null;
-	private _pointsLayer!: PointsLayer | null;
-	private _highlightLayer!: HighlightLayer | null;
+	private _playedWaveformShape!: WaveformShape | undefined;
+	private _playedSegment!: PlayedSegment | undefined;
+	private _unplayedSegment!: PlayedSegment | undefined;
+	private _segmentsLayer!: SegmentsLayer | undefined;
+	private _pointsLayer!: PointsLayer | undefined;
 	private _axisLayer!: Layer;
 	private _axis!: WaveformAxis;
 	private _playheadLayer!: PlayheadLayer;
@@ -99,20 +100,20 @@ export class WaveformView {
 		this._createWaveform();
 
 		if (this._viewOptions.enableSegments) {
-			this._segmentsLayer = new SegmentsLayer(
+			this._segmentsLayer = SegmentsLayer.from({
 				peaks,
-				this,
-				this._viewOptions.enableEditing,
-			);
+				view: this as unknown as WaveformViewAPI,
+				enableEditing: this._viewOptions.enableEditing ?? false,
+			});
 			this._segmentsLayer.addToStage(this._stage);
 		}
 
 		if (this._viewOptions.enablePoints) {
-			this._pointsLayer = new PointsLayer(
+			this._pointsLayer = PointsLayer.from({
 				peaks,
-				this,
-				this._viewOptions.enableEditing,
-			);
+				view: this as unknown as WaveformViewAPI,
+				enableEditing: this._viewOptions.enableEditing ?? false,
+			});
 			this._pointsLayer.addToStage(this._stage);
 		}
 
@@ -120,11 +121,11 @@ export class WaveformView {
 
 		this._createAxisLabels();
 
-		this._playheadLayer = new PlayheadLayer(
-			this.peaks.player,
-			this,
-			this._viewOptions,
-		);
+		this._playheadLayer = PlayheadLayer.from({
+			player: this.peaks.player,
+			view: this as unknown as WaveformViewAPI,
+			options: this._viewOptions,
+		});
 
 		this._playheadLayer.addToStage(this._stage);
 
@@ -275,7 +276,7 @@ export class WaveformView {
 
 	_createWaveformShapes(): void {
 		if (!this._waveformShape) {
-			this._waveformShape = new WaveformShape({
+			this._waveformShape = WaveformShape.from({
 				color: this._waveformColor,
 				view: this,
 			});
@@ -298,7 +299,7 @@ export class WaveformView {
 
 			this._waveformShape.setSegment(this._unplayedSegment);
 
-			this._playedWaveformShape = new WaveformShape({
+			this._playedWaveformShape = WaveformShape.from({
 				color: this._playedWaveformColor,
 				view: this,
 				segment: this._playedSegment,
@@ -333,15 +334,18 @@ export class WaveformView {
 		this._waveformShape.setSegment(undefined);
 
 		this._playedWaveformShape?.destroy();
-		this._playedWaveformShape = null;
+		this._playedWaveformShape = undefined;
 
-		this._playedSegment = null;
-		this._unplayedSegment = null;
+		this._playedSegment = undefined;
+		this._unplayedSegment = undefined;
 	}
 
 	_createAxisLabels(): void {
 		this._axisLayer = new Konva.Layer({ listening: false });
-		this._axis = new WaveformAxis(this, this._viewOptions);
+		this._axis = WaveformAxis.from({
+			view: this as unknown as WaveformViewAPI,
+			options: this._viewOptions,
+		});
 
 		this._axis.addToLayer(this._axisLayer);
 		this._stage.add(this._axisLayer);

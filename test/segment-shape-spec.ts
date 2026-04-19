@@ -1,8 +1,8 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
-import SegmentShape from "../src/segment-shape";
+import { Peaks } from "../src/main";
+import { SegmentShape } from "../src/segment-shape";
 import { extend } from "../src/utils";
-import WaveformShape from "../src/waveform-shape";
+import { WaveformShape } from "../src/waveform-shape";
 
 describe("SegmentShape", () => {
 	let p = null;
@@ -35,7 +35,7 @@ describe("SegmentShape", () => {
 		}
 
 		Peaks.init(opts, (err, instance) => {
-			expect(err).to.equal(null);
+			expect(err).to.equal(undefined);
 			p = instance;
 			done();
 		});

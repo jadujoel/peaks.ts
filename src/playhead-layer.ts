@@ -13,11 +13,17 @@ import type { PlayerInstance, ViewOptions, WaveformViewAPI } from "./types";
  * Creates a Konva.Layer that displays a playhead marker.
  */
 
-class PlayheadLayer {
+export interface PlayheadLayerFromOptions {
+	readonly player: PlayerInstance;
+	readonly view: WaveformViewAPI;
+	readonly options: ViewOptions;
+}
+
+export class PlayheadLayer {
 	private _player: PlayerInstance;
 	private _view: WaveformViewAPI;
 	private _playheadPixel: number;
-	private _playheadLineAnimation: Animation | null;
+	private _playheadLineAnimation: Animation | undefined;
 	private _playheadVisible: boolean;
 	private _playheadColor: string;
 	private _playheadTextColor: string;
@@ -33,7 +39,11 @@ class PlayheadLayer {
 	private _playheadText: Text | undefined;
 	private _useAnimation: boolean;
 
-	constructor(
+	static from(options: PlayheadLayerFromOptions): PlayheadLayer {
+		return new PlayheadLayer(options.player, options.view, options.options);
+	}
+
+	private constructor(
 		player: PlayerInstance,
 		view: WaveformViewAPI,
 		options: ViewOptions,
@@ -41,7 +51,7 @@ class PlayheadLayer {
 		this._player = player;
 		this._view = view;
 		this._playheadPixel = 0;
-		this._playheadLineAnimation = null;
+		this._playheadLineAnimation = undefined;
 		this._playheadVisible = false;
 		this._playheadColor = options.playheadColor;
 		this._playheadTextColor = options.playheadTextColor;
@@ -240,14 +250,14 @@ class PlayheadLayer {
 	private _start(): void {
 		if (this._playheadLineAnimation) {
 			this._playheadLineAnimation.stop();
-			this._playheadLineAnimation = null;
+			this._playheadLineAnimation = undefined;
 		}
 
 		if (!this._useAnimation) {
 			return;
 		}
 
-		let lastPlayheadPosition: number | null = null;
+		let lastPlayheadPosition: number | undefined;
 
 		this._playheadLineAnimation = new Animation(() => {
 			const time = this._player.getCurrentTime();
@@ -265,7 +275,7 @@ class PlayheadLayer {
 	stop(time: number): void {
 		if (this._playheadLineAnimation) {
 			this._playheadLineAnimation.stop();
-			this._playheadLineAnimation = null;
+			this._playheadLineAnimation = undefined;
 		}
 
 		this._syncPlayhead(time);
@@ -303,7 +313,7 @@ class PlayheadLayer {
 	destroy(): void {
 		if (this._playheadLineAnimation) {
 			this._playheadLineAnimation.stop();
-			this._playheadLineAnimation = null;
+			this._playheadLineAnimation = undefined;
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 
 describe("WaveformView", () => {
 	let p = null;
@@ -24,7 +24,7 @@ describe("WaveformView", () => {
 		};
 
 		Peaks.init(options, (err, instance) => {
-			expect(err).to.equal(null);
+			expect(err).to.equal(undefined);
 
 			p = instance;
 

@@ -5,6 +5,10 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Point } from "./point";
 import type { KonvaMouseEvent, Marker, PointMarkerOptions } from "./types";
 
+export interface PointMarkerFromOptions {
+	readonly options: PointMarkerOptions;
+}
+
 export class PointMarker {
 	private _point: Point;
 	private _marker: Marker;
@@ -16,7 +20,11 @@ export class PointMarker {
 	private _onMouseLeave: (event: KonvaMouseEvent, point: Point) => void;
 	private _group: Group;
 
-	constructor(options: PointMarkerOptions) {
+	static from(options: PointMarkerFromOptions): PointMarker {
+		return new PointMarker(options.options);
+	}
+
+	private constructor(options: PointMarkerOptions) {
 		this._point = options.point;
 		this._marker = options.marker;
 		this._draggable = options.draggable;

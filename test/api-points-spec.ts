@@ -1,4 +1,4 @@
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 
 describe("Peaks.points", () => {
@@ -19,7 +19,7 @@ describe("Peaks.points", () => {
 		};
 
 		Peaks.init(options, (err, instance) => {
-			expect(err).to.equal(null);
+			expect(err).to.equal(undefined);
 			p = instance;
 			done();
 		});

@@ -7,9 +7,9 @@ export function getAllPropertiesFrom(adapter: PlayerAdapter): string[] {
 	let obj = adapter;
 
 	while (obj) {
-		Object.getOwnPropertyNames(obj).forEach((p) => {
+		for (const p of Object.getOwnPropertyNames(obj)) {
 			allProperties.push(p);
-		});
+		}
 
 		obj = Object.getPrototypeOf(obj);
 	}
@@ -37,7 +37,7 @@ export function validateAdapter(adapter: PlayerAdapter): undefined | never {
 
 	const allProperties = getAllPropertiesFrom(adapter);
 
-	publicAdapterMethods.forEach((method) => {
+	for (const method of publicAdapterMethods) {
 		if (!allProperties.includes(method)) {
 			throw new TypeError(`Peaks.init(): Player method ${method} is undefined`);
 		}
@@ -50,17 +50,22 @@ export function validateAdapter(adapter: PlayerAdapter): undefined | never {
 				`Peaks.init(): Player method ${method} is not a function`,
 			);
 		}
-	});
+	}
 }
 
 /**
  * A wrapper for interfacing with an external player API.
  */
 
+export interface PlayerFromOptions {
+	readonly peaks: PeaksInstance | undefined;
+	readonly adapter: PlayerAdapter;
+}
+
 export class Player {
-	private _peaks: PeaksInstance | null;
+	private _peaks: PeaksInstance | undefined;
 	private _playingSegment: boolean;
-	private _segment: Segment | null;
+	private _segment: Segment | undefined;
 	private _loop: boolean;
 	private _adapter: PlayerAdapter;
 
@@ -69,11 +74,18 @@ export class Player {
 	 *
 	 * @throws {TypeError} If the adapter does not implement the required player methods.
 	 */
-	constructor(peaks: PeaksInstance | null, adapter: PlayerAdapter) {
+	static from(options: PlayerFromOptions): Player {
+		return new Player(options.peaks, options.adapter);
+	}
+
+	private constructor(
+		peaks: PeaksInstance | undefined,
+		adapter: PlayerAdapter,
+	) {
 		this._peaks = peaks;
 
 		this._playingSegment = false;
-		this._segment = null;
+		this._segment = undefined;
 		this._loop = false;
 
 		validateAdapter(adapter);
@@ -91,7 +103,7 @@ export class Player {
 	destroy(): void {
 		this._playingSegment = false;
 		this._loop = false;
-		this._segment = null;
+		this._segment = undefined;
 		this._adapter.destroy();
 	}
 

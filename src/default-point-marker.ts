@@ -12,6 +12,10 @@ export const DefaultOptions = {
 	fontStyle: "normal",
 } as const satisfies CreatePointMarkerOptions;
 
+export interface DefaultPointMarkerFromOptions {
+	readonly options: CreatePointMarkerOptions;
+}
+
 export class DefaultPointMarker {
 	private _options: CreatePointMarkerOptions;
 	private _label: Text | undefined;
@@ -22,7 +26,11 @@ export class DefaultPointMarker {
 
 	static DefaultOptions = DefaultOptions;
 
-	constructor(options: CreatePointMarkerOptions) {
+	static from(options: DefaultPointMarkerFromOptions): DefaultPointMarker {
+		return new DefaultPointMarker(options.options);
+	}
+
+	private constructor(options: CreatePointMarkerOptions) {
 		this._options = {
 			...DefaultOptions,
 			...options,

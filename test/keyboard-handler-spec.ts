@@ -1,6 +1,6 @@
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 
-import InputController from "./helpers/input-controller";
+import { InputController } from "./helpers/input-controller";
 
 describe("KeyboardHandler", () => {
 	let p = null;
@@ -23,7 +23,7 @@ describe("KeyboardHandler", () => {
 		};
 
 		Peaks.init(options, (err, instance) => {
-			expect(err).to.equal(null);
+			expect(err).to.equal(undefined);
 
 			p = instance;
 			zoomview = instance.views.getView("zoomview");

@@ -15,15 +15,25 @@ import { clamp, objectHasProperty } from "./utils";
  * Creates a Konva.Layer that displays point markers against the audio
  * waveform.
  */
-class PointsLayer {
+export interface PointsLayerFromOptions {
+	readonly peaks: PeaksInstance;
+	readonly view: WaveformViewAPI;
+	readonly enableEditing: boolean;
+}
+
+export class PointsLayer {
 	private _peaks: PeaksInstance;
 	private _view: WaveformViewAPI;
 	private _enableEditing: boolean;
 	private _pointMarkers: Record<string, PointMarker>;
 	private _layer: Layer;
-	private _dragPointMarker: PointMarker | null;
+	private _dragPointMarker: PointMarker | undefined;
 
-	constructor(
+	static from(options: PointsLayerFromOptions): PointsLayer {
+		return new PointsLayer(options.peaks, options.view, options.enableEditing);
+	}
+
+	private constructor(
 		peaks: PeaksInstance,
 		view: WaveformViewAPI,
 		enableEditing: boolean,
@@ -33,7 +43,7 @@ class PointsLayer {
 		this._enableEditing = enableEditing;
 		this._pointMarkers = {};
 		this._layer = new Konva.Layer();
-		this._dragPointMarker = null;
+		this._dragPointMarker = undefined;
 
 		this._onPointsDrag = this._onPointsDrag.bind(this);
 
@@ -110,17 +120,17 @@ class PointsLayer {
 		const frameStartTime = this._view.getStartTime();
 		const frameEndTime = this._view.getEndTime();
 
-		event.points.forEach((point: Point) => {
+		for (const point of event.points) {
 			if (point.isVisible(frameStartTime, frameEndTime)) {
 				this._updatePoint(point);
 			}
-		});
+		}
 	}
 
 	private _onPointsRemove(event: { points: Point[] }): void {
-		event.points.forEach((point: Point) => {
+		for (const point of event.points) {
 			this._removePoint(point);
-		});
+		}
 	}
 
 	private _onPointsRemoveAll(): void {
@@ -146,16 +156,18 @@ class PointsLayer {
 			view: this._view.getName(),
 		});
 
-		return new PointMarker({
-			point: point,
-			draggable: editable,
-			marker: marker,
-			onDragStart: this._onPointMarkerDragStart,
-			onDragMove: this._onPointMarkerDragMove,
-			onDragEnd: this._onPointMarkerDragEnd,
-			dragBoundFunc: this._pointMarkerDragBoundFunc,
-			onMouseEnter: this._onPointMarkerMouseEnter,
-			onMouseLeave: this._onPointMarkerMouseLeave,
+		return PointMarker.from({
+			options: {
+				point: point,
+				draggable: editable,
+				marker: marker,
+				onDragStart: this._onPointMarkerDragStart,
+				onDragMove: this._onPointMarkerDragMove,
+				onDragEnd: this._onPointMarkerDragEnd,
+				dragBoundFunc: this._pointMarkerDragBoundFunc,
+				onMouseEnter: this._onPointMarkerMouseEnter,
+				onMouseLeave: this._onPointMarkerMouseLeave,
+			},
 		});
 	}
 
@@ -197,7 +209,7 @@ class PointsLayer {
 	}
 
 	private _onPointMarkerDragStart(event: KonvaMouseEvent, point: Point): void {
-		this._dragPointMarker = this.getPointMarker(point) ?? null;
+		this._dragPointMarker = this.getPointMarker(point);
 
 		this._peaks.emit("points.dragstart", {
 			point: point,
@@ -225,7 +237,7 @@ class PointsLayer {
 	}
 
 	private _onPointMarkerDragEnd(event: KonvaMouseEvent, point: Point): void {
-		this._dragPointMarker = null;
+		this._dragPointMarker = undefined;
 
 		this._peaks.emit("points.dragend", {
 			point: point,
@@ -254,7 +266,9 @@ class PointsLayer {
 		// Update all points in the visible time range.
 		const points = this._peaks.points.find(startTime, endTime);
 
-		points.forEach(this._updatePoint.bind(this));
+		for (const point of points) {
+			this._updatePoint(point);
+		}
 
 		// TODO: In the overview all points are visible, so no need to do this.
 		this._removeInvisiblePoints(startTime, endTime);

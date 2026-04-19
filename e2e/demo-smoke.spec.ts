@@ -128,6 +128,55 @@ test("public async init API resolves with an instance", async ({ page }) => {
 	expect(result).toBe(true);
 });
 
+test("Peaks.init callback receives undefined (not null) on success", async ({
+	page,
+}) => {
+	await page.goto("/index.html");
+
+	const result = await page.evaluate(async () => {
+		const loadPeaks = new Function(
+			'return import("/peaks.esm.js")',
+		) as () => Promise<{
+			default: {
+				init: (
+					options: Record<string, unknown>,
+					cb: (err?: Error, instance?: { destroy: () => void }) => void,
+				) => void;
+			};
+		}>;
+		const peaksModule = await loadPeaks();
+
+		return new Promise<{ errIsUndefined: boolean; instanceOk: boolean }>(
+			(resolve) => {
+				peaksModule.default.init(
+					{
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
+						},
+						overview: {
+							container: document.getElementById("overview-container"),
+						},
+						mediaElement: document.getElementById("audio"),
+						dataUri: {
+							arraybuffer: "/TOL_6min_720p_download.dat",
+							json: "/TOL_6min_720p_download.json",
+						},
+					},
+					(err, instance) => {
+						const errIsUndefined = err === undefined;
+						const instanceOk = Boolean(instance);
+						instance?.destroy();
+						resolve({ errIsUndefined, instanceOk });
+					},
+				);
+			},
+		);
+	});
+
+	expect(result.errIsUndefined).toBe(true);
+	expect(result.instanceOk).toBe(true);
+});
+
 test("custom markers demo keeps edited labels after rerender", async ({
 	page,
 }) => {

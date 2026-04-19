@@ -5,6 +5,11 @@ import { Rect } from "konva/lib/shapes/Rect";
 import type { OverviewOptions, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
 
+export interface HighlightLayerFromOptions {
+	readonly view: WaveformViewAPI;
+	readonly options: OverviewOptions;
+}
+
 export class HighlightLayer {
 	private _view: WaveformViewAPI;
 	private _offset: number;
@@ -17,7 +22,11 @@ export class HighlightLayer {
 	private _opacity: number;
 	private _cornerRadius: number;
 
-	constructor(view: WaveformViewAPI, options: OverviewOptions) {
+	static from(options: HighlightLayerFromOptions): HighlightLayer {
+		return new HighlightLayer(options.view, options.options);
+	}
+
+	private constructor(view: WaveformViewAPI, options: OverviewOptions) {
 		this._view = view;
 		this._offset = options.highlightOffset ?? 0;
 		this._color = options.highlightColor ?? "#000";

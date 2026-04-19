@@ -10,6 +10,10 @@ import type {
 	SegmentMarkerOptions,
 } from "./types";
 
+export interface SegmentMarkerFromOptions {
+	readonly options: SegmentMarkerOptions;
+}
+
 export class SegmentMarker {
 	private _segment: Segment;
 	private _marker: Marker;
@@ -30,7 +34,11 @@ export class SegmentMarker {
 	) => void;
 	private _group: Group;
 
-	constructor(options: SegmentMarkerOptions) {
+	static from(options: SegmentMarkerFromOptions): SegmentMarker {
+		return new SegmentMarker(options.options);
+	}
+
+	private constructor(options: SegmentMarkerOptions) {
 		this._segment = options.segment;
 		this._marker = options.marker;
 		this._editable = options.editable;

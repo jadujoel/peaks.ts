@@ -1,4 +1,4 @@
-import type { WaveformData } from "waveform-data";
+import type WaveformData from "waveform-data";
 import { InsertSegmentMouseDragHandler } from "./insert-segment-mouse-drag-handler";
 import { ScrollMouseDragHandler } from "./scroll-mouse-drag-handler";
 import type { PeaksInstance, ZoomviewOptions } from "./types";
@@ -17,6 +17,12 @@ export function isAutoScale(options: ZoomOptions): boolean {
 	);
 }
 
+export interface WaveformZoomViewFromOptions {
+	readonly waveformData: WaveformData;
+	readonly container: HTMLDivElement;
+	readonly peaks: PeaksInstance;
+}
+
 export class WaveformZoomView extends WaveformView {
 	declare _autoScroll: boolean;
 	declare _autoScrollOffset: number;
@@ -26,7 +32,7 @@ export class WaveformZoomView extends WaveformView {
 	declare _insertSegmentShape: unknown;
 	declare _playheadClickTolerance: number;
 	declare _zoomLevelAuto: boolean;
-	declare _zoomLevelSeconds: number | null;
+	declare _zoomLevelSeconds: number | undefined;
 	declare _mouseDragHandler:
 		| ScrollMouseDragHandler
 		| InsertSegmentMouseDragHandler;
@@ -38,7 +44,15 @@ export class WaveformZoomView extends WaveformView {
 	declare _scale: number;
 	declare _pixelLength: number;
 
-	constructor(
+	static from(options: WaveformZoomViewFromOptions): WaveformZoomView {
+		return new WaveformZoomView(
+			options.waveformData,
+			options.container,
+			options.peaks,
+		);
+	}
+
+	private constructor(
 		waveformData: WaveformData,
 		container: HTMLDivElement,
 		peaks: PeaksInstance,
@@ -71,18 +85,21 @@ export class WaveformZoomView extends WaveformView {
 		this._enableSegmentDragging = false;
 		this._segmentDragMode = "overlap";
 		this._minSegmentDragWidth = 0;
-		this._insertSegmentShape = null;
+		this._insertSegmentShape = undefined;
 
 		this._playheadClickTolerance = zoomviewOptions.playheadClickTolerance;
 
 		this._zoomLevelAuto = false;
-		this._zoomLevelSeconds = null;
+		this._zoomLevelSeconds = undefined;
 
 		const time = this._peaks.player.getCurrentTime();
 
 		this._syncPlayhead(time);
 
-		this._mouseDragHandler = new ScrollMouseDragHandler(peaks, this);
+		this._mouseDragHandler = ScrollMouseDragHandler.from({
+			peaks,
+			view: this,
+		});
 
 		this._onWheel = this._onWheel.bind(this);
 		this._onWheelCaptureVerticalScroll =
@@ -209,12 +226,15 @@ export class WaveformZoomView extends WaveformView {
 			this.dragSeek(false);
 
 			if (mode === "insert-segment") {
-				this._mouseDragHandler = new InsertSegmentMouseDragHandler(
-					this._peaks,
-					this,
-				);
+				this._mouseDragHandler = InsertSegmentMouseDragHandler.from({
+					peaks: this._peaks,
+					view: this,
+				});
 			} else {
-				this._mouseDragHandler = new ScrollMouseDragHandler(this._peaks, this);
+				this._mouseDragHandler = ScrollMouseDragHandler.from({
+					peaks: this._peaks,
+					view: this,
+				});
 			}
 		}
 	}
@@ -354,11 +374,11 @@ export class WaveformZoomView extends WaveformView {
 			const seconds = this._originalWaveformData.duration;
 
 			this._zoomLevelAuto = true;
-			this._zoomLevelSeconds = null;
+			this._zoomLevelSeconds = undefined;
 			scale = this._getScale(seconds);
 		} else {
 			if (objectHasProperty(options, "scale")) {
-				this._zoomLevelSeconds = null;
+				this._zoomLevelSeconds = undefined;
 				scale = Math.floor(options.scale as number);
 			} else if (objectHasProperty(options, "seconds")) {
 				if (!isValidTime(options.seconds as number)) {
@@ -584,7 +604,7 @@ export class WaveformZoomView extends WaveformView {
 		if (this._zoomLevelAuto) {
 			resample = true;
 			resampleOptions = { width: this._width };
-		} else if (this._zoomLevelSeconds !== null) {
+		} else if (this._zoomLevelSeconds !== undefined) {
 			resample = true;
 			resampleOptions = { scale: this._getScale(this._zoomLevelSeconds) };
 		}
@@ -608,7 +628,7 @@ export class WaveformZoomView extends WaveformView {
 		return this._stage;
 	}
 
-	getSegmentsLayer(): import("./segments-layer").default | null {
+	getSegmentsLayer(): import("./segments-layer").SegmentsLayer | undefined {
 		return this._segmentsLayer;
 	}
 
@@ -625,7 +645,7 @@ export class WaveformZoomView extends WaveformView {
 		if (this._enableWaveformCache) {
 			this._waveformData.clear();
 		} else {
-			this._data = null as unknown as WaveformData;
+			this._data = undefined as unknown as WaveformData;
 		}
 
 		this._mouseDragHandler.destroy();

@@ -1,6 +1,6 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
-import Player from "../src/player";
+import { Peaks } from "../src/main";
+import { Player } from "../src/player";
 
 describe("Player", () => {
 	describe("with stub player", () => {
@@ -39,7 +39,7 @@ describe("Player", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				p = instance;
 				done();
 			});
@@ -224,7 +224,7 @@ describe("Player", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				p = instance;
 				done();
 			});

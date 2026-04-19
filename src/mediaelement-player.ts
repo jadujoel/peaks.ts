@@ -21,15 +21,27 @@ function mediaElementHasSource(mediaElement: HTMLMediaElement): boolean {
 	return false;
 }
 
+interface SetSourceHandlerFromOptions {
+	readonly eventEmitter: PeaksInstance;
+	readonly mediaElement: HTMLMediaElement;
+}
+
 class SetSourceHandler {
 	private _eventEmitter: PeaksInstance;
 	private _mediaElement: HTMLMediaElement;
 	private _playerCanPlayHandler: () => void;
 	private _playerErrorHandler: (err: MediaError) => void;
-	private _resolve: (() => void) | null = null;
-	private _reject: ((reason: MediaError) => void) | null = null;
+	private _resolve: (() => void) | undefined;
+	private _reject: ((reason: MediaError) => void) | undefined;
 
-	constructor(eventEmitter: PeaksInstance, mediaElement: HTMLMediaElement) {
+	static from(options: SetSourceHandlerFromOptions): SetSourceHandler {
+		return new SetSourceHandler(options.eventEmitter, options.mediaElement);
+	}
+
+	private constructor(
+		eventEmitter: PeaksInstance,
+		mediaElement: HTMLMediaElement,
+	) {
 		this._eventEmitter = eventEmitter;
 		this._mediaElement = mediaElement;
 		this._playerCanPlayHandler = this._onPlayerCanPlay.bind(this);
@@ -89,14 +101,22 @@ interface MediaListener {
  *   with the Peaks instance.
  */
 
-class MediaElementPlayer {
-	private _mediaElement: HTMLMediaElement | null;
-	private _eventEmitter: PeaksInstance | null;
+export interface MediaElementPlayerFromOptions {
+	readonly mediaElement: HTMLMediaElement;
+}
+
+export class MediaElementPlayer {
+	private _mediaElement: HTMLMediaElement | undefined;
+	private _eventEmitter: PeaksInstance | undefined;
 	private _listeners: MediaListener[];
 
-	constructor(mediaElement: HTMLMediaElement) {
+	static from(options: MediaElementPlayerFromOptions): MediaElementPlayer {
+		return new MediaElementPlayer(options.mediaElement);
+	}
+
+	private constructor(mediaElement: HTMLMediaElement) {
 		this._mediaElement = mediaElement;
-		this._eventEmitter = null;
+		this._eventEmitter = undefined;
 		this._listeners = [];
 	}
 
@@ -222,7 +242,7 @@ class MediaElementPlayer {
 
 		this._listeners.length = 0;
 
-		this._mediaElement = null;
+		this._mediaElement = undefined;
 	}
 
 	play(): Promise<void> {
@@ -278,12 +298,11 @@ class MediaElementPlayer {
 			);
 		}
 
-		const setSourceHandler = new SetSourceHandler(
-			this._eventEmitter,
-			this._mediaElement,
-		);
+		const setSourceHandler = SetSourceHandler.from({
+			eventEmitter: this._eventEmitter,
+			mediaElement: this._mediaElement,
+		});
 
 		return setSourceHandler.setSource(options);
 	}
 }
-

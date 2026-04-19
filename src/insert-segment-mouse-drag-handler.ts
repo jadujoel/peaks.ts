@@ -3,35 +3,49 @@ import { MouseDragHandler } from "./mouse-drag-handler";
 import type { Segment } from "./segment";
 import type { PeaksInstance, SegmentShapeAPI } from "./types";
 
+export interface InsertSegmentMouseDragHandlerFromOptions {
+	readonly peaks: PeaksInstance;
+	readonly view: import("./waveform-zoomview").WaveformZoomView;
+}
+
 export class InsertSegmentMouseDragHandler {
 	private _peaks: PeaksInstance;
-	private _view: import("./waveform-zoomview").default;
-	private _insertSegment: Segment | null;
-	private _insertSegmentShape: SegmentShapeAPI | null;
+	private _view: import("./waveform-zoomview").WaveformZoomView;
+	private _insertSegment: Segment | undefined;
+	private _insertSegmentShape: SegmentShapeAPI | undefined;
 	private _segmentIsDraggable: boolean;
-	private _segment: Group | null;
+	private _segment: Group | undefined;
 	private _mouseDragHandler: MouseDragHandler;
 
-	constructor(
+	static from(
+		options: InsertSegmentMouseDragHandlerFromOptions,
+	): InsertSegmentMouseDragHandler {
+		return new InsertSegmentMouseDragHandler(options.peaks, options.view);
+	}
+
+	private constructor(
 		peaks: PeaksInstance,
 		view: InsertSegmentMouseDragHandler["_view"],
 	) {
 		this._peaks = peaks;
 		this._view = view;
 
-		this._insertSegment = null;
-		this._insertSegmentShape = null;
+		this._insertSegment = undefined;
+		this._insertSegmentShape = undefined;
 		this._segmentIsDraggable = false;
-		this._segment = null;
+		this._segment = undefined;
 
 		this._onMouseDown = this._onMouseDown.bind(this);
 		this._onMouseMove = this._onMouseMove.bind(this);
 		this._onMouseUp = this._onMouseUp.bind(this);
 
-		this._mouseDragHandler = new MouseDragHandler(view._stage, {
-			onMouseDown: this._onMouseDown,
-			onMouseMove: this._onMouseMove,
-			onMouseUp: this._onMouseUp,
+		this._mouseDragHandler = MouseDragHandler.from({
+			stage: view._stage,
+			handlers: {
+				onMouseDown: this._onMouseDown,
+				onMouseMove: this._onMouseMove,
+				onMouseUp: this._onMouseUp,
+			},
 		});
 	}
 
@@ -40,13 +54,13 @@ export class InsertSegmentMouseDragHandler {
 	}
 
 	private _reset(): void {
-		this._insertSegment = null;
-		this._insertSegmentShape = null;
+		this._insertSegment = undefined;
+		this._insertSegmentShape = undefined;
 		this._segmentIsDraggable = false;
 		this._peaks.segments.setInserting(false);
 	}
 
-	private _onMouseDown(mousePosX: number, segment: Group | null): void {
+	private _onMouseDown(mousePosX: number, segment: Group | undefined): void {
 		this._reset();
 		this._segment = segment;
 
@@ -75,8 +89,9 @@ export class InsertSegmentMouseDragHandler {
 			editable: true,
 		}) as Segment;
 
-		this._insertSegmentShape =
-			this._view._segmentsLayer?.getSegmentShape(this._insertSegment) ?? null;
+		this._insertSegmentShape = this._view._segmentsLayer?.getSegmentShape(
+			this._insertSegment,
+		);
 
 		if (this._insertSegmentShape) {
 			this._insertSegmentShape.moveMarkersToTop();
@@ -93,7 +108,7 @@ export class InsertSegmentMouseDragHandler {
 
 		if (this._insertSegmentShape) {
 			this._insertSegmentShape.stopDrag();
-			this._insertSegmentShape = null;
+			this._insertSegmentShape = undefined;
 		}
 
 		// If the user was dragging within an existing segment,

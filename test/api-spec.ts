@@ -1,9 +1,9 @@
 import Konva from "konva";
 import sinon, { type SinonSpy } from "sinon";
-import Peaks from "../src/main";
-import Scrollbar from "../src/scrollbar";
-import WaveformOverview from "../src/waveform-overview";
-import WaveformZoomView from "../src/waveform-zoomview";
+import { Peaks } from "../src/main";
+import { Scrollbar } from "../src/scrollbar";
+import { WaveformOverview } from "../src/waveform-overview";
+import { WaveformZoomView } from "../src/waveform-zoomview";
 import sampleJsonData from "./data/sample.json";
 
 const TestAudioContext = window.AudioContext;
@@ -94,7 +94,7 @@ describe("Peaks", () => {
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 						expect(instance).to.be.an.instanceOf(Peaks);
 						instance?.destroy();
 						done();
@@ -115,7 +115,7 @@ describe("Peaks", () => {
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 						expect(instance).to.be.an.instanceOf(Peaks);
 						expect(result).to.equal(undefined);
 						instance?.destroy();
@@ -170,7 +170,7 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
 							expect(instance?.views.getView("overview")).to.be.an.instanceOf(
 								WaveformOverview,
@@ -193,12 +193,12 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
 							expect(instance?.views.getView("overview")).to.be.an.instanceOf(
 								WaveformOverview,
 							);
-							expect(instance?.views.getView("zoomview")).to.equal(null);
+							expect(instance?.views.getView("zoomview")).to.equal(undefined);
 							done();
 						},
 					);
@@ -214,9 +214,9 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
-							expect(instance?.views.getView("overview")).to.equal(null);
+							expect(instance?.views.getView("overview")).to.equal(undefined);
 							expect(instance?.views.getView("zoomview")).to.be.an.instanceOf(
 								WaveformZoomView,
 							);
@@ -280,7 +280,7 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
 
 							const overview = instance?.views.getView(
@@ -349,7 +349,7 @@ describe("Peaks", () => {
 							highlightCornerRadius: 5,
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
 
 							const overview = instance?.views.getView(
@@ -402,7 +402,7 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
 
 							const overview = instance?.views.getView(
@@ -460,7 +460,7 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
 							const viewController = instance?.views as unknown as {
 								_scrollbar: unknown;
@@ -486,7 +486,7 @@ describe("Peaks", () => {
 							dataUri: { arraybuffer: "/base/test/data/07023003-2channel.dat" },
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							const peaks = expectPresent(instance);
 							const waveformData = expectPresent(peaks.getWaveformData());
 							expect(peaks).to.be.an.instanceOf(Peaks);
@@ -514,7 +514,7 @@ describe("Peaks", () => {
 							},
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							const peaks = expectPresent(instance);
 							const waveformData = expectPresent(peaks.getWaveformData());
 							expect(peaks).to.be.an.instanceOf(Peaks);
@@ -545,7 +545,7 @@ describe("Peaks", () => {
 									},
 								},
 								(err, instance) => {
-									expect(err).to.equal(null);
+									expect(err).to.equal(undefined);
 									const peaks = expectPresent(instance);
 									const waveformData = expectPresent(peaks.getWaveformData());
 									expect(peaks).to.be.an.instanceOf(Peaks);
@@ -575,7 +575,7 @@ describe("Peaks", () => {
 							},
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							const peaks = expectPresent(instance);
 							const waveformData = expectPresent(peaks.getWaveformData());
 							expect(peaks).to.be.an.instanceOf(Peaks);
@@ -611,7 +611,7 @@ describe("Peaks", () => {
 									zoomLevels: [128, 256],
 								},
 								(err, instance) => {
-									expect(err).to.equal(null);
+									expect(err).to.equal(undefined);
 									const peaks = expectPresent(instance);
 									const waveformData = expectPresent(peaks.getWaveformData());
 									expect(peaks).to.be.an.instanceOf(Peaks);
@@ -641,7 +641,7 @@ describe("Peaks", () => {
 							player: externalPlayer,
 						},
 						(err, instance) => {
-							expect(err).to.equal(null);
+							expect(err).to.equal(undefined);
 							const peaks = expectPresent(instance);
 							expect(peaks).to.be.an.instanceOf(Peaks);
 							peaks.destroy();
@@ -719,7 +719,9 @@ describe("Peaks", () => {
 					(err, instance) => {
 						const error = expectPresent(err);
 						expect(error).to.be.an.instanceOf(Error);
-						expect(error.message).to.match(/Missing mediaElement option/);
+						expect(error.message).to.match(
+							/Provide one of: mediaElement, player, or audioContext/,
+						);
 						expect(instance).to.equal(undefined);
 						done();
 					},
@@ -1151,7 +1153,7 @@ describe("Peaks", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 
 				p = expectPresent(instance);
 
@@ -1413,7 +1415,7 @@ describe("Peaks", () => {
 					},
 				},
 				(err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 
 					setTimeout(() => {
 						expectPresent(instance).destroy();
@@ -1448,7 +1450,7 @@ describe("Peaks", () => {
 					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 				},
 				(err, peaks) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 
 					const instance = expectPresent(peaks);
 					instance.destroy();

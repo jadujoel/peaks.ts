@@ -18,12 +18,12 @@ import type {
 
 export function createSegmentMarker(
 	options: CreateSegmentMarkerOptions,
-): Marker | null {
+): Marker | undefined {
 	if (options.view === "zoomview") {
-		return new DefaultSegmentMarker(options);
+		return DefaultSegmentMarker.from({ options });
 	}
 
-	return null;
+	return undefined;
 }
 
 /**
@@ -55,5 +55,5 @@ export function createSegmentLabel(options: CreateSegmentLabelOptions): Shape {
  */
 
 export function createPointMarker(options: CreatePointMarkerOptions): Marker {
-	return new DefaultPointMarker(options);
+	return DefaultPointMarker.from({ options });
 }

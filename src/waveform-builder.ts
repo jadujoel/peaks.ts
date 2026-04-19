@@ -1,11 +1,11 @@
-import { WaveformData } from "waveform-data";
+import WaveformData from "waveform-data";
 import type { Logger, WaveformBuilderCallback, WebAudioOptions } from "./types";
 import { isArrayBuffer, isObject } from "./utils";
 
 export interface WaveformBuilderOptions {
-	readonly dataUri?: Record<string, string> | string | null;
-	readonly waveformData?: Record<string, unknown> | null;
-	readonly webAudio?: WebAudioOptions | null;
+	readonly dataUri?: Record<string, string> | string;
+	readonly waveformData?: Record<string, unknown>;
+	readonly webAudio?: WebAudioOptions;
 	readonly audioContext?: AudioContext;
 	readonly withCredentials?: boolean;
 	readonly zoomLevels?: readonly number[];
@@ -39,16 +39,26 @@ export function hasValidContentRangeHeader(xhr: XMLHttpRequest): boolean {
 
 export type WaveformBuilderPeaksLike = {
 	readonly options: {
-		mediaElement?: HTMLMediaElement | null;
+		mediaElement?: HTMLMediaElement;
 	};
 	readonly _logger?: Logger;
 	readonly once?: (eventName: string, listener: () => void) => void;
 };
 
-export class WaveformBuilder {
-	private _xhr: XMLHttpRequest | null = null;
+export interface WaveformBuilderFromOptions {
+	readonly peaks: WaveformBuilderPeaksLike;
+}
 
-	constructor(public peaks: WaveformBuilderPeaksLike) {
+export class WaveformBuilder {
+	public peaks: WaveformBuilderPeaksLike;
+	private _xhr: XMLHttpRequest | undefined = undefined;
+
+	static from(options: WaveformBuilderFromOptions): WaveformBuilder {
+		return new WaveformBuilder(options.peaks);
+	}
+
+	private constructor(peaks: WaveformBuilderPeaksLike) {
+		this.peaks = peaks;
 	}
 
 	init(
@@ -105,8 +115,8 @@ export class WaveformBuilder {
 	): void {
 		const self = this;
 
-		let dataUri: Record<string, string> | null = null;
-		let requestType: string | null = null;
+		let dataUri: Record<string, string> | undefined;
+		let requestType: string | undefined;
 		let url: string | undefined;
 
 		if (isObject(options.dataUri)) {
@@ -165,7 +175,7 @@ export class WaveformBuilder {
 					return;
 				}
 
-				self._xhr = null;
+				self._xhr = undefined;
 
 				const waveformData = WaveformData.create(this.response as ArrayBuffer);
 
@@ -185,7 +195,7 @@ export class WaveformBuilder {
 					return;
 				}
 
-				callback(null, waveformData);
+				callback(undefined, waveformData);
 			},
 			() => {
 				callback(new Error("XHR failed"), undefined);
@@ -202,8 +212,8 @@ export class WaveformBuilder {
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
-		let waveformData: Record<string, unknown> | null = null;
-		let data: unknown = null;
+		let waveformData: Record<string, unknown> | undefined;
+		let data: unknown;
 
 		if (isObject(options.waveformData)) {
 			waveformData = options.waveformData;
@@ -253,7 +263,7 @@ export class WaveformBuilder {
 				return;
 			}
 
-			callback(null, createdWaveformData);
+			callback(undefined, createdWaveformData);
 		} catch (err) {
 			callback(err instanceof Error ? err : new Error(String(err)), undefined);
 		}
@@ -363,12 +373,12 @@ export class WaveformBuilder {
 		}
 
 		WaveformData.createFromAudio(webAudioBuilderOptions, (err, data) => {
-			if (err != null) {
+			if (err) {
 				callback(err, undefined);
 				return;
 			}
 
-			callback(null, data);
+			callback(undefined, data);
 		});
 	}
 
@@ -410,7 +420,7 @@ export class WaveformBuilder {
 					return;
 				}
 
-				self._xhr = null;
+				self._xhr = undefined;
 
 				if (!webAudio.audioContext) {
 					callback(new Error("Missing audioContext"), undefined);
@@ -433,8 +443,8 @@ export class WaveformBuilder {
 				}
 
 				WaveformData.createFromAudio(webAudioBuilderOptions, (err, data) => {
-					if (err == null) {
-						callback(null, data);
+					if (!err) {
+						callback(undefined, data);
 						return;
 					}
 

@@ -42,22 +42,30 @@ export function ensureWorkletModule(
 	return promise;
 }
 
+export interface ClipNodePlayerFromOptions {
+	readonly options: ClipNodePlayerOptions;
+}
+
 export class ClipNodePlayer implements PlayerAdapter {
 	private readonly _audioContext: AudioContext;
 	private readonly _processorUrl: string | undefined;
-	private _eventEmitter: PeaksInstance | null;
-	private _node: ClipNode | null;
+	private _eventEmitter: PeaksInstance | undefined;
+	private _node: ClipNode | undefined;
 	private _audioBuffer: AudioBuffer | undefined;
 	private _url: string | undefined;
 	private _duration: number;
 
-	constructor(options: ClipNodePlayerOptions) {
+	static from(options: ClipNodePlayerFromOptions): ClipNodePlayer {
+		return new ClipNodePlayer(options.options);
+	}
+
+	private constructor(options: ClipNodePlayerOptions) {
 		this._audioContext = options.audioContext;
 		this._audioBuffer = options.audioBuffer;
 		this._url = options.url;
 		this._processorUrl = options.processorUrl;
-		this._eventEmitter = null;
-		this._node = null;
+		this._eventEmitter = undefined;
+		this._node = undefined;
 		this._duration = options.audioBuffer?.duration ?? 0;
 	}
 
@@ -69,7 +77,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 
 	destroy(): void {
 		this._disposeNode();
-		this._eventEmitter = null;
+		this._eventEmitter = undefined;
 	}
 
 	play(): Promise<void> {
@@ -246,6 +254,6 @@ export class ClipNodePlayer implements PlayerAdapter {
 			// already disconnected
 		}
 		this._node.dispose();
-		this._node = null;
+		this._node = undefined;
 	}
 }

@@ -14,17 +14,17 @@ interface TimeRange {
 	endTime: number;
 }
 
-interface WaveformShapeConstructorOptions {
-	color: WaveformColor;
-	view: WaveformViewAPI;
-	segment?: TimeRange;
+export interface WaveformShapeFromOptions {
+	readonly color: WaveformColor;
+	readonly view: WaveformViewAPI;
+	readonly segment?: TimeRange;
 }
 
 /**
  * Creates a Konva.Shape object that renders a waveform image.
  */
 
-class WaveformShape {
+export class WaveformShape {
 	private _color: WaveformColor;
 	private _shape: Shape;
 	private _view: WaveformViewAPI;
@@ -35,7 +35,11 @@ class WaveformShape {
 	 *
 	 * @throws {TypeError} If the provided color is neither a string nor a valid linear gradient.
 	 */
-	constructor(options: WaveformShapeConstructorOptions) {
+	static from(options: WaveformShapeFromOptions): WaveformShape {
+		return new WaveformShape(options);
+	}
+
+	private constructor(options: WaveformShapeFromOptions) {
 		this._color = options.color;
 
 		const shapeOptions: ShapeConfig = {};

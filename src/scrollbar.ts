@@ -14,11 +14,16 @@ import type WaveformZoomView from "./waveform-zoomview";
  * @throws {Error} If scrollbar display options are missing from the Peaks configuration.
  */
 
+export interface ScrollbarFromOptions {
+	readonly container: HTMLDivElement;
+	readonly peaks: PeaksInstance;
+}
+
 export class Scrollbar {
 	private _container: HTMLDivElement;
 	private _peaks: PeaksInstance;
 	private _options: ScrollbarDisplayOptions;
-	private _zoomview: WaveformZoomView | null;
+	private _zoomview: WaveformZoomView | undefined;
 	private _width: number;
 	private _height: number;
 	private _stage: Stage;
@@ -32,7 +37,11 @@ export class Scrollbar {
 	private _scrollboxWidth!: number;
 	private _dragging!: boolean;
 
-	constructor(container: HTMLDivElement, peaks: PeaksInstance) {
+	static from(options: ScrollbarFromOptions): Scrollbar {
+		return new Scrollbar(options.container, options.peaks);
+	}
+
+	private constructor(container: HTMLDivElement, peaks: PeaksInstance) {
 		this._container = container;
 		this._peaks = peaks;
 
@@ -43,7 +52,9 @@ export class Scrollbar {
 		}
 
 		this._options = scrollbarOptions;
-		this._zoomview = peaks.views.getView("zoomview") as WaveformZoomView | null;
+		this._zoomview = peaks.views.getView("zoomview") as
+			| WaveformZoomView
+			| undefined;
 
 		this._peaks.on("zoomview.update", this._onZoomviewUpdate);
 
@@ -92,7 +103,7 @@ export class Scrollbar {
 		this._updateScrollbarWidthAndPosition();
 	}
 
-	setZoomview(zoomview: WaveformZoomView | null): void {
+	setZoomview(zoomview: WaveformZoomView | undefined): void {
 		this._zoomview = zoomview;
 
 		this._updateScrollbarWidthAndPosition();

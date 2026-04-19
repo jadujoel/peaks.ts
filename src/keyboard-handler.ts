@@ -7,11 +7,19 @@ export const TAB = 9;
 export const LEFT_ARROW = 37;
 export const RIGHT_ARROW = 39;
 
+export interface KeyboardHandlerFromOptions {
+	readonly eventEmitter: PeaksInstance;
+}
+
 export class KeyboardHandler {
 	private eventEmitter: PeaksInstance;
 	private _handleKeyEvent: (event: KeyboardEvent) => void;
 
-	constructor(eventEmitter: PeaksInstance) {
+	static from(options: KeyboardHandlerFromOptions): KeyboardHandler {
+		return new KeyboardHandler(options.eventEmitter);
+	}
+
+	private constructor(eventEmitter: PeaksInstance) {
 		this.eventEmitter = eventEmitter;
 
 		this._handleKeyEvent = this._onKeyEvent.bind(this);

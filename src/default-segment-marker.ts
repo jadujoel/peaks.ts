@@ -4,6 +4,10 @@ import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
+export interface DefaultSegmentMarkerFromOptions {
+	readonly options: CreateSegmentMarkerOptions;
+}
+
 export class DefaultSegmentMarker {
 	private _options: CreateSegmentMarkerOptions;
 	private _editable: boolean;
@@ -11,7 +15,11 @@ export class DefaultSegmentMarker {
 	private _handle!: Rect;
 	private _line!: Line;
 
-	constructor(options: CreateSegmentMarkerOptions) {
+	static from(options: DefaultSegmentMarkerFromOptions): DefaultSegmentMarker {
+		return new DefaultSegmentMarker(options.options);
+	}
+
+	private constructor(options: CreateSegmentMarkerOptions) {
 		this._options = options;
 		this._editable = options.editable ?? false;
 	}
@@ -23,11 +31,10 @@ export class DefaultSegmentMarker {
 
 		const xPosition = this._options.startMarker ? -24 : 24;
 
-		const time = (
-			this._options.startMarker
+		const time =
+			(this._options.startMarker
 				? this._options.segment?.startTime
-				: this._options.segment?.endTime
-		) ?? 0
+				: this._options.segment?.endTime) ?? 0;
 		// Label - create with default y, the real value is set in fitToView().
 		this._label = new Text({
 			x: xPosition,

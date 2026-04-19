@@ -2,6 +2,14 @@ import { MouseDragHandler } from "./mouse-drag-handler";
 import type { PeaksInstance, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
 
+export interface SeekMouseDragHandlerFromOptions {
+	readonly peaks: PeaksInstance;
+	readonly view: WaveformViewAPI & {
+		_stage: import("konva/lib/Stage").Stage;
+		dragSeek(dragging: boolean): void;
+	};
+}
+
 export class SeekMouseDragHandler {
 	private _peaks: PeaksInstance;
 	private _view: WaveformViewAPI & {
@@ -12,7 +20,14 @@ export class SeekMouseDragHandler {
 	private _width!: number;
 	private _mouseDragHandler: MouseDragHandler;
 
-	constructor(peaks: PeaksInstance, view: SeekMouseDragHandler["_view"]) {
+	static from(options: SeekMouseDragHandlerFromOptions): SeekMouseDragHandler {
+		return new SeekMouseDragHandler(options.peaks, options.view);
+	}
+
+	private constructor(
+		peaks: PeaksInstance,
+		view: SeekMouseDragHandler["_view"],
+	) {
 		this._peaks = peaks;
 		this._view = view;
 		this._firstMove = false;
@@ -21,10 +36,13 @@ export class SeekMouseDragHandler {
 		this._onMouseMove = this._onMouseMove.bind(this);
 		this._onMouseUp = this._onMouseUp.bind(this);
 
-		this._mouseDragHandler = new MouseDragHandler(view._stage, {
-			onMouseDown: this._onMouseDown,
-			onMouseMove: this._onMouseMove,
-			onMouseUp: this._onMouseUp,
+		this._mouseDragHandler = MouseDragHandler.from({
+			stage: view._stage,
+			handlers: {
+				onMouseDown: this._onMouseDown,
+				onMouseMove: this._onMouseMove,
+				onMouseUp: this._onMouseUp,
+			},
 		});
 	}
 

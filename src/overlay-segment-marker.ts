@@ -3,12 +3,20 @@ import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
-class OverlaySegmentMarker {
+export interface OverlaySegmentMarkerFromOptions {
+	readonly options: CreateSegmentMarkerOptions;
+}
+
+export class OverlaySegmentMarker {
 	private _options: CreateSegmentMarkerOptions;
 	private _label!: Text;
 	private _handle!: Rect;
 
-	constructor(options: CreateSegmentMarkerOptions) {
+	static from(options: OverlaySegmentMarkerFromOptions): OverlaySegmentMarker {
+		return new OverlaySegmentMarker(options.options);
+	}
+
+	private constructor(options: CreateSegmentMarkerOptions) {
 		this._options = options;
 	}
 
@@ -105,4 +113,3 @@ class OverlaySegmentMarker {
 		}
 	}
 }
-

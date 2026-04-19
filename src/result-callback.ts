@@ -1,5 +1,5 @@
 export type OkCallbackParameters<_TError = Error, TData = unknown> = [
-	error: null | undefined,
+	error: undefined,
 	data: TData,
 ];
 

@@ -18,12 +18,14 @@ import type {
 	SegmentMarkerAPI,
 	SegmentsLayerAPI,
 	WaveformViewAPI,
-    XY,
+	XY,
 } from "./types";
-import WaveformShape from "./waveform-shape";
+import { WaveformShape } from "./waveform-shape";
 
-export function createOverlayMarker(options: CreateSegmentMarkerOptions): Marker {
-	return new OverlaySegmentMarker(options);
+export function createOverlayMarker(
+	options: CreateSegmentMarkerOptions,
+): Marker {
+	return OverlaySegmentMarker.from({ options });
 }
 
 export function getDuration(segment: Segment): number {
@@ -35,16 +37,23 @@ export type OnSegmentMarker = (
 	event: KonvaMouseEvent,
 ) => void;
 
-export type OnSegmentMove = (event: KonvaEventObject<MouseEvent>) => void
+export type OnSegmentMove = (event: KonvaEventObject<MouseEvent>) => void;
+
+export interface SegmentShapeFromOptions {
+	readonly segment: Segment;
+	readonly peaks: PeaksInstance;
+	readonly layer: SegmentsLayerAPI;
+	readonly view: WaveformViewAPI;
+}
 
 export class SegmentShape {
 	private _segment: Segment;
 	private _peaks: PeaksInstance;
 	private _layer: SegmentsLayerAPI;
 	private _view: WaveformViewAPI;
-	private _label: Shape | null;
-	private _startMarker: SegmentMarker | null;
-	private _endMarker: SegmentMarker | null;
+	private _label: Shape | undefined;
+	private _startMarker: SegmentMarker | undefined;
+	private _endMarker: SegmentMarker | undefined;
 	private _color: string | undefined;
 	private _borderColor: string | undefined;
 	private _draggable: boolean;
@@ -53,33 +62,40 @@ export class SegmentShape {
 	private _waveformShape: WaveformShape | undefined;
 	private _overlay!: Group;
 	private _overlayRect!: Rect;
-	private _overlayText: Text | null = null;
+	private _overlayText: Text | undefined;
 	private _nextSegment: Segment | undefined = undefined;
 	private _previousSegment: Segment | undefined = undefined;
 	private _dragStartX = 0;
 	private _dragStartTime = 0;
 	private _dragEndTime = 0;
-	private _startMarkerX = 0;
-	private _endMarkerX = 0;
 
-	private _onMouseEnter: OnSegmentMove
-	private _onMouseLeave: OnSegmentMove
-	private _onMouseDown: OnSegmentMove
-	private _onMouseUp: OnSegmentMove
+	private _onMouseEnter: OnSegmentMove;
+	private _onMouseLeave: OnSegmentMove;
+	private _onMouseDown: OnSegmentMove;
+	private _onMouseUp: OnSegmentMove;
 	private _dragBoundFunc: (pos: XY) => XY;
-	private _onSegmentDragStart: OnSegmentMove
-	private _onSegmentDragMove: OnSegmentMove
-	private _onSegmentDragEnd: OnSegmentMove
-	private _onSegmentMarkerClick: OnSegmentMarker
-	private _onSegmentMarkerDragStart: OnSegmentMarker
-	private _onSegmentMarkerDragMove: OnSegmentMarker
-	private _onSegmentMarkerDragEnd: OnSegmentMarker
+	private _onSegmentDragStart: OnSegmentMove;
+	private _onSegmentDragMove: OnSegmentMove;
+	private _onSegmentDragEnd: OnSegmentMove;
+	private _onSegmentMarkerClick: OnSegmentMarker;
+	private _onSegmentMarkerDragStart: OnSegmentMarker;
+	private _onSegmentMarkerDragMove: OnSegmentMarker;
+	private _onSegmentMarkerDragEnd: OnSegmentMarker;
 	private _segmentMarkerDragBoundFunc: (
 		marker: SegmentMarkerAPI,
 		pos: XY,
 	) => XY;
 
-	constructor(
+	static from(options: SegmentShapeFromOptions): SegmentShape {
+		return new SegmentShape(
+			options.segment,
+			options.peaks,
+			options.layer,
+			options.view,
+		);
+	}
+
+	private constructor(
 		segment: Segment,
 		peaks: PeaksInstance,
 		layer: SegmentsLayerAPI,
@@ -89,9 +105,9 @@ export class SegmentShape {
 		this._peaks = peaks;
 		this._layer = layer;
 		this._view = view;
-		this._label = null;
-		this._startMarker = null;
-		this._endMarker = null;
+		this._label = undefined;
+		this._startMarker = undefined;
+		this._endMarker = undefined;
 		this._color = segment.color;
 		this._borderColor = segment.borderColor;
 		this._draggable =
@@ -104,7 +120,7 @@ export class SegmentShape {
 		this._overlayOffset = segmentOptions.overlayOffset;
 
 		if (!segment.overlay) {
-			this._waveformShape = new WaveformShape({
+			this._waveformShape = WaveformShape.from({
 				color: segment.color,
 				view: view,
 				segment: segment,
@@ -259,10 +275,10 @@ export class SegmentShape {
 		const segmentOptions = viewOptions.segmentOptions;
 
 		let createSegmentMarkerFn:
-			| ((options: CreateSegmentMarkerOptions) => Marker | null)
-			| null = null;
-		let startMarker: Marker | null = null;
-		let endMarker: Marker | null = null;
+			| ((options: CreateSegmentMarkerOptions) => Marker | undefined)
+			| undefined;
+		let startMarker: Marker | undefined;
+		let endMarker: Marker | undefined;
 
 		if (this._segment.markers) {
 			createSegmentMarkerFn = this._peaks.options.createSegmentMarker;
@@ -286,17 +302,19 @@ export class SegmentShape {
 		}
 
 		if (startMarker) {
-			this._startMarker = new SegmentMarker({
-				segment: this._segment,
-				segmentShape: this,
-				editable: editable,
-				startMarker: true,
-				marker: startMarker,
-				onClick: this._onSegmentMarkerClick,
-				onDragStart: this._onSegmentMarkerDragStart,
-				onDragMove: this._onSegmentMarkerDragMove,
-				onDragEnd: this._onSegmentMarkerDragEnd,
-				dragBoundFunc: this._segmentMarkerDragBoundFunc,
+			this._startMarker = SegmentMarker.from({
+				options: {
+					segment: this._segment,
+					segmentShape: this,
+					editable: editable,
+					startMarker: true,
+					marker: startMarker,
+					onClick: this._onSegmentMarkerClick,
+					onDragStart: this._onSegmentMarkerDragStart,
+					onDragMove: this._onSegmentMarkerDragMove,
+					onDragEnd: this._onSegmentMarkerDragEnd,
+					dragBoundFunc: this._segmentMarkerDragBoundFunc,
+				},
 			});
 		}
 
@@ -316,17 +334,19 @@ export class SegmentShape {
 		}
 
 		if (endMarker) {
-			this._endMarker = new SegmentMarker({
-				segment: this._segment,
-				segmentShape: this,
-				editable: editable,
-				startMarker: false,
-				marker: endMarker,
-				onClick: this._onSegmentMarkerClick,
-				onDragStart: this._onSegmentMarkerDragStart,
-				onDragMove: this._onSegmentMarkerDragMove,
-				onDragEnd: this._onSegmentMarkerDragEnd,
-				dragBoundFunc: this._segmentMarkerDragBoundFunc,
+			this._endMarker = SegmentMarker.from({
+				options: {
+					segment: this._segment,
+					segmentShape: this,
+					editable: editable,
+					startMarker: false,
+					marker: endMarker,
+					onClick: this._onSegmentMarkerClick,
+					onDragStart: this._onSegmentMarkerDragStart,
+					onDragMove: this._onSegmentMarkerDragMove,
+					onDragEnd: this._onSegmentMarkerDragEnd,
+					dragBoundFunc: this._segmentMarkerDragBoundFunc,
+				},
 			});
 		}
 	}
@@ -1024,10 +1044,7 @@ export class SegmentShape {
 		});
 	}
 
-	#segmentMarkerDragBoundFunc(
-		segmentMarker: SegmentMarkerAPI,
-		pos: XY,
-	) {
+	#segmentMarkerDragBoundFunc(segmentMarker: SegmentMarkerAPI, pos: XY) {
 		// Allow the marker to be moved horizontally but not vertically.
 		return {
 			x: pos.x,

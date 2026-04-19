@@ -17,8 +17,14 @@ export type PointPeaksLike = {
 	readonly points?: Pick<PeaksInstance["points"], "updatePointId">;
 };
 
-
-export const pointOptions = ["id", "pid", "time", "labelText", "color", "editable"] as const;
+export const pointOptions = [
+	"id",
+	"pid",
+	"time",
+	"labelText",
+	"color",
+	"editable",
+] as const;
 
 export const invalidOptions = ["update", "isVisible", "peaks", "pid"] as const;
 
@@ -87,17 +93,23 @@ export function validatePointOptions(
 		);
 	}
 
-	invalidOptions.forEach((name) => {
+	for (const name of invalidOptions) {
 		if (objectHasProperty(options, name)) {
 			throw new Error(`peaks.points.${context}: invalid option name: ${name}`);
 		}
-	});
+	}
 
-	pointOptions.forEach((name) => {
+	for (const name of pointOptions) {
 		if (objectHasProperty(options, `_${name}`)) {
 			throw new Error(`peaks.points.${context}: invalid option name: _${name}`);
 		}
-	});
+	}
+}
+
+export interface PointFromOptions {
+	readonly peaks: PointPeaksLike;
+	readonly pid: number;
+	readonly options: PointOptions;
 }
 
 export class Point {
@@ -111,7 +123,15 @@ export class Point {
 	private _color!: string;
 	private _editable!: boolean;
 
-	constructor(peaks: PointPeaksLike, pid: number, options: PointOptions) {
+	static from(options: PointFromOptions): Point {
+		return new Point(options.peaks, options.pid, options.options);
+	}
+
+	private constructor(
+		peaks: PointPeaksLike,
+		pid: number,
+		options: PointOptions,
+	) {
 		this._peaks = peaks;
 		this._pid = pid;
 		this._setUserData(options);

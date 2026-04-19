@@ -1,3 +1,9 @@
+export interface CueFromOptions {
+	readonly time: number;
+	readonly type: number;
+	readonly id: string;
+}
+
 export class Cue {
 	static readonly POINT = 0;
 	static readonly SEGMENT_START = 1;
@@ -7,7 +13,11 @@ export class Cue {
 		return a.time - b.time;
 	}
 
-	constructor(
+	static from(options: CueFromOptions): Cue {
+		return new Cue(options.time, options.type, options.id);
+	}
+
+	private constructor(
 		public time: number,
 		public type: number,
 		public id: string,

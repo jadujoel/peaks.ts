@@ -1,4 +1,4 @@
-import Cue from "./cue";
+import { Cue } from "./cue";
 import type { Point } from "./point";
 import type { Segment } from "./segment";
 import type { PeaksInstance } from "./types";
@@ -105,14 +105,22 @@ const events = [
  * CueEmitter is responsible for emitting `points.enter`,
  * `segments.enter`, and `segments.exit` events.
  */
+export interface CueEmitterFromOptions {
+	readonly peaks: PeaksInstance;
+}
+
 export class CueEmitter {
 	private _cues: Cue[];
 	private _peaks: PeaksInstance;
 	private _previousTime: number;
-	private _rAFHandle: number | null;
+	private _rAFHandle: number | undefined;
 	private _activeSegments: Record<string, Segment>;
 
-	constructor(peaks: PeaksInstance) {
+	static from(options: CueEmitterFromOptions): CueEmitter {
+		return new CueEmitter(options.peaks);
+	}
+
+	private constructor(peaks: PeaksInstance) {
 		this._cues = [];
 		this._peaks = peaks;
 		this._previousTime = -1;
@@ -121,7 +129,7 @@ export class CueEmitter {
 		this._onSeeked = this._onSeeked.bind(this);
 		this._onTimeUpdate = this._onTimeUpdate.bind(this);
 		this._onAnimationFrame = this._onAnimationFrame.bind(this);
-		this._rAFHandle = null;
+		this._rAFHandle = undefined;
 		this._activeSegments = {};
 		this._attachEventHandlers();
 	}
@@ -135,16 +143,28 @@ export class CueEmitter {
 
 		this._cues.length = 0;
 
-		points.forEach((point: Point) => {
-			this._cues.push(new Cue(point.time, Cue.POINT, point.id));
-		});
-
-		segments.forEach((segment: Segment) => {
+		for (const point of points) {
 			this._cues.push(
-				new Cue(segment.startTime, Cue.SEGMENT_START, segment.id),
+				Cue.from({ time: point.time, type: Cue.POINT, id: point.id }),
 			);
-			this._cues.push(new Cue(segment.endTime, Cue.SEGMENT_END, segment.id));
-		});
+		}
+
+		for (const segment of segments) {
+			this._cues.push(
+				Cue.from({
+					time: segment.startTime,
+					type: Cue.SEGMENT_START,
+					id: segment.id,
+				}),
+			);
+			this._cues.push(
+				Cue.from({
+					time: segment.endTime,
+					type: Cue.SEGMENT_END,
+					id: segment.id,
+				}),
+			);
+		}
 
 		this._cues.sort(Cue.sorter);
 
@@ -290,7 +310,7 @@ export class CueEmitter {
 
 		// Add new active segments.
 
-		activeSegments.forEach((segment: Segment) => {
+		for (const segment of activeSegments) {
 			if (!(segment.id in this._activeSegments)) {
 				this._activeSegments[segment.id] = segment;
 
@@ -299,7 +319,7 @@ export class CueEmitter {
 					time: time,
 				});
 			}
-		});
+		}
 	}
 
 	private _attachEventHandlers(): void {
@@ -327,7 +347,7 @@ export class CueEmitter {
 	destroy(): void {
 		if (this._rAFHandle) {
 			cancelAnimationFrame(this._rAFHandle);
-			this._rAFHandle = null;
+			this._rAFHandle = undefined;
 		}
 
 		this._detachEventHandlers();

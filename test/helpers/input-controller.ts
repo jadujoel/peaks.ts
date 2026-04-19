@@ -9,7 +9,7 @@
 export interface MousePosition {
 	readonly x: number;
 	readonly y: number;
-};
+}
 
 export const keyCodes = {
 	Tab: 9,

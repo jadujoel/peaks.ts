@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import WaveformData from "waveform-data";
 import type { WaveformBuilderCallback } from "../src/types";
-import WaveformBuilder from "../src/waveform-builder";
+import { WaveformBuilder } from "../src/waveform-builder";
 import sampleJsonData from "./data/sample.json";
 
 const TestAudioContext = window.AudioContext;
@@ -16,7 +16,7 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
@@ -35,7 +35,7 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
@@ -55,7 +55,7 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.be.an.instanceof(Error);
@@ -76,12 +76,12 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 				const url = createXHR.getCall(0).args[0];
@@ -102,12 +102,12 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 				const url = createXHR.getCall(0).args[0];
@@ -128,12 +128,12 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 				const xhr = createXHR.getCall(0).returnValue;
@@ -155,12 +155,12 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 				const xhr = createXHR.getCall(0).returnValue;
@@ -182,12 +182,12 @@ describe("WaveformBuilder", () => {
 					},
 				};
 
-				const waveformBuilder = new WaveformBuilder(peaks);
+				const waveformBuilder = WaveformBuilder.from({ peaks });
 
 				const createXHR = sinon.spy(waveformBuilder, "_createXHR");
 
 				waveformBuilder.init(peaks.options, (err, waveformData) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 					const url = createXHR.getCall(0).args[0];
@@ -209,7 +209,7 @@ describe("WaveformBuilder", () => {
 					},
 				};
 
-				const waveformBuilder = new WaveformBuilder(peaks);
+				const waveformBuilder = WaveformBuilder.from({ peaks });
 
 				waveformBuilder.init(peaks.options, (err, waveformData) => {
 					expect(err).to.be.an.instanceOf(Error);
@@ -230,7 +230,7 @@ describe("WaveformBuilder", () => {
 					},
 				};
 
-				const waveformBuilder = new WaveformBuilder(peaks);
+				const waveformBuilder = WaveformBuilder.from({ peaks });
 
 				waveformBuilder.init(peaks.options, (err, waveformData) => {
 					expect(err).to.be.an.instanceOf(Error);
@@ -250,10 +250,10 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 				done();
 			});
@@ -269,7 +269,7 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
@@ -289,12 +289,12 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 				const url = createXHR.getCall(0).args[0];
@@ -318,7 +318,7 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
@@ -341,10 +341,10 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 				done();
 			});
@@ -362,7 +362,7 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			const callback: WaveformBuilderCallback = (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
@@ -386,7 +386,7 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			const callback: WaveformBuilderCallback = (err, waveformData) => {
 				expect(err).to.be.an.instanceOf(Error);
@@ -408,11 +408,11 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 			waveformBuilder.abort();
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 				done();
@@ -429,12 +429,12 @@ describe("WaveformBuilder", () => {
 				},
 			};
 
-			const waveformBuilder = new WaveformBuilder(peaks);
+			const waveformBuilder = WaveformBuilder.from({ peaks });
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				waveformBuilder.abort();
 
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
 				done();

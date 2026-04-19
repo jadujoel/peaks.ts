@@ -10,6 +10,10 @@ import { extend, isNullOrUndefined, objectHasProperty } from "./utils";
  * Handles all functionality related to the adding, removing and manipulation
  * of segments.
  */
+export interface WaveformSegmentsFromOptions {
+	readonly peaks: PeaksInstance;
+}
+
 export class WaveformSegments {
 	private _peaks: PeaksInstance;
 	private _segments: Segment[];
@@ -19,7 +23,11 @@ export class WaveformSegments {
 	private _segmentPid: number;
 	private _isInserting: boolean;
 
-	constructor(peaks: PeaksInstance) {
+	static from(options: WaveformSegmentsFromOptions): WaveformSegments {
+		return new WaveformSegments(options.peaks);
+	}
+
+	private constructor(peaks: PeaksInstance) {
 		this._peaks = peaks;
 		this._segments = [];
 		this._segmentsById = {};
@@ -69,7 +77,11 @@ export class WaveformSegments {
 
 		validateSegmentOptions(segmentOptions, false);
 
-		return new Segment(this._peaks, pid, segmentOptions);
+		return Segment.from({
+			peaks: this._peaks,
+			pid,
+			options: segmentOptions,
+		});
 	}
 
 	getSegments(): Segment[] {
@@ -153,9 +165,9 @@ export class WaveformSegments {
 			return segment;
 		});
 
-		created.forEach((segment: Segment) => {
+		for (const segment of created) {
 			this._addSegment(segment);
-		});
+		}
 
 		this._peaks.emit("segments.add", {
 			segments: created,

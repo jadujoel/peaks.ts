@@ -132,13 +132,19 @@ export interface PeaksOptions {
 	readonly webAudio?: WebAudioOptions;
 	readonly nudgeIncrement?: number;
 	readonly pointMarkerColor?: string;
-	readonly createSegmentMarker?: (options: CreateSegmentMarkerOptions) => Marker | undefined;
-	readonly createSegmentLabel?: (options: CreateSegmentLabelOptions) => Shape | undefined;
-	readonly createPointMarker?: (options: CreatePointMarkerOptions) => Marker | undefined;
+	readonly createSegmentMarker?: (
+		options: CreateSegmentMarkerOptions,
+	) => Marker | undefined;
+	readonly createSegmentLabel?: (
+		options: CreateSegmentLabelOptions,
+	) => Shape | undefined;
+	readonly createPointMarker?: (
+		options: CreatePointMarkerOptions,
+	) => Marker | undefined;
 	readonly logger?: Logger;
 	readonly overview?: OverviewOptions;
 	readonly zoomview?: ZoomviewOptions;
-	readonly scrollbar?: ScrollbarDisplayOptions | null;
+	readonly scrollbar?: ScrollbarDisplayOptions;
 	readonly segmentOptions?: SegmentDisplayOptions;
 	readonly player?: PlayerAdapter;
 }
@@ -164,12 +170,16 @@ export interface PeaksInitOptions {
 	readonly audioContext?: AudioContext;
 	readonly nudgeIncrement?: number;
 	readonly pointMarkerColor?: string;
-	readonly createSegmentMarker?: (options: CreateSegmentMarkerOptions) => Marker | undefined;
-	readonly createSegmentLabel?: (options: CreateSegmentLabelOptions) => Shape | undefined;
+	readonly createSegmentMarker?: (
+		options: CreateSegmentMarkerOptions,
+	) => Marker | undefined;
+	readonly createSegmentLabel?: (
+		options: CreateSegmentLabelOptions,
+	) => Shape | undefined;
 	readonly createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
 	readonly logger?: Logger;
-	readonly overview?: OverviewOptions
-	readonly zoomview?: ZoomviewOptions
+	readonly overview?: OverviewOptions;
+	readonly zoomview?: ZoomviewOptions;
 	readonly scrollbar?: ScrollbarDisplayOptions;
 	readonly segmentOptions?: SegmentDisplayOptions;
 	readonly keyboard?: boolean;
@@ -287,7 +297,7 @@ export interface WaveformViewAPI {
 	pixelsToTime(pixels: number): number;
 	pixelOffsetToTime(offset: number): number;
 	formatTime(time: number): string;
-	getWaveformData(): WaveformData | null;
+	getWaveformData(): WaveformData | undefined;
 	isSegmentDraggingEnabled(): boolean;
 	isSeekEnabled(): boolean;
 	getMinSegmentDragWidth(): number;
@@ -306,7 +316,7 @@ export interface PeaksInstance extends EventEmitter {
 	readonly points: PointsInstance;
 	readonly zoom: ZoomInstance;
 	readonly views: ViewControllerInstance;
-	getWaveformData(): WaveformData | null;
+	getWaveformData(): WaveformData | undefined;
 }
 
 // Lightweight interface for Player (to avoid circular imports)
@@ -369,7 +379,7 @@ export interface ViewControllerInstance {
 	destroyOverview(): void;
 	destroyZoomview(): void;
 	destroy(): void;
-	getView(name?: string): WaveformViewLike | null;
+	getView(name?: string): WaveformViewLike | undefined;
 	getScrollbar(): unknown;
 }
 
@@ -393,7 +403,7 @@ export interface SetSourceOptions {
 
 // ─── Mouse drag handler interfaces ─────────────────────────────────
 export interface MouseDragHandlers {
-	onMouseDown?: (mousePosX: number, segment: Group | null) => void;
+	onMouseDown?: (mousePosX: number, segment: Group | undefined) => void;
 	onMouseMove?: (mousePosX: number) => void;
 	onMouseUp?: (mousePosX: number) => void;
 }
@@ -406,7 +416,7 @@ export type WaveformBuilderCallback = ResultCallback<
 
 export interface XY {
 	readonly x: number;
-	readonly y: number
+	readonly y: number;
 }
 
 // ─── Segment Shape interfaces ──────────────────────────────────────
@@ -420,10 +430,7 @@ export interface SegmentMarkerOptions {
 	onDragStart: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
 	onDragMove: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
 	onDragEnd: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
-	dragBoundFunc: (
-		marker: SegmentMarkerAPI,
-		pos: XY,
-	) => XY;
+	dragBoundFunc: (marker: SegmentMarkerAPI, pos: XY) => XY;
 }
 
 export interface SegmentMarkerAPI {
@@ -443,8 +450,8 @@ export interface SegmentMarkerAPI {
 
 export interface SegmentShapeAPI {
 	getSegment(): Segment;
-	getStartMarker(): SegmentMarkerAPI | null;
-	getEndMarker(): SegmentMarkerAPI | null;
+	getStartMarker(): SegmentMarkerAPI | undefined;
+	getEndMarker(): SegmentMarkerAPI | undefined;
 	isDragging(): boolean;
 	moveMarkersToTop(): void;
 	startDrag(): void;

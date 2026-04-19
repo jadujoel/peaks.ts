@@ -1,15 +1,15 @@
 import EventEmitter from "eventemitter3";
 import type WaveformData from "waveform-data";
 import { ClipNodePlayer, type ClipNodePlayerOptions } from "./clip-node-player";
-import CueEmitter from "./cue-emitter";
-import KeyboardHandler from "./keyboard-handler";
+import { CueEmitter } from "./cue-emitter";
+import { KeyboardHandler } from "./keyboard-handler";
 import {
 	createPointMarker,
 	createSegmentLabel,
 	createSegmentMarker,
 } from "./marker-factories";
-import MediaElementPlayer from "./mediaelement-player";
-import Player from "./player";
+import { MediaElementPlayer } from "./mediaelement-player";
+import { Player } from "./player";
 import type {
 	Logger,
 	OverviewOptions,
@@ -20,7 +20,7 @@ import type {
 	ScrollbarDisplayOptions,
 	SegmentDisplayOptions,
 	SetSourceOptions,
-    ViewOptions,
+	ViewOptions,
 } from "./types";
 import {
 	extend,
@@ -30,11 +30,11 @@ import {
 	isObject,
 	objectHasProperty,
 } from "./utils";
-import ViewController from "./view-controller";
-import WaveformBuilder from "./waveform-builder";
-import WaveformPoints from "./waveform-points";
-import WaveformSegments from "./waveform-segments";
-import ZoomController from "./zoom-controller";
+import { ViewController } from "./view-controller";
+import { WaveformBuilder } from "./waveform-builder";
+import { WaveformPoints } from "./waveform-points";
+import { WaveformSegments } from "./waveform-segments";
+import { ZoomController } from "./zoom-controller";
 
 export const defaultViewOptions = {
 	playheadColor: "#111111",
@@ -67,7 +67,7 @@ export const defaultZoomviewOptions = {
 } as const;
 defaultZoomviewOptions satisfies Partial<ViewOptions>;
 
-const defaultOverviewOptions ={
+const defaultOverviewOptions = {
 	// showPlayheadTime:    false,
 	waveformColor: "rgba(0, 0, 0, 0.2)",
 	highlightColor: "#aaaaaa",
@@ -144,7 +144,7 @@ export function getOverviewOptions(options: PeaksInitOptions) {
 		"enableEditing",
 	];
 
-	optNames.forEach((optName) => {
+	for (const optName of optNames) {
 		if (options.overview && objectHasProperty(options.overview, optName)) {
 			overviewOptions[optName] = options.overview[optName];
 		} else if (objectHasProperty(options, optName)) {
@@ -156,7 +156,7 @@ export function getOverviewOptions(options: PeaksInitOptions) {
 				overviewOptions[optName] = defaultViewOptions[optName];
 			}
 		}
-	});
+	}
 
 	return overviewOptions;
 }
@@ -199,7 +199,7 @@ export function getZoomviewOptions(opts: PeaksInitOptions) {
 		"enableEditing",
 	] as const;
 
-	optNames.forEach((optName) => {
+	for (const optName of optNames) {
 		if (opts.zoomview && objectHasProperty(opts.zoomview, optName)) {
 			zoomviewOptions[optName] = opts.zoomview[optName];
 		} else if (objectHasProperty(opts, optName)) {
@@ -211,7 +211,7 @@ export function getZoomviewOptions(opts: PeaksInitOptions) {
 				zoomviewOptions[optName] = defaultViewOptions[optName];
 			}
 		}
-	});
+	}
 
 	return zoomviewOptions;
 }
@@ -220,20 +220,20 @@ function getScrollbarOptions(opts: PeaksInitOptions) {
 	const scrollbar = opts.scrollbar;
 
 	if (!scrollbar) {
-		return null;
+		return undefined;
 	}
 
 	const scrollbarOptions: Record<string, unknown> = {};
 
 	const optNames = ["container", "color", "minWidth"] as const;
 
-	optNames.forEach((key) => {
+	for (const key of optNames) {
 		if (objectHasProperty(scrollbar, key)) {
 			scrollbarOptions[key] = scrollbar[key];
 		} else {
 			scrollbarOptions[key] = defaultScrollbarOptions[key];
 		}
-	});
+	}
 
 	return scrollbarOptions;
 }
@@ -251,7 +251,10 @@ export function extendOptions(
 	return to;
 }
 
-export function addSegmentOptions(options: PeaksOptions, opts: PeaksInitOptions) {
+export function addSegmentOptions(
+	options: PeaksOptions,
+	opts: PeaksInitOptions,
+) {
 	options.segmentOptions = {} as SegmentDisplayOptions;
 
 	extend(options.segmentOptions, defaultSegmentOptions);
@@ -321,9 +324,9 @@ export class Peaks extends EventEmitter {
 	zoom!: ZoomController;
 	views!: ViewController;
 	declare _logger: Logger;
-	private _keyboardHandler: KeyboardHandler | null = null;
-	private _waveformBuilder: WaveformBuilder | null = null;
-	private _waveformData: WaveformData | null = null;
+	private _keyboardHandler: KeyboardHandler | undefined;
+	private _waveformBuilder: WaveformBuilder | undefined;
+	private _waveformData: WaveformData | undefined;
 	declare _cueEmitter: CueEmitter | undefined;
 
 	constructor() {
@@ -334,14 +337,14 @@ export class Peaks extends EventEmitter {
 			zoomLevels: [512, 1024, 2048, 4096],
 			waveformCache: true,
 
-			mediaElement: null,
-			mediaUrl: null,
+			mediaElement: undefined,
+			mediaUrl: undefined,
 
-			dataUri: null,
+			dataUri: undefined,
 			withCredentials: false,
 
-			waveformData: null,
-			webAudio: null,
+			waveformData: undefined,
+			webAudio: undefined,
 
 			nudgeIncrement: 1.0,
 
@@ -365,7 +368,7 @@ export class Peaks extends EventEmitter {
 	 */
 	static init(
 		opts: PeaksInitOptions,
-		callback: (err: Error | null, instance?: Peaks) => void,
+		callback: (err?: Error, instance?: Peaks) => void,
 	): undefined | never {
 		if (!callback) {
 			throw new Error("Peaks.init(): Missing callback function");
@@ -384,7 +387,7 @@ export class Peaks extends EventEmitter {
 			return;
 		}
 
-		let scrollbarContainer = null;
+		let scrollbarContainer: HTMLElement | undefined;
 
 		if (instance.options.scrollbar) {
 			scrollbarContainer = instance.options.scrollbar.container;
@@ -409,9 +412,9 @@ export class Peaks extends EventEmitter {
 		}
 
 		if (opts.keyboard) {
-			instance._keyboardHandler = new KeyboardHandler(
-				instance as unknown as PeaksInstance,
-			);
+			instance._keyboardHandler = KeyboardHandler.from({
+				eventEmitter: instance as unknown as PeaksInstance,
+			});
 		}
 
 		let player: PlayerAdapter;
@@ -419,7 +422,9 @@ export class Peaks extends EventEmitter {
 		if (opts.player) {
 			player = opts.player;
 		} else if (instance.options.mediaElement) {
-			player = new MediaElementPlayer(instance.options.mediaElement);
+			player = MediaElementPlayer.from({
+				mediaElement: instance.options.mediaElement,
+			});
 		} else {
 			const audioContext =
 				opts.audioContext ?? instance.options.webAudio?.audioContext;
@@ -433,7 +438,7 @@ export class Peaks extends EventEmitter {
 				const clipOptions: ClipNodePlayerOptions = audioBuffer
 					? { audioContext, audioBuffer }
 					: { audioContext, url: url as string };
-				player = new ClipNodePlayer(clipOptions);
+				player = ClipNodePlayer.from({ options: clipOptions });
 			} else {
 				callback(
 					new TypeError(
@@ -444,21 +449,28 @@ export class Peaks extends EventEmitter {
 			}
 		}
 
-		instance.player = new Player(instance as unknown as PeaksInstance, player);
-		instance.segments = new WaveformSegments(
-			instance as unknown as PeaksInstance,
-		);
-		instance.points = new WaveformPoints(instance as unknown as PeaksInstance);
-		instance.zoom = new ZoomController(
-			instance as unknown as PeaksInstance,
-			instance.options.zoomLevels,
-		);
-		instance.views = new ViewController(instance as unknown as PeaksInstance);
+		instance.player = Player.from({
+			peaks: instance as unknown as PeaksInstance,
+			adapter: player,
+		});
+		instance.segments = WaveformSegments.from({
+			peaks: instance as unknown as PeaksInstance,
+		});
+		instance.points = WaveformPoints.from({
+			peaks: instance as unknown as PeaksInstance,
+		});
+		instance.zoom = ZoomController.from({
+			peaks: instance as unknown as PeaksInstance,
+			zoomLevels: instance.options.zoomLevels,
+		});
+		instance.views = ViewController.from({
+			peaks: instance as unknown as PeaksInstance,
+		});
 
 		// Setup the UI components
-		instance._waveformBuilder = new WaveformBuilder(
-			instance as unknown as PeaksInstance,
-		);
+		instance._waveformBuilder = WaveformBuilder.from({
+			peaks: instance as unknown as PeaksInstance,
+		});
 
 		instance.player
 			.init()
@@ -478,8 +490,8 @@ export class Peaks extends EventEmitter {
 							return;
 						}
 
-						instance._waveformBuilder = null;
-						instance._waveformData = waveformData ?? null;
+						instance._waveformBuilder = undefined;
+						instance._waveformData = waveformData;
 
 						const zoomviewContainer = instance.options.zoomview.container;
 						const overviewContainer = instance.options.overview.container;
@@ -509,12 +521,12 @@ export class Peaks extends EventEmitter {
 						}
 
 						if (opts.emitCueEvents) {
-							instance._cueEmitter = new CueEmitter(
-								instance as unknown as PeaksInstance,
-							);
+							instance._cueEmitter = CueEmitter.from({
+								peaks: instance as unknown as PeaksInstance,
+							});
 						}
 
-						callback(null, instance);
+						callback(undefined, instance);
 					},
 				);
 			})
@@ -633,7 +645,7 @@ export class Peaks extends EventEmitter {
 		this._logger = this.options.logger;
 	}
 
-	setSource(options: SetSourceOptions, callback: (err?: Error | null) => void) {
+	setSource(options: SetSourceOptions, callback: (err?: Error) => void) {
 		this.player
 			._setSource(options)
 			.then(() => {
@@ -641,9 +653,9 @@ export class Peaks extends EventEmitter {
 					options.zoomLevels = this.options.zoomLevels;
 				}
 
-				this._waveformBuilder = new WaveformBuilder(
-					this as unknown as PeaksInstance,
-				);
+				this._waveformBuilder = WaveformBuilder.from({
+					peaks: this as unknown as PeaksInstance,
+				});
 
 				this._waveformBuilder?.init(options, (err, data) => {
 					if (err) {
@@ -651,16 +663,16 @@ export class Peaks extends EventEmitter {
 						return;
 					}
 
-					this._waveformBuilder = null;
-					this._waveformData = data ?? null;
+					this._waveformBuilder = undefined;
+					this._waveformData = data;
 
-					(["overview", "zoomview"] as const).forEach((viewName) => {
+					for (const viewName of ["overview", "zoomview"] as const) {
 						const view = this.views.getView(viewName);
 
 						if (view && data) {
 							view.setWaveformData(data);
 						}
-					});
+					}
 
 					if (options.zoomLevels) {
 						this.zoom.setZoomLevels(options.zoomLevels);
@@ -674,7 +686,7 @@ export class Peaks extends EventEmitter {
 			});
 	}
 
-	getWaveformData(): WaveformData | null {
+	getWaveformData(): WaveformData | undefined {
 		return this._waveformData;
 	}
 

@@ -176,8 +176,8 @@ export function isLinearGradientColor(
 	);
 }
 
-export function getMarkerObject(obj: Node): Node | null {
-	let current: Node | null = obj;
+export function getMarkerObject(obj: Node): Node | undefined {
+	let current: Node | undefined = obj;
 
 	while (current?.parent !== null && current?.parent !== undefined) {
 		if (current.parent instanceof Konva.Layer) {
@@ -187,5 +187,5 @@ export function getMarkerObject(obj: Node): Node | null {
 		current = current.parent;
 	}
 
-	return null;
+	return undefined;
 }

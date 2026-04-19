@@ -1,7 +1,7 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
-import WaveformOverview from "../src/waveform-overview";
-import WaveformZoomView from "../src/waveform-zoomview";
+import { Peaks } from "../src/main";
+import { WaveformOverview } from "../src/waveform-overview";
+import { WaveformZoomView } from "../src/waveform-zoomview";
 
 describe("Peaks.views", () => {
 	let p = null;
@@ -26,7 +26,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -56,14 +56,14 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
 			});
 
 			it("should return a new zoomview instance", () => {
-				expect(p.views.getView("zoomview")).to.equal(null);
+				expect(p.views.getView("zoomview")).to.equal(undefined);
 
 				const zoomviewContainer = document.getElementById("zoomview-container");
 
@@ -90,7 +90,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -120,14 +120,14 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
 			});
 
 			it("should return a new overview instance", () => {
-				expect(p.views.getView("overview")).to.equal(null);
+				expect(p.views.getView("overview")).to.equal(undefined);
 
 				const overviewContainer = document.getElementById("overview-container");
 
@@ -157,7 +157,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -175,12 +175,12 @@ describe("Peaks.views", () => {
 
 			it("should return null if given no view name", () => {
 				const view = p.views.getView();
-				expect(view).to.equal(null);
+				expect(view).to.equal(undefined);
 			});
 
 			it("should return null if given an invalid view name", () => {
 				const view = p.views.getView("unknown");
-				expect(view).to.equal(null);
+				expect(view).to.equal(undefined);
 			});
 		});
 
@@ -197,7 +197,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -210,7 +210,7 @@ describe("Peaks.views", () => {
 
 			it("should return null if given the overview view name", () => {
 				const view = p.views.getView("overview");
-				expect(view).to.equal(null);
+				expect(view).to.equal(undefined);
 			});
 
 			it("should return the zoomview if given no view name", () => {
@@ -220,7 +220,7 @@ describe("Peaks.views", () => {
 
 			it("should return null if given an invalid view name", () => {
 				const view = p.views.getView("unknown");
-				expect(view).to.equal(null);
+				expect(view).to.equal(undefined);
 			});
 		});
 
@@ -237,7 +237,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -245,7 +245,7 @@ describe("Peaks.views", () => {
 
 			it("should return null if given the zoomview view name", () => {
 				const view = p.views.getView("zoomview");
-				expect(view).to.equal(null);
+				expect(view).to.equal(undefined);
 			});
 
 			it("should return the overview", () => {
@@ -260,7 +260,7 @@ describe("Peaks.views", () => {
 
 			it("should return null if given an invalid view name", () => {
 				const view = p.views.getView("unknown");
-				expect(view).to.equal(null);
+				expect(view).to.equal(undefined);
 			});
 		});
 	});
@@ -282,7 +282,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -294,7 +294,7 @@ describe("Peaks.views", () => {
 
 				p.views.destroyZoomview();
 
-				expect(p.views.getView("zoomview")).to.equal(null);
+				expect(p.views.getView("zoomview")).to.equal(undefined);
 				expect(spy.callCount).to.equal(1);
 			});
 		});
@@ -312,7 +312,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -340,7 +340,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -349,7 +349,7 @@ describe("Peaks.views", () => {
 			it("should do nothing", () => {
 				p.views.destroyZoomview();
 
-				expect(p.views.getView("zoomview")).to.equal(null);
+				expect(p.views.getView("zoomview")).to.equal(undefined);
 			});
 		});
 	});
@@ -371,7 +371,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -383,7 +383,7 @@ describe("Peaks.views", () => {
 
 				p.views.destroyOverview();
 
-				expect(p.views.getView("overview")).to.equal(null);
+				expect(p.views.getView("overview")).to.equal(undefined);
 				expect(spy.callCount).to.equal(1);
 			});
 		});
@@ -401,7 +401,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -429,7 +429,7 @@ describe("Peaks.views", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 					p = instance;
 					done();
 				});
@@ -438,7 +438,7 @@ describe("Peaks.views", () => {
 			it("should do nothing", () => {
 				p.views.destroyOverview();
 
-				expect(p.views.getView("overview")).to.equal(null);
+				expect(p.views.getView("overview")).to.equal(undefined);
 			});
 		});
 	});

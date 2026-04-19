@@ -181,21 +181,21 @@ export function validateSegmentOptions(
 		);
 	}
 
-	invalidOptions.forEach((name) => {
+	for (const name of invalidOptions) {
 		if (objectHasProperty(options, name)) {
 			throw new Error(
 				`peaks.segments.${context}: invalid option name: ${name}`,
 			);
 		}
-	});
+	}
 
-	segmentOptions.forEach((name) => {
+	for (const name of segmentOptions) {
 		if (objectHasProperty(options, `_${name}`)) {
 			throw new Error(
 				`peaks.segments.${context}: invalid option name: _${name}`,
 			);
 		}
-	});
+	}
 }
 
 /**
@@ -206,6 +206,12 @@ export type SegmentPeaksLike = {
 	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
 	readonly segments?: Pick<PeaksInstance["segments"], "updateSegmentId">;
 };
+
+export interface SegmentFromOptions {
+	readonly peaks: SegmentPeaksLike;
+	readonly pid: number;
+	readonly options: SegmentOptions;
+}
 
 export class Segment {
 	[key: string]: unknown;
@@ -222,7 +228,15 @@ export class Segment {
 	private _markers!: boolean;
 	private _overlay!: boolean;
 
-	constructor(peaks: SegmentPeaksLike, pid: number, options: SegmentOptions) {
+	static from(options: SegmentFromOptions): Segment {
+		return new Segment(options.peaks, options.pid, options.options);
+	}
+
+	private constructor(
+		peaks: SegmentPeaksLike,
+		pid: number,
+		options: SegmentOptions,
+	) {
 		this._peaks = peaks;
 		this._pid = pid;
 		this._id = options.id ?? `peaks.segment.${pid}`;

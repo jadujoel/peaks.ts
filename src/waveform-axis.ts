@@ -9,6 +9,11 @@ import { formatTime, roundUpToNearest } from "./utils";
  * Creates the waveform axis shapes and adds them to the given view layer.
  */
 
+export interface WaveformAxisFromOptions {
+	readonly view: WaveformViewAPI;
+	readonly options: ViewOptions;
+}
+
 export class WaveformAxis {
 	private _axisGridlineColor: string;
 	private _axisLabelColor: string;
@@ -19,7 +24,11 @@ export class WaveformAxis {
 	private _axisLabelFont: string;
 	private _axisShape: Shape;
 
-	constructor(view: WaveformViewAPI, options: ViewOptions) {
+	static from(options: WaveformAxisFromOptions): WaveformAxis {
+		return new WaveformAxis(options.view, options.options);
+	}
+
+	private constructor(view: WaveformViewAPI, options: ViewOptions) {
 		this._axisGridlineColor = options.axisGridlineColor;
 		this._axisLabelColor = options.axisLabelColor;
 		this._showAxisLabels = options.showAxisLabels;

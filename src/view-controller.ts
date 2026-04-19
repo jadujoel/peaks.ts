@@ -4,12 +4,23 @@ import { isNullOrUndefined } from "./utils";
 import { WaveformOverview } from "./waveform-overview";
 import { WaveformZoomView } from "./waveform-zoomview";
 
+export interface ViewControllerFromOptions {
+	readonly peaks: PeaksInstance;
+}
+
 export class ViewController {
+	public peaks: PeaksInstance;
 	private _overview?: WaveformOverview | undefined;
 	private _zoomview?: WaveformZoomView | undefined;
 	private _scrollbar?: Scrollbar | undefined;
 
-	constructor(public peaks: PeaksInstance) {}
+	static from(options: ViewControllerFromOptions): ViewController {
+		return new ViewController(options.peaks);
+	}
+
+	private constructor(peaks: PeaksInstance) {
+		this.peaks = peaks;
+	}
 
 	/**
 	 * Creates the overview waveform view.
@@ -27,7 +38,11 @@ export class ViewController {
 			throw new Error("No waveform data available");
 		}
 
-		this._overview = new WaveformOverview(waveformData, container, this.peaks);
+		this._overview = WaveformOverview.from({
+			waveformData,
+			container,
+			peaks: this.peaks,
+		});
 
 		if (this._zoomview) {
 			this._overview.showHighlight(
@@ -55,7 +70,11 @@ export class ViewController {
 			throw new Error("No waveform data available");
 		}
 
-		this._zoomview = new WaveformZoomView(waveformData, container, this.peaks);
+		this._zoomview = WaveformZoomView.from({
+			waveformData,
+			container,
+			peaks: this.peaks,
+		});
 
 		if (this._scrollbar) {
 			this._scrollbar.setZoomview(this._zoomview);
@@ -70,7 +89,7 @@ export class ViewController {
 	 * @throws {Error} If scrollbar options are missing from the Peaks configuration.
 	 */
 	createScrollbar(container: HTMLDivElement): Scrollbar | never {
-		this._scrollbar = new Scrollbar(container, this.peaks);
+		this._scrollbar = Scrollbar.from({ container, peaks: this.peaks });
 
 		return this._scrollbar;
 	}
@@ -85,7 +104,7 @@ export class ViewController {
 		}
 
 		this._overview.destroy();
-		this._overview = null;
+		this._overview = undefined;
 	}
 
 	destroyZoomview(): void {
@@ -106,7 +125,7 @@ export class ViewController {
 	destroy(): void {
 		if (this._overview) {
 			this._overview.destroy();
-			this._overview = null;
+			this._overview = undefined;
 		}
 
 		if (this._zoomview) {
@@ -123,13 +142,13 @@ export class ViewController {
 	getView(name?: string): WaveformOverview | WaveformZoomView | undefined {
 		if (isNullOrUndefined(name)) {
 			if (this._overview && this._zoomview) {
-				return null;
+				return undefined;
 			} else if (this._overview) {
 				return this._overview;
 			} else if (this._zoomview) {
 				return this._zoomview;
 			} else {
-				return null;
+				return undefined;
 			}
 		} else {
 			switch (name) {

@@ -1,13 +1,32 @@
-import type { WaveformData } from "waveform-data";
+import type WaveformData from "waveform-data";
 import { HighlightLayer } from "./highlight-layer";
 import { SeekMouseDragHandler } from "./seek-mouse-drag-handler";
+
+type SeekMouseDragHandlerViewParam = Parameters<
+	typeof SeekMouseDragHandler.from
+>[0]["view"];
+
 import type { OverviewOptions, PeaksInstance } from "./types";
 import { WaveformView } from "./waveform-view";
+
+export interface WaveformOverviewFromOptions {
+	readonly waveformData: WaveformData;
+	readonly container: HTMLDivElement;
+	readonly peaks: PeaksInstance;
+}
 
 export class WaveformOverview extends WaveformView {
 	declare _mouseDragHandler: SeekMouseDragHandler;
 
-	constructor(
+	static from(options: WaveformOverviewFromOptions): WaveformOverview {
+		return new WaveformOverview(
+			options.waveformData,
+			options.container,
+			options.peaks,
+		);
+	}
+
+	private constructor(
 		waveformData: WaveformData,
 		container: HTMLDivElement,
 		peaks: PeaksInstance,
@@ -30,7 +49,10 @@ export class WaveformOverview extends WaveformView {
 
 		this._playheadLayer.updatePlayheadTime(time);
 
-		this._mouseDragHandler = new SeekMouseDragHandler(peaks, this);
+		this._mouseDragHandler = SeekMouseDragHandler.from({
+			peaks,
+			view: this as unknown as SeekMouseDragHandlerViewParam,
+		});
 
 		const zoomview = peaks.views.getView("zoomview");
 
@@ -49,10 +71,10 @@ export class WaveformOverview extends WaveformView {
 	}
 
 	override initHighlightLayer(): void {
-		this._highlightLayer = new HighlightLayer(
-			this,
-			this._viewOptions as OverviewOptions,
-		);
+		this._highlightLayer = HighlightLayer.from({
+			view: this,
+			options: this._viewOptions as OverviewOptions,
+		});
 
 		this._highlightLayer.addToStage(this._stage);
 	}

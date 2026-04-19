@@ -7,6 +7,10 @@ import { extend, isNullOrUndefined, objectHasProperty } from "./utils";
  * of points. A point is a single instant of time.
  */
 
+export interface WaveformPointsFromOptions {
+	readonly peaks: PeaksInstance;
+}
+
 export class WaveformPoints {
 	private _peaks: PeaksInstance;
 	private _points: Point[];
@@ -15,7 +19,11 @@ export class WaveformPoints {
 	private _pointIdCounter: number;
 	private _pointPid: number;
 
-	constructor(peaks: PeaksInstance) {
+	static from(options: WaveformPointsFromOptions): WaveformPoints {
+		return new WaveformPoints(options.peaks);
+	}
+
+	private constructor(peaks: PeaksInstance) {
 		this._peaks = peaks;
 		this._points = [];
 		this._pointsById = {};
@@ -75,7 +83,11 @@ export class WaveformPoints {
 
 		validatePointOptions(pointOptions, false);
 
-		return new Point(this._peaks, pid, pointOptions);
+		return Point.from({
+			peaks: this._peaks,
+			pid,
+			options: pointOptions,
+		});
 	}
 
 	/**
@@ -129,9 +141,9 @@ export class WaveformPoints {
 			return point;
 		});
 
-		created.forEach((point: Point) => {
+		for (const point of created) {
 			this._addPoint(point);
-		});
+		}
 
 		this._peaks.emit("points.add", {
 			points: created,

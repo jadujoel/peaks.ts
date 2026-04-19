@@ -1,9 +1,9 @@
 import sinon from "sinon";
-import Peaks from "../src/main";
+import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
 import type WaveformZoomView from "../src/waveform-zoomview";
-import InputController from "./helpers/input-controller";
+import { InputController } from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
 describe("WaveformZoomView", () => {
@@ -27,9 +27,6 @@ describe("WaveformZoomView", () => {
 
 			Peaks.init(options, (err, instance) => {
 				expect(err).to.equal(undefined);
-				if (err === undefined) {
-					throw new Error("Expected error to be null or undefined");
-				}
 				p = instance;
 				zoomview =
 					(instance?.views.getView("zoomview") as
@@ -158,7 +155,7 @@ describe("WaveformZoomView", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 
 				p = instance;
 				zoomview = instance.views.getView("zoomview");
@@ -446,7 +443,7 @@ describe("WaveformZoomView", () => {
 					};
 
 					Peaks.init(options, (err, instance) => {
-						expect(err).to.equal(null);
+						expect(err).to.equal(undefined);
 
 						p = instance;
 						zoomview = instance.views.getView("zoomview");
@@ -1225,7 +1222,7 @@ describe("WaveformZoomView", () => {
 				};
 
 				Peaks.init(options, (err, instance) => {
-					expect(err).to.equal(null);
+					expect(err).to.equal(undefined);
 
 					p = instance;
 					zoomview = instance.views.getView("zoomview");
@@ -1575,7 +1572,7 @@ describe("WaveformZoomView", () => {
 			};
 
 			Peaks.init(options, (err, instance) => {
-				expect(err).to.equal(null);
+				expect(err).to.equal(undefined);
 
 				p = instance;
 				zoomview =

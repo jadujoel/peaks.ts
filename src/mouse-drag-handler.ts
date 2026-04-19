@@ -9,17 +9,26 @@ import { getMarkerObject } from "./utils";
  * views by clicking and dragging the mouse.
  */
 
+export interface MouseDragHandlerFromOptions {
+	readonly stage: Stage;
+	readonly handlers: MouseDragHandlers;
+}
+
 export class MouseDragHandler {
 	private _stage: Stage;
 	private _handlers: MouseDragHandlers;
 	private _dragging: boolean;
-	private _lastMouseClientX: number | null;
+	private _lastMouseClientX: number | undefined;
 
-	constructor(stage: Stage, handlers: MouseDragHandlers) {
+	static from(options: MouseDragHandlerFromOptions): MouseDragHandler {
+		return new MouseDragHandler(options.stage, options.handlers);
+	}
+
+	private constructor(stage: Stage, handlers: MouseDragHandlers) {
 		this._stage = stage;
 		this._handlers = handlers;
 		this._dragging = false;
-		this._lastMouseClientX = null;
+		this._lastMouseClientX = undefined;
 
 		this._stage.on("mousedown", this._mouseDown);
 		this._stage.on("touchstart", this._mouseDown);
@@ -31,7 +40,7 @@ export class MouseDragHandler {
 	private _mouseDown = (
 		event: KonvaEventObject<MouseEvent | TouchEvent>,
 	): void => {
-		let segment: Group | null = null;
+		let segment: Group | undefined;
 
 		if (event.type === "mousedown" && (event.evt as MouseEvent).button !== 0) {
 			// Mouse drag only applies to the primary mouse button.
