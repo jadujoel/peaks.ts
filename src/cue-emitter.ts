@@ -141,10 +141,21 @@ export function isWindowVisible(): boolean {
  * events on a PeaksInstance as the playhead crosses cues.
  */
 export class CueEmitter {
-	static from(options: CueEmitterFromOptions): CueEmitter {
+	public static from(options: CueEmitterFromOptions): CueEmitter {
 		const emitter = new CueEmitter(options.peaks);
 		emitter.addEventHandlers();
 		return emitter;
+	}
+
+	public dispose(): void {
+		cancelAnimationFrame(this.rAFHandle);
+		this.peaks.off("player.timeupdate", this.onTimeUpdate);
+		this.peaks.off("player.playing", this.onPlaying);
+		this.peaks.off("player.seeked", this.onSeeked);
+		for (const event of TRACKED_EVENTS) {
+			this.peaks.off(event, this.rebuildCues);
+		}
+		this.previousTime = -1;
 	}
 
 	private constructor(
@@ -272,21 +283,5 @@ export class CueEmitter {
 		}
 
 		this.rebuildCues();
-	}
-
-	private removeEventHandlers(): void {
-		this.peaks.off("player.timeupdate", this.onTimeUpdate);
-		this.peaks.off("player.playing", this.onPlaying);
-		this.peaks.off("player.seeked", this.onSeeked);
-
-		for (const event of TRACKED_EVENTS) {
-			this.peaks.off(event, this.rebuildCues);
-		}
-	}
-
-	dispose(): void {
-		cancelAnimationFrame(this.rAFHandle);
-		this.removeEventHandlers();
-		this.previousTime = -1;
 	}
 }

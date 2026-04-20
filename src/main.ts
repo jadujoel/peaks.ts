@@ -1,6 +1,9 @@
 import EventEmitter from "eventemitter3";
 import type WaveformData from "waveform-data";
-import { ClipNodePlayer, type ClipNodePlayerOptions } from "./clip-node-player";
+import {
+	ClipNodePlayer,
+	type ClipNodePlayerFromOptions,
+} from "./clip-node-player";
 import { CueEmitter } from "./cue-emitter";
 import { KeyboardHandler } from "./keyboard-handler";
 import {
@@ -445,10 +448,10 @@ export class Peaks extends EventEmitter {
 					: undefined;
 
 			if (audioContext && (audioBuffer || url)) {
-				const clipOptions: ClipNodePlayerOptions = audioBuffer
+				const clipOptions: ClipNodePlayerFromOptions = audioBuffer
 					? { audioBuffer, audioContext }
 					: { audioContext, url: url as string };
-				player = ClipNodePlayer.from({ options: clipOptions });
+				player = ClipNodePlayer.from(clipOptions);
 			} else {
 				callback(
 					new TypeError(

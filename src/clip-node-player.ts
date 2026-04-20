@@ -7,7 +7,7 @@ import {
 import type { Segment } from "./segment";
 import type { PeaksInstance, PlayerAdapter, SetSourceOptions } from "./types";
 
-export interface ClipNodePlayerOptions {
+export interface ClipNodePlayerFromOptions {
 	readonly audioContext: AudioContext;
 	readonly audioBuffer?: AudioBuffer;
 	readonly url?: string;
@@ -42,32 +42,28 @@ export function ensureWorkletModule(
 	return promise;
 }
 
-export interface ClipNodePlayerFromOptions {
-	readonly options: ClipNodePlayerOptions;
-}
-
 export class ClipNodePlayer implements PlayerAdapter {
-	private readonly audioContext: AudioContext;
-	private readonly processorUrl: string | undefined;
-	private eventEmitter: PeaksInstance | undefined;
-	private node: ClipNode | undefined;
-	private audioBuffer: AudioBuffer | undefined;
-	private url: string | undefined;
-	private mediaDuration: number;
-
 	static from(options: ClipNodePlayerFromOptions): ClipNodePlayer {
-		return new ClipNodePlayer(options.options);
+		return new ClipNodePlayer(
+			options.audioContext,
+			options.processorUrl,
+			options.audioBuffer,
+			options.url,
+			options.audioBuffer?.duration ?? 0,
+			undefined,
+			undefined,
+		);
 	}
 
-	private constructor(options: ClipNodePlayerOptions) {
-		this.audioContext = options.audioContext;
-		this.audioBuffer = options.audioBuffer;
-		this.url = options.url;
-		this.processorUrl = options.processorUrl;
-		this.eventEmitter = undefined;
-		this.node = undefined;
-		this.mediaDuration = options.audioBuffer?.duration ?? 0;
-	}
+	private constructor(
+		private readonly audioContext: AudioContext,
+		private readonly processorUrl: string | undefined,
+		private audioBuffer: AudioBuffer | undefined,
+		private url: string | undefined,
+		private mediaDuration: number,
+		private eventEmitter: PeaksInstance | undefined,
+		private node: ClipNode | undefined,
+	) {}
 
 	async init(eventEmitter: PeaksInstance): Promise<void> {
 		this.eventEmitter = eventEmitter;

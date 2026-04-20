@@ -4,109 +4,91 @@ import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
+export const DefaultSegmentMarkerDefaults = {
+	color: "#000",
+	fontFamily: "sans-serif",
+	fontSize: 10,
+	fontStyle: "normal",
+	handleHeight: 20,
+	handleWidth: 10,
+} as const;
+
 export interface DefaultSegmentMarkerFromOptions {
 	readonly options: CreateSegmentMarkerOptions;
 }
 
 export class DefaultSegmentMarker {
-	private readonly options: CreateSegmentMarkerOptions;
-	private editable: boolean;
-	private label!: Text;
-	private handle!: Rect;
-	private line!: Line;
+	private constructor(
+		private readonly options: CreateSegmentMarkerOptions,
+		private readonly label: Text,
+		private readonly handle: Rect,
+		private readonly line: Line,
+		private readonly labelXPosition: number,
+		private editable: boolean,
+	) {}
 
-	static from(options: DefaultSegmentMarkerFromOptions): DefaultSegmentMarker {
-		return new DefaultSegmentMarker(options.options);
-	}
+	static DefaultSegmentMarkerDefaults = DefaultSegmentMarkerDefaults;
 
-	private constructor(options: CreateSegmentMarkerOptions) {
-		this.options = options;
-		this.editable = options.editable ?? false;
-	}
-
-	init(group: Group): void {
-		const handleWidth = 10;
-		const handleHeight = 20;
-		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
-
-		const xPosition = this.options.startMarker ? -24 : 24;
+	static from(opts: DefaultSegmentMarkerFromOptions): DefaultSegmentMarker {
+		const { options } = opts;
+		const editable = options.editable ?? false;
+		const handleX = -(DefaultSegmentMarkerDefaults.handleWidth / 2) + 0.5;
+		const labelXPosition = options.startMarker ? -24 : 24;
 
 		const time =
-			(this.options.startMarker
-				? this.options.segment?.startTime
-				: this.options.segment?.endTime) ?? 0;
-		// Label - create with default y, the real value is set in fitToView().
-		this.label = new Text({
+			(options.startMarker
+				? options.segment?.startTime
+				: options.segment?.endTime) ?? 0;
+
+		const label = new Text({
 			fill: "#000",
-			fontFamily: this.options.fontFamily ?? "sans-serif",
-			fontSize: this.options.fontSize ?? 10,
-			fontStyle: this.options.fontStyle ?? "normal",
-			text: this.options.layer?.formatTime(time) ?? "",
+			fontFamily: options.fontFamily ?? DefaultSegmentMarkerDefaults.fontFamily,
+			fontSize: options.fontSize ?? DefaultSegmentMarkerDefaults.fontSize,
+			fontStyle: options.fontStyle ?? DefaultSegmentMarkerDefaults.fontStyle,
+			text: options.layer?.formatTime(time) ?? "",
 			textAlign: "center",
-			visible: this.editable,
-			x: xPosition,
+			visible: editable,
+			x: labelXPosition,
 			y: 0,
 		});
+		label.hide();
 
-		this.label.hide();
-
-		// Handle - create with default y, the real value is set in fitToView().
-		this.handle = new Rect({
-			fill: this.options.color ?? "#000",
-			height: handleHeight,
-			stroke: this.options.color ?? "#000",
+		const handle = new Rect({
+			fill: options.color ?? DefaultSegmentMarkerDefaults.color,
+			height: DefaultSegmentMarkerDefaults.handleHeight,
+			stroke: options.color ?? DefaultSegmentMarkerDefaults.color,
 			strokeWidth: 1,
-			visible: this.editable,
-			width: handleWidth,
+			visible: editable,
+			width: DefaultSegmentMarkerDefaults.handleWidth,
 			x: handleX,
 			y: 0,
 		});
 
-		// Vertical Line - create with default y and points, the real values
-		// are set in fitToView().
-		this.line = new Line({
-			stroke: this.options.color ?? "#000",
+		const line = new Line({
+			stroke: options.color ?? DefaultSegmentMarkerDefaults.color,
 			strokeWidth: 1,
-			visible: this.editable,
+			visible: editable,
 			x: 0,
 			y: 0,
 		});
 
+		return new DefaultSegmentMarker(
+			options,
+			label,
+			handle,
+			line,
+			labelXPosition,
+			editable,
+		);
+	}
+
+	init(group: Group): void {
 		group.add(this.label);
 		group.add(this.line);
 		group.add(this.handle);
 
 		this.fitToView();
-
 		this.bindEventHandlers(group);
-	}
-
-	bindEventHandlers(group: Group): void {
-		const xPosition = this.options.startMarker ? -24 : 24;
-
-		group.on("dragstart", () => {
-			if (this.options.startMarker) {
-				this.label.x(xPosition - this.label.getWidth());
-			}
-
-			this.label.show();
-		});
-
-		group.on("dragend", () => {
-			this.label.hide();
-		});
-
-		this.handle.on("mouseover touchstart", () => {
-			if (this.options.startMarker) {
-				this.label.x(xPosition - this.label.getWidth());
-			}
-
-			this.label.show();
-		});
-
-		this.handle.on("mouseout touchend", () => {
-			this.label.hide();
-		});
 	}
 
 	fitToView(): void {
@@ -136,6 +118,32 @@ export class DefaultSegmentMarker {
 	}
 
 	dispose(): void {
-		// Shapes are destroyed by group.destroyChildren() in SegmentMarker.destroy()
+		// Shapes are destroyed by group.destroyChildren() in SegmentMarker.dispose()
+	}
+
+	private bindEventHandlers(group: Group): void {
+		group.on("dragstart", () => {
+			if (this.options.startMarker) {
+				this.label.x(this.labelXPosition - this.label.getWidth());
+			}
+
+			this.label.show();
+		});
+
+		group.on("dragend", () => {
+			this.label.hide();
+		});
+
+		this.handle.on("mouseover touchstart", () => {
+			if (this.options.startMarker) {
+				this.label.x(this.labelXPosition - this.label.getWidth());
+			}
+
+			this.label.show();
+		});
+
+		this.handle.on("mouseout touchend", () => {
+			this.label.hide();
+		});
 	}
 }

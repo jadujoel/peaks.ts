@@ -224,7 +224,7 @@ export class MediaElementPlayer {
 	 * associated media element.
 	 */
 
-	destroy(): void {
+	dispose(): void {
 		if (!this.mediaElement) {
 			return;
 		}
