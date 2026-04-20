@@ -10,17 +10,17 @@ describe("WaveformView", () => {
 		logger = sinon.spy();
 
 		const options = {
+			dataUri: {
+				arraybuffer: "base/test/data/sample.dat",
+			},
+			logger: logger,
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 			},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
 			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				arraybuffer: "base/test/data/sample.dat",
-			},
-			logger: logger,
 		};
 
 		Peaks.init(options, (err, instance) => {
@@ -98,12 +98,12 @@ describe("WaveformView", () => {
 					const view = p.views.getView(viewName);
 
 					view.setWaveformColor({
-						linearGradientStart: 20,
-						linearGradientEnd: 60,
 						linearGradientColorStops: [
 							"hsl(180, 78%, 46%)",
 							"hsl(180, 78%, 16%)",
 						],
+						linearGradientEnd: 60,
+						linearGradientStart: 20,
 					});
 
 					expect(

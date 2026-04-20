@@ -25,10 +25,10 @@ function initOptions(
 	viewOptions: Record<string, unknown>,
 ): PeaksInitOptions {
 	const options: PeaksInitOptions = {
-		mediaElement: document.getElementById("media"),
 		dataUri: {
 			arraybuffer: "base/test/data/sample.dat",
 		},
+		mediaElement: document.getElementById("media"),
 	};
 
 	options[view] = viewOptions;
@@ -38,14 +38,14 @@ function initOptions(
 
 [
 	{
-		view: "zoomview",
-		name: "WaveformZoomview",
 		container: "zoomview-container",
+		name: "WaveformZoomview",
+		view: "zoomview",
 	},
 	{
-		view: "overview",
-		name: "WaveformOverview",
 		container: "overview-container",
+		name: "WaveformOverview",
+		view: "overview",
 	},
 ].forEach((test) => {
 	describe(test.name, () => {
@@ -54,8 +54,8 @@ function initOptions(
 				it("should create a played waveform shape", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
-						waveformColor: "#f00",
 						playedWaveformColor: "#0f0",
+						waveformColor: "#f00",
 					});
 
 					Peaks.init(options, (err, instance) => {
@@ -105,8 +105,8 @@ function initOptions(
 				it("should remove the played waveform shape", (done: DoneCallback) => {
 					const options = initOptions(test.view, {
 						container: document.getElementById(test.container),
-						waveformColor: "#f00",
 						playedWaveformColor: "#0f0",
+						waveformColor: "#f00",
 					});
 
 					Peaks.init(options, (err, instance) => {
@@ -346,9 +346,7 @@ function initOptions(
 						expect(view).to.be.ok;
 
 						expect(view.playheadLayer.playheadText).to.be.ok;
-						expect(view.playheadLayer.playheadText.getText()).to.equal(
-							"00:00",
-						);
+						expect(view.playheadLayer.playheadText.getText()).to.equal("00:00");
 
 						done();
 					});
@@ -401,9 +399,7 @@ function initOptions(
 						view.setTimeLabelPrecision(0);
 
 						expect(view.playheadLayer.playheadText).to.be.ok;
-						expect(view.playheadLayer.playheadText.getText()).to.equal(
-							"00:00",
-						);
+						expect(view.playheadLayer.playheadText.getText()).to.equal("00:00");
 
 						done();
 					});
@@ -531,10 +527,10 @@ function initOptions(
 									}
 
 									p.segments.add({
+										editable: true,
+										endTime: 2.0,
 										id: "segment1",
 										startTime: 1.0,
-										endTime: 2.0,
-										editable: true,
 									});
 									setTimeout(done, 50);
 								});
@@ -804,7 +800,7 @@ function initOptions(
 
 			describe("when clicking on a point", () => {
 				beforeEach((done: DoneCallback) => {
-					p.points.add({ id: "point1", time: 1.0, editable: true });
+					p.points.add({ editable: true, id: "point1", time: 1.0 });
 					setTimeout(done, 50);
 				});
 

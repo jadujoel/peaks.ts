@@ -6,15 +6,15 @@ describe("SegmentsLayer", () => {
 
 	beforeEach((done: DoneCallback) => {
 		const options = {
+			dataUri: {
+				json: "base/test/data/sample.json",
+			},
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 			},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
-			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				json: "base/test/data/sample.json",
 			},
 		};
 
@@ -40,10 +40,10 @@ describe("SegmentsLayer", () => {
 			const spy = sinon.spy(zoomview.segmentsLayer, "createSegmentShape");
 
 			p.segments.add({
-				startTime: 0,
-				endTime: 10,
 				editable: true,
+				endTime: 10,
 				id: "segment1",
+				startTime: 0,
 			});
 
 			expect(spy.callCount).to.equal(1);
@@ -56,10 +56,10 @@ describe("SegmentsLayer", () => {
 			const spy = sinon.spy(zoomview.segmentsLayer, "createSegmentShape");
 
 			p.segments.add({
-				startTime: 30,
-				endTime: 40,
 				editable: true,
+				endTime: 40,
 				id: "segment2",
+				startTime: 30,
 			});
 
 			expect(spy.callCount).to.equal(0);
@@ -72,9 +72,9 @@ describe("SegmentsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const segment = p.segments.add({
-				startTime: 0.0,
-				endTime: 2.0,
 				editable: true,
+				endTime: 2.0,
+				startTime: 0.0,
 			});
 
 			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
@@ -85,8 +85,14 @@ describe("SegmentsLayer", () => {
 				Math.floor((2.0 * 44100) / p.zoom.getZoomLevel()),
 			);
 
-			const startMarkerUpdate = sinon.spy(segmentShape.startMarkerInstance, "update");
-			const endMarkerUpdate = sinon.spy(segmentShape.endMarkerInstance, "update");
+			const startMarkerUpdate = sinon.spy(
+				segmentShape.startMarkerInstance,
+				"update",
+			);
+			const endMarkerUpdate = sinon.spy(
+				segmentShape.endMarkerInstance,
+				"update",
+			);
 
 			segment.update({ startTime: 1.0 });
 
@@ -106,9 +112,9 @@ describe("SegmentsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const segment = p.segments.add({
-				startTime: 0.0,
-				endTime: 2.0,
 				editable: true,
+				endTime: 2.0,
+				startTime: 0.0,
 			});
 
 			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
@@ -116,8 +122,14 @@ describe("SegmentsLayer", () => {
 
 			expect(segmentShape.startMarkerInstance.getX()).to.equal(0);
 
-			const startMarkerUpdate = sinon.spy(segmentShape.startMarkerInstance, "update");
-			const endMarkerUpdate = sinon.spy(segmentShape.endMarkerInstance, "update");
+			const startMarkerUpdate = sinon.spy(
+				segmentShape.startMarkerInstance,
+				"update",
+			);
+			const endMarkerUpdate = sinon.spy(
+				segmentShape.endMarkerInstance,
+				"update",
+			);
 
 			segment.update({ endTime: 3.0 });
 
@@ -139,17 +151,23 @@ describe("SegmentsLayer", () => {
 			);
 
 			const segment = p.segments.add({
-				startTime: 0,
-				endTime: 10,
 				editable: true,
+				endTime: 10,
 				id: "segment1",
+				startTime: 0,
 			});
 
 			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.be.ok;
 
-			const startMarkerUpdate = sinon.spy(segmentShape.startMarkerInstance, "update");
-			const endMarkerUpdate = sinon.spy(segmentShape.endMarkerInstance, "update");
+			const startMarkerUpdate = sinon.spy(
+				segmentShape.startMarkerInstance,
+				"update",
+			);
+			const endMarkerUpdate = sinon.spy(
+				segmentShape.endMarkerInstance,
+				"update",
+			);
 
 			segment.update({ labelText: "test" });
 
@@ -168,9 +186,9 @@ describe("SegmentsLayer", () => {
 			);
 
 			const segment = p.segments.add({
-				startTime: 30,
-				endTime: 40,
 				editable: true,
+				endTime: 40,
+				startTime: 30,
 			});
 
 			expect(createSegmentShape.callCount).to.equal(0);
@@ -178,7 +196,7 @@ describe("SegmentsLayer", () => {
 			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.equal(undefined);
 
-			segment.update({ startTime: 0, endTime: 10 });
+			segment.update({ endTime: 10, startTime: 0 });
 
 			expect(createSegmentShape.callCount).to.equal(1);
 		});
@@ -191,15 +209,12 @@ describe("SegmentsLayer", () => {
 				zoomview.segmentsLayer,
 				"createSegmentShape",
 			);
-			const removeSegment = sinon.spy(
-				zoomview.segmentsLayer,
-				"removeSegment",
-			);
+			const removeSegment = sinon.spy(zoomview.segmentsLayer, "removeSegment");
 
 			const segment = p.segments.add({
-				startTime: 0,
-				endTime: 10,
 				editable: true,
+				endTime: 10,
+				startTime: 0,
 			});
 
 			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
@@ -209,9 +224,12 @@ describe("SegmentsLayer", () => {
 				segmentShape.startMarkerInstance,
 				"destroy",
 			);
-			const endMarkerDestroy = sinon.spy(segmentShape.endMarkerInstance, "destroy");
+			const endMarkerDestroy = sinon.spy(
+				segmentShape.endMarkerInstance,
+				"destroy",
+			);
 
-			segment.update({ startTime: 30, endTime: 40 });
+			segment.update({ endTime: 40, startTime: 30 });
 
 			expect(createSegmentShape.callCount).to.equal(1);
 			expect(removeSegment.callCount).to.equal(1);

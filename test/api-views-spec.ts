@@ -16,12 +16,12 @@ describe("Peaks.views", () => {
 		describe("with existing zoomview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 
@@ -46,12 +46,12 @@ describe("Peaks.views", () => {
 		describe("without existing zoomview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: document.getElementById("overview-container"),
 					},
 				};
 
@@ -80,12 +80,12 @@ describe("Peaks.views", () => {
 		describe("with existing overview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: document.getElementById("overview-container"),
 					},
 				};
 
@@ -110,12 +110,12 @@ describe("Peaks.views", () => {
 		describe("without existing overview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 
@@ -144,15 +144,15 @@ describe("Peaks.views", () => {
 		describe("with zoomview and overview containers", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
+					dataUri: {
+						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
-					mediaElement: document.getElementById("media"),
-					dataUri: {
-						json: "base/test/data/sample.json",
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 
@@ -187,12 +187,12 @@ describe("Peaks.views", () => {
 		describe("with only a zoomview container", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 
@@ -227,12 +227,12 @@ describe("Peaks.views", () => {
 		describe("with only an overview container", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: document.getElementById("overview-container"),
 					},
 				};
 
@@ -269,15 +269,15 @@ describe("Peaks.views", () => {
 		describe("with zoomview and overview containers", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
+					dataUri: {
+						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
-					mediaElement: document.getElementById("media"),
-					dataUri: {
-						json: "base/test/data/sample.json",
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 
@@ -302,12 +302,12 @@ describe("Peaks.views", () => {
 		describe("with only a zoomview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 
@@ -330,12 +330,12 @@ describe("Peaks.views", () => {
 		describe("with no zoomview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: document.getElementById("overview-container"),
 					},
 				};
 
@@ -358,15 +358,15 @@ describe("Peaks.views", () => {
 		describe("with zoomview and overview containers", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
+					dataUri: {
+						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
-					mediaElement: document.getElementById("media"),
-					dataUri: {
-						json: "base/test/data/sample.json",
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 
@@ -391,12 +391,12 @@ describe("Peaks.views", () => {
 		describe("with only an overview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: document.getElementById("overview-container"),
 					},
 				};
 
@@ -419,12 +419,12 @@ describe("Peaks.views", () => {
 		describe("with no overview", () => {
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				};
 

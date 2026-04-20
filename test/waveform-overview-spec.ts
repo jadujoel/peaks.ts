@@ -9,11 +9,11 @@ describe("WaveformOverview", () => {
 				const container = document.getElementById("overview-container");
 
 				const options = {
+					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: container,
 					},
-					mediaElement: document.getElementById("media"),
-					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 				};
 
 				Peaks.init(options, (err, instance) => {
@@ -37,11 +37,11 @@ describe("WaveformOverview", () => {
 		describe("with waveform shorter than the container width", () => {
 			it("should use default waveform scale", (done: DoneCallback) => {
 				const options = {
+					dataUri: { arraybuffer: "/base/test/data/STAT3S3.dat" },
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
-					mediaElement: document.getElementById("media"),
-					dataUri: { arraybuffer: "/base/test/data/STAT3S3.dat" },
 				};
 
 				Peaks.init(options, (err, instance) => {
@@ -65,11 +65,11 @@ describe("WaveformOverview", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
+				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+				mediaElement: document.getElementById("media"),
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
-				mediaElement: document.getElementById("media"),
-				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 			};
 
 			Peaks.init(options, (err, instance) => {

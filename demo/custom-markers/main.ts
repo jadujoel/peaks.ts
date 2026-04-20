@@ -203,40 +203,40 @@ function renderPoints(peaks) {
 }
 
 const options = {
-	zoomview: {
-		container: document.getElementById("zoomview-container"),
-		waveformColor: {
-			linearGradientStart: 20,
-			linearGradientEnd: 60,
-			linearGradientColorStops: ["hsl(180, 78%, 46%)", "hsl(180, 78%, 16%)"],
-		},
-	},
-	overview: {
-		container: document.getElementById("overview-container"),
-		waveformColor: {
-			linearGradientStart: 50,
-			linearGradientEnd: 58,
-			linearGradientColorStops: [
-				"rgba(150, 0, 0, 0.2)",
-				"rgba(150, 0, 0, 0.5)",
-			],
-		},
-		highlightColor: "#888",
-	},
-	segmentOptions: {
-		startMarkerColor: "#006eb0",
-		endMarkerColor: "#006eb0",
-	},
-	mediaElement: document.getElementById("audio"),
+	createPointMarker: createPointMarker,
+	createSegmentLabel: createSegmentLabel,
+	createSegmentMarker: createSegmentMarker,
 	dataUri: {
 		arraybuffer: "TOL_6min_720p_download.dat",
 		json: "TOL_6min_720p_download.json",
 	},
 	keyboard: true,
+	mediaElement: document.getElementById("audio"),
+	overview: {
+		container: document.getElementById("overview-container"),
+		highlightColor: "#888",
+		waveformColor: {
+			linearGradientColorStops: [
+				"rgba(150, 0, 0, 0.2)",
+				"rgba(150, 0, 0, 0.5)",
+			],
+			linearGradientEnd: 58,
+			linearGradientStart: 50,
+		},
+	},
+	segmentOptions: {
+		endMarkerColor: "#006eb0",
+		startMarkerColor: "#006eb0",
+	},
 	showPlayheadTime: false,
-	createSegmentMarker: createSegmentMarker,
-	createSegmentLabel: createSegmentLabel,
-	createPointMarker: createPointMarker,
+	zoomview: {
+		container: document.getElementById("zoomview-container"),
+		waveformColor: {
+			linearGradientColorStops: ["hsl(180, 78%, 46%)", "hsl(180, 78%, 16%)"],
+			linearGradientEnd: 60,
+			linearGradientStart: 20,
+		},
+	},
 };
 
 Peaks.init(options, (err, peaksInstance) => {
@@ -265,15 +265,15 @@ Peaks.init(options, (err, peaksInstance) => {
 		.querySelector('button[data-action="add-segment"]')
 		.addEventListener("click", () => {
 			peaksInstance.segments.add({
-				startTime: peaksInstance.player.getCurrentTime(),
+				color: {
+					linearGradientColorStops: ["hsl(40, 78%, 46%)", "hsl(80, 78%, 16%)"],
+					linearGradientEnd: 60,
+					linearGradientStart: 20,
+				},
+				editable: true,
 				endTime: peaksInstance.player.getCurrentTime() + 10,
 				labelText: `Segment ${segmentCounter++}`,
-				editable: true,
-				color: {
-					linearGradientStart: 20,
-					linearGradientEnd: 60,
-					linearGradientColorStops: ["hsl(40, 78%, 46%)", "hsl(80, 78%, 16%)"],
-				},
+				startTime: peaksInstance.player.getCurrentTime(),
 			});
 		});
 
@@ -283,10 +283,10 @@ Peaks.init(options, (err, peaksInstance) => {
 		.querySelector('button[data-action="add-point"]')
 		.addEventListener("click", () => {
 			peaksInstance.points.add({
-				time: peaksInstance.player.getCurrentTime(),
-				labelText: `Point ${pointCounter++}`,
 				color: "#006eb0",
 				editable: true,
+				labelText: `Point ${pointCounter++}`,
+				time: peaksInstance.player.getCurrentTime(),
 			});
 		});
 

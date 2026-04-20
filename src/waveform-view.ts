@@ -93,26 +93,26 @@ export class WaveformView {
 
 		this.stage = new Konva.Stage({
 			container: container,
-			width: this.width,
 			height: this.height,
+			width: this.width,
 		});
 
 		this.createWaveform();
 
 		if (this.viewOptions.enableSegments) {
 			this.segmentsLayer = SegmentsLayer.from({
+				enableEditing: this.viewOptions.enableEditing ?? false,
 				peaks,
 				view: this as unknown as WaveformViewAPI,
-				enableEditing: this.viewOptions.enableEditing ?? false,
 			});
 			this.segmentsLayer.addToStage(this.stage);
 		}
 
 		if (this.viewOptions.enablePoints) {
 			this.pointsLayer = PointsLayer.from({
+				enableEditing: this.viewOptions.enableEditing ?? false,
 				peaks,
 				view: this as unknown as WaveformViewAPI,
-				enableEditing: this.viewOptions.enableEditing ?? false,
 			});
 			this.pointsLayer.addToStage(this.stage);
 		}
@@ -122,9 +122,9 @@ export class WaveformView {
 		this.createAxisLabels();
 
 		this.playheadLayer = PlayheadLayer.from({
+			options: this.viewOptions,
 			player: this.peaks.player,
 			view: this as unknown as WaveformViewAPI,
-			options: this.viewOptions,
 		});
 
 		this.playheadLayer.addToStage(this.stage);
@@ -284,21 +284,21 @@ export class WaveformView {
 			const time = this.peaks.player.getCurrentTime();
 
 			this.playedSegment = {
-				startTime: 0,
 				endTime: time,
+				startTime: 0,
 			};
 
 			this.unplayedSegment = {
-				startTime: time,
 				endTime: this.getDuration(),
+				startTime: time,
 			};
 
 			this.waveformShape.setSegment(this.unplayedSegment);
 
 			this.playedWaveformShape = WaveformShape.from({
 				color: this.playedWaveformColor,
-				view: this as unknown as WaveformViewAPI,
 				segment: this.playedSegment,
+				view: this as unknown as WaveformViewAPI,
 			});
 
 			this.playedWaveformShape.addToLayer(this.waveformLayer);
@@ -339,8 +339,8 @@ export class WaveformView {
 	private createAxisLabels(): void {
 		this.axisLayer = new Konva.Layer({ listening: false });
 		this.axis = WaveformAxis.from({
-			view: this as unknown as WaveformViewAPI,
 			options: this.viewOptions,
+			view: this as unknown as WaveformViewAPI,
 		});
 
 		this.axis.addToLayer(this.axisLayer);
@@ -423,7 +423,10 @@ export class WaveformView {
 		this.clickHandler(event, "contextmenu");
 	};
 
-	private clickHandler(event: KonvaEventObject<MouseEvent>, eventName: string): void {
+	private clickHandler(
+		event: KonvaEventObject<MouseEvent>,
+		eventName: string,
+	): void {
 		let offsetX = event.evt.offsetX;
 
 		if (offsetX < 0) {
@@ -441,8 +444,8 @@ export class WaveformView {
 
 					if (point) {
 						this.peaks.emit(`points.${eventName}`, {
-							point: point,
 							evt: event.evt,
+							point: point,
 							preventViewEvent: () => {
 								emitViewEvent = false;
 							},
@@ -453,11 +456,11 @@ export class WaveformView {
 
 					if (segment) {
 						const clickEvent = {
-							segment: segment,
 							evt: event.evt,
 							preventViewEvent: () => {
 								emitViewEvent = false;
 							},
+							segment: segment,
 						};
 
 						if (this.segmentsLayer) {
@@ -473,8 +476,8 @@ export class WaveformView {
 			const viewName = this.getName();
 
 			this.peaks.emit(`${viewName}.${eventName}`, {
-				time: time,
 				evt: event.evt,
+				time: time,
 			});
 		}
 	}
@@ -528,10 +531,7 @@ export class WaveformView {
 	}
 
 	fitToContainer(): void {
-		if (
-			this.container.clientWidth === 0 &&
-			this.container.clientHeight === 0
-		) {
+		if (this.container.clientWidth === 0 && this.container.clientHeight === 0) {
 			return;
 		}
 
@@ -579,7 +579,7 @@ export class WaveformView {
 		}
 
 		if (this.pointsLayer) {
-			this.pointsLayer.destroy();
+			this.pointsLayer.dispose();
 		}
 
 		if (this.stage) {

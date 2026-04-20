@@ -10,15 +10,15 @@ describe("Scrollbar", () => {
 	describe("with only a zoomview waveform", () => {
 		beforeEach((done: DoneCallback) => {
 			const options = {
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
+				dataUri: {
+					arraybuffer: "base/test/data/sample.dat",
 				},
+				mediaElement: document.getElementById("media"),
 				scrollbar: {
 					container: document.getElementById("scrollbar-container"),
 				},
-				mediaElement: document.getElementById("media"),
-				dataUri: {
-					arraybuffer: "base/test/data/sample.dat",
+				zoomview: {
+					container: document.getElementById("zoomview-container"),
 				},
 			};
 
@@ -113,15 +113,15 @@ describe("Scrollbar", () => {
 	describe("with only an overview waveform", () => {
 		beforeEach((done: DoneCallback) => {
 			const options = {
+				dataUri: {
+					arraybuffer: "base/test/data/sample.dat",
+				},
+				mediaElement: document.getElementById("media"),
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
 				scrollbar: {
 					container: document.getElementById("scrollbar-container"),
-				},
-				mediaElement: document.getElementById("media"),
-				dataUri: {
-					arraybuffer: "base/test/data/sample.dat",
 				},
 			};
 

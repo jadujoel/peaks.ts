@@ -132,8 +132,8 @@ export class SegmentMarker {
 	}
 
 	destroy(): void {
-		if (this.marker.destroy) {
-			this.marker.destroy();
+		if (this.marker.dispose) {
+			this.marker.dispose();
 		}
 
 		this.group.destroyChildren();

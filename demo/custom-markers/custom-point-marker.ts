@@ -47,36 +47,36 @@ export class CustomPointMarker {
 
 		this._tag = new Tag({
 			fill: this._options.color,
-			stroke: this._options.color,
-			strokeWidth: 1,
-			pointerDirection: "down",
-			pointerWidth: 10,
-			pointerHeight: 10,
 			lineJoin: "round",
-			shadowColor: "black",
+			pointerDirection: "down",
+			pointerHeight: 10,
+			pointerWidth: 10,
 			shadowBlur: 10,
+			shadowColor: "black",
 			shadowOffsetX: 3,
 			shadowOffsetY: 3,
 			shadowOpacity: 0.3,
+			stroke: this._options.color,
+			strokeWidth: 1,
 		});
 
 		this._label.add(this._tag);
 
 		this._text = new Text({
-			text: this._options.point.labelText,
+			fill: "white",
 			fontFamily: "Calibri",
 			fontSize: 14,
 			padding: 5,
-			fill: "white",
+			text: this._options.point.labelText,
 		});
 
 		this._label.add(this._text);
 
 		this._line = new Line({
-			x: 0,
-			y: 0,
 			stroke: this._options.color,
 			strokeWidth: 1,
+			x: 0,
+			y: 0,
 		});
 
 		group.add(this._label);

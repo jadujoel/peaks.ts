@@ -263,9 +263,9 @@ describe("Utils", () => {
 		it("should accept valid linear gradient object", () => {
 			expect(
 				isLinearGradientColor({
-					linearGradientStart: 0,
-					linearGradientEnd: 100,
 					linearGradientColorStops: ["red", "blue"],
+					linearGradientEnd: 100,
+					linearGradientStart: 0,
 				}),
 			).to.equal(true);
 		});
@@ -273,31 +273,31 @@ describe("Utils", () => {
 		it("should reject invalid gradient values", () => {
 			expect(
 				isLinearGradientColor({
-					linearGradientStart: 0,
-					linearGradientEnd: 100,
 					linearGradientColorStops: ["red"],
+					linearGradientEnd: 100,
+					linearGradientStart: 0,
 				}),
 			).to.equal(false);
 
 			expect(
 				isLinearGradientColor({
-					linearGradientStart: "0",
+					linearGradientColorStops: ["red"],
 					linearGradientEnd: "100",
-					linearGradientColorStops: ["red"],
+					linearGradientStart: "0",
 				}),
 			).to.equal(false);
 
 			expect(
 				isLinearGradientColor({
+					linearGradientColorStops: ["red", "blue"],
 					linearGradientStart: 0,
-					linearGradientColorStops: ["red", "blue"],
 				}),
 			).to.equal(false);
 
 			expect(
 				isLinearGradientColor({
-					linearGradientEnd: 100,
 					linearGradientColorStops: ["red", "blue"],
+					linearGradientEnd: 100,
 				}),
 			).to.equal(false);
 		});

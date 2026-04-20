@@ -63,8 +63,8 @@ export class Scrollbar {
 
 		this.stage = new Konva.Stage({
 			container: container,
-			width: this.width,
 			height: this.height,
+			width: this.width,
 		});
 
 		this.layer = new Konva.Layer();
@@ -79,16 +79,16 @@ export class Scrollbar {
 		this.offsetY = 0;
 
 		this.scrollbox = new Konva.Group({
-			draggable: true,
 			dragBoundFunc: this.dragBoundFunc,
+			draggable: true,
 		});
 
 		this.scrollboxRect = new Rect({
+			fill: this.color,
+			height: this.height,
+			width: 0,
 			x: this.scrollboxX,
 			y: this.offsetY,
-			width: 0,
-			height: this.height,
-			fill: this.color,
 		});
 
 		this.scrollbox.add(this.scrollboxRect);
@@ -232,10 +232,7 @@ export class Scrollbar {
 	}
 
 	fitToContainer(): void {
-		if (
-			this.container.clientWidth === 0 &&
-			this.container.clientHeight === 0
-		) {
+		if (this.container.clientWidth === 0 && this.container.clientHeight === 0) {
 			return;
 		}
 

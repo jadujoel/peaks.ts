@@ -1,17 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-	testDir: "./e2e",
-	reporter: [["html", { open: "never" }]],
-	use: {
-		baseURL: "http://127.0.0.1:8080",
-		trace: "retain-on-failure",
-	},
-	webServer: {
-		command: "bun run start",
-		url: "http://127.0.0.1:8080",
-		reuseExistingServer: !process.env.CI,
-	},
 	projects: [
 		{
 			name: "chromium",
@@ -26,4 +15,15 @@ export default defineConfig({
 			use: { ...devices["Desktop Safari"] },
 		},
 	],
+	reporter: [["html", { open: "never" }]],
+	testDir: "./e2e",
+	use: {
+		baseURL: "http://127.0.0.1:8080",
+		trace: "retain-on-failure",
+	},
+	webServer: {
+		command: "bun run start",
+		reuseExistingServer: !process.env.CI,
+		url: "http://127.0.0.1:8080",
+	},
 });

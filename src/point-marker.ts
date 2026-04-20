@@ -3,7 +3,13 @@ import type { Group } from "konva/lib/Group";
 import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Point } from "./point";
-import type { KonvaMouseEvent, Marker, PointMarkerOptions } from "./types";
+import type {
+	KonvaMouseEvent,
+	Marker,
+	MarkerUpdateOptions,
+	PointMarkerOptions,
+	XY,
+} from "./types";
 
 export interface PointMarkerFromOptions {
 	readonly options: PointMarkerOptions;
@@ -93,25 +99,19 @@ export class PointMarker {
 		return this.group.width();
 	}
 
-	getAbsolutePosition(): { x: number; y: number } {
+	getAbsolutePosition(): XY {
 		return this.group.getAbsolutePosition();
 	}
 
-	update(options: Record<string, unknown>): void {
+	update(options: MarkerUpdateOptions): void {
 		if (options.editable !== undefined) {
-			this.group.draggable(options.editable as boolean);
+			this.group.draggable(options.editable);
 		}
-
-		if (this.marker.update) {
-			this.marker.update(options);
-		}
+		this.marker.update(options);
 	}
 
-	destroy(): void {
-		if (this.marker.destroy) {
-			this.marker.destroy();
-		}
-
+	dispose(): void {
+		this.marker.dispose();
 		this.group.destroyChildren();
 		this.group.destroy();
 	}

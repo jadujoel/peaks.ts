@@ -80,28 +80,28 @@
 
       ((Peaks) => {
         var options = {
-          zoomview: {
-            container: document.getElementById('zoomview-container'),
-            playheadClickTolerance: 3
-          },
-          overview: {
-            container: document.getElementById('overview-container')
-          },
-          scrollbar: {
-            container: document.getElementById('scrollbar-container'),
-            color: '#888',
-            minWidth: 100
-          },
-          mediaElement: document.getElementById('audio'),
           dataUri: {
             arraybuffer: '/TOL_6min_720p_download.dat',
             json: '/TOL_6min_720p_download.json'
           },
           keyboard: true,
+          mediaElement: document.getElementById('audio'),
+          overview: {
+            container: document.getElementById('overview-container')
+          },
           pointMarkerColor: '#006eb0',
+          scrollbar: {
+            color: '#888',
+            container: document.getElementById('scrollbar-container'),
+            minWidth: 100
+          },
           showPlayheadTime: true,
           waveformCache: true,
-          zoomLevels: [512, 1024, 2048, 4096]
+          zoomLevels: [512, 1024, 2048, 4096], 
+          zoomview: {
+            container: document.getElementById('zoomview-container'),
+            playheadClickTolerance: 3
+          }
         };
 
         Peaks.init(options, (err, peaksInstance) => {

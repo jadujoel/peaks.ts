@@ -39,9 +39,9 @@ export class ViewController {
 		}
 
 		this.overview = WaveformOverview.from({
-			waveformData,
 			container,
 			peaks: this.peaks,
+			waveformData,
 		});
 
 		if (this.zoomview) {
@@ -71,9 +71,9 @@ export class ViewController {
 		}
 
 		this.zoomview = WaveformZoomView.from({
-			waveformData,
 			container,
 			peaks: this.peaks,
+			waveformData,
 		});
 
 		if (this.scrollbar) {

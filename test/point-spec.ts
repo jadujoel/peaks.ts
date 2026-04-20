@@ -8,14 +8,14 @@ describe("Point", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
+				dataUri: { arraybuffer: "base/test/data/sample.dat" },
+				mediaElement: document.getElementById("media"),
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
 				},
-				mediaElement: document.getElementById("media"),
-				dataUri: { arraybuffer: "base/test/data/sample.dat" },
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -33,10 +33,10 @@ describe("Point", () => {
 
 		it("should be possible to update all properties programatically", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const emit = sinon.spy(p, "emit");
@@ -44,10 +44,10 @@ describe("Point", () => {
 			const point = p.points.getPoints()[0];
 
 			point.update({
-				time: 12,
-				editable: false,
 				color: "#800000",
+				editable: false,
 				labelText: "new label text",
+				time: 12,
 			});
 
 			expect(point.time).to.equal(12);
@@ -61,10 +61,10 @@ describe("Point", () => {
 
 		it("should not allow the point time to be invalid", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const point = p.points.getPoints()[0];
@@ -76,10 +76,10 @@ describe("Point", () => {
 
 		it("should not allow the point time to be negative", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const point = p.points.getPoints()[0];
@@ -91,10 +91,10 @@ describe("Point", () => {
 
 		it("should not allow labelText to be undefined", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const point = p.points.getPoints()[0];
@@ -106,10 +106,10 @@ describe("Point", () => {
 
 		it("should not allow id to be null", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const point = p.points.getPoints()[0];
@@ -121,10 +121,10 @@ describe("Point", () => {
 
 		it("should not allow id to be undefined", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const point = p.points.getPoints()[0];
@@ -136,10 +136,10 @@ describe("Point", () => {
 
 		it("should not update any attributes if invalid", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const emit = sinon.spy(p, "emit");
@@ -148,10 +148,10 @@ describe("Point", () => {
 
 			expect(() => {
 				point.update({
-					time: NaN,
-					editable: false,
 					color: "#000000",
+					editable: false,
 					labelText: "Updated",
+					time: NaN,
 				});
 			}).to.throw(TypeError);
 
@@ -165,11 +165,11 @@ describe("Point", () => {
 
 		it("should allow the point id to be updated", () => {
 			const point = p.points.add({
-				id: "point1",
-				time: 10,
-				labelText: "label text",
 				color: "#ff0000",
 				editable: true,
+				id: "point1",
+				labelText: "label text",
+				time: 10,
 			});
 
 			expect(p.points.getPoint("point1")).to.be.ok;
@@ -185,19 +185,19 @@ describe("Point", () => {
 
 		it("should not allow the point id to be updated to be a duplicate", () => {
 			const point = p.points.add({
-				id: "point1",
-				time: 10,
-				labelText: "label text",
 				color: "#ff0000",
 				editable: true,
+				id: "point1",
+				labelText: "label text",
+				time: 10,
 			});
 
 			p.points.add({
-				id: "point2",
-				time: 11,
-				labelText: "label text",
 				color: "#ff0000",
 				editable: true,
+				id: "point2",
+				labelText: "label text",
+				time: 11,
 			});
 
 			expect(() => {
@@ -212,15 +212,15 @@ describe("Point", () => {
 			const pid = 0;
 
 			const point = Point.from({
+				options: {
+					color: "#000000",
+					editable: false,
+					id: "point.1",
+					labelText: "",
+					time: 0.0,
+				},
 				peaks,
 				pid,
-				options: {
-					id: "point.1",
-					time: 0.0,
-					editable: false,
-					color: "#000000",
-					labelText: "",
-				},
 			});
 
 			point.update({ data: "test" });
@@ -233,16 +233,16 @@ describe("Point", () => {
 			const pid = 0;
 
 			const point = Point.from({
+				options: {
+					color: "#000000",
+					data: "test",
+					editable: false,
+					id: "point.1",
+					labelText: "",
+					time: 0.0,
+				},
 				peaks,
 				pid,
-				options: {
-					id: "point.1",
-					time: 0.0,
-					editable: false,
-					color: "#000000",
-					labelText: "",
-					data: "test",
-				},
 			});
 
 			point.update({ data: "updated" });
@@ -267,15 +267,15 @@ describe("Point", () => {
 					const pid = 0;
 
 					const point = Point.from({
+						options: {
+							color: "#000000",
+							editable: false,
+							id: "point.1",
+							labelText: "",
+							time: 0.0,
+						},
 						peaks,
 						pid,
-						options: {
-							id: "point.1",
-							time: 0.0,
-							editable: false,
-							color: "#000000",
-							labelText: "",
-						},
 					});
 
 					const attributes = {};
@@ -294,14 +294,14 @@ describe("Point", () => {
 			const pid = 0;
 
 			const point = Point.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
 					id: "point.1",
 					labelText: "",
-					editable: true,
 					time: 9.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(point.isVisible(10.0, 20.0)).to.equal(false);
@@ -312,14 +312,14 @@ describe("Point", () => {
 			const pid = 0;
 
 			const point = Point.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
 					id: "point.1",
 					labelText: "",
-					editable: true,
 					time: 20.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(point.isVisible(10.0, 20.0)).to.equal(false);
@@ -330,14 +330,14 @@ describe("Point", () => {
 			const pid = 0;
 
 			const point = Point.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
 					id: "point.1",
 					labelText: "",
-					editable: true,
 					time: 10.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(point.isVisible(10.0, 20.0)).to.equal(true);

@@ -6,15 +6,15 @@ describe("Peaks.points", () => {
 
 	beforeEach((done: DoneCallback) => {
 		const options = {
+			dataUri: {
+				arraybuffer: "/base/test/data/sample.dat",
+			},
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 			},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
-			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				arraybuffer: "/base/test/data/sample.dat",
 			},
 		};
 
@@ -52,7 +52,7 @@ describe("Peaks.points", () => {
 
 	describe("getPoint", () => {
 		beforeEach(() => {
-			p.points.add({ time: 10, editable: true, id: "point1" });
+			p.points.add({ editable: true, id: "point1", time: 10 });
 		});
 
 		it("should return a point given a valid id", () => {
@@ -72,10 +72,10 @@ describe("Peaks.points", () => {
 	describe("add", () => {
 		it("should create a point from the supplied object", () => {
 			p.points.add({
-				time: 10,
-				editable: true,
 				color: "#ff0000",
+				editable: true,
 				labelText: "A point",
+				time: 10,
 			});
 
 			const points = p.points.getPoints();
@@ -90,12 +90,12 @@ describe("Peaks.points", () => {
 
 		it("should accept an array of point objects", () => {
 			const points = [
-				{ time: 10, editable: true, color: "#ff0000", labelText: "A point" },
+				{ color: "#ff0000", editable: true, labelText: "A point", time: 10 },
 				{
-					time: 12,
-					editable: true,
 					color: "#ff0000",
+					editable: true,
 					labelText: "Another point",
+					time: 12,
 				},
 			];
 
@@ -109,12 +109,12 @@ describe("Peaks.points", () => {
 		it("should throw if the time is missing", () => {
 			expect(() => {
 				// 'timestamp' should be 'time'
-				p.points.add({ timestamp: 10, editable: true, labelText: "A point" });
+				p.points.add({ editable: true, labelText: "A point", timestamp: 10 });
 			}).to.throw(TypeError);
 		});
 
 		it("should accept an optional id", () => {
-			p.points.add({ time: 10, id: "500" });
+			p.points.add({ id: "500", time: 10 });
 
 			const points = p.points.getPoints();
 
@@ -124,7 +124,7 @@ describe("Peaks.points", () => {
 		});
 
 		it("should allow 0 for a point id", () => {
-			p.points.add({ time: 10, id: 0 });
+			p.points.add({ id: 0, time: 10 });
 
 			const points = p.points.getPoints();
 
@@ -134,19 +134,19 @@ describe("Peaks.points", () => {
 		});
 
 		it("should accept an optional color", () => {
-			p.points.add({ time: 10, color: "#888" });
+			p.points.add({ color: "#888", time: 10 });
 
 			expect(p.points.getPoints()[0].color).to.equal("#888");
 		});
 
 		it("should throw if the color is not valid", () => {
 			expect(() => {
-				p.points.add({ time: 10, color: 1 });
+				p.points.add({ color: 1, time: 10 });
 			}).to.throw(TypeError, /color/);
 		});
 
 		it("should accept an optional label text", () => {
-			p.points.add({ time: 10, labelText: "test" });
+			p.points.add({ labelText: "test", time: 10 });
 
 			expect(p.points.getPoints()[0].labelText).to.equal("test");
 		});
@@ -158,7 +158,7 @@ describe("Peaks.points", () => {
 		});
 
 		it("should assign a default label text if null", () => {
-			p.points.add({ time: 10, labelText: null });
+			p.points.add({ labelText: null, time: 10 });
 
 			expect(p.points.getPoints()[0].labelText).to.equal("");
 		});
@@ -175,18 +175,18 @@ describe("Peaks.points", () => {
 
 		it("should throw if the label text is not a string", () => {
 			expect(() => {
-				p.points.add({ time: 10, labelText: 1 });
+				p.points.add({ labelText: 1, time: 10 });
 			}).to.throw(TypeError, /labelText/);
 		});
 
 		it("should throw if the editable flag is not a boolean", () => {
 			expect(() => {
-				p.points.add({ time: 10, editable: 1 });
+				p.points.add({ editable: 1, time: 10 });
 			}).to.throw(TypeError, /editable/);
 		});
 
 		it("should accept optional user data", () => {
-			p.points.add({ time: 10, data: "test" });
+			p.points.add({ data: "test", time: 10 });
 
 			expect(p.points.getPoints()[0].data).to.equal("test");
 		});
@@ -260,17 +260,17 @@ describe("Peaks.points", () => {
 		});
 
 		it("should throw an exception if given a duplicate id", () => {
-			p.points.add({ time: 10, id: "point1" });
+			p.points.add({ id: "point1", time: 10 });
 
 			expect(() => {
-				p.points.add({ time: 10, id: "point1" });
+				p.points.add({ id: "point1", time: 10 });
 			}).to.throw(Error, /duplicate/);
 		});
 
 		it("should add a point with the same id as a previously removed point", () => {
-			p.points.add({ time: 10, id: "point1" });
+			p.points.add({ id: "point1", time: 10 });
 			p.points.removeById("point1");
-			p.points.add({ time: 20, id: "point1" });
+			p.points.add({ id: "point1", time: 20 });
 
 			const points = p.points.getPoints();
 
@@ -305,17 +305,17 @@ describe("Peaks.points", () => {
 
 		it("should add points atomically", () => {
 			p.points.add([
-				{ time: 0, id: "point1" },
-				{ time: 10, id: "point2" },
-				{ time: 20, id: "point3" },
+				{ id: "point1", time: 0 },
+				{ id: "point2", time: 10 },
+				{ id: "point3", time: 20 },
 			]);
 
 			expect(p.points.getPoints()).to.have.lengthOf(3);
 
 			const pointsToAdd = [
-				{ time: 30, id: "point4" },
-				{ time: 40, id: "point1" },
-				{ time: 40, id: "point6" },
+				{ id: "point4", time: 30 },
+				{ id: "point1", time: 40 },
+				{ id: "point6", time: 40 },
 			];
 
 			expect(() => {
@@ -336,9 +336,9 @@ describe("Peaks.points", () => {
 
 	describe("remove", () => {
 		beforeEach(() => {
-			p.points.add({ time: 10, editable: true, id: "point1" });
-			p.points.add({ time: 5, editable: true, id: "point2" });
-			p.points.add({ time: 3, editable: true, id: "point3" });
+			p.points.add({ editable: true, id: "point1", time: 10 });
+			p.points.add({ editable: true, id: "point2", time: 5 });
+			p.points.add({ editable: true, id: "point3", time: 3 });
 		});
 
 		it("should remove the given point object", () => {
@@ -388,10 +388,10 @@ describe("Peaks.points", () => {
 
 	describe("removeByTime", () => {
 		beforeEach(() => {
-			p.points.add({ time: 10, editable: true });
-			p.points.add({ time: 5, editable: true });
-			p.points.add({ time: 3, editable: true });
-			p.points.add({ time: 3, editable: true });
+			p.points.add({ editable: true, time: 10 });
+			p.points.add({ editable: true, time: 5 });
+			p.points.add({ editable: true, time: 3 });
+			p.points.add({ editable: true, time: 3 });
 		});
 
 		it("should remove any points with the given time", () => {
@@ -441,8 +441,8 @@ describe("Peaks.points", () => {
 	describe("removeById", () => {
 		beforeEach(() => {
 			p.points.add([
-				{ time: 0, id: "point_id.1" },
-				{ time: 15, id: "point_id.2" },
+				{ id: "point_id.1", time: 0 },
+				{ id: "point_id.2", time: 15 },
 			]);
 		});
 
@@ -481,7 +481,7 @@ describe("Peaks.points", () => {
 		it("should allow a point with the same id to be subsequently added", () => {
 			p.points.removeById("point_id.1");
 
-			p.points.add({ time: 6, id: "point_id.1" });
+			p.points.add({ id: "point_id.1", time: 6 });
 
 			const points = p.points.getPoints();
 
@@ -493,8 +493,8 @@ describe("Peaks.points", () => {
 
 	describe("removeAll", () => {
 		beforeEach(() => {
-			p.points.add({ time: 10, id: "point_id.1" });
-			p.points.add({ time: 5, id: "point_id.2" });
+			p.points.add({ id: "point_id.1", time: 10 });
+			p.points.add({ id: "point_id.2", time: 5 });
 		});
 
 		it("should remove all point objects", () => {
@@ -527,8 +527,8 @@ describe("Peaks.points", () => {
 		it("should allow the same point ids to be subsequently added", () => {
 			p.points.removeAll();
 
-			p.points.add({ time: 6, id: "point_id.1" });
-			p.points.add({ time: 7, id: "point_id.2" });
+			p.points.add({ id: "point_id.1", time: 6 });
+			p.points.add({ id: "point_id.2", time: 7 });
 
 			const points = p.points.getPoints();
 

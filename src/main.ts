@@ -715,7 +715,7 @@ export class Peaks extends EventEmitter {
 		}
 
 		if (this.cueEmitter) {
-			this.cueEmitter.destroy();
+			this.cueEmitter.dispose();
 		}
 	}
 }

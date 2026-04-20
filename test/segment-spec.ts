@@ -8,14 +8,14 @@ describe("Segment", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
+				dataUri: { arraybuffer: "base/test/data/sample.dat" },
+				mediaElement: document.getElementById("media"),
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
 				},
-				mediaElement: document.getElementById("media"),
-				dataUri: { arraybuffer: "base/test/data/sample.dat" },
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -33,12 +33,12 @@ describe("Segment", () => {
 
 		it("should be possible to update all properties programatically", () => {
 			p.segments.add({
-				startTime: 0,
+				borderColor: "#00ff00",
+				color: "#ff0000",
+				editable: true,
 				endTime: 10,
 				labelText: "label text",
-				color: "#ff0000",
-				borderColor: "#00ff00",
-				editable: true,
+				startTime: 0,
 			});
 
 			const emit = sinon.spy(p, "emit");
@@ -46,12 +46,12 @@ describe("Segment", () => {
 			const segment = p.segments.getSegments()[0];
 
 			segment.update({
-				startTime: 2,
+				borderColor: "#008000",
+				color: "#800000",
+				editable: false,
 				endTime: 9,
 				labelText: "new label text",
-				color: "#800000",
-				borderColor: "#008000",
-				editable: false,
+				startTime: 2,
 			});
 
 			expect(segment.startTime).to.equal(2);
@@ -66,17 +66,17 @@ describe("Segment", () => {
 		});
 
 		it("should not allow startTime to be greater than endTime", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 
 			expect(() => {
-				segment.update({ startTime: 8, endTime: 3 });
+				segment.update({ endTime: 3, startTime: 8 });
 			}).to.throw(RangeError);
 		});
 
 		it("should not allow startTime to be invalid", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 
@@ -86,7 +86,7 @@ describe("Segment", () => {
 		});
 
 		it("should not allow endTime to be invalid", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 
@@ -96,7 +96,7 @@ describe("Segment", () => {
 		});
 
 		it("should not allow id to be null", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 
@@ -106,7 +106,7 @@ describe("Segment", () => {
 		});
 
 		it("should not allow id to be undefined", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 
@@ -117,12 +117,12 @@ describe("Segment", () => {
 
 		it("should not update any attributes if invalid", () => {
 			p.segments.add({
-				startTime: 0,
-				endTime: 10,
-				editable: true,
-				color: "#ff0000",
 				borderColor: "#00ff00",
+				color: "#ff0000",
+				editable: true,
+				endTime: 10,
 				labelText: "A segment",
+				startTime: 0,
 			});
 
 			const emit = sinon.spy(p, "emit");
@@ -131,12 +131,12 @@ describe("Segment", () => {
 
 			expect(() => {
 				segment.update({
-					startTime: 10,
-					endTime: 0,
-					editable: false,
-					color: "#000000",
 					borderColor: "#0000ff",
+					color: "#000000",
+					editable: false,
+					endTime: 0,
 					labelText: "Updated",
+					startTime: 10,
 				});
 			}).to.throw(RangeError);
 
@@ -152,13 +152,13 @@ describe("Segment", () => {
 
 		it("should allow the segment id to be updated", () => {
 			const segment = p.segments.add({
-				id: "segment1",
-				startTime: 0,
-				endTime: 10,
-				labelText: "label text",
-				color: "#ff0000",
 				borderColor: "#00ff00",
+				color: "#ff0000",
 				editable: true,
+				endTime: 10,
+				id: "segment1",
+				labelText: "label text",
+				startTime: 0,
 			});
 
 			expect(p.segments.getSegment("segment1")).to.be.ok;
@@ -174,23 +174,23 @@ describe("Segment", () => {
 
 		it("should not allow the segment id to be updated to be a duplicate", () => {
 			const segment = p.segments.add({
-				id: "segment1",
-				startTime: 0,
-				endTime: 10,
-				labelText: "label text",
-				color: "#ff0000",
 				borderColor: "#00ff00",
+				color: "#ff0000",
 				editable: true,
+				endTime: 10,
+				id: "segment1",
+				labelText: "label text",
+				startTime: 0,
 			});
 
 			p.segments.add({
-				id: "segment2",
-				startTime: 10,
-				endTime: 20,
-				labelText: "label text",
-				color: "#ff0000",
 				borderColor: "#00ff00",
+				color: "#ff0000",
 				editable: true,
+				endTime: 20,
+				id: "segment2",
+				labelText: "label text",
+				startTime: 10,
 			});
 
 			expect(() => {
@@ -201,7 +201,7 @@ describe("Segment", () => {
 		});
 
 		it("should not allow the overlay attribute to be updated", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 
@@ -211,7 +211,7 @@ describe("Segment", () => {
 		});
 
 		it("should not allow the markers attribute to be updated", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 
@@ -225,15 +225,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
+				options: {
+					editable: true,
+					endTime: 10.0,
+					id: "segment.1",
+					labelText: "",
+					startTime: 0.0,
+				},
 				peaks,
 				pid,
-				options: {
-					id: "segment.1",
-					startTime: 0.0,
-					endTime: 10.0,
-					labelText: "",
-					editable: true,
-				},
 			});
 
 			segment.update({ data: "test" });
@@ -246,16 +246,16 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
+				options: {
+					data: "test",
+					editable: true,
+					endTime: 10.0,
+					id: "segment.1",
+					labelText: "",
+					startTime: 0.0,
+				},
 				peaks,
 				pid,
-				options: {
-					id: "segment.1",
-					startTime: 0.0,
-					endTime: 10.0,
-					labelText: "",
-					editable: true,
-					data: "test",
-				},
 			});
 
 			segment.update({ data: "updated" });
@@ -285,15 +285,15 @@ describe("Segment", () => {
 					const pid = 0;
 
 					const segment = Segment.from({
+						options: {
+							editable: true,
+							endTime: 10.0,
+							id: "segment.1",
+							labelText: "",
+							startTime: 0.0,
+						},
 						peaks,
 						pid,
-						options: {
-							id: "segment.1",
-							startTime: 0.0,
-							endTime: 10.0,
-							labelText: "",
-							editable: true,
-						},
 					});
 
 					const attributes = {};
@@ -312,15 +312,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 10.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 0.0,
-					endTime: 10.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(false);
@@ -331,15 +331,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 30.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 20.0,
-					endTime: 30.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(false);
@@ -350,15 +350,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 18.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 12.0,
-					endTime: 18.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -369,15 +369,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 19.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 9.0,
-					endTime: 19.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -388,15 +388,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 20.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 9.0,
-					endTime: 20.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -407,15 +407,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 21.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 11.0,
-					endTime: 21.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -426,15 +426,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 20.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 11.0,
-					endTime: 20.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -445,15 +445,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 20.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 10.0,
-					endTime: 20.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -464,15 +464,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 21.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 9.0,
-					endTime: 21.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(10.0, 20.0)).to.equal(true);
@@ -483,15 +483,15 @@ describe("Segment", () => {
 			const pid = 0;
 
 			const segment = Segment.from({
-				peaks,
-				pid,
 				options: {
+					editable: true,
+					endTime: 0.0,
 					id: "segment.1",
 					labelText: "",
-					editable: true,
 					startTime: 0.0,
-					endTime: 0.0,
 				},
+				peaks,
+				pid,
 			});
 
 			expect(segment.isVisible(0.0, 10.0)).to.equal(true);

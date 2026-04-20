@@ -290,42 +290,42 @@
         };
 
         var options = {
-          zoomview: {
-            container: document.getElementById('zoomview-container'),
-            playheadClickTolerance: 3
-          },
-          overview: {
-            container: document.getElementById('overview-container')
-          },
-          mediaElement: document.getElementById('audio'),
+          createSegmentLabel: () => null,
           dataUri: {
             arraybuffer: '/TOL_6min_720p_download.dat',
             json: '/TOL_6min_720p_download.json'
           },
           keyboard: true,
+          mediaElement: document.getElementById('audio'),
+          overview: {
+            container: document.getElementById('overview-container')
+          },
           pointMarkerColor: '#006eb0',
-          showPlayheadTime: true,
-          waveformCache: true,
-          zoomLevels: [512, 1024, 2048, 4096],
           segmentOptions: {
             markers:                   false,
             overlay:                   true,
-            waveformColor:             '#ff851b',
-            overlayColor:              '#ff0000',
-            overlayOpacity:            0.3,
             overlayBorderColor:        '#ff0000',
             overlayBorderWidth:        2,
+            overlayColor:              '#ff0000',
             overlayCornerRadius:       5,
-            overlayOffset:             40,
-            overlayLabelAlign:         'left',
-            overlayLabelVerticalAlign: 'top',
-            overlayLabelPadding:       8,
-            overlayLabelColor:         '#000000',
             overlayFontFamily:         'sans-serif',
             overlayFontSize:           14,
-            overlayFontStyle:          'normal'
+            overlayFontStyle:          'normal', 
+            overlayLabelAlign:         'left',
+            overlayLabelColor:         '#000000',
+            overlayLabelPadding:       8,
+            overlayLabelVerticalAlign: 'top',
+            overlayOffset:             40,
+            overlayOpacity:            0.3,
+            waveformColor:             '#ff851b'
           },
-          createSegmentLabel: () => null,
+          showPlayheadTime: true,
+          waveformCache: true,
+          zoomLevels: [512, 1024, 2048, 4096],
+          zoomview: {
+            container: document.getElementById('zoomview-container'),
+            playheadClickTolerance: 3
+          },
         };
 
         Peaks.init(options, (err, peaksInstance) => {
@@ -350,18 +350,18 @@
 
           document.querySelector('button[data-action="add-segment"]').addEventListener('click', () => {
             peaksInstance.segments.add({
-              startTime: peaksInstance.player.getCurrentTime(),
+              editable: true, 
               endTime: peaksInstance.player.getCurrentTime() + 2,
               labelText: `Test segment ${segmentCounter++}`,
-              editable: true
+              startTime: peaksInstance.player.getCurrentTime()
             });
           });
 
           document.querySelector('button[data-action="add-point"]').addEventListener('click', () => {
             peaksInstance.points.add({
-              time: peaksInstance.player.getCurrentTime(),
+              editable: true, 
               labelText: 'Test point',
-              editable: true
+              time: peaksInstance.player.getCurrentTime()
             });
           });
 

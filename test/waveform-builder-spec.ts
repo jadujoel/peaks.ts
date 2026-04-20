@@ -11,8 +11,8 @@ describe("WaveformBuilder", () => {
 		it("should not accept a string as dataUri", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: "base/test/data/sample.json",
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -28,10 +28,10 @@ describe("WaveformBuilder", () => {
 		it("should invoke callback with an error if the data handling fails", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/404-file.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -48,10 +48,10 @@ describe("WaveformBuilder", () => {
 		it("should invoke callback with an error if the data handling fails due to a network error", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "file:///test.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -69,10 +69,10 @@ describe("WaveformBuilder", () => {
 		it("should fetch JSON format waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -95,10 +95,10 @@ describe("WaveformBuilder", () => {
 		it("should fetch binary format waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -121,10 +121,10 @@ describe("WaveformBuilder", () => {
 		it("should not use credentials if withCredentials is not set", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -147,11 +147,11 @@ describe("WaveformBuilder", () => {
 		it("should use credentials if withCredentials is set", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
-					withCredentials: true,
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
+					withCredentials: true,
 				},
 			};
 
@@ -175,10 +175,10 @@ describe("WaveformBuilder", () => {
 			it("should use the arraybuffer dataUri connector", (done: DoneCallback) => {
 				const peaks = {
 					options: {
-						mediaElement: document.getElementById("media"),
 						dataUri: {
 							arraybuffer: "base/test/data/sample.dat",
 						},
+						mediaElement: document.getElementById("media"),
 					},
 				};
 
@@ -202,10 +202,10 @@ describe("WaveformBuilder", () => {
 			it("should invoke callback with an error if the only available format is browser incompatible", (done: DoneCallback) => {
 				const peaks = {
 					options: {
-						mediaElement: document.getElementById("media"),
 						dataUri: {
 							arraybuffer: "base/test/data/sample.dat",
 						},
+						mediaElement: document.getElementById("media"),
 					},
 				};
 
@@ -281,11 +281,11 @@ describe("WaveformBuilder", () => {
 		it("should prefer binary waveform data over JSON", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -311,10 +311,10 @@ describe("WaveformBuilder", () => {
 		it("should return an error given 16-bit waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample_16bit.dat",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -355,10 +355,10 @@ describe("WaveformBuilder", () => {
 		it("should abort an HTTP request for waveform data", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -401,10 +401,10 @@ describe("WaveformBuilder", () => {
 		it("should do nothing if the HTTP request has not yet been sent", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 
@@ -422,10 +422,10 @@ describe("WaveformBuilder", () => {
 		it("should do nothing if the HTTP request has completed", (done: DoneCallback) => {
 			const peaks = {
 				options: {
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
 				},
 			};
 

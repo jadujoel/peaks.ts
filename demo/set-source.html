@@ -81,24 +81,24 @@
         function createSources(waveformData) {
           return [
             {
-              title: 'Tree of Life',
-              mediaUrl: '/TOL_6min_720p_download.mp3',
               dataUri: {
                 arraybuffer: 'TOL_6min_720p_download.dat',
                 json: 'TOL_6min_720p_download.json'
-              }
+              }, 
+              mediaUrl: '/TOL_6min_720p_download.mp3',
+              title: 'Tree of Life'
             },
             {
-              title: 'Desert Island Discs',
               mediaUrl: '/sample.mp3',
+              title: 'Desert Island Discs',
               webAudio: {
                 audioContext: audioContext
               },
               zoomLevels: [128, 256]
             },
             {
-              title: 'BBC Sound Effect (Cars)',
               mediaUrl: '/07023003.mp3',
+              title: 'BBC Sound Effect (Cars)',
               waveformData: {
                 arraybuffer: waveformData
               }
@@ -152,21 +152,21 @@
         }
 
         var options = {
-          zoomview: {
-            container: document.getElementById('zoomview-container')
-          },
-          overview: {
-            container: document.getElementById('overview-container')
-          },
-          mediaElement: document.getElementById('audio'),
           dataUri: {
             arraybuffer: '/TOL_6min_720p_download.dat',
             json: '/TOL_6min_720p_download.json'
           },
           keyboard: true,
+          mediaElement: document.getElementById('audio'),
+          overview: {
+            container: document.getElementById('overview-container')
+          },
           pointMarkerColor: '#006eb0',
           showPlayheadTime: true,
-          zoomLevels: [512, 1024, 2048]
+          zoomLevels: [512, 1024, 2048], 
+          zoomview: {
+            container: document.getElementById('zoomview-container')
+          }
         };
 
         createPeaksInstance(options)

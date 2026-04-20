@@ -81,18 +81,18 @@
 
       ((Peaks) => {
         var options = {
-          overview: {
-            container: document.getElementById('overview-container'),
-            waveformColor: '#cccccc',
-            playedWaveformColor: '#888888',
-            showPlayheadTime: true
-          },
-          mediaElement: document.getElementById('audio'),
           dataUri: {
             arraybuffer: '/TOL_6min_720p_download.dat',
             json: '/TOL_6min_720p_download.json'
           },
-          keyboard: true
+          keyboard: true, 
+          mediaElement: document.getElementById('audio'),
+          overview: {
+            container: document.getElementById('overview-container'),
+            playedWaveformColor: '#888888',
+            showPlayheadTime: true, 
+            waveformColor: '#cccccc'
+          }
         };
 
         Peaks.init(options, (err, peaksInstance) => {

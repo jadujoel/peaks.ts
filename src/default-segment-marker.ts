@@ -38,10 +38,10 @@ export class DefaultSegmentMarker {
 		// Label - create with default y, the real value is set in fitToView().
 		this.label = new Text({
 			fill: "#000",
-			fontFamily: this.options.fontFamily,
-			fontSize: this.options.fontSize,
-			fontStyle: this.options.fontStyle,
-			text: this.options.layer.formatTime(time),
+			fontFamily: this.options.fontFamily ?? "sans-serif",
+			fontSize: this.options.fontSize ?? 10,
+			fontStyle: this.options.fontStyle ?? "normal",
+			text: this.options.layer?.formatTime(time) ?? "",
 			textAlign: "center",
 			visible: this.editable,
 			x: xPosition,
@@ -52,9 +52,9 @@ export class DefaultSegmentMarker {
 
 		// Handle - create with default y, the real value is set in fitToView().
 		this.handle = new Rect({
-			fill: this.options.color,
+			fill: this.options.color ?? "#000",
 			height: handleHeight,
-			stroke: this.options.color,
+			stroke: this.options.color ?? "#000",
 			strokeWidth: 1,
 			visible: this.editable,
 			width: handleWidth,
@@ -65,7 +65,7 @@ export class DefaultSegmentMarker {
 		// Vertical Line - create with default y and points, the real values
 		// are set in fitToView().
 		this.line = new Line({
-			stroke: this.options.color,
+			stroke: this.options.color ?? "#000",
 			strokeWidth: 1,
 			visible: this.editable,
 			x: 0,
@@ -110,7 +110,7 @@ export class DefaultSegmentMarker {
 	}
 
 	fitToView(): void {
-		const height = this.options.layer.getHeight();
+		const height = this.options.layer?.getHeight() ?? 0;
 
 		this.label.y(height / 2 - 5);
 		this.handle.y(height / 2 - 10.5);
@@ -119,11 +119,11 @@ export class DefaultSegmentMarker {
 
 	update(options: SegmentUpdateOptions): void {
 		if (options.startTime !== undefined && this.options.startMarker) {
-			this.label.text(this.options.layer.formatTime(options.startTime));
+			this.label.text(this.options.layer?.formatTime(options.startTime) ?? "");
 		}
 
 		if (options.endTime !== undefined && !this.options.startMarker) {
-			this.label.text(this.options.layer.formatTime(options.endTime));
+			this.label.text(this.options.layer?.formatTime(options.endTime) ?? "");
 		}
 
 		if (options.editable !== undefined) {
@@ -133,5 +133,9 @@ export class DefaultSegmentMarker {
 			this.handle.visible(this.editable);
 			this.line.visible(this.editable);
 		}
+	}
+
+	dispose(): void {
+		// Shapes are destroyed by group.destroyChildren() in SegmentMarker.destroy()
 	}
 }

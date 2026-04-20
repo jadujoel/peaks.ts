@@ -85,20 +85,20 @@
         var audioContext = new AudioContext();
 
         var options = {
-          zoomview: {
-            container: document.getElementById('zoomview-container'),
-            waveformColor: '#00e180',
-            playedWaveformColor: '#bc6dfd',
-            showPlayheadTime: true
-          },
+          keyboard: true, 
           mediaElement: document.getElementById('audio'),
           webAudio: {
             audioContext: audioContext,
-            scale: 128,
-            multiChannel: false
+            multiChannel: false, 
+            scale: 128
           },
           zoomLevels: [128],
-          keyboard: true
+          zoomview: {
+            container: document.getElementById('zoomview-container'),
+            playedWaveformColor: '#bc6dfd',
+            showPlayheadTime: true, 
+            waveformColor: '#00e180'
+          }
         };
 
         Peaks.init(options, (err, peaksInstance) => {

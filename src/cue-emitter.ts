@@ -9,6 +9,19 @@ export const CUE_EVENT_POINT_ENTER = "points.enter" as const;
 export const CUE_EVENT_SEGMENT_ENTER = "segments.enter" as const;
 export const CUE_EVENT_SEGMENT_EXIT = "segments.exit" as const;
 
+export const TRACKED_EVENTS = [
+	"points.update",
+	"points.dragmove",
+	"points.add",
+	"points.remove",
+	"points.remove_all",
+	"segments.update",
+	"segments.dragged",
+	"segments.add",
+	"segments.remove",
+	"segments.remove_all",
+] as const;
+
 export type CueEventName =
 	| typeof CUE_EVENT_POINT_ENTER
 	| typeof CUE_EVENT_SEGMENT_ENTER
@@ -18,6 +31,14 @@ export interface BuildCuesInput {
 	readonly points: readonly Point[];
 	readonly segments: readonly Segment[];
 }
+
+export type TrackedEventTypes = (typeof TRACKED_EVENTS)[number];
+
+export interface CueEmitterFromOptions {
+	readonly peaks: PeaksInstance;
+}
+
+export type ActiveSegmentsMap = Map<CueEventName | (string & {}), Segment>;
 
 /**
  * Builds a time-sorted list of cues from the given points and segments.
@@ -102,40 +123,18 @@ export function cueEventName(cue: Cue, isForward: boolean): CueEventName {
 	return entering ? CUE_EVENT_SEGMENT_ENTER : CUE_EVENT_SEGMENT_EXIT;
 }
 
-// ─── Infrastructure ─────────────────────────────────────────────────
-
-export const TRACKED_EVENTS = [
-	"points.update",
-	"points.dragmove",
-	"points.add",
-	"points.remove",
-	"points.remove_all",
-	"segments.update",
-	"segments.dragged",
-	"segments.add",
-	"segments.remove",
-	"segments.remove_all",
-] as const;
-
 const isHeadless = /HeadlessChrome/.test(navigator.userAgent);
 
 export function isWindowVisible(): boolean {
 	if (isHeadless || navigator.webdriver) {
 		return false;
 	}
-
 	return (
 		typeof document === "object" &&
 		"visibilityState" in document &&
 		document.visibilityState === "visible"
 	);
 }
-
-export interface CueEmitterFromOptions {
-	readonly peaks: PeaksInstance;
-}
-
-export type ActiveSegmentsMap = Map<CueEventName | (string & {}), Segment>;
 
 /**
  * CueEmitter emits `points.enter`, `segments.enter`, and `segments.exit`
@@ -173,7 +172,6 @@ export class CueEmitter {
 
 	private emitCrossing(cue: Cue, time: number, isForward: boolean): void {
 		const kind = cueEventName(cue, isForward);
-
 		if (kind === CUE_EVENT_POINT_ENTER) {
 			const point = this.peaks.points.getPoint(cue.id);
 			if (!point) {
@@ -286,7 +284,7 @@ export class CueEmitter {
 		}
 	}
 
-	destroy(): void {
+	dispose(): void {
 		cancelAnimationFrame(this.rAFHandle);
 		this.removeEventHandlers();
 		this.previousTime = -1;

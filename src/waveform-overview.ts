@@ -67,8 +67,8 @@ export class WaveformOverview extends WaveformView {
 
 	override initHighlightLayer(): void {
 		this.highlightLayer = HighlightLayer.from({
-			view: this,
 			options: this.viewOptions as OverviewOptions,
+			view: this,
 		});
 
 		this.highlightLayer.addToStage(this.stage);
@@ -94,7 +94,10 @@ export class WaveformOverview extends WaveformView {
 		this.playheadLayer.stop(time);
 	};
 
-	private onZoomviewUpdate = (event: { startTime: number; endTime: number }): void => {
+	private onZoomviewUpdate = (event: {
+		startTime: number;
+		endTime: number;
+	}): void => {
 		this.showHighlight(event.startTime, event.endTime);
 	};
 

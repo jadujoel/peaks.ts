@@ -1,24 +1,28 @@
 {
 	// Visit https://aka.ms/tsconfig to read more about this file
 	"compilerOptions": {
-		// File Layout
-		"rootDir": ".",
-		"outDir": "./dist",
+		"declaration": true,
+		"declarationMap": true,
+		"exactOptionalPropertyTypes": true,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
 
 		// Environment Settings
 		// See also https://aka.ms/tsconfig/module
 		"module": "esnext",
-		"target": "esnext",
-		"types": ["bun", "vitest/globals"],
-
-		// Other Outputs
-		"sourceMap": true,
-		"declaration": true,
-		"declarationMap": true,
+		"moduleDetection": "force",
+		"moduleResolution": "bundler",
 
 		// Stricter Typechecking Options
 		"noUncheckedIndexedAccess": true,
-		"exactOptionalPropertyTypes": true,
+		"noUncheckedSideEffectImports": true,
+		"outDir": "./dist",
+		// File Layout
+		"rootDir": ".",
+		"skipLibCheck": true,
+
+		// Other Outputs
+		"sourceMap": true,
 
 		// Style Options
 		// "noImplicitReturns": true,
@@ -30,13 +34,9 @@
 
 		// Recommended Options
 		"strict": true,
-		"jsx": "react-jsx",
-		"verbatimModuleSyntax": true,
-		"isolatedModules": true,
-		"noUncheckedSideEffectImports": true,
-		"moduleDetection": "force",
-		"skipLibCheck": true,
-		"moduleResolution": "bundler"
+		"target": "esnext",
+		"types": ["bun", "vitest/globals"],
+		"verbatimModuleSyntax": true
 	},
 	"include": [
 		"src/**/*.ts",

@@ -1,68 +1,21 @@
 {
-	"name": "@jadujoel/peaks.ts",
-	"type": "module",
-	"private": false,
-	"version": "5.0.0",
-	"description": "Typescript UI component for displaying audio waveforms",
-	"main": "./dist/peaks.esm.js",
-	"module": "./dist/peaks.esm.js",
-	"types": "./dist/esm/main.d.ts",
-	"exports": {
-		".": {
-			"types": "./dist/esm/main.d.ts",
-			"import": "./dist/peaks.esm.js",
-			"default": "./dist/peaks.esm.js"
-		}
-	},
-	"publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/",
-		"provenance": true
-	},
-	"files": [
-		"dist"
+	"browserslist": [
+		"last 2 versions",
+		"> 0.2%",
+		"not IE 11"
 	],
 	"contributors": [
 		"Chris Finch (https://github.com/chrisfinch)",
 		"Thomas Parisot (https://github.com/oncletom)",
 		"Chris Needham (https://github.com/chrisn)"
 	],
-	"keywords": [
-		"audio",
-		"visualisation",
-		"webaudio",
-		"browser",
-		"interactive",
-		"waveform"
-	],
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/jadujoel/peaks.ts.git"
+	"dependencies": {
+		"@jadujoel/web-audio-clip-node": "0.2.8",
+		"eventemitter3": "~5.0.1",
+		"neverthrow": "8.2.0",
+		"option-t": "56.0.0"
 	},
-	"license": "LGPL-3.0",
-	"engines": {
-		"node": ">= 20.0.0"
-	},
-	"browserslist": [
-		"last 2 versions",
-		"> 0.2%",
-		"not IE 11"
-	],
-	"scripts": {
-		"prebuild": "bun run lint && bun run typecheck",
-		"build": "bun scripts/build.ts",
-		"lint": "biome check .",
-		"lint:fix": "biome check . --write",
-		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
-		"test": "vitest run",
-		"test:coverage": "vitest run --coverage",
-		"test:e2e": "playwright test",
-		"test:all": "bun run lint && bun run typecheck && bun run test && bun run build && bun run test:e2e",
-		"copy-demo-files": "copyfiles --up 1 test/data/sample.mp3 test/data/07023003.mp3 test/data/07023003-2channel.dat demo",
-		"prestart": "bun run build && bun run copy-demo-files",
-		"start": "serve --listen 8080 --no-clipboard --no-request-logging demo",
-		"preview": "serve --listen 8080 --no-clipboard --no-request-logging demo"
-	},
+	"description": "Typescript UI component for displaying audio waveforms",
 	"devDependencies": {
 		"@biomejs/biome": "2.4.12",
 		"@playwright/test": "^1.54.2",
@@ -73,15 +26,62 @@
 		"serve": "~14.2.3",
 		"vitest": "^4.0.7"
 	},
-	"dependencies": {
-		"@jadujoel/web-audio-clip-node": "0.2.8",
-		"eventemitter3": "~5.0.1",
-		"neverthrow": "8.2.0",
-		"option-t": "56.0.0"
+	"engines": {
+		"node": ">= 20.0.0"
 	},
+	"exports": {
+		".": {
+			"default": "./dist/peaks.esm.js",
+			"import": "./dist/peaks.esm.js",
+			"types": "./dist/esm/main.d.ts"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"audio",
+		"visualisation",
+		"webaudio",
+		"browser",
+		"interactive",
+		"waveform"
+	],
+	"license": "LGPL-3.0",
+	"main": "./dist/peaks.esm.js",
+	"module": "./dist/peaks.esm.js",
+	"name": "@jadujoel/peaks.ts",
 	"peerDependencies": {
 		"konva": ">= 8.3.14 < 10",
-		"waveform-data": ">= 4.5.1 < 5",
-		"typescript": "^6"
-	}
+		"typescript": "^6",
+		"waveform-data": ">= 4.5.1 < 5"
+	},
+	"private": false,
+	"publishConfig": {
+		"access": "public",
+		"provenance": true,
+		"registry": "https://registry.npmjs.org/"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/jadujoel/peaks.ts.git"
+	},
+	"scripts": {
+		"build": "bun scripts/build.ts",
+		"copy-demo-files": "copyfiles --up 1 test/data/sample.mp3 test/data/07023003.mp3 test/data/07023003-2channel.dat demo",
+		"lint": "biome check .",
+		"lint:fix": "biome check . --write",
+		"prebuild": "bun run lint && bun run typecheck",
+		"prestart": "bun run build && bun run copy-demo-files",
+		"preview": "serve --listen 8080 --no-clipboard --no-request-logging demo",
+		"start": "serve --listen 8080 --no-clipboard --no-request-logging demo",
+		"test": "vitest run",
+		"test:all": "bun run lint && bun run typecheck && bun run test && bun run build && bun run test:e2e",
+		"test:coverage": "vitest run --coverage",
+		"test:e2e": "playwright test",
+		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
+	},
+	"type": "module",
+	"types": "./dist/esm/main.d.ts",
+	"version": "5.0.0"
 }

@@ -2,7 +2,6 @@ import type { PeaksInstance, PointOptions, PointUpdateOptions } from "./types";
 import {
 	isBoolean,
 	isLinearGradientColor,
-	isNullOrUndefined,
 	isString,
 	isValidTime,
 	objectHasProperty,
@@ -78,7 +77,7 @@ export function validatePointOptions(
 
 	if (
 		objectHasProperty(options, "labelText") &&
-		!(!updating && isNullOrUndefined(options.labelText)) &&
+		!(!updating && options.labelText == null) &&
 		!isString(options.labelText)
 	) {
 		throw new TypeError(`peaks.points.${context}: labelText must be a string`);
@@ -86,7 +85,7 @@ export function validatePointOptions(
 
 	if (
 		objectHasProperty(options, "editable") &&
-		!(!updating && isNullOrUndefined(options.editable)) &&
+		!(!updating && options.editable == null) &&
 		!isBoolean(options.editable)
 	) {
 		throw new TypeError(
@@ -96,7 +95,7 @@ export function validatePointOptions(
 
 	if (
 		objectHasProperty(options, "color") &&
-		!(!updating && isNullOrUndefined(options.color)) &&
+		!(!updating && options.color == null) &&
 		!isString(options.color) &&
 		!isLinearGradientColor(options.color)
 	) {
@@ -127,10 +126,6 @@ export interface PointFromOptions {
 
 export class Point {
 	[key: string]: unknown;
-
-	#peaks: PointPeaksLike;
-	#pid: number;
-	#id: string;
 	#time: number;
 	#labelText: string;
 	#color: string;
@@ -142,58 +137,25 @@ export class Point {
 	}
 
 	private constructor(
-		peaks: PointPeaksLike,
-		pid: number,
+		private readonly peaks: PointPeaksLike,
+		public readonly pid: number,
 		options: PointOptions,
+		public id: string = options.id ?? `peaks.point.${pid}`,
 	) {
-		this.#peaks = peaks;
-		this.#pid = pid;
-		this.#id = options.id ?? `peaks.point.${pid}`;
-		this.#time = (options as PointOptions).time;
+		this.#time = options.time;
 		this.#labelText = options.labelText ?? "";
 		this.#color = options.color ?? "";
 		this.#editable = options.editable ?? false;
-		this.setUserData(options);
+		this.applyUserData(options);
 	}
 
-	private setUserData(options: PointOptions | PointUpdateOptions): void {
-		if (objectHasProperty(options, "id") && options.id !== undefined) {
-			this.#id = options.id;
-		}
-		if (
-			objectHasProperty(options, "time") &&
-			(options as PointOptions).time !== undefined
-		) {
-			this.#time = (options as PointOptions).time;
-		}
-		if (
-			objectHasProperty(options, "labelText") &&
-			options.labelText !== undefined
-		) {
-			this.#labelText = options.labelText;
-		}
-		if (objectHasProperty(options, "color") && options.color !== undefined) {
-			this.#color = options.color;
-		}
-		if (
-			objectHasProperty(options, "editable") &&
-			options.editable !== undefined
-		) {
-			this.#editable = options.editable;
-		}
-		for (const key in options) {
-			if (objectHasProperty(options, key) && !pointOptions.includes(key)) {
+	private applyUserData(options: PointOptions | PointUpdateOptions): void {
+		for (const key of Object.keys(options)) {
+			if (!pointOptions.includes(key as keyof PointOptions)) {
+				// @ts-expect-error -- allow arbitrary user data properties on the point instance
 				this[key] = options[key];
 			}
 		}
-	}
-
-	get id(): string {
-		return this.#id;
-	}
-
-	get pid(): number {
-		return this.#pid;
 	}
 
 	get time(): number {
@@ -222,26 +184,35 @@ export class Point {
 	update(options: PointUpdateOptions): undefined | never {
 		validatePointOptions(options, true);
 
-		if (objectHasProperty(options, "id")) {
-			if (isNullOrUndefined(options.id)) {
+		if (Object.hasOwn(options, "id")) {
+			if (options.id == null) {
 				throw new TypeError("point.update(): invalid id");
 			}
 
-			this.#peaks.points?.updatePointId(this, options.id);
+			this.peaks.points?.updatePointId(this, options.id);
+			this.id = options.id;
 		}
 
-		this.setUserData(options);
+		if (Object.hasOwn(options, "time") && options.time !== undefined) {
+			this.#time = options.time;
+		}
+		if (
+			Object.hasOwn(options, "labelText") &&
+			options.labelText !== undefined
+		) {
+			this.#labelText = options.labelText;
+		}
+		if (Object.hasOwn(options, "color") && options.color !== undefined) {
+			this.#color = options.color;
+		}
+		if (Object.hasOwn(options, "editable") && options.editable !== undefined) {
+			this.#editable = options.editable;
+		}
 
-		this.#peaks.emit("points.update", this, options);
+		this.applyUserData(options);
+
+		this.peaks.emit("points.update", this, options);
 	}
-
-	/**
-	 * Returns <code>true</code> if the point lies with in a given time range.
-	 *
-	 * @param {Number} startTime The start of the time region, in seconds.
-	 * @param {Number} endTime The end of the time region, in seconds.
-	 * @returns {Boolean}
-	 */
 
 	isVisible(startTime: number, endTime: number): boolean {
 		return this.time >= startTime && this.time < endTime;

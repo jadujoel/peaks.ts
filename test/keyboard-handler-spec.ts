@@ -9,17 +9,17 @@ describe("KeyboardHandler", () => {
 
 	beforeEach((done: DoneCallback) => {
 		const options = {
+			dataUri: {
+				arraybuffer: "base/test/data/sample.dat",
+			},
+			keyboard: true,
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 			},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
 			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				arraybuffer: "base/test/data/sample.dat",
-			},
-			keyboard: true,
 		};
 
 		Peaks.init(options, (err, instance) => {

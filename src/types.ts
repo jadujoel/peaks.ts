@@ -138,7 +138,7 @@ export interface PeaksOptions {
 	readonly createSegmentLabel?: (
 		options: CreateSegmentLabelOptions,
 	) => Shape | undefined;
-	readonly createPointMarker?: (
+	readonly createPointMarker: (
 		options: CreatePointMarkerOptions,
 	) => Marker | undefined;
 	readonly logger?: Logger;
@@ -232,8 +232,13 @@ export interface PointUpdateOptions {
 export interface Marker {
 	init(group: Group): void;
 	fitToView(): void;
-	update?(options: Record<string, unknown>): void;
-	destroy?(): void;
+	update(options: MarkerUpdateOptions): void;
+	dispose(): void;
+}
+
+export interface MarkerUpdateOptions {
+	readonly editable?: boolean;
+	readonly time?: number;
 }
 
 export interface CreateSegmentMarkerOptions {
@@ -259,7 +264,8 @@ export interface CreateSegmentLabelOptions {
 }
 
 export interface CreatePointMarkerOptions {
-	readonly point?: Point;
+	readonly point: Point;
+	readonly draggable?: boolean;
 	readonly editable?: boolean;
 	readonly color?: string;
 	readonly fontFamily?: string;

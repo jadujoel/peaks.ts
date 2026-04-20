@@ -6,65 +6,60 @@ import type { CreatePointMarkerOptions, PointUpdateOptions } from "./types";
 
 export const DefaultOptions = {
 	color: "#000",
+	draggable: false,
 	editable: false,
 	fontFamily: "sans-serif",
 	fontSize: 10,
 	fontStyle: "normal",
-} as const satisfies CreatePointMarkerOptions;
+} as const satisfies Omit<CreatePointMarkerOptions, "point">;
 
 export interface DefaultPointMarkerFromOptions {
 	readonly options: CreatePointMarkerOptions;
 }
 
 export class DefaultPointMarker {
-	private readonly options: CreatePointMarkerOptions;
-	private label: Text | undefined;
-	private handle!: Rect;
-	private line!: Line;
-	private time!: Text;
-	private draggable: boolean;
+	private constructor(
+		private readonly options: CreatePointMarkerOptions,
+		private readonly label: Text,
+		private readonly handle: Rect,
+		private readonly line: Line,
+		private readonly time: Text,
+		private draggable: boolean = options.draggable ?? false,
+	) {}
 
 	static DefaultOptions = DefaultOptions;
-
-	static from(options: DefaultPointMarkerFromOptions): DefaultPointMarker {
-		return new DefaultPointMarker(options.options);
-	}
-
-	private constructor(options: CreatePointMarkerOptions) {
-		this.options = {
+	static from(opts: DefaultPointMarkerFromOptions): DefaultPointMarker {
+		const options = {
 			...DefaultOptions,
-			...options,
+			...opts.options,
 		};
-		this.draggable = this.options.editable ?? false;
-	}
-
-	init(group: Group): void {
-		const handleWidth = 10;
-		const handleHeight = 20;
+		const handleWidth = 10 as const;
+		const handleHeight = 20 as const;
 		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
 
-		// Label
-
-		if (this.options.view === "zoomview") {
-			// Label - create with default y, the real value is set in fitToView().
-			this.label = new Text({
-				fill: "#000",
-				fontFamily: this.options.fontFamily || "sans-serif",
-				fontSize: this.options.fontSize || 10,
-				fontStyle: this.options.fontStyle || "normal",
-				text: this.options.point?.labelText ?? "",
-				textAlign: "left",
-				x: 2,
-				y: 0,
-			});
-		}
+		// Label - create with default y, the real value is set in fitToView().
+		const label =
+			options.view === "zoomview"
+				? new Text({
+						fill: "#000",
+						fontFamily: options.fontFamily ?? DefaultOptions.fontFamily,
+						fontSize: options.fontSize ?? DefaultOptions.fontSize,
+						fontStyle: options.fontStyle ?? DefaultOptions.fontStyle,
+						text: options.point?.labelText ?? "",
+						textAlign: "left",
+						x: 2,
+						y: 0,
+					})
+				: new Text({
+						fontSize: 0,
+						text: "",
+					});
 
 		// Handle - create with default y, the real value is set in fitToView().
-
-		this.handle = new Rect({
-			fill: this.options.color ?? DefaultOptions.color,
+		const handle = new Rect({
+			fill: options.color,
 			height: handleHeight,
-			visible: this.draggable,
+			visible: options.draggable,
 			width: handleWidth,
 			x: handleX,
 			y: 0,
@@ -72,14 +67,14 @@ export class DefaultPointMarker {
 
 		// Line - create with default y and points, the real values
 		// are set in fitToView().
-		this.line = new Line({
-			stroke: this.options.color ?? DefaultOptions.color,
+		const line = new Line({
+			stroke: options.color ?? DefaultOptions.color,
 			strokeWidth: 1,
 			x: 0,
 			y: 0,
 		});
 
-		const point = this.options.point;
+		const point = options.point;
 		if (point === undefined) {
 			throw new Error(
 				"Point data is required to initialize DefaultPointMarker",
@@ -88,32 +83,42 @@ export class DefaultPointMarker {
 
 		// Time label - create with default y, the real value is set
 		// in fitToView().
-		this.time = new Text({
+		const time = new Text({
 			fill: "#000",
-			fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
-			fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
-			fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
-			text: this.options.layer?.formatTime(point.time) ?? "",
+			fontFamily: options.fontFamily ?? DefaultOptions.fontFamily,
+			fontSize: options.fontSize ?? DefaultOptions.fontSize,
+			fontStyle: options.fontStyle ?? DefaultOptions.fontStyle,
+			text: options.layer?.formatTime(point.time) ?? "",
 			textAlign: "center",
 			x: -24,
 			y: 0,
 		});
+		time.hide();
 
-		this.time.hide();
+		return new DefaultPointMarker(
+			options,
+			label,
+			handle,
+			line,
+			time,
+			options.editable ?? false,
+		);
+	}
 
+	init(group: Group): void {
 		group.add(this.handle);
-
 		group.add(this.line);
-
-		if (this.label) {
+		if (this.label !== undefined) {
 			group.add(this.label);
 		}
-
 		group.add(this.time);
 
 		this.fitToView();
-
 		this.bindEventHandlers(group);
+	}
+
+	dispose(): void {
+		// Shapes are destroyed by group.destroyChildren() in PointMarker.dispose()
 	}
 
 	bindEventHandlers(group: Group): void {
@@ -143,7 +148,6 @@ export class DefaultPointMarker {
 
 	fitToView(): void {
 		const height = this.options.layer?.getHeight() ?? 0;
-
 		this.line.points([0.5, 0, 0.5, height]);
 
 		if (this.label) {
@@ -165,18 +169,13 @@ export class DefaultPointMarker {
 				this.time.setText(this.options.layer?.formatTime(options.time) ?? "");
 			}
 		}
-
 		if (options.labelText !== undefined) {
-			if (this.label) {
-				this.label.text(options.labelText);
-			}
+			this.label.text(options.labelText);
 		}
-
 		if (options.color !== undefined) {
 			if (this.handle) {
 				this.handle.fill(options.color);
 			}
-
 			this.line.stroke(options.color);
 		}
 

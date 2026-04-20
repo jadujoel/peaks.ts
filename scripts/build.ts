@@ -6,7 +6,7 @@ const distDir = resolve(import.meta.dir, "..", "dist");
 const demoDir = resolve(import.meta.dir, "..", "demo");
 
 // Clean dist
-rmSync(distDir, { recursive: true, force: true });
+rmSync(distDir, { force: true, recursive: true });
 mkdirSync(distDir, { recursive: true });
 
 // Generate declarations with tsc
@@ -20,11 +20,11 @@ console.log("✓ declarations generated");
 // Build readable ESM bundle
 const result = await Bun.build({
 	entrypoints: [resolve(import.meta.dir, "..", "src", "main.ts")],
-	outdir: distDir,
-	format: "esm",
-	sourcemap: "external",
-	naming: "peaks.esm.js",
 	external: ["konva", "konva/*", "waveform-data", "eventemitter3"],
+	format: "esm",
+	naming: "peaks.esm.js",
+	outdir: distDir,
+	sourcemap: "external",
 	target: "browser",
 });
 
@@ -41,12 +41,12 @@ console.log("✓ dist/peaks.esm.js");
 // Build minified ESM bundle
 const minResult = await Bun.build({
 	entrypoints: [resolve(import.meta.dir, "..", "src", "main.ts")],
-	outdir: distDir,
-	format: "esm",
-	sourcemap: "external",
-	naming: "peaks.min.js",
-	minify: true,
 	external: ["konva", "konva/*", "waveform-data", "eventemitter3"],
+	format: "esm",
+	minify: true,
+	naming: "peaks.min.js",
+	outdir: distDir,
+	sourcemap: "external",
 	target: "browser",
 });
 
@@ -63,10 +63,10 @@ console.log("✓ dist/peaks.min.js");
 // Build bundled demo ESM bundle for the browser demo pages
 const demoResult = await Bun.build({
 	entrypoints: [resolve(import.meta.dir, "..", "src", "main.ts")],
-	outdir: demoDir,
 	format: "esm",
-	sourcemap: "external",
 	naming: "peaks.esm.js",
+	outdir: demoDir,
+	sourcemap: "external",
 	target: "browser",
 });
 
@@ -83,11 +83,11 @@ console.log("✓ demo/peaks.esm.js");
 // Build bundled minified demo bundle for the browser demo pages
 const demoMinResult = await Bun.build({
 	entrypoints: [resolve(import.meta.dir, "..", "src", "main.ts")],
-	outdir: demoDir,
 	format: "esm",
-	sourcemap: "external",
-	naming: "peaks.min.js",
 	minify: true,
+	naming: "peaks.min.js",
+	outdir: demoDir,
+	sourcemap: "external",
 	target: "browser",
 });
 
@@ -105,10 +105,10 @@ const customMarkersResult = await Bun.build({
 	entrypoints: [
 		resolve(import.meta.dir, "..", "demo", "custom-markers", "main.ts"),
 	],
-	outdir: resolve(import.meta.dir, "..", "demo", "custom-markers"),
 	format: "esm",
-	sourcemap: "external",
 	naming: "custom-markers.js",
+	outdir: resolve(import.meta.dir, "..", "demo", "custom-markers"),
+	sourcemap: "external",
 	target: "browser",
 });
 

@@ -10,17 +10,17 @@ describe("Peaks.segments", () => {
 		logger = sinon.spy();
 
 		const options = {
+			dataUri: {
+				arraybuffer: "base/test/data/sample.dat",
+			},
+			logger: logger,
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 			},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
 			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				arraybuffer: "base/test/data/sample.dat",
-			},
-			logger: logger,
 		};
 
 		Peaks.init(options, (err, instance) => {
@@ -42,8 +42,8 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should return any added segments", () => {
-			p.segments.add({ startTime: 0, endTime: 10 });
-			p.segments.add({ startTime: 2, endTime: 12 });
+			p.segments.add({ endTime: 10, startTime: 0 });
+			p.segments.add({ endTime: 12, startTime: 2 });
 
 			const segments = p.segments.getSegments();
 
@@ -59,8 +59,8 @@ describe("Peaks.segments", () => {
 
 	describe("getSegment", () => {
 		it("should return a segment given a valid id", () => {
-			p.segments.add({ startTime: 0, endTime: 10, id: "segment1" });
-			p.segments.add({ startTime: 2, endTime: 12, id: "segment2" });
+			p.segments.add({ endTime: 10, id: "segment1", startTime: 0 });
+			p.segments.add({ endTime: 12, id: "segment2", startTime: 2 });
 
 			const segment = p.segments.getSegment("segment2");
 
@@ -72,8 +72,8 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should return undefined if segment not found", () => {
-			p.segments.add({ startTime: 0, endTime: 10, id: "segment1" });
-			p.segments.add({ startTime: 2, endTime: 12, id: "segment2" });
+			p.segments.add({ endTime: 10, id: "segment1", startTime: 0 });
+			p.segments.add({ endTime: 12, id: "segment2", startTime: 2 });
 
 			const segment = p.segments.getSegment("segment3");
 
@@ -83,7 +83,7 @@ describe("Peaks.segments", () => {
 
 	describe("add", () => {
 		it("should accept a single segment object", () => {
-			p.segments.add({ startTime: 0, endTime: 10 });
+			p.segments.add({ endTime: 10, startTime: 0 });
 
 			const segments = p.segments.getSegments();
 
@@ -108,79 +108,79 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should accept an optional id", () => {
-			p.segments.add({ startTime: 0, endTime: 10, id: "123" });
+			p.segments.add({ endTime: 10, id: "123", startTime: 0 });
 
 			expect(p.segments.getSegments()[0].id).to.equal("123");
 		});
 
 		it("should allow 0 for a segment id", () => {
-			p.segments.add({ startTime: 0, endTime: 10, id: 0 });
+			p.segments.add({ endTime: 10, id: 0, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].id).to.equal(0);
 		});
 
 		it("should assign a default id if not specified", () => {
-			p.segments.add({ startTime: 0, endTime: 10 });
+			p.segments.add({ endTime: 10, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].id).to.equal("peaks.segment.0");
 		});
 
 		it("should accept an optional segment color", () => {
-			p.segments.add({ startTime: 0, endTime: 10, color: "#888" });
+			p.segments.add({ color: "#888", endTime: 10, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].color).to.equal("#888");
 		});
 
 		it("should assign a default color if not specified", () => {
-			p.segments.add({ startTime: 0, endTime: 10 });
+			p.segments.add({ endTime: 10, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].color).to.equal("#0074d9");
 		});
 
 		it("should throw if the color is not valid", () => {
 			expect(() => {
-				p.segments.add({ startTime: 0, endTime: 10, color: 1 });
+				p.segments.add({ color: 1, endTime: 10, startTime: 0 });
 			}).to.throw(TypeError, /color/);
 		});
 
 		it("should accept an optional border color", () => {
-			p.segments.add({ startTime: 0, endTime: 10, borderColor: "#888" });
+			p.segments.add({ borderColor: "#888", endTime: 10, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].borderColor).to.equal("#888");
 		});
 
 		it("should assign a default border color if not specified", () => {
-			p.segments.add({ startTime: 0, endTime: 10 });
+			p.segments.add({ endTime: 10, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].borderColor).to.equal("#ff0000");
 		});
 
 		it("should throw if the border color is not valid", () => {
 			expect(() => {
-				p.segments.add({ startTime: 0, endTime: 10, borderColor: 1 });
+				p.segments.add({ borderColor: 1, endTime: 10, startTime: 0 });
 			}).to.throw(TypeError, /borderColor/);
 		});
 
 		it("should accept an optional label text", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: "test" });
+			p.segments.add({ endTime: 10, labelText: "test", startTime: 0 });
 
 			expect(p.segments.getSegments()[0].labelText).to.equal("test");
 		});
 
 		it("should assign a default label text if not specified", () => {
-			p.segments.add({ startTime: 0, endTime: 10 });
+			p.segments.add({ endTime: 10, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].labelText).to.equal("");
 		});
 
 		it("should assign a default label text if null", () => {
-			p.segments.add({ startTime: 0, endTime: 10, labelText: null });
+			p.segments.add({ endTime: 10, labelText: null, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].labelText).to.equal("");
 		});
 
 		it("should apply every optional default when only times are provided", () => {
-			p.segments.add({ startTime: 0, endTime: 10 });
+			p.segments.add({ endTime: 10, startTime: 0 });
 
 			const segment = p.segments.getSegments()[0];
 			expect(segment.labelText).to.equal("");
@@ -194,26 +194,26 @@ describe("Peaks.segments", () => {
 
 		it("should throw if the label text is not a string", () => {
 			expect(() => {
-				p.segments.add({ startTime: 0, endTime: 10, labelText: 1 });
+				p.segments.add({ endTime: 10, labelText: 1, startTime: 0 });
 			}).to.throw(TypeError, /labelText/);
 		});
 
 		it("should throw if the editable flag is not a boolean", () => {
 			expect(() => {
-				p.segments.add({ startTime: 0, endTime: 10, editable: 1 });
+				p.segments.add({ editable: 1, endTime: 10, startTime: 0 });
 			}).to.throw(TypeError, /editable/);
 		});
 
 		it("should accept optional user data", () => {
-			p.segments.add({ startTime: 0, endTime: 10, data: "test" });
+			p.segments.add({ data: "test", endTime: 10, startTime: 0 });
 
 			expect(p.segments.getSegments()[0].data).to.equal("test");
 		});
 
 		it("should accept an array of segment objects", () => {
 			const segments = [
-				{ startTime: 0, endTime: 10 },
-				{ startTime: 5, endTime: 10 },
+				{ endTime: 10, startTime: 0 },
+				{ endTime: 10, startTime: 5 },
 			];
 
 			p.segments.add(segments);
@@ -234,7 +234,7 @@ describe("Peaks.segments", () => {
 				done();
 			});
 
-			p.segments.add({ startTime: 0, endTime: 10 });
+			p.segments.add({ endTime: 10, startTime: 0 });
 		});
 
 		it("should emit an event with multiple segment objects", (done: DoneCallback) => {
@@ -250,13 +250,13 @@ describe("Peaks.segments", () => {
 			});
 
 			p.segments.add([
-				{ startTime: 0, endTime: 10 },
-				{ startTime: 20, endTime: 30 },
+				{ endTime: 10, startTime: 0 },
+				{ endTime: 30, startTime: 20 },
 			]);
 		});
 
 		it("should return the new segment", () => {
-			const result = p.segments.add({ startTime: 0, endTime: 10 });
+			const result = p.segments.add({ endTime: 10, startTime: 0 });
 
 			expect(result).to.be.an.instanceOf(Segment);
 			expect(result.startTime).to.equal(0);
@@ -266,8 +266,8 @@ describe("Peaks.segments", () => {
 
 		it("should return multiple segments when passing an array", () => {
 			const result = p.segments.add([
-				{ startTime: 0, endTime: 10 },
-				{ startTime: 30, endTime: 40 },
+				{ endTime: 10, startTime: 0 },
+				{ endTime: 40, startTime: 30 },
 			]);
 
 			expect(result).to.be.an.instanceOf(Array);
@@ -292,36 +292,36 @@ describe("Peaks.segments", () => {
 
 		it("should throw an exception if the startTime is NaN", () => {
 			expect(() => {
-				p.segments.add({ startTime: NaN, endTime: 1.0 });
+				p.segments.add({ endTime: 1.0, startTime: NaN });
 			}).to.throw(TypeError);
 		});
 
 		it("should throw an exception if the endTime is NaN", () => {
 			expect(() => {
-				p.segments.add({ startTime: 1.0, endTime: NaN });
+				p.segments.add({ endTime: NaN, startTime: 1.0 });
 			}).to.throw(TypeError);
 		});
 
 		it("should throw an exception if the startTime is negative", () => {
 			expect(() => {
-				p.segments.add({ startTime: -1.0, endTime: 1.0 });
+				p.segments.add({ endTime: 1.0, startTime: -1.0 });
 			}).to.throw(RangeError);
 		});
 
 		it("should throw an exception if the endTime is negative", () => {
 			expect(() => {
-				p.segments.add({ startTime: 1.0, endTime: -1.0 });
+				p.segments.add({ endTime: -1.0, startTime: 1.0 });
 			}).to.throw(RangeError);
 		});
 
 		it("should throw an exception if the startTime is greater than the endTime", () => {
 			expect(() => {
-				p.segments.add({ startTime: 1.1, endTime: 1.0 });
+				p.segments.add({ endTime: 1.0, startTime: 1.1 });
 			}).to.throw(RangeError);
 		});
 
 		it("should allow the startTime to equal the endTime", () => {
-			p.segments.add({ startTime: 1.0, endTime: 1.0 });
+			p.segments.add({ endTime: 1.0, startTime: 1.0 });
 
 			const segments = p.segments.getSegments();
 
@@ -330,17 +330,17 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should throw an exception if given a duplicate id", () => {
-			p.segments.add({ startTime: 10, endTime: 20, id: "segment1" });
+			p.segments.add({ endTime: 20, id: "segment1", startTime: 10 });
 
 			expect(() => {
-				p.segments.add({ startTime: 10, endTime: 20, id: "segment1" });
+				p.segments.add({ endTime: 20, id: "segment1", startTime: 10 });
 			}).to.throw(Error, /duplicate/);
 		});
 
 		it("should add a segment with the same id as a previously removed segment", () => {
-			p.segments.add({ startTime: 10, endTime: 20, id: "segment1" });
+			p.segments.add({ endTime: 20, id: "segment1", startTime: 10 });
 			p.segments.removeById("segment1");
-			p.segments.add({ startTime: 20, endTime: 30, id: "segment1" });
+			p.segments.add({ endTime: 30, id: "segment1", startTime: 20 });
 
 			const segments = p.segments.getSegments();
 
@@ -366,8 +366,8 @@ describe("Peaks.segments", () => {
 			it(`should not allow an invalid user data attribute name: ${name}`, () => {
 				expect(() => {
 					const segment = {
-						startTime: 0,
 						endTime: 10,
+						startTime: 0,
 					};
 
 					segment[name] = "test";
@@ -379,17 +379,17 @@ describe("Peaks.segments", () => {
 
 		it("should add segments atomically", () => {
 			p.segments.add([
-				{ startTime: 0, endTime: 10 },
-				{ startTime: 10, endTime: 20 },
-				{ startTime: 20, endTime: 30 },
+				{ endTime: 10, startTime: 0 },
+				{ endTime: 20, startTime: 10 },
+				{ endTime: 30, startTime: 20 },
 			]);
 
 			expect(p.segments.getSegments()).to.have.lengthOf(3);
 
 			const segmentsToAdd = [
-				{ startTime: 30, endTime: 40 },
-				{ startTime: 40, endTime: 35 },
-				{ startTime: 40, endTime: 50 },
+				{ endTime: 40, startTime: 30 },
+				{ endTime: 35, startTime: 40 },
+				{ endTime: 50, startTime: 40 },
 			];
 
 			expect(() => {
@@ -410,10 +410,10 @@ describe("Peaks.segments", () => {
 
 	describe("getSegmentsAtTime", () => {
 		beforeEach(() => {
-			p.segments.add({ startTime: 10, endTime: 12, id: "segment1" });
-			p.segments.add({ startTime: 13, endTime: 15, id: "segment2" });
-			p.segments.add({ startTime: 16, endTime: 18, id: "segment3" });
-			p.segments.add({ startTime: 17, endTime: 19, id: "segment4" });
+			p.segments.add({ endTime: 12, id: "segment1", startTime: 10 });
+			p.segments.add({ endTime: 15, id: "segment2", startTime: 13 });
+			p.segments.add({ endTime: 18, id: "segment3", startTime: 16 });
+			p.segments.add({ endTime: 19, id: "segment4", startTime: 17 });
 		});
 
 		it("should return an empty array if no overlapping segments", () => {
@@ -454,8 +454,8 @@ describe("Peaks.segments", () => {
 	describe("findPreviousSegment", () => {
 		beforeEach(() => {
 			p.segments.add([
-				{ startTime: 10, endTime: 12, id: "segment_id.1" },
-				{ startTime: 5, endTime: 12, id: "segment_id.2" },
+				{ endTime: 12, id: "segment_id.1", startTime: 10 },
+				{ endTime: 12, id: "segment_id.2", startTime: 5 },
 			]);
 		});
 
@@ -479,8 +479,8 @@ describe("Peaks.segments", () => {
 	describe("findNextSegment", () => {
 		beforeEach(() => {
 			p.segments.add([
-				{ startTime: 10, endTime: 12, id: "segment_id.1" },
-				{ startTime: 5, endTime: 12, id: "segment_id.2" },
+				{ endTime: 12, id: "segment_id.1", startTime: 10 },
+				{ endTime: 12, id: "segment_id.2", startTime: 5 },
 			]);
 		});
 
@@ -503,9 +503,9 @@ describe("Peaks.segments", () => {
 
 	describe("remove", () => {
 		beforeEach(() => {
-			p.segments.add({ startTime: 10, endTime: 12, id: "segment1" });
-			p.segments.add({ startTime: 13, endTime: 15, id: "segment2" });
-			p.segments.add({ startTime: 16, endTime: 18, id: "segment3" });
+			p.segments.add({ endTime: 12, id: "segment1", startTime: 10 });
+			p.segments.add({ endTime: 15, id: "segment2", startTime: 13 });
+			p.segments.add({ endTime: 18, id: "segment3", startTime: 16 });
 		});
 
 		it("should remove the given segment object", () => {
@@ -554,11 +554,11 @@ describe("Peaks.segments", () => {
 
 	describe("removeByTime", () => {
 		beforeEach(() => {
-			p.segments.add({ startTime: 10, endTime: 12 });
-			p.segments.add({ startTime: 5, endTime: 12 });
+			p.segments.add({ endTime: 12, startTime: 10 });
+			p.segments.add({ endTime: 12, startTime: 5 });
 
-			p.segments.add({ startTime: 3, endTime: 6 });
-			p.segments.add({ startTime: 3, endTime: 10 });
+			p.segments.add({ endTime: 6, startTime: 3 });
+			p.segments.add({ endTime: 10, startTime: 3 });
 		});
 
 		it("should not remove any segment if the startTime does not match any segment", () => {
@@ -630,8 +630,8 @@ describe("Peaks.segments", () => {
 	describe("removeById", () => {
 		beforeEach(() => {
 			p.segments.add([
-				{ startTime: 0, endTime: 10, id: "segment_id.1" },
-				{ startTime: 15, endTime: 25, id: "segment_id.2" },
+				{ endTime: 10, id: "segment_id.1", startTime: 0 },
+				{ endTime: 25, id: "segment_id.2", startTime: 15 },
 			]);
 		});
 
@@ -673,7 +673,7 @@ describe("Peaks.segments", () => {
 		it("should allow a segment with the same id to be subsequently added", () => {
 			p.segments.removeById("segment_id.1");
 
-			p.segments.add({ startTime: 6, endTime: 7, id: "segment_id.1" });
+			p.segments.add({ endTime: 7, id: "segment_id.1", startTime: 6 });
 
 			const segments = p.segments.getSegments();
 
@@ -686,8 +686,8 @@ describe("Peaks.segments", () => {
 	describe("removeAll", () => {
 		beforeEach(() => {
 			p.segments.add([
-				{ startTime: 10, endTime: 12, id: "segment_id.1" },
-				{ startTime: 5, endTime: 12, id: "segment_id.2" },
+				{ endTime: 12, id: "segment_id.1", startTime: 10 },
+				{ endTime: 12, id: "segment_id.2", startTime: 5 },
 			]);
 		});
 
@@ -721,8 +721,8 @@ describe("Peaks.segments", () => {
 		it("should allow the same segment ids to be subsequently added", () => {
 			p.segments.removeAll();
 
-			p.segments.add({ startTime: 6, endTime: 7, id: "segment_id.1" });
-			p.segments.add({ startTime: 8, endTime: 9, id: "segment_id.2" });
+			p.segments.add({ endTime: 7, id: "segment_id.1", startTime: 6 });
+			p.segments.add({ endTime: 9, id: "segment_id.2", startTime: 8 });
 
 			const segments = p.segments.getSegments();
 

@@ -22,8 +22,8 @@ export function createSegmentLabel(options: SegmentLabelOptions): Label | null {
 		new Tag({
 			fill: "black",
 			pointerDirection: "none",
-			shadowColor: "black",
 			shadowBlur: 10,
+			shadowColor: "black",
 			shadowOffsetX: 3,
 			shadowOffsetY: 3,
 			shadowOpacity: 0.3,
@@ -32,11 +32,11 @@ export function createSegmentLabel(options: SegmentLabelOptions): Label | null {
 
 	label.add(
 		new Text({
-			text: options.segment.labelText,
-			fontSize: 14,
-			fontFamily: "Calibri",
 			fill: "white",
+			fontFamily: "Calibri",
+			fontSize: 14,
 			padding: 8,
+			text: options.segment.labelText,
 		}),
 	);
 

@@ -36,14 +36,14 @@ export function createSegmentMarker(
 
 export function createSegmentLabel(options: CreateSegmentLabelOptions): Shape {
 	return new Text({
-		x: 12,
-		y: 12,
-		text: options.segment?.labelText ?? "",
-		textAlign: "center",
+		fill: "#000",
 		fontFamily: options.fontFamily || "sans-serif",
 		fontSize: options.fontSize || 12,
 		fontStyle: options.fontStyle || "normal",
-		fill: "#000",
+		text: options.segment?.labelText ?? "",
+		textAlign: "center",
+		x: 12,
+		y: 12,
 	});
 }
 

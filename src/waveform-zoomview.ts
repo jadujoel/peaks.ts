@@ -95,8 +95,8 @@ export class WaveformZoomView extends WaveformView {
 		this.setWheelMode(zoomviewOptions.wheelMode);
 
 		this.peaks.emit("zoomview.update", {
-			startTime: 0,
 			endTime: this.getEndTime(),
+			startTime: 0,
 		});
 	}
 
@@ -290,7 +290,8 @@ export class WaveformZoomView extends WaveformView {
 		if (large) {
 			increment = direction * this.width;
 		} else {
-			increment = direction * this.timeToPixels(this.peaksOptions.nudgeIncrement);
+			increment =
+				direction * this.timeToPixels(this.peaksOptions.nudgeIncrement);
 		}
 
 		this.scrollWaveform({ pixels: increment });
@@ -564,8 +565,8 @@ export class WaveformZoomView extends WaveformView {
 		}
 
 		this.peaks.emit("zoomview.update", {
-			startTime: frameStartTime,
 			endTime: frameEndTime,
+			startTime: frameStartTime,
 		});
 	}
 
@@ -594,7 +595,9 @@ export class WaveformZoomView extends WaveformView {
 			resampleOptions = { width: this.width };
 		} else if (this.zoomLevelSeconds !== undefined) {
 			resample = true;
-			resampleOptions = { scale: this.getScaleForDuration(this.zoomLevelSeconds) };
+			resampleOptions = {
+				scale: this.getScaleForDuration(this.zoomLevelSeconds),
+			};
 		}
 
 		if (resample && resampleOptions) {

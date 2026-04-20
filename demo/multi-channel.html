@@ -94,15 +94,15 @@
 
         var sources = [
           {
-            title: 'Remote',
-            mediaUrl: '/07023003.mp3',
             dataUri: {
               arraybuffer: '/07023003-2channel.dat',
-            }
+            },
+            mediaUrl: '/07023003.mp3',
+            title: 'Remote'
           },
           {
-            title: 'Web Audio',
             mediaUrl: '/07023003.mp3',
+            title: 'Web Audio',
             webAudio: {
               audioContext: audioContext,
               multiChannel: true
@@ -111,22 +111,22 @@
         ];
 
         var options = {
-          overview: {
-            container: document.getElementById('overview-container'),
-            waveformColor: '#cccccc'
-          },
-          zoomview: {
-            container: document.getElementById('zoomview-container'),
-            waveformColor: '#00e180'
-          },
-          mediaElement: document.getElementById('audio'),
           dataUri: {
             arraybuffer: '/07023003-2channel.dat'
           },
           keyboard: true,
+          mediaElement: document.getElementById('audio'),
+          overview: {
+            container: document.getElementById('overview-container'),
+            waveformColor: '#cccccc'
+          },
           pointMarkerColor: '#006eb0',
           showPlayheadTime: true,
-          zoomLevels: [128, 256, 512, 1024, 2048]
+          zoomLevels: [128, 256, 512, 1024, 2048],
+          zoomview: {
+            container: document.getElementById('zoomview-container'),
+            waveformColor: '#00e180'
+          }
         };
 
         Peaks.init(options, (err, peaksInstance) => {

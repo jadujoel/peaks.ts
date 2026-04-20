@@ -7,17 +7,17 @@ describe("Peaks.zoom", () => {
 	describe("with overview and zoomview", () => {
 		beforeEach((done: DoneCallback) => {
 			const options = {
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
-				mediaElement: document.getElementById("media"),
 				dataUri: {
 					json: "base/test/data/sample.json",
 				},
+				mediaElement: document.getElementById("media"),
+				overview: {
+					container: document.getElementById("overview-container"),
+				},
 				zoomLevels: [512, 1024],
+				zoomview: {
+					container: document.getElementById("zoomview-container"),
+				},
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -108,12 +108,12 @@ describe("Peaks.zoom", () => {
 	describe("with overview only", () => {
 		beforeEach((done: DoneCallback) => {
 			const options = {
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				mediaElement: document.getElementById("media"),
 				dataUri: {
 					json: "base/test/data/sample.json",
+				},
+				mediaElement: document.getElementById("media"),
+				overview: {
+					container: document.getElementById("overview-container"),
 				},
 				zoomLevels: [512, 1024],
 			};

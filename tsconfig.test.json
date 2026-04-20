@@ -1,11 +1,11 @@
 {
-	"extends": "./tsconfig.json",
 	"compilerOptions": {
+		"exactOptionalPropertyTypes": false,
 		"noEmit": true,
-		"strict": false,
 		"noImplicitAny": false,
-		"strictNullChecks": false,
-		"exactOptionalPropertyTypes": false
+		"strict": false,
+		"strictNullChecks": false
 	},
+	"extends": "./tsconfig.json",
 	"include": ["test/**/*.ts"]
 }

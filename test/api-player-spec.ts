@@ -12,30 +12,30 @@ describe("Player", () => {
 			logger = sinon.spy();
 
 			player = {
-				init: sinon.spy(() => Promise.resolve()),
 				destroy: sinon.spy(),
-				play: sinon.spy(() => Promise.resolve()),
-				pause: sinon.spy(),
-				seek: sinon.spy(),
-				isPlaying: sinon.spy(() => true),
-				isSeeking: sinon.spy(() => false),
 				getCurrentTime: sinon.spy(() => 111),
 				getDuration: sinon.spy(() => 123),
+				init: sinon.spy(() => Promise.resolve()),
+				isPlaying: sinon.spy(() => true),
+				isSeeking: sinon.spy(() => false),
+				pause: sinon.spy(),
+				play: sinon.spy(() => Promise.resolve()),
+				seek: sinon.spy(),
 			};
 
 			const options = {
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
-				mediaElement: document.getElementById("media"),
 				dataUri: {
 					json: "base/test/data/sample.json",
 				},
 				logger: logger,
+				mediaElement: document.getElementById("media"),
+				overview: {
+					container: document.getElementById("overview-container"),
+				},
 				player: player,
+				zoomview: {
+					container: document.getElementById("zoomview-container"),
+				},
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -65,14 +65,14 @@ describe("Player", () => {
 
 			it("should throw a type error if an adapter property is not a function", () => {
 				const adapter = {
-					init: "wrong: this should be a function",
 					destroy: sinon.spy(),
-					play: sinon.spy(),
-					pause: sinon.spy(),
-					isPlaying: sinon.spy(),
-					isSeeking: sinon.spy(),
 					getCurrentTime: sinon.spy(),
 					getDuration: sinon.spy(),
+					init: "wrong: this should be a function",
+					isPlaying: sinon.spy(),
+					isSeeking: sinon.spy(),
+					pause: sinon.spy(),
+					play: sinon.spy(),
 					seek: sinon.spy(),
 				};
 
@@ -180,7 +180,7 @@ describe("Player", () => {
 			});
 
 			it("should call the player's seek() and play() methods", (done: DoneCallback) => {
-				const segment = { startTime: 10, endTime: 20, editable: true };
+				const segment = { editable: true, endTime: 20, startTime: 10 };
 
 				p.player.playSegment(segment).then(() => {
 					expect(logger.notCalled).to.equal(true);
@@ -195,7 +195,7 @@ describe("Player", () => {
 			});
 
 			it("should return the value from the player's play() method", () => {
-				const result = p.player.playSegment({ startTime: 10, endTime: 20 });
+				const result = p.player.playSegment({ endTime: 20, startTime: 10 });
 
 				expect(result).to.be.an.instanceOf(Promise);
 			});
@@ -210,17 +210,17 @@ describe("Player", () => {
 			logger = sinon.spy();
 
 			const options = {
+				dataUri: {
+					json: "base/test/data/sample.json",
+				},
+				logger: logger,
+				mediaElement: document.getElementById("media"),
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
 				},
-				mediaElement: document.getElementById("media"),
-				dataUri: {
-					json: "base/test/data/sample.json",
-				},
-				logger: logger,
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -324,7 +324,7 @@ describe("Player", () => {
 			});
 
 			it("should play a given segment", () => {
-				p.segments.add({ startTime: 10, endTime: 20, editable: true });
+				p.segments.add({ editable: true, endTime: 20, startTime: 10 });
 
 				const segments = p.segments.getSegments();
 				expect(segments.length).to.equal(1);
@@ -340,7 +340,7 @@ describe("Player", () => {
 				const expectedEnd = 2;
 
 				p.player
-					.playSegment({ startTime: expectedStart, endTime: expectedEnd })
+					.playSegment({ endTime: expectedEnd, startTime: expectedStart })
 					.catch((error) => {
 						expect(error.name).to.equal("AbortError");
 					});
@@ -380,29 +380,29 @@ describe("Player", () => {
 		describe("init", () => {
 			it("should cause Peaks.init() to return an error", (done: DoneCallback) => {
 				const player = {
-					init: sinon.spy(() => Promise.reject(new Error("failed"))),
 					destroy: sinon.spy(),
-					play: sinon.spy(() => Promise.resolve()),
-					pause: sinon.spy(),
-					seek: sinon.spy(),
-					isPlaying: sinon.spy(() => true),
-					isSeeking: sinon.spy(() => false),
 					getCurrentTime: sinon.spy(() => 111),
 					getDuration: sinon.spy(() => 123),
+					init: sinon.spy(() => Promise.reject(new Error("failed"))),
+					isPlaying: sinon.spy(() => true),
+					isSeeking: sinon.spy(() => false),
+					pause: sinon.spy(),
+					play: sinon.spy(() => Promise.resolve()),
+					seek: sinon.spy(),
 				};
 
 				const options = {
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: document.getElementById("overview-container"),
+					},
 					player: player,
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
+					},
 				};
 
 				Peaks.init(options, (err, instance) => {

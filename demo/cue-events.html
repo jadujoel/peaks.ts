@@ -260,21 +260,21 @@
         };
 
         var options = {
-          zoomview: {
-            container: document.getElementById('zoomview-container')
-          },
-          overview: {
-            container: document.getElementById('overview-container')
-          },
-          mediaElement: document.getElementById('audio'),
           dataUri: {
             arraybuffer: '/TOL_6min_720p_download.dat',
             json: '/TOL_6min_720p_download.json'
           },
+          emitCueEvents: true,
           keyboard: true,
+          mediaElement: document.getElementById('audio'),
+          overview: {
+            container: document.getElementById('overview-container')
+          },
           pointMarkerColor: '#006eb0',
           showPlayheadTime: true,
-          emitCueEvents: true
+          zoomview: {
+            container: document.getElementById('zoomview-container')
+          }
         };
 
         Peaks.init(options, (err, peaksInstance) => {
@@ -295,18 +295,18 @@
 
           document.querySelector('button[data-action="add-segment"]').addEventListener('click', () => {
             peaksInstance.segments.add({
-              startTime: peaksInstance.player.getCurrentTime(),
+              editable: true,
               endTime: peaksInstance.player.getCurrentTime() + 2,
               labelText: "Test segment",
-              editable: true
+              startTime: peaksInstance.player.getCurrentTime()
             });
           });
 
           document.querySelector('button[data-action="add-point"]').addEventListener('click', () => {
             peaksInstance.points.add({
-              time: peaksInstance.player.getCurrentTime(),
+              editable: true,
               labelText: "Test point",
-              editable: true
+              time: peaksInstance.player.getCurrentTime()
             });
           });
 
@@ -357,16 +357,16 @@
           });
 
           peaksInstance.segments.add({
-            startTime: 5.5,
-            endTime: 7.5,
             editable: true,
-            id: 'testsegment'
+            endTime: 7.5,
+            id: 'testsegment',
+            startTime: 5.5
           });
 
           peaksInstance.points.add({
-            time: 4.3,
             editable: true,
-            id: 'testpoint'
+            id: 'testpoint',
+            time: 4.3
           });
 
           peaksInstance.on('points.enter', (event) => {

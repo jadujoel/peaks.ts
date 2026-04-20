@@ -19,7 +19,6 @@ const contentTypes = {
 
 function serveTestData() {
 	return {
-		name: "serve-test-data",
 		configureServer(server) {
 			server.middlewares.use((req, res, next) => {
 				const requestUrl = req.url ?? "";
@@ -83,7 +82,7 @@ function serveTestData() {
 						"Content-Range",
 						`bytes ${start}-${end}/${fileStat.size}`,
 					);
-					createReadStream(filePath, { start, end }).pipe(res);
+					createReadStream(filePath, { end, start }).pipe(res);
 					return;
 				}
 
@@ -92,32 +91,33 @@ function serveTestData() {
 				createReadStream(filePath).pipe(res);
 			});
 		},
+		name: "serve-test-data",
 	};
 }
 
 export default defineConfig({
 	plugins: [serveTestData()],
 	test: {
-		globals: true,
-		include: ["test/**/*-spec.{js,ts}"],
-		setupFiles: ["./test/vitest.setup.ts"],
-		fileParallelism: false,
 		browser: {
 			enabled: true,
 			headless: true,
-			testerHtmlPath: "./test/browser.tester.html",
+			instances: [{ browser: "chromium" }],
 			provider: playwright({
 				launchOptions: {
-					channel: "chromium",
 					args: ["--autoplay-policy=no-user-gesture-required"],
+					channel: "chromium",
 				},
 			}),
-			instances: [{ browser: "chromium" }],
+			testerHtmlPath: "./test/browser.tester.html",
 		},
 		coverage: {
-			provider: "v8",
 			include: ["src/**/*.ts"],
+			provider: "v8",
 			reporter: ["html", "text", "text-summary"],
 		},
+		fileParallelism: false,
+		globals: true,
+		include: ["test/**/*-spec.{js,ts}"],
+		setupFiles: ["./test/vitest.setup.ts"],
 	},
 });

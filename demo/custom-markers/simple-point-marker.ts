@@ -17,7 +17,7 @@ interface MarkerUpdateOptions {
 	color?: string;
 }
 
-class SimplePointMarker {
+export class SimplePointMarker {
 	private readonly _options: PointMarkerOptions;
 	private _line: Line | null = null;
 
@@ -27,10 +27,10 @@ class SimplePointMarker {
 
 	init(group: MarkerGroup): void {
 		this._line = new Line({
-			x: 0,
-			y: 0,
 			stroke: this._options.color,
 			strokeWidth: 1,
+			x: 0,
+			y: 0,
 		});
 
 		group.add(this._line);

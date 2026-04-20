@@ -105,17 +105,17 @@ test("public async init API resolves with an instance", async ({ page }) => {
 		}>;
 		const peaksModule = await loadPeaks();
 		const instance = await peaksModule.default.fromOptionsAsync({
-			zoomview: {
-				container: document.getElementById("zoomview-container"),
-				playheadClickTolerance: 3,
-			},
-			overview: {
-				container: document.getElementById("overview-container"),
-			},
-			mediaElement: document.getElementById("audio"),
 			dataUri: {
 				arraybuffer: "/TOL_6min_720p_download.dat",
 				json: "/TOL_6min_720p_download.json",
+			},
+			mediaElement: document.getElementById("audio"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+				playheadClickTolerance: 3,
 			},
 		});
 
@@ -150,16 +150,16 @@ test("Peaks.init callback receives undefined (not null) on success", async ({
 			(resolve) => {
 				peaksModule.default.init(
 					{
-						zoomview: {
-							container: document.getElementById("zoomview-container"),
-						},
-						overview: {
-							container: document.getElementById("overview-container"),
-						},
-						mediaElement: document.getElementById("audio"),
 						dataUri: {
 							arraybuffer: "/TOL_6min_720p_download.dat",
 							json: "/TOL_6min_720p_download.json",
+						},
+						mediaElement: document.getElementById("audio"),
+						overview: {
+							container: document.getElementById("overview-container"),
+						},
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
 						},
 					},
 					(err, instance) => {

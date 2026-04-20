@@ -73,16 +73,16 @@
       function getSources() {
         return [
           {
-            title: 'Tree of Life',
             mediaUrl: '/TOL_6min_720p_download.mp3',
+            title: 'Tree of Life',
           },
           {
-            title: 'Desert Island Discs',
             mediaUrl: '/sample.mp3',
+            title: 'Desert Island Discs',
           },
           {
-            title: 'BBC Sound Effect (Cars)',
             mediaUrl: '/07023003.mp3',
+            title: 'BBC Sound Effect (Cars)',
           }
         ];
       }
@@ -103,8 +103,8 @@
             peaksInstance.setSource({
               webAudio: {
                 audioBuffer: audioBuffer,
-                scale: 128,
-                multiChannel: false
+                multiChannel: false,
+                scale: 128
               }
             }, (error) => {
               if (error) {
@@ -120,8 +120,21 @@
         fetchAndDecode(audioContext, "/TOL_6min_720p_download.mp3")
           .then((audioBuffer) => {
             const player = {
-              externalPlayer: new Tone.Player(audioBuffer).toDestination(),
+
+              destroy: function() {
+                Tone.context.dispose();
+
+                this.externalPlayer = null;
+                this.eventEmitter = null;
+              },
               eventEmitter: null,
+              externalPlayer: new Tone.Player(audioBuffer).toDestination(),
+
+              getCurrentTime: () => Tone.Transport.seconds,
+
+              getDuration: function() {
+                return this.externalPlayer.buffer.duration;
+              },
 
               init: function(eventEmitter) {
                 this.eventEmitter = eventEmitter;
@@ -141,11 +154,29 @@
                 return Promise.resolve();
               },
 
-              destroy: function() {
-                Tone.context.dispose();
+              isPlaying: () => Tone.Transport.state === "started",
 
-                this.externalPlayer = null;
-                this.eventEmitter = null;
+              isSeeking: () => false,
+
+              pause: function() {
+                Tone.Transport.pause();
+
+                this.eventEmitter.emit('player.pause', this.getCurrentTime());
+              },
+
+              play: function() {
+                return Tone.start().then(() => {
+                  Tone.Transport.start();
+
+                  this.eventEmitter.emit('player.playing', this.getCurrentTime());
+                });
+              },
+
+              seek: function(time) {
+                Tone.Transport.seconds = time;
+
+                this.eventEmitter.emit('player.seeked', this.getCurrentTime());
+                this.eventEmitter.emit('player.timeupdate', this.getCurrentTime());
               },
 
               setSource: function(opts) {
@@ -157,56 +188,25 @@
                 this.externalPlayer.buffer.set(opts.webAudio.audioBuffer);
 
                 return Promise.resolve();
-              },
-
-              play: function() {
-                return Tone.start().then(() => {
-                  Tone.Transport.start();
-
-                  this.eventEmitter.emit('player.playing', this.getCurrentTime());
-                });
-              },
-
-              pause: function() {
-                Tone.Transport.pause();
-
-                this.eventEmitter.emit('player.pause', this.getCurrentTime());
-              },
-
-              isPlaying: () => Tone.Transport.state === "started",
-
-              seek: function(time) {
-                Tone.Transport.seconds = time;
-
-                this.eventEmitter.emit('player.seeked', this.getCurrentTime());
-                this.eventEmitter.emit('player.timeupdate', this.getCurrentTime());
-              },
-
-              isSeeking: () => false,
-
-              getCurrentTime: () => Tone.Transport.seconds,
-
-              getDuration: function() {
-                return this.externalPlayer.buffer.duration;
               }
             };
 
             const options = {
-              zoomview: {
-                container: document.getElementById('zoomview-container')
-              },
+              keyboard: true,
               overview: {
                 container: document.getElementById('overview-container')
               },
               player: player,
+              showPlayheadTime: true,
               webAudio: {
                 audioBuffer: audioBuffer,
-                scale: 128,
-                multiChannel: false
+                multiChannel: false,
+                scale: 128
               },
-              keyboard: true,
-              showPlayheadTime: true,
-              zoomLevels: [128, 256, 512, 1024, 2048, 4096]
+              zoomLevels: [128, 256, 512, 1024, 2048, 4096],
+              zoomview: {
+                container: document.getElementById('zoomview-container')
+              }
             };
 
             Peaks.init(options, (err, peaksInstance) => {
@@ -249,7 +249,7 @@
                 const end = document.getElementById('segment-end').value;
                 const endInSeconds = parseFloat(end);
 
-                peaksInstance.player.playSegment({ startTime: startInSeconds, endTime: endInSeconds, editable: true });
+                peaksInstance.player.playSegment({ editable: true, endTime: endInSeconds, startTime: startInSeconds });
               });
 
               const select = document.getElementById('select-audio');

@@ -13,15 +13,15 @@ describe("WaveformZoomView", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
+				dataUri: {
+					arraybuffer: "base/test/data/sample.dat",
+				},
+				mediaElement: document.getElementById("media"),
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
-				},
-				mediaElement: document.getElementById("media"),
-				dataUri: {
-					arraybuffer: "base/test/data/sample.dat",
 				},
 			};
 
@@ -136,22 +136,22 @@ describe("WaveformZoomView", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
-				mediaElement: document.getElementById("media"),
 				dataUri: {
 					json: "base/test/data/sample.json",
 				},
+				mediaElement: document.getElementById("media"),
+				overview: {
+					container: document.getElementById("overview-container"),
+				},
 				segments: [
-					{ id: "segment1", startTime: 1.0, endTime: 2.0, editable: true },
-					{ id: "segment2", startTime: 3.0, endTime: 4.0, editable: true },
-					{ id: "segment3", startTime: 11.0, endTime: 12.0, editable: true },
-					{ id: "segment4", startTime: 13.0, endTime: 14.0, editable: true },
+					{ editable: true, endTime: 2.0, id: "segment1", startTime: 1.0 },
+					{ editable: true, endTime: 4.0, id: "segment2", startTime: 3.0 },
+					{ editable: true, endTime: 12.0, id: "segment3", startTime: 11.0 },
+					{ editable: true, endTime: 14.0, id: "segment4", startTime: 13.0 },
 				],
+				zoomview: {
+					container: document.getElementById("zoomview-container"),
+				},
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -399,8 +399,8 @@ describe("WaveformZoomView", () => {
 
 	describe("setSegmentDragMode", () => {
 		[
-			{ name: "with marker segments", markers: true, overlay: false },
-			{ name: "with overlay segments", markers: false, overlay: true },
+			{ markers: true, name: "with marker segments", overlay: false },
+			{ markers: false, name: "with overlay segments", overlay: true },
 		].forEach((test) => {
 			describe(test.name, () => {
 				let p = null;
@@ -409,37 +409,37 @@ describe("WaveformZoomView", () => {
 
 				beforeEach((done: DoneCallback) => {
 					const options = {
-						overview: {
-							container: document.getElementById("overview-container"),
-						},
-						zoomview: {
-							container: document.getElementById("zoomview-container"),
-						},
-						mediaElement: document.getElementById("media"),
 						dataUri: {
 							json: "base/test/data/sample.json",
 						},
+						mediaElement: document.getElementById("media"),
+						overview: {
+							container: document.getElementById("overview-container"),
+						},
+						points: [{ editable: true, id: "point1", time: 7.0 }],
 						segmentOptions: {
 							markers: test.markers,
 							overlay: test.overlay,
 						},
-						points: [{ id: "point1", time: 7.0, editable: true }],
 						segments: [
-							{ id: "segment1", startTime: 1.0, endTime: 2.0, editable: true },
-							{ id: "segment2", startTime: 3.0, endTime: 4.0, editable: true },
+							{ editable: true, endTime: 2.0, id: "segment1", startTime: 1.0 },
+							{ editable: true, endTime: 4.0, id: "segment2", startTime: 3.0 },
 							{
+								editable: true,
+								endTime: 12.0,
 								id: "segment3",
 								startTime: 11.0,
-								endTime: 12.0,
-								editable: true,
 							},
 							{
+								editable: true,
+								endTime: 14.0,
 								id: "segment4",
 								startTime: 13.0,
-								endTime: 14.0,
-								editable: true,
 							},
 						],
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
+						},
 					};
 
 					Peaks.init(options, (err, instance) => {
@@ -1202,23 +1202,23 @@ describe("WaveformZoomView", () => {
 
 			beforeEach((done: DoneCallback) => {
 				const options = {
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
-					points: [{ id: "point1", time: 7.0, editable: true }],
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: document.getElementById("overview-container"),
+					},
+					points: [{ editable: true, id: "point1", time: 7.0 }],
 					segments: [
-						{ id: "segment1", startTime: 1.0, endTime: 2.0, editable: true },
-						{ id: "segment2", startTime: 3.0, endTime: 4.0, editable: true },
-						{ id: "segment3", startTime: 11.0, endTime: 12.0, editable: true },
-						{ id: "segment4", startTime: 13.0, endTime: 14.0, editable: true },
+						{ editable: true, endTime: 2.0, id: "segment1", startTime: 1.0 },
+						{ editable: true, endTime: 4.0, id: "segment2", startTime: 3.0 },
+						{ editable: true, endTime: 12.0, id: "segment3", startTime: 11.0 },
+						{ editable: true, endTime: 14.0, id: "segment4", startTime: 13.0 },
 					],
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
+					},
 				};
 
 				Peaks.init(options, (err, instance) => {
@@ -1387,15 +1387,15 @@ describe("WaveformZoomView", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
+				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+				mediaElement: document.getElementById("media"),
+				segments: [
+					{ editable: true, endTime: 2.0, id: "segment1", startTime: 1.0 },
+					{ editable: false, endTime: 4.0, id: "segment2", startTime: 3.0 },
+				],
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
 				},
-				mediaElement: document.getElementById("media"),
-				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
-				segments: [
-					{ id: "segment1", startTime: 1.0, endTime: 2.0, editable: true },
-					{ id: "segment2", startTime: 3.0, endTime: 4.0, editable: false },
-				],
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -1552,23 +1552,23 @@ describe("WaveformZoomView", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
-				mediaElement: document.getElementById("media"),
 				dataUri: {
 					json: "base/test/data/sample.json",
 				},
-				points: [{ id: "point1", time: 7.0, editable: true }],
+				mediaElement: document.getElementById("media"),
+				overview: {
+					container: document.getElementById("overview-container"),
+				},
+				points: [{ editable: true, id: "point1", time: 7.0 }],
 				segments: [
-					{ id: "segment1", startTime: 1.0, endTime: 2.0, editable: true },
-					{ id: "segment2", startTime: 3.0, endTime: 4.0, editable: true },
-					{ id: "segment3", startTime: 11.0, endTime: 12.0, editable: true },
-					{ id: "segment4", startTime: 13.0, endTime: 14.0, editable: true },
+					{ editable: true, endTime: 2.0, id: "segment1", startTime: 1.0 },
+					{ editable: true, endTime: 4.0, id: "segment2", startTime: 3.0 },
+					{ editable: true, endTime: 12.0, id: "segment3", startTime: 11.0 },
+					{ editable: true, endTime: 14.0, id: "segment4", startTime: 13.0 },
 				],
+				zoomview: {
+					container: document.getElementById("zoomview-container"),
+				},
 			};
 
 			Peaks.init(options, (err, instance) => {

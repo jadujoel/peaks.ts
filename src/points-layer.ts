@@ -22,36 +22,31 @@ export interface PointsLayerFromOptions {
 }
 
 export class PointsLayer {
-	private readonly peaks: PeaksInstance;
-	private readonly view: WaveformViewAPI;
-	private editingEnabled: boolean;
-	private pointMarkers = new Map<string, PointMarker>();
-	private readonly layer: Layer;
-	private dragPointMarker: PointMarker | undefined;
-
-	static from(options: PointsLayerFromOptions): PointsLayer {
-		return new PointsLayer(options.peaks, options.view, options.enableEditing);
-	}
-
 	private constructor(
-		peaks: PeaksInstance,
-		view: WaveformViewAPI,
-		enableEditing: boolean,
-	) {
-		this.peaks = peaks;
-		this.view = view;
-		this.editingEnabled = enableEditing;
-		this.layer = new Konva.Layer();
-		this.dragPointMarker = undefined;
-
-		this.peaks.on("points.update", this.onPointsUpdate);
-		this.peaks.on("points.add", this.onPointsAdd);
-		this.peaks.on("points.remove", this.onPointsRemove);
-		this.peaks.on("points.remove_all", this.onPointsRemoveAll);
-
-		this.peaks.on("points.dragstart", this.onPointsDrag);
-		this.peaks.on("points.dragmove", this.onPointsDrag);
-		this.peaks.on("points.dragend", this.onPointsDrag);
+		public readonly peaks: PeaksInstance,
+		public readonly view: WaveformViewAPI,
+		public enableEditing: boolean,
+		private readonly layer: Layer,
+		private readonly markers: Map<number, PointMarker>,
+		private dragPointMarker: PointMarker | undefined,
+	) {}
+	static from(options: PointsLayerFromOptions): PointsLayer {
+		const layers = new PointsLayer(
+			options.peaks,
+			options.view,
+			options.enableEditing ?? false,
+			new Konva.Layer(),
+			new Map<number, PointMarker>(),
+			undefined,
+		);
+		layers.peaks.on("points.update", layers.onPointsUpdate);
+		layers.peaks.on("points.add", layers.onPointsAdd);
+		layers.peaks.on("points.remove", layers.onPointsRemove);
+		layers.peaks.on("points.remove_all", layers.onPointsRemoveAll);
+		layers.peaks.on("points.dragstart", layers.onPointsDrag);
+		layers.peaks.on("points.dragmove", layers.onPointsDrag);
+		layers.peaks.on("points.dragend", layers.onPointsDrag);
+		return layers;
 	}
 
 	addToStage(stage: Stage): void {
@@ -62,16 +57,40 @@ export class PointsLayer {
 		this.layer.listening(listening);
 	}
 
-	enableEditing(enable: boolean): void {
-		this.editingEnabled = enable;
-	}
-
 	getPointMarker(point: Point): PointMarker | undefined {
-		return this.pointMarkers.get(point.pid);
+		return this.markers.get(point.pid);
 	}
 
 	formatTime(time: number): string {
 		return this.view.formatTime(time);
+	}
+
+	getHeight(): number {
+		return this.view.getHeight();
+	}
+
+	setVisible(visible: boolean): void {
+		this.layer.visible(visible);
+	}
+
+	fitToView(): void {
+		for (const [, pointMarker] of this.markers) {
+			pointMarker.fitToView();
+		}
+	}
+
+	draw(): void {
+		this.layer.draw();
+	}
+
+	dispose(): void {
+		this.peaks.off("points.update", this.onPointsUpdate);
+		this.peaks.off("points.add", this.onPointsAdd);
+		this.peaks.off("points.remove", this.onPointsRemove);
+		this.peaks.off("points.remove_all", this.onPointsRemoveAll);
+		this.peaks.off("points.dragstart", this.onPointsDrag);
+		this.peaks.off("points.dragmove", this.onPointsDrag);
+		this.peaks.off("points.dragend", this.onPointsDrag);
 	}
 
 	private onPointsUpdate = (
@@ -123,26 +142,30 @@ export class PointsLayer {
 
 	private onPointsRemoveAll = (): void => {
 		this.layer.removeChildren();
-		this.pointMarkers.clear();
+		this.markers.clear();
 	};
 
 	/**
 	 * Creates the Konva UI objects for a given point.
 	 */
 	private createPointMarker(point: Point): PointMarker {
-		const editable = this.editingEnabled && point.editable;
+		const editable = this.enableEditing && point.editable;
 		const viewOptions = this.view.getViewOptions();
 
 		const marker = this.peaks.options.createPointMarker({
-			color: point.color,
+			color: point.color ?? "#000",
 			editable: editable,
-			fontFamily: viewOptions.fontFamily,
-			fontSize: viewOptions.fontSize,
-			fontStyle: viewOptions.fontStyle,
+			fontFamily: viewOptions.fontFamily ?? "",
+			fontSize: viewOptions.fontSize ?? 0,
+			fontStyle: viewOptions.fontStyle ?? "",
 			layer: this,
 			point: point,
 			view: this.view.getName(),
 		});
+
+		if (marker === undefined) {
+			throw new Error("Failed To Create Marker");
+		}
 
 		return PointMarker.from({
 			options: {
@@ -159,27 +182,19 @@ export class PointsLayer {
 		});
 	}
 
-	getHeight(): number {
-		return this.view.getHeight();
-	}
-
 	/**
 	 * Adds a Konva UI object to the layer for a given point.
 	 */
 	private addPointMarker(point: Point): PointMarker {
 		const pointMarker = this.createPointMarker(point);
-
-		this.pointMarkers.set(point.pid, pointMarker);
-
+		this.markers.set(point.pid, pointMarker);
 		pointMarker.addToLayer(this.layer);
-
 		return pointMarker;
 	}
 
-	private onPointsDrag = (event: { point: Point }): void => {
-		const pointMarker = this.updatePoint(event.point);
-
-		pointMarker.update({ time: event.point.time });
+	private onPointsDrag = (_event: KonvaMouseEvent, point: Point): void => {
+		const pointMarker = this.updatePoint(point);
+		pointMarker.update({ time: point.time });
 	};
 
 	private onPointMarkerMouseEnter = (
@@ -218,16 +233,13 @@ export class PointsLayer {
 		event: KonvaMouseEvent,
 		point: Point,
 	): void => {
-		const pointMarker = this.pointMarkers.get(point.pid);
-
-		if (!pointMarker) {
+		const marker = this.markers.get(point.pid);
+		if (marker === undefined) {
 			return;
 		}
 
-		const markerX = pointMarker.getX();
-
-		const offset = markerX + pointMarker.getWidth();
-
+		const x = marker.getX();
+		const offset = x + marker.getWidth();
 		point.setTime(this.view.pixelOffsetToTime(offset));
 
 		this.peaks.emit("points.dragmove", {
@@ -300,9 +312,8 @@ export class PointsLayer {
 	 * range.
 	 */
 	private removeInvisiblePoints(startTime: number, endTime: number): void {
-		for (const [pointPid, pointMarker] of this.pointMarkers) {
-			const point = pointMarker.getPoint();
-
+		for (const markers of this.markers.values()) {
+			const point = markers.getPoint();
 			if (point && !point.isVisible(startTime, endTime)) {
 				this.removePoint(point);
 			}
@@ -316,32 +327,8 @@ export class PointsLayer {
 		const pointMarker = this.getPointMarker(point);
 
 		if (pointMarker) {
-			pointMarker.destroy();
-			this.pointMarkers.delete(point.pid);
+			pointMarker.dispose();
+			this.markers.delete(point.pid);
 		}
-	}
-
-	setVisible(visible: boolean): void {
-		this.layer.visible(visible);
-	}
-
-	destroy(): void {
-		this.peaks.off("points.update", this.onPointsUpdate);
-		this.peaks.off("points.add", this.onPointsAdd);
-		this.peaks.off("points.remove", this.onPointsRemove);
-		this.peaks.off("points.remove_all", this.onPointsRemoveAll);
-		this.peaks.off("points.dragstart", this.onPointsDrag);
-		this.peaks.off("points.dragmove", this.onPointsDrag);
-		this.peaks.off("points.dragend", this.onPointsDrag);
-	}
-
-	fitToView(): void {
-		for (const [, pointMarker] of this.pointMarkers) {
-			pointMarker.fitToView();
-		}
-	}
-
-	draw(): void {
-		this.layer.draw();
 	}
 }

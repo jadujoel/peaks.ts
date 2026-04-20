@@ -12,10 +12,10 @@ export interface MousePosition {
 }
 
 export const keyCodes = {
-	Tab: 9,
-	Space: 32,
 	ArrowLeft: 37,
 	ArrowRight: 39,
+	Space: 32,
+	Tab: 9,
 } as const;
 
 export type SupportedKey = keyof typeof keyCodes;

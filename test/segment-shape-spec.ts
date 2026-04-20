@@ -9,19 +9,19 @@ describe("SegmentShape", () => {
 
 	function createPeaksInstance(options, done) {
 		const opts = {
+			dataUri: {
+				json: "base/test/data/sample.json",
+			},
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 				segmentOptions: {},
 			},
+			segmentOptions: {},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
 				segmentOptions: {},
 			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				json: "base/test/data/sample.json",
-			},
-			segmentOptions: {},
 		};
 
 		extend(opts.segmentOptions, options.segmentOptions);
@@ -50,8 +50,8 @@ describe("SegmentShape", () => {
 
 	describe("with marker style segments", () => {
 		[
-			{ name: "editable", editable: true },
-			{ name: "non-editable", editable: false },
+			{ editable: true, name: "editable" },
+			{ editable: false, name: "non-editable" },
 		].forEach((test) => {
 			describe(`with ${test.name} segments`, () => {
 				it("should create marker handles", (done: DoneCallback) => {
@@ -66,10 +66,10 @@ describe("SegmentShape", () => {
 							const spy = sinon.spy(p.options, "createSegmentMarker");
 
 							p.segments.add({
-								startTime: 0,
-								endTime: 10,
 								editable: test.editable,
+								endTime: 10,
 								id: "segment1",
+								startTime: 0,
 							});
 
 							// Two markers in both zoomview and overview
@@ -145,10 +145,10 @@ describe("SegmentShape", () => {
 					},
 					() => {
 						const segment = p.segments.add({
-							startTime: 0,
-							endTime: 10,
 							editable: true,
+							endTime: 10,
 							id: "segment1",
+							startTime: 0,
 						});
 
 						const zoomview = p.views.getView("zoomview");
@@ -180,11 +180,11 @@ describe("SegmentShape", () => {
 					},
 					() => {
 						const segment = p.segments.add({
-							startTime: 0,
-							endTime: 10,
-							editable: true,
-							id: "segment1",
 							color: "#0f0",
+							editable: true,
+							endTime: 10,
+							id: "segment1",
+							startTime: 0,
 						});
 
 						const zoomview = p.views.getView("zoomview");
@@ -212,17 +212,17 @@ describe("SegmentShape", () => {
 					},
 					zoomview: {
 						segmentOptions: {
-							startMarkerColor: "#0f0",
 							endMarkerColor: "#080",
+							startMarkerColor: "#0f0",
 						},
 					},
 				},
 				() => {
 					const segment = p.segments.add({
-						startTime: 0,
-						endTime: 10,
 						editable: true,
+						endTime: 10,
 						id: "segment1",
+						startTime: 0,
 					});
 
 					const zoomview = p.views.getView("zoomview");
@@ -230,9 +230,9 @@ describe("SegmentShape", () => {
 					const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape.startMarkerInstance.marker.options.color).to.equal(
-						"#0f0",
-					);
+					expect(
+						segmentShape.startMarkerInstance.marker.options.color,
+					).to.equal("#0f0");
 					expect(segmentShape.endMarkerInstance.marker.options.color).to.equal(
 						"#080",
 					);
@@ -258,10 +258,10 @@ describe("SegmentShape", () => {
 					const spy = sinon.spy(p.options, "createSegmentMarker");
 
 					p.segments.add({
-						startTime: 0,
-						endTime: 10,
 						editable: true,
+						endTime: 10,
 						id: "segment1",
+						startTime: 0,
 					});
 
 					expect(spy.callCount).to.equal(0);
@@ -281,10 +281,10 @@ describe("SegmentShape", () => {
 				},
 				() => {
 					const segment = p.segments.add({
-						startTime: 0,
-						endTime: 10,
 						editable: true,
+						endTime: 10,
 						id: "segment1",
+						startTime: 0,
 					});
 
 					const zoomview = p.views.getView("zoomview");
@@ -308,10 +308,10 @@ describe("SegmentShape", () => {
 				},
 				() => {
 					const segment = p.segments.add({
-						startTime: 0,
-						endTime: 10,
 						editable: true,
+						endTime: 10,
 						id: "segment1",
+						startTime: 0,
 					});
 
 					const zoomview = p.views.getView("zoomview");
@@ -339,12 +339,12 @@ describe("SegmentShape", () => {
 				},
 				() => {
 					const segment = p.segments.add({
-						startTime: 0,
-						endTime: 10,
-						editable: true,
-						id: "segment1",
-						color: "#0000ff",
 						borderColor: "#00ff00",
+						color: "#0000ff",
+						editable: true,
+						endTime: 10,
+						id: "segment1",
+						startTime: 0,
 					});
 
 					const zoomview = p.views.getView("zoomview");
@@ -365,14 +365,14 @@ describe("SegmentShape", () => {
 		it("should use view specific segment options", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
-					segmentOptions: {
-						markers: false,
-						overlay: true,
-					},
 					overview: {
 						segmentOptions: {
 							overlayOffset: 10,
 						},
+					},
+					segmentOptions: {
+						markers: false,
+						overlay: true,
 					},
 					zoomview: {
 						segmentOptions: {
@@ -382,10 +382,10 @@ describe("SegmentShape", () => {
 				},
 				() => {
 					const segment = p.segments.add({
-						startTime: 0,
-						endTime: 10,
 						editable: true,
+						endTime: 10,
 						id: "segment1",
+						startTime: 0,
 					});
 
 					const zoomview = p.views.getView("zoomview");
@@ -408,31 +408,31 @@ describe("SegmentShape", () => {
 		it("should use global color and border color options", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
+					overview: {
+						segmentOptions: {
+							overlayBorderColor: "#aaa",
+							overlayColor: "#888",
+						},
+					},
 					segmentOptions: {
 						markers: false,
 						overlay: true,
-						overlayColor: "#444",
 						overlayBorderColor: "#222",
-					},
-					overview: {
-						segmentOptions: {
-							overlayColor: "#888",
-							overlayBorderColor: "#aaa",
-						},
+						overlayColor: "#444",
 					},
 					zoomview: {
 						segmentOptions: {
-							overlayColor: "#888",
 							overlayBorderColor: "#aaa",
+							overlayColor: "#888",
 						},
 					},
 				},
 				() => {
 					const segment = p.segments.add({
-						startTime: 0,
-						endTime: 10,
 						editable: true,
+						endTime: 10,
 						id: "segment1",
+						startTime: 0,
 					});
 
 					const zoomview = p.views.getView("zoomview");

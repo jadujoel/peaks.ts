@@ -26,7 +26,7 @@ interface MarkerUpdateOptions {
 	color?: string;
 }
 
-class CustomSegmentMarker {
+export class CustomSegmentMarker {
 	private readonly _options: SegmentMarkerOptions;
 	private _group: MarkerGroup | null = null;
 	private _label: Label | null = null;
@@ -50,17 +50,17 @@ class CustomSegmentMarker {
 
 		this._tag = new Tag({
 			fill: color,
-			stroke: color,
-			strokeWidth: 1,
-			pointerDirection: "down",
-			pointerWidth: 10,
-			pointerHeight: 10,
 			lineJoin: "round",
-			shadowColor: "black",
+			pointerDirection: "down",
+			pointerHeight: 10,
+			pointerWidth: 10,
 			shadowBlur: 10,
+			shadowColor: "black",
 			shadowOffsetX: 3,
 			shadowOffsetY: 3,
 			shadowOpacity: 0.3,
+			stroke: color,
+			strokeWidth: 1,
 		});
 
 		this._label.add(this._tag);
@@ -74,20 +74,20 @@ class CustomSegmentMarker {
 		labelText += this._options.startMarker ? "Start" : "End";
 
 		this._text = new Text({
-			text: labelText,
+			fill: "white",
 			fontFamily: "Calibri",
 			fontSize: 14,
 			padding: 5,
-			fill: "white",
+			text: labelText,
 		});
 
 		this._label.add(this._text);
 
 		this._line = new Line({
-			x: 0,
-			y: 0,
 			stroke: color,
 			strokeWidth: 1,
+			x: 0,
+			y: 0,
 		});
 
 		group.add(this._label);
