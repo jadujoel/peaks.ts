@@ -1,13 +1,18 @@
+export type CueType =
+	| typeof Cue.POINT
+	| typeof Cue.SEGMENT_START
+	| typeof Cue.SEGMENT_END;
+
 export interface CueFromOptions {
 	readonly time: number;
-	readonly type: number;
+	readonly type: CueType;
 	readonly id: string;
 }
 
 export class Cue {
-	static readonly POINT = 0;
-	static readonly SEGMENT_START = 1;
-	static readonly SEGMENT_END = 2;
+	static readonly POINT = 0 as const;
+	static readonly SEGMENT_START = 1 as const;
+	static readonly SEGMENT_END = 2 as const;
 
 	static sorter(a: Cue, b: Cue): number {
 		return a.time - b.time;
@@ -19,7 +24,7 @@ export class Cue {
 
 	private constructor(
 		public readonly time: number,
-		public readonly type: number,
+		public readonly type: CueType,
 		public readonly id: string,
 	) {}
 }

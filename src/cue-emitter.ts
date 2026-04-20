@@ -2,7 +2,35 @@ import { Cue } from "./cue";
 import type { Point } from "./point";
 import type { Segment } from "./segment";
 import type { PeaksInstance } from "./types";
-import { objectHasProperty } from "./utils";
+
+export const EVENT_TYPE_POINT = 0;
+export const EVENT_TYPE_SEGMENT_ENTER = 1;
+export const EVENT_TYPE_SEGMENT_EXIT = 2;
+
+export const EVENT_TYPES = {
+	forward: {
+		[Cue.POINT]: EVENT_TYPE_POINT,
+		[Cue.SEGMENT_START]: EVENT_TYPE_SEGMENT_ENTER,
+		[Cue.SEGMENT_END]: EVENT_TYPE_SEGMENT_EXIT,
+	},
+	reverse: {
+		[Cue.POINT]: EVENT_TYPE_POINT,
+		[Cue.SEGMENT_START]: EVENT_TYPE_SEGMENT_EXIT,
+		[Cue.SEGMENT_END]: EVENT_TYPE_SEGMENT_ENTER,
+	},
+} as const;
+
+const EVENT_NAMES = {
+	[EVENT_TYPE_POINT]: "points.enter",
+	[EVENT_TYPE_SEGMENT_ENTER]: "segments.enter",
+	[EVENT_TYPE_SEGMENT_EXIT]: "segments.exit",
+} as const;
+
+const EVENT_ATTRIBUTES = {
+	[EVENT_TYPE_POINT]: "point",
+	[EVENT_TYPE_SEGMENT_ENTER]: "segment",
+	[EVENT_TYPE_SEGMENT_EXIT]: "segment",
+} as const;
 
 const isHeadless = /HeadlessChrome/.test(navigator.userAgent);
 
@@ -17,38 +45,6 @@ export function isWindowVisible(): boolean {
 		document.visibilityState === "visible"
 	);
 }
-
-export const eventTypes: {
-	forward: Record<number, number>;
-	reverse: Record<number, number>;
-} = {
-	forward: {},
-	reverse: {},
-};
-
-export const EVENT_TYPE_POINT = 0;
-export const EVENT_TYPE_SEGMENT_ENTER = 1;
-export const EVENT_TYPE_SEGMENT_EXIT = 2;
-
-eventTypes.forward[Cue.POINT] = EVENT_TYPE_POINT;
-eventTypes.forward[Cue.SEGMENT_START] = EVENT_TYPE_SEGMENT_ENTER;
-eventTypes.forward[Cue.SEGMENT_END] = EVENT_TYPE_SEGMENT_EXIT;
-
-eventTypes.reverse[Cue.POINT] = EVENT_TYPE_POINT;
-eventTypes.reverse[Cue.SEGMENT_START] = EVENT_TYPE_SEGMENT_EXIT;
-eventTypes.reverse[Cue.SEGMENT_END] = EVENT_TYPE_SEGMENT_ENTER;
-
-const eventNames: Record<number, string> = {};
-
-eventNames[EVENT_TYPE_POINT] = "points.enter";
-eventNames[EVENT_TYPE_SEGMENT_ENTER] = "segments.enter";
-eventNames[EVENT_TYPE_SEGMENT_EXIT] = "segments.exit";
-
-const eventAttributes: Record<number, string> = {};
-
-eventAttributes[EVENT_TYPE_POINT] = "point";
-eventAttributes[EVENT_TYPE_SEGMENT_ENTER] = "segment";
-eventAttributes[EVENT_TYPE_SEGMENT_EXIT] = "segment";
 
 /**
  * Given a cue instance, returns the corresponding Point or Segment.
@@ -82,13 +78,13 @@ export function getPointOrSegment(
 	}
 }
 
-function getSegmentIdComparator(id: string) {
+export function getSegmentIdComparator(id: string) {
 	return function compareSegmentIds(segment: Segment) {
 		return segment.id === id;
 	};
 }
 
-const events = [
+export const EVENTS = [
 	"points.update",
 	"points.dragmove",
 	"points.add",
@@ -99,7 +95,7 @@ const events = [
 	"segments.add",
 	"segments.remove",
 	"segments.remove_all",
-];
+] as const;
 
 /**
  * CueEmitter is responsible for emitting `points.enter`,
@@ -110,54 +106,53 @@ export interface CueEmitterFromOptions {
 }
 
 export class CueEmitter {
-	private readonly _cues: Cue[];
-	private readonly _peaks: PeaksInstance;
-	private _previousTime: number;
-	private _rAFHandle: number | undefined;
-	private readonly _activeSegments: Record<string, Segment>;
+	private readonly cues: Cue[];
+	private previousTime: number;
+	private rAFHandle: number | undefined;
+	private readonly activeSegments: Record<string, Segment>;
 
 	static from(options: CueEmitterFromOptions): CueEmitter {
-		return new CueEmitter(options.peaks);
+		const emitter = new CueEmitter(options.peaks);
+		emitter.addEventHandlers();
+		return emitter;
 	}
 
-	private constructor(peaks: PeaksInstance) {
-		this._cues = [];
-		this._peaks = peaks;
-		this._previousTime = -1;
-		this._updateCues = this._updateCues.bind(this);
-		this._onPlaying = this._onPlaying.bind(this);
-		this._onSeeked = this._onSeeked.bind(this);
-		this._onTimeUpdate = this._onTimeUpdate.bind(this);
-		this._onAnimationFrame = this._onAnimationFrame.bind(this);
-		this._rAFHandle = undefined;
-		this._activeSegments = {};
-		this._attachEventHandlers();
+	private constructor(public readonly peaks: PeaksInstance) {
+		this.cues = [];
+		this.previousTime = -1;
+		this.updateCues = this.updateCues.bind(this);
+		this.onPlaying = this.onPlaying.bind(this);
+		this.onSeeked = this.onSeeked.bind(this);
+		this.onTimeUpdate = this.onTimeUpdate.bind(this);
+		this.onAnimationFrame = this.onAnimationFrame.bind(this);
+		this.rAFHandle = undefined;
+		this.activeSegments = {};
 	}
 
 	/**
 	 * Updates the list of cues when points or segments are mutated.
 	 */
-	private _updateCues(): void {
-		const points = this._peaks.points.getPoints();
-		const segments = this._peaks.segments.getSegments();
+	private updateCues(): void {
+		const points = this.peaks.points.getPoints();
+		const segments = this.peaks.segments.getSegments();
 
-		this._cues.length = 0;
+		this.cues.length = 0;
 
 		for (const point of points) {
-			this._cues.push(
+			this.cues.push(
 				Cue.from({ time: point.time, type: Cue.POINT, id: point.id }),
 			);
 		}
 
 		for (const segment of segments) {
-			this._cues.push(
+			this.cues.push(
 				Cue.from({
 					time: segment.startTime,
 					type: Cue.SEGMENT_START,
 					id: segment.id,
 				}),
 			);
-			this._cues.push(
+			this.cues.push(
 				Cue.from({
 					time: segment.endTime,
 					type: Cue.SEGMENT_END,
@@ -166,17 +161,17 @@ export class CueEmitter {
 			);
 		}
 
-		this._cues.sort(Cue.sorter);
+		this.cues.sort(Cue.sorter);
 
-		const time = this._peaks.player.getCurrentTime();
+		const time = this.peaks.player.getCurrentTime();
 
-		this._updateActiveSegments(time);
+		this.updateActiveSegments(time);
 	}
 
 	/**
 	 * Emits events for any cues passed through during media playback.
 	 */
-	private _onUpdate(time: number, previousTime: number): void {
+	private onUpdate(time: number, previousTime: number): void {
 		const isForward = time > previousTime;
 		let start: number;
 		let end: number;
@@ -184,18 +179,17 @@ export class CueEmitter {
 
 		if (isForward) {
 			start = 0;
-			end = this._cues.length;
+			end = this.cues.length;
 			step = 1;
 		} else {
-			start = this._cues.length - 1;
+			start = this.cues.length - 1;
 			end = -1;
 			step = -1;
 		}
 
 		// Cues are sorted.
-
 		for (let i = start; isForward ? i < end : i > end; i += step) {
-			const cue = this._cues[i];
+			const cue = this.cues[i];
 
 			if (!cue) {
 				continue;
@@ -208,35 +202,35 @@ export class CueEmitter {
 
 				// Cue falls between time and previousTime.
 
-				const marker = getPointOrSegment(this._peaks, cue);
+				const marker = getPointOrSegment(this.peaks, cue);
 
 				const eventType = isForward
-					? eventTypes.forward[cue.type]
-					: eventTypes.reverse[cue.type];
+					? EVENT_TYPES.forward[cue.type]
+					: EVENT_TYPES.reverse[cue.type];
 
 				if (eventType === undefined) {
 					continue;
 				}
 
 				if (eventType === EVENT_TYPE_SEGMENT_ENTER) {
-					this._activeSegments[(marker as Segment).id] = marker as Segment;
+					this.activeSegments[(marker as Segment).id] = marker as Segment;
 				} else if (eventType === EVENT_TYPE_SEGMENT_EXIT) {
-					delete this._activeSegments[(marker as Segment).id];
+					delete this.activeSegments[(marker as Segment).id];
 				}
 
 				const event: Record<string, unknown> = {
 					time: time,
 				};
 
-				const attrKey = eventAttributes[eventType];
-				const eventName = eventNames[eventType];
+				const attrKey = EVENT_ATTRIBUTES[eventType];
+				const eventName = EVENT_NAMES[eventType];
 
 				if (attrKey) {
 					event[attrKey] = marker;
 				}
 
 				if (eventName) {
-					this._peaks.emit(eventName, event);
+					this.peaks.emit(eventName, event);
 				}
 			}
 		}
@@ -246,41 +240,41 @@ export class CueEmitter {
 	// when the window isn't in focus, rAF is throttled
 	// falling back to timeUpdate.
 
-	private _onTimeUpdate(time: number): void {
+	private onTimeUpdate(time: number): void {
 		if (isWindowVisible()) {
 			return;
 		}
 
-		if (this._peaks.player.isPlaying() && !this._peaks.player.isSeeking()) {
-			this._onUpdate(time, this._previousTime);
+		if (this.peaks.player.isPlaying() && !this.peaks.player.isSeeking()) {
+			this.onUpdate(time, this.previousTime);
 		}
 
-		this._previousTime = time;
+		this.previousTime = time;
 	}
 
-	private _onAnimationFrame(): void {
-		const time = this._peaks.player.getCurrentTime();
+	private onAnimationFrame(): void {
+		const time = this.peaks.player.getCurrentTime();
 
-		if (!this._peaks.player.isSeeking()) {
-			this._onUpdate(time, this._previousTime);
+		if (!this.peaks.player.isSeeking()) {
+			this.onUpdate(time, this.previousTime);
 		}
 
-		this._previousTime = time;
+		this.previousTime = time;
 
-		if (this._peaks.player.isPlaying()) {
-			this._rAFHandle = requestAnimationFrame(this._onAnimationFrame);
+		if (this.peaks.player.isPlaying()) {
+			this.rAFHandle = requestAnimationFrame(this.onAnimationFrame);
 		}
 	}
 
-	private _onPlaying(): void {
-		this._previousTime = this._peaks.player.getCurrentTime();
-		this._rAFHandle = requestAnimationFrame(this._onAnimationFrame);
+	private onPlaying(): void {
+		this.previousTime = this.peaks.player.getCurrentTime();
+		this.rAFHandle = requestAnimationFrame(this.onAnimationFrame);
 	}
 
-	private _onSeeked(time: number): void {
-		this._previousTime = time;
+	private onSeeked(time: number): void {
+		this.previousTime = time;
 
-		this._updateActiveSegments(time);
+		this.updateActiveSegments(time);
 	}
 
 	/**
@@ -288,22 +282,22 @@ export class CueEmitter {
 	 * playhead position. This function updates that set and emits
 	 * `segments.enter` and `segments.exit` events.
 	 */
-	private _updateActiveSegments(time: number): void {
-		const activeSegments = this._peaks.segments.getSegmentsAtTime(time);
+	private updateActiveSegments(time: number): void {
+		const activeSegments = this.peaks.segments.getSegmentsAtTime(time);
 
 		// Remove any segments no longer active.
 
-		for (const id in this._activeSegments) {
-			if (objectHasProperty(this._activeSegments, id)) {
+		for (const id in this.activeSegments) {
+			if (Object.hasOwn(this.activeSegments, id)) {
 				const segment = activeSegments.find(getSegmentIdComparator(id));
 
 				if (!segment) {
-					this._peaks.emit("segments.exit", {
-						segment: this._activeSegments[id],
+					this.peaks.emit("segments.exit", {
+						segment: this.activeSegments[id],
 						time: time,
 					});
 
-					delete this._activeSegments[id];
+					delete this.activeSegments[id];
 				}
 			}
 		}
@@ -311,10 +305,10 @@ export class CueEmitter {
 		// Add new active segments.
 
 		for (const segment of activeSegments) {
-			if (!(segment.id in this._activeSegments)) {
-				this._activeSegments[segment.id] = segment;
+			if (!(segment.id in this.activeSegments)) {
+				this.activeSegments[segment.id] = segment;
 
-				this._peaks.emit("segments.enter", {
+				this.peaks.emit("segments.enter", {
 					segment: segment,
 					time: time,
 				});
@@ -322,34 +316,34 @@ export class CueEmitter {
 		}
 	}
 
-	private _attachEventHandlers(): void {
-		this._peaks.on("player.timeupdate", this._onTimeUpdate);
-		this._peaks.on("player.playing", this._onPlaying);
-		this._peaks.on("player.seeked", this._onSeeked);
+	private addEventHandlers(): void {
+		this.peaks.on("player.timeupdate", this.onTimeUpdate);
+		this.peaks.on("player.playing", this.onPlaying);
+		this.peaks.on("player.seeked", this.onSeeked);
 
-		for (const event of events) {
-			this._peaks.on(event, this._updateCues);
+		for (const event of EVENTS) {
+			this.peaks.on(event, this.updateCues);
 		}
 
-		this._updateCues();
+		this.updateCues();
 	}
 
-	private _detachEventHandlers(): void {
-		this._peaks.off("player.timeupdate", this._onTimeUpdate);
-		this._peaks.off("player.playing", this._onPlaying);
-		this._peaks.off("player.seeked", this._onSeeked);
+	private removeEventHandlers(): void {
+		this.peaks.off("player.timeupdate", this.onTimeUpdate);
+		this.peaks.off("player.playing", this.onPlaying);
+		this.peaks.off("player.seeked", this.onSeeked);
 
-		for (const event of events) {
-			this._peaks.off(event, this._updateCues);
+		for (const event of EVENTS) {
+			this.peaks.off(event, this.updateCues);
 		}
 	}
 
 	destroy(): void {
-		if (this._rAFHandle) {
-			cancelAnimationFrame(this._rAFHandle);
-			this._rAFHandle = undefined;
+		if (this.rAFHandle) {
+			cancelAnimationFrame(this.rAFHandle);
+			this.rAFHandle = undefined;
 		}
-		this._detachEventHandlers();
-		this._previousTime = -1;
+		this.removeEventHandlers();
+		this.previousTime = -1;
 	}
 }
