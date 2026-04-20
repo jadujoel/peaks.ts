@@ -362,7 +362,7 @@ describe("Player", () => {
 			it("should remove all event listeners", () => {
 				p.player.destroy();
 
-				expect(p.player._adapter._listeners).to.be.empty;
+				expect(p.player.adapter.listeners).to.be.empty;
 			});
 		});
 	});

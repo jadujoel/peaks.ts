@@ -9,15 +9,15 @@ import sampleJsonData from "./data/sample.json";
 const TestAudioContext = window.AudioContext;
 
 const externalPlayer = {
-	init: () => Promise.resolve(),
 	destroy: () => {},
-	play: () => Promise.resolve(),
-	pause: () => {},
-	seek: () => {},
-	isPlaying: () => false,
-	isSeeking: () => false,
 	getCurrentTime: () => 0,
 	getDuration: () => 0,
+	init: () => Promise.resolve(),
+	isPlaying: () => false,
+	isSeeking: () => false,
+	pause: () => {},
+	play: () => Promise.resolve(),
+	seek: () => {},
 };
 
 type InternalPlayheadLayer = {
@@ -68,14 +68,14 @@ describe("Peaks", () => {
 		it("should throw if called without a callback", () => {
 			expect(() => {
 				(Peaks.init as unknown as (options: unknown) => unknown)({
+					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
 					},
-					mediaElement: document.getElementById("media"),
-					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 				});
 			}).to.throw(Error, /callback/);
 		});
@@ -84,14 +84,14 @@ describe("Peaks", () => {
 			it("should invoke callback when initialised", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+						mediaElement: document.getElementById("media"),
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						mediaElement: document.getElementById("media"),
-						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
 						expect(err).to.equal(undefined);
@@ -105,14 +105,14 @@ describe("Peaks", () => {
 			it("should return undefined", (done: DoneCallback) => {
 				const result = Peaks.init(
 					{
+						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+						mediaElement: document.getElementById("media"),
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						mediaElement: document.getElementById("media"),
-						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
 						expect(err).to.equal(undefined);
@@ -126,14 +126,14 @@ describe("Peaks", () => {
 
 			it("should resolve a Peaks instance with fromOptionsAsync", async () => {
 				p = await Peaks.fromOptionsAsync({
+					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+					mediaElement: document.getElementById("media") as HTMLMediaElement,
 					overview: {
 						container: document.getElementById("overview-container")!,
 					},
 					zoomview: {
 						container: document.getElementById("zoomview-container")!,
 					},
-					mediaElement: document.getElementById("media") as HTMLMediaElement,
-					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 				});
 
 				expect(p).to.be.an.instanceOf(Peaks);
@@ -142,10 +142,10 @@ describe("Peaks", () => {
 			it("should reject fromOptionsAsync when initialization fails", async () => {
 				try {
 					await Peaks.fromOptionsAsync({
-						zoomview: {},
-						overview: {},
-						mediaElement: document.getElementById("media"),
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+						mediaElement: document.getElementById("media"),
+						overview: {},
+						zoomview: {},
 					});
 					expect.fail("Expected fromOptionsAsync to reject");
 				} catch (error) {
@@ -160,14 +160,14 @@ describe("Peaks", () => {
 				it("should construct a Peaks object with overview and zoomable waveforms", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
 							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -186,11 +186,11 @@ describe("Peaks", () => {
 				it("should construct a Peaks object with an overview waveform only", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -207,11 +207,11 @@ describe("Peaks", () => {
 				it("should construct a Peaks object with a zoomable waveform only", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById("media"),
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
 							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -229,10 +229,10 @@ describe("Peaks", () => {
 				it("should return an error if no containers are given", (done: DoneCallback) => {
 					Peaks.init(
 						{
-							zoomview: {},
-							overview: {},
-							mediaElement: document.getElementById("media"),
 							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById("media"),
+							overview: {},
+							zoomview: {},
 						},
 						(err, instance) => {
 							expect(err).to.be.an.instanceOf(TypeError);
@@ -253,31 +253,31 @@ describe("Peaks", () => {
 
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById("media"),
 							overview: {
+								axisGridlineColor: "#000000",
+								axisLabelColor: "#0000ff",
 								container: document.getElementById("overview-container"),
+								formatPlayheadTime: overviewFormatPlayheadTime,
+								highlightColor: "#808080",
+								highlightCornerRadius: 5,
+								highlightOffset: 2,
+								highlightOpacity: 0.5,
+								highlightStrokeColor: "#404040",
 								playheadColor: "#ff0000",
 								playheadTextColor: "#00ff00",
 								showPlayheadTime: true,
-								formatPlayheadTime: overviewFormatPlayheadTime,
-								axisLabelColor: "#0000ff",
-								axisGridlineColor: "#000000",
-								highlightColor: "#808080",
-								highlightOffset: 2,
-								highlightStrokeColor: "#404040",
-								highlightOpacity: 0.5,
-								highlightCornerRadius: 5,
 							},
 							zoomview: {
+								axisGridlineColor: "#808080",
+								axisLabelColor: "#ff0000",
 								container: document.getElementById("zoomview-container"),
+								formatPlayheadTime: zoomviewFormatPlayheadTime,
 								playheadColor: "#00ff00",
 								playheadTextColor: "#0000ff",
 								showPlayheadTime: false,
-								formatPlayheadTime: zoomviewFormatPlayheadTime,
-								axisLabelColor: "#ff0000",
-								axisGridlineColor: "#808080",
 							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -290,37 +290,33 @@ describe("Peaks", () => {
 								"zoomview",
 							) as unknown as InternalView;
 
-							expect(overview._playheadLayer._playheadColor).to.equal(
-								"#ff0000",
-							);
-							expect(zoomview._playheadLayer._playheadColor).to.equal(
+							expect(overview.playheadLayer.playheadColor).to.equal("#ff0000");
+							expect(zoomview.playheadLayer.playheadColor).to.equal("#00ff00");
+							expect(overview.playheadLayer.playheadTextColor).to.equal(
 								"#00ff00",
 							);
-							expect(overview._playheadLayer._playheadTextColor).to.equal(
-								"#00ff00",
-							);
-							expect(zoomview._playheadLayer._playheadTextColor).to.equal(
+							expect(zoomview.playheadLayer.playheadTextColor).to.equal(
 								"#0000ff",
 							);
-							expect(overview._playheadLayer._playheadText).to.be.an.instanceOf(
+							expect(overview.playheadLayer.playheadText).to.be.an.instanceOf(
 								Konva.Text,
 							);
-							expect(zoomview._playheadLayer._playheadText).to.equal(undefined);
-							expect(overview._formatPlayheadTime).to.equal(
+							expect(zoomview.playheadLayer.playheadText).to.equal(undefined);
+							expect(overview.formatPlayheadTimeFn).to.equal(
 								overviewFormatPlayheadTime,
 							);
-							expect(zoomview._formatPlayheadTime).to.equal(
+							expect(zoomview.formatPlayheadTimeFn).to.equal(
 								zoomviewFormatPlayheadTime,
 							);
-							expect(overview._axis._axisLabelColor).to.equal("#0000ff");
-							expect(zoomview._axis._axisLabelColor).to.equal("#ff0000");
-							expect(overview._axis._axisGridlineColor).to.equal("#000000");
-							expect(zoomview._axis._axisGridlineColor).to.equal("#808080");
-							expect(overview._highlightLayer._offset).to.equal(2);
-							expect(overview._highlightLayer._color).to.equal("#808080");
-							expect(overview._highlightLayer._strokeColor).to.equal("#404040");
-							expect(overview._highlightLayer._opacity).to.equal(0.5);
-							expect(overview._highlightLayer._cornerRadius).to.equal(5);
+							expect(overview.axis.axisLabelColor).to.equal("#0000ff");
+							expect(zoomview.axis.axisLabelColor).to.equal("#ff0000");
+							expect(overview.axis.axisGridlineColor).to.equal("#000000");
+							expect(zoomview.axis.axisGridlineColor).to.equal("#808080");
+							expect(overview.highlightLayer.offset).to.equal(2);
+							expect(overview.highlightLayer.color).to.equal("#808080");
+							expect(overview.highlightLayer.strokeColor).to.equal("#404040");
+							expect(overview.highlightLayer.opacity).to.equal(0.5);
+							expect(overview.highlightLayer.cornerRadius).to.equal(5);
 							done();
 						},
 					);
@@ -329,24 +325,24 @@ describe("Peaks", () => {
 				it("should use global options", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							axisGridlineColor: "#000000",
+							axisLabelColor: "#0000ff",
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							highlightColor: "#808080",
+							highlightCornerRadius: 5,
+							highlightOffset: 2,
+							highlightOpacity: 0.5,
+							highlightStrokeColor: "#404040",
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
-							zoomview: {
-								container: document.getElementById("zoomview-container"),
-							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 							playheadColor: "#ff0000",
 							playheadTextColor: "#00ff00",
 							showPlayheadTime: true,
-							axisLabelColor: "#0000ff",
-							axisGridlineColor: "#000000",
-							highlightColor: "#808080",
-							highlightOffset: 2,
-							highlightStrokeColor: "#404040",
-							highlightOpacity: 0.5,
-							highlightCornerRadius: 5,
+							zoomview: {
+								container: document.getElementById("zoomview-container"),
+							},
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -359,31 +355,27 @@ describe("Peaks", () => {
 								"zoomview",
 							) as unknown as InternalView;
 
-							expect(overview._playheadLayer._playheadColor).to.equal(
-								"#ff0000",
-							);
-							expect(zoomview._playheadLayer._playheadColor).to.equal(
-								"#ff0000",
-							);
-							expect(overview._playheadLayer._playheadTextColor).to.equal(
+							expect(overview.playheadLayer.playheadColor).to.equal("#ff0000");
+							expect(zoomview.playheadLayer.playheadColor).to.equal("#ff0000");
+							expect(overview.playheadLayer.playheadTextColor).to.equal(
 								"#00ff00",
 							);
-							expect(zoomview._playheadLayer._playheadTextColor).to.equal(
+							expect(zoomview.playheadLayer.playheadTextColor).to.equal(
 								"#00ff00",
 							);
-							expect(overview._playheadLayer._playheadText).to.equal(undefined);
-							expect(zoomview._playheadLayer._playheadText).to.be.an.instanceOf(
+							expect(overview.playheadLayer.playheadText).to.equal(undefined);
+							expect(zoomview.playheadLayer.playheadText).to.be.an.instanceOf(
 								Konva.Text,
 							);
-							expect(overview._axis._axisLabelColor).to.equal("#0000ff");
-							expect(zoomview._axis._axisLabelColor).to.equal("#0000ff");
-							expect(overview._axis._axisGridlineColor).to.equal("#000000");
-							expect(zoomview._axis._axisGridlineColor).to.equal("#000000");
-							expect(overview._highlightLayer._offset).to.equal(2);
-							expect(overview._highlightLayer._color).to.equal("#808080");
-							expect(overview._highlightLayer._strokeColor).to.equal("#404040");
-							expect(overview._highlightLayer._opacity).to.equal(0.5);
-							expect(overview._highlightLayer._cornerRadius).to.equal(5);
+							expect(overview.axis.axisLabelColor).to.equal("#0000ff");
+							expect(zoomview.axis.axisLabelColor).to.equal("#0000ff");
+							expect(overview.axis.axisGridlineColor).to.equal("#000000");
+							expect(zoomview.axis.axisGridlineColor).to.equal("#000000");
+							expect(overview.highlightLayer.offset).to.equal(2);
+							expect(overview.highlightLayer.color).to.equal("#808080");
+							expect(overview.highlightLayer.strokeColor).to.equal("#404040");
+							expect(overview.highlightLayer.opacity).to.equal(0.5);
+							expect(overview.highlightLayer.cornerRadius).to.equal(5);
 							done();
 						},
 					);
@@ -392,14 +384,14 @@ describe("Peaks", () => {
 				it("should use default options", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
 							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -412,31 +404,27 @@ describe("Peaks", () => {
 								"zoomview",
 							) as unknown as InternalView;
 
-							expect(overview._playheadLayer._playheadColor).to.equal(
-								"#111111",
-							);
-							expect(zoomview._playheadLayer._playheadColor).to.equal(
-								"#111111",
-							);
-							expect(overview._playheadLayer._playheadTextColor).to.equal(
+							expect(overview.playheadLayer.playheadColor).to.equal("#111111");
+							expect(zoomview.playheadLayer.playheadColor).to.equal("#111111");
+							expect(overview.playheadLayer.playheadTextColor).to.equal(
 								"#aaaaaa",
 							);
-							expect(zoomview._playheadLayer._playheadTextColor).to.equal(
+							expect(zoomview.playheadLayer.playheadTextColor).to.equal(
 								"#aaaaaa",
 							);
-							expect(overview._playheadLayer._playheadText).to.equal(undefined);
-							expect(overview._playheadLayer._playheadText).to.equal(undefined);
-							expect(overview._axis._axisLabelColor).to.equal("#aaaaaa");
-							expect(zoomview._axis._axisLabelColor).to.equal("#aaaaaa");
-							expect(overview._axis._axisGridlineColor).to.equal("#cccccc");
-							expect(zoomview._axis._axisGridlineColor).to.equal("#cccccc");
-							expect(overview._highlightLayer._offset).to.equal(11);
-							expect(overview._highlightLayer._color).to.equal("#aaaaaa");
-							expect(overview._highlightLayer._strokeColor).to.equal(
+							expect(overview.playheadLayer.playheadText).to.equal(undefined);
+							expect(overview.playheadLayer.playheadText).to.equal(undefined);
+							expect(overview.axis.axisLabelColor).to.equal("#aaaaaa");
+							expect(zoomview.axis.axisLabelColor).to.equal("#aaaaaa");
+							expect(overview.axis.axisGridlineColor).to.equal("#cccccc");
+							expect(zoomview.axis.axisGridlineColor).to.equal("#cccccc");
+							expect(overview.highlightLayer.offset).to.equal(11);
+							expect(overview.highlightLayer.color).to.equal("#aaaaaa");
+							expect(overview.highlightLayer.strokeColor).to.equal(
 								"transparent",
 							);
-							expect(overview._highlightLayer._opacity).to.equal(0.3);
-							expect(overview._highlightLayer._cornerRadius).to.equal(2);
+							expect(overview.highlightLayer.opacity).to.equal(0.3);
+							expect(overview.highlightLayer.cornerRadius).to.equal(2);
 							done();
 						},
 					);
@@ -447,25 +435,25 @@ describe("Peaks", () => {
 				it("should construct a Peaks object with scrollbar", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
-							},
-							zoomview: {
-								container: document.getElementById("zoomview-container"),
 							},
 							scrollbar: {
 								container: document.getElementById("scrollbar-container"),
 							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							zoomview: {
+								container: document.getElementById("zoomview-container"),
+							},
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
 							expect(instance).to.be.an.instanceof(Peaks);
 							const viewController = instance?.views as unknown as {
-								_scrollbar: unknown;
+								scrollbar: unknown;
 							};
-							expect(viewController._scrollbar).to.be.an.instanceOf(Scrollbar);
+							expect(viewController.scrollbar).to.be.an.instanceOf(Scrollbar);
 							done();
 						},
 					);
@@ -476,14 +464,14 @@ describe("Peaks", () => {
 				it("should initialise correctly", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/07023003-2channel.dat" },
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
 							},
-							mediaElement: document.getElementById("media"),
-							dataUri: { arraybuffer: "/base/test/data/07023003-2channel.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -502,15 +490,15 @@ describe("Peaks", () => {
 				it("should initialise correctly", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
-							zoomview: {
-								container: document.getElementById("zoomview-container"),
-							},
-							mediaElement: document.getElementById("media"),
 							waveformData: {
 								json: sampleJsonData,
+							},
+							zoomview: {
+								container: document.getElementById("zoomview-container"),
 							},
 						},
 						(err, instance) => {
@@ -533,15 +521,15 @@ describe("Peaks", () => {
 						.then((buffer) => {
 							Peaks.init(
 								{
+									mediaElement: document.getElementById("media"),
 									overview: {
 										container: document.getElementById("overview-container"),
 									},
-									zoomview: {
-										container: document.getElementById("zoomview-container"),
-									},
-									mediaElement: document.getElementById("media"),
 									waveformData: {
 										arraybuffer: buffer,
+									},
+									zoomview: {
+										container: document.getElementById("zoomview-container"),
 									},
 								},
 								(err, instance) => {
@@ -562,16 +550,16 @@ describe("Peaks", () => {
 				it("should initialise correctly", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							mediaElement: document.getElementById("media"),
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
-							zoomview: {
-								container: document.getElementById("zoomview-container"),
-							},
-							mediaElement: document.getElementById("media"),
 							webAudio: {
 								audioContext: new TestAudioContext(),
 								multiChannel: true,
+							},
+							zoomview: {
+								container: document.getElementById("zoomview-container"),
 							},
 						},
 						(err, instance) => {
@@ -597,18 +585,18 @@ describe("Peaks", () => {
 						.then((audioBuffer) => {
 							Peaks.init(
 								{
+									mediaElement: document.getElementById("media"),
 									overview: {
 										container: document.getElementById("overview-container"),
 									},
-									zoomview: {
-										container: document.getElementById("zoomview-container"),
-									},
-									mediaElement: document.getElementById("media"),
 									webAudio: {
 										audioBuffer: audioBuffer,
 										multiChannel: true,
 									},
 									zoomLevels: [128, 256],
+									zoomview: {
+										container: document.getElementById("zoomview-container"),
+									},
 								},
 								(err, instance) => {
 									expect(err).to.equal(undefined);
@@ -628,17 +616,17 @@ describe("Peaks", () => {
 				it("should ignore mediaUrl if using an external player", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							mediaUrl: "invalid",
 							overview: {
 								container: document.getElementById("overview-container"),
+							},
+							player: externalPlayer,
+							waveformData: {
+								json: sampleJsonData,
 							},
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
 							},
-							mediaUrl: "invalid",
-							waveformData: {
-								json: sampleJsonData,
-							},
-							player: externalPlayer,
 						},
 						(err, instance) => {
 							expect(err).to.equal(undefined);
@@ -670,16 +658,16 @@ describe("Peaks", () => {
 				it("should invoke callback with an error", (done: DoneCallback) => {
 					Peaks.init(
 						{
+							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+							mediaElement: document.getElementById(
+								"adpcm",
+							) as HTMLMediaElement,
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
 							},
-							mediaElement: document.getElementById(
-								"adpcm",
-							) as HTMLMediaElement,
-							dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						},
 						(err, instance) => {
 							expect(err).to.be.an.instanceOf(MediaError);
@@ -708,13 +696,13 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if no mediaElement is provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -731,16 +719,16 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if mediaElement is not an HTMLMediaElement", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+						mediaElement: document.createElement(
+							"div",
+						) as unknown as HTMLMediaElement,
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						mediaElement: document.createElement(
-							"div",
-						) as unknown as HTMLMediaElement,
-						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -755,16 +743,16 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if both a dataUri and audioContext are provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+						mediaElement: document.getElementById("media"),
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
-						zoomview: {
-							container: document.getElementById("zoomview-container"),
-						},
-						mediaElement: document.getElementById("media"),
-						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 						webAudio: {
 							audioContext: new TestAudioContext(),
+						},
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
 						},
 					},
 					(err, instance) => {
@@ -780,13 +768,13 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if neither a dataUri nor an audioContext are provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						mediaElement: document.getElementById("media"),
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						mediaElement: document.getElementById("media"),
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -803,14 +791,14 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if the dataUri is not an object", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						dataUri: true as unknown as Record<string, string>,
+						mediaElement: document.getElementById("media"),
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						mediaElement: document.getElementById("media"),
-						dataUri: true as unknown as Record<string, string>,
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -825,15 +813,15 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if the provided JSON waveform data is invalid", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						mediaElement: document.getElementById("media"),
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
-						zoomview: {
-							container: document.getElementById("zoomview-container"),
-						},
-						mediaElement: document.getElementById("media"),
 						waveformData: {
 							json: { data: "foo" },
+						},
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
 						},
 					},
 					(err, instance) => {
@@ -850,15 +838,15 @@ describe("Peaks", () => {
 					.then((buffer) => {
 						Peaks.init(
 							{
+								mediaElement: document.getElementById("media"),
 								overview: {
 									container: document.getElementById("overview-container"),
 								},
-								zoomview: {
-									container: document.getElementById("zoomview-container"),
-								},
-								mediaElement: document.getElementById("media"),
 								waveformData: {
 									arraybuffer: buffer,
+								},
+								zoomview: {
+									container: document.getElementById("zoomview-container"),
 								},
 							},
 							(err, instance) => {
@@ -873,8 +861,8 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if no zoomview or overview options are provided", (done: DoneCallback) => {
 				Peaks.init(
 					{
-						mediaElement: document.getElementById("media"),
 						dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+						mediaElement: document.getElementById("media"),
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -889,17 +877,17 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if the logger is defined and not a function", (done: DoneCallback) => {
 				Peaks.init(
 					{
+						dataUri: {
+							arraybuffer: "base/test/data/sample.dat",
+						},
+						logger: "foo" as unknown as typeof console.error,
+						mediaElement: document.getElementById("media"),
 						overview: {
 							container: document.getElementById("overview-container"),
 						},
 						zoomview: {
 							container: document.getElementById("zoomview-container"),
 						},
-						mediaElement: document.getElementById("media"),
-						dataUri: {
-							arraybuffer: "base/test/data/sample.dat",
-						},
-						logger: "foo" as unknown as typeof console.error,
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -914,17 +902,17 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if the zoomLevels option is missing", (done: DoneCallback) => {
 				Peaks.init(
 					{
-						overview: {
-							container: document.getElementById("overview-container"),
-						},
-						zoomview: {
-							container: document.getElementById("zoomview-container"),
-						},
-						mediaElement: document.getElementById("media"),
 						dataUri: {
 							arraybuffer: "base/test/data/sample.dat",
 						},
+						mediaElement: document.getElementById("media"),
+						overview: {
+							container: document.getElementById("overview-container"),
+						},
 						zoomLevels: null as unknown as number[],
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
+						},
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -939,17 +927,17 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if the zoomLevels option is empty", (done: DoneCallback) => {
 				Peaks.init(
 					{
-						overview: {
-							container: document.getElementById("overview-container"),
-						},
-						zoomview: {
-							container: document.getElementById("zoomview-container"),
-						},
-						mediaElement: document.getElementById("media"),
 						dataUri: {
 							arraybuffer: "base/test/data/sample.dat",
 						},
+						mediaElement: document.getElementById("media"),
+						overview: {
+							container: document.getElementById("overview-container"),
+						},
 						zoomLevels: [],
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
+						},
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -964,17 +952,17 @@ describe("Peaks", () => {
 			it("should invoke callback with an error if the zoomLevels option is not in ascending order", (done: DoneCallback) => {
 				Peaks.init(
 					{
-						overview: {
-							container: document.getElementById("overview-container"),
-						},
-						zoomview: {
-							container: document.getElementById("zoomview-container"),
-						},
-						mediaElement: document.getElementById("media"),
 						dataUri: {
 							arraybuffer: "base/test/data/sample.dat",
 						},
+						mediaElement: document.getElementById("media"),
+						overview: {
+							container: document.getElementById("overview-container"),
+						},
 						zoomLevels: [1024, 512],
+						zoomview: {
+							container: document.getElementById("zoomview-container"),
+						},
 					},
 					(err, instance) => {
 						const error = expectPresent(err);
@@ -991,12 +979,12 @@ describe("Peaks", () => {
 				container.style.width = "0px";
 
 				const options = {
-					zoomview: {
-						container: container,
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: container,
 					},
 				};
 
@@ -1014,12 +1002,12 @@ describe("Peaks", () => {
 				container.style.height = "0px";
 
 				const options = {
-					zoomview: {
-						container: container,
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: container,
 					},
 				};
 
@@ -1037,12 +1025,12 @@ describe("Peaks", () => {
 				container.style.width = "0px";
 
 				const options = {
-					overview: {
-						container: container,
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: container,
 					},
 				};
 
@@ -1060,12 +1048,12 @@ describe("Peaks", () => {
 				container.style.height = "0px";
 
 				const options = {
-					overview: {
-						container: container,
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: container,
 					},
 				};
 
@@ -1082,12 +1070,12 @@ describe("Peaks", () => {
 				const container = document.getElementById("zoomview-container");
 
 				const options = {
-					zoomview: {
-						container: container,
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
+					},
+					mediaElement: document.getElementById("media"),
+					zoomview: {
+						container: container,
 					},
 				};
 
@@ -1106,12 +1094,12 @@ describe("Peaks", () => {
 				const container = document.getElementById("overview-container");
 
 				const options = {
-					overview: {
-						container: container,
-					},
-					mediaElement: document.getElementById("media"),
 					dataUri: {
 						arraybuffer: "base/test/data/sample.dat",
+					},
+					mediaElement: document.getElementById("media"),
+					overview: {
+						container: container,
 					},
 				};
 
@@ -1141,15 +1129,15 @@ describe("Peaks", () => {
 
 		beforeEach((done: DoneCallback) => {
 			const options = {
+				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+				mediaElement: document.getElementById("media"),
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
+				zoomLevels: [512, 1024, 2048],
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
 				},
-				mediaElement: document.getElementById("media"),
-				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
-				zoomLevels: [512, 1024, 2048],
 			};
 
 			Peaks.init(options, (err, instance) => {
@@ -1169,10 +1157,10 @@ describe("Peaks", () => {
 		describe("with invalid media url", () => {
 			it("should return an error", (done: DoneCallback) => {
 				const options = {
-					mediaUrl: "/base/test/data/unknown.mp3",
 					dataUri: {
 						arraybuffer: "/base/test/data/unknown.dat",
 					},
+					mediaUrl: "/base/test/data/unknown.mp3",
 				};
 
 				getActivePeaks().setSource(options, (error) => {
@@ -1183,10 +1171,10 @@ describe("Peaks", () => {
 
 			it("should preserve existing event handlers", (done: DoneCallback) => {
 				const options = {
-					mediaUrl: "/base/test/data/unknown.mp3",
 					dataUri: {
 						arraybuffer: "/base/test/data/unknown.dat",
 					},
+					mediaUrl: "/base/test/data/unknown.mp3",
 				};
 
 				function onError() {
@@ -1240,10 +1228,10 @@ describe("Peaks", () => {
 		describe("with waveform data url", () => {
 			it("should update the waveform", (done: DoneCallback) => {
 				const options = {
-					mediaUrl: "/base/test/data/sample.mp3",
 					dataUri: {
 						arraybuffer: "/base/test/data/sample.dat",
 					},
+					mediaUrl: "/base/test/data/sample.mp3",
 				};
 
 				getActivePeaks().setSource(options, (error) => {
@@ -1359,10 +1347,10 @@ describe("Peaks", () => {
 		describe("with stereo waveform", () => {
 			it("should update the waveform", (done: DoneCallback) => {
 				const options = {
-					mediaUrl: "/base/test/data/07023003.mp3",
 					dataUri: {
 						arraybuffer: "/base/test/data/07023003-2channel.dat",
 					},
+					mediaUrl: "/base/test/data/07023003.mp3",
 					zoomLevels: [128, 256],
 				};
 
@@ -1403,15 +1391,15 @@ describe("Peaks", () => {
 
 			Peaks.init(
 				{
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-					mediaElement: document.getElementById("media"),
 					webAudio: {
 						audioContext: new TestAudioContext(),
+					},
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
 					},
 				},
 				(err, instance) => {
@@ -1437,17 +1425,17 @@ describe("Peaks", () => {
 		it("should be safe to call more than once", (done: DoneCallback) => {
 			Peaks.init(
 				{
+					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+					mediaElement: document.getElementById("media"),
 					overview: {
 						container: document.getElementById("overview-container"),
-					},
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
 					},
 					scrollbar: {
 						container: document.getElementById("scrollbar-container"),
 					},
-					mediaElement: document.getElementById("media"),
-					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+					zoomview: {
+						container: document.getElementById("zoomview-container"),
+					},
 				},
 				(err, peaks) => {
 					expect(err).to.equal(undefined);

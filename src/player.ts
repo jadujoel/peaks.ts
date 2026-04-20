@@ -63,11 +63,11 @@ export interface PlayerFromOptions {
 }
 
 export class Player {
-	private readonly _peaks: PeaksInstance | undefined;
-	private _playingSegment: boolean;
-	private _segment: Segment | undefined;
-	private _loop: boolean;
-	private readonly _adapter: PlayerAdapter;
+	private readonly peaks: PeaksInstance | undefined;
+	private playingSegment: boolean;
+	private segment: Segment | undefined;
+	private loop: boolean;
+	private readonly adapter: PlayerAdapter;
 
 	/**
 	 * Creates a player wrapper around the supplied adapter.
@@ -82,18 +82,18 @@ export class Player {
 		peaks: PeaksInstance | undefined,
 		adapter: PlayerAdapter,
 	) {
-		this._peaks = peaks;
+		this.peaks = peaks;
 
-		this._playingSegment = false;
-		this._segment = undefined;
-		this._loop = false;
+		this.playingSegment = false;
+		this.segment = undefined;
+		this.loop = false;
 
 		validateAdapter(adapter);
-		this._adapter = adapter;
+		this.adapter = adapter;
 	}
 
 	init(): Promise<void> {
-		return Promise.resolve(this._adapter.init(this._peaks as PeaksInstance));
+		return Promise.resolve(this.adapter.init(this.peaks as PeaksInstance));
 	}
 
 	/**
@@ -101,10 +101,10 @@ export class Player {
 	 */
 
 	destroy(): void {
-		this._playingSegment = false;
-		this._loop = false;
-		this._segment = undefined;
-		this._adapter.destroy();
+		this.playingSegment = false;
+		this.loop = false;
+		this.segment = undefined;
+		this.adapter.destroy();
 	}
 
 	/**
@@ -113,7 +113,7 @@ export class Player {
 	 */
 
 	play(): Promise<void> {
-		return Promise.resolve(this._adapter.play());
+		return Promise.resolve(this.adapter.play());
 	}
 
 	/**
@@ -121,7 +121,7 @@ export class Player {
 	 */
 
 	pause(): void {
-		this._adapter.pause();
+		this.adapter.pause();
 	}
 
 	/**
@@ -130,7 +130,7 @@ export class Player {
 	 */
 
 	isPlaying(): boolean {
-		return this._adapter.isPlaying();
+		return this.adapter.isPlaying();
 	}
 
 	/**
@@ -138,7 +138,7 @@ export class Player {
 	 */
 
 	isSeeking(): boolean {
-		return this._adapter.isSeeking();
+		return this.adapter.isSeeking();
 	}
 
 	/**
@@ -148,7 +148,7 @@ export class Player {
 	 */
 
 	getCurrentTime(): number {
-		return this._adapter.getCurrentTime();
+		return this.adapter.getCurrentTime();
 	}
 
 	/**
@@ -158,7 +158,7 @@ export class Player {
 	 */
 
 	getDuration(): number {
-		return this._adapter.getDuration();
+		return this.adapter.getDuration();
 	}
 
 	/**
@@ -169,13 +169,13 @@ export class Player {
 
 	seek(time: number): void {
 		if (!isValidTime(time)) {
-			this._peaks?._logger(
+			this.peaks?.logger(
 				"peaks.player.seek(): parameter must be a valid time, in seconds",
 			);
 			return;
 		}
 
-		this._adapter.seek(time);
+		this.adapter.seek(time);
 	}
 
 	/**
@@ -198,26 +198,26 @@ export class Player {
 			);
 		}
 
-		this._segment = segment;
-		this._loop = loop;
+		this.segment = segment;
+		this.loop = loop;
 
 		// Adapters that natively support segment playback (e.g. ClipNodePlayer
 		// using sample-accurate loopStart/loopEnd in an AudioWorklet) handle
 		// boundary detection themselves — no main-thread polling needed.
-		if (this._adapter.playSegment) {
-			return Promise.resolve(this._adapter.playSegment(segment, loop));
+		if (this.adapter.playSegment) {
+			return Promise.resolve(this.adapter.playSegment(segment, loop));
 		}
 
 		// Set audio time to segment start time
 		this.seek(segment.startTime);
 
-		this._peaks?.once("player.playing", () => {
-			if (!this._playingSegment) {
-				this._playingSegment = true;
+		this.peaks?.once("player.playing", () => {
+			if (!this.playingSegment) {
+				this.playingSegment = true;
 
 				// We need to use requestAnimationFrame here as the timeupdate event
 				// doesn't fire often enough.
-				window.requestAnimationFrame(this._playSegmentTimerCallback);
+				window.requestAnimationFrame(this.playSegmentTimerCallback);
 			}
 		});
 
@@ -225,30 +225,27 @@ export class Player {
 		return this.play();
 	}
 
-	_playSegmentTimerCallback = (): void => {
+	private playSegmentTimerCallback = (): void => {
 		if (!this.isPlaying()) {
-			this._playingSegment = false;
+			this.playingSegment = false;
 			return;
-		} else if (
-			this._segment &&
-			this.getCurrentTime() >= this._segment.endTime
-		) {
-			if (this._loop) {
-				this.seek(this._segment.startTime);
+		} else if (this.segment && this.getCurrentTime() >= this.segment.endTime) {
+			if (this.loop) {
+				this.seek(this.segment.startTime);
 			} else {
 				this.pause();
-				this._peaks?.emit("player.ended");
-				this._playingSegment = false;
+				this.peaks?.emit("player.ended");
+				this.playingSegment = false;
 				return;
 			}
 		}
 
-		window.requestAnimationFrame(this._playSegmentTimerCallback);
+		window.requestAnimationFrame(this.playSegmentTimerCallback);
 	};
 
-	_setSource(options: SetSourceOptions): Promise<void> {
-		if (this._adapter.setSource) {
-			return this._adapter.setSource(options);
+	setSource(options: SetSourceOptions): Promise<void> {
+		if (this.adapter.setSource) {
+			return this.adapter.setSource(options);
 		}
 		return Promise.reject(
 			new Error("Player adapter does not support setSource"),

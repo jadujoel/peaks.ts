@@ -37,7 +37,7 @@ describe("SegmentsLayer", () => {
 			const zoomview = p.views.getView("zoomview");
 			expect(zoomview).to.be.ok;
 
-			const spy = sinon.spy(zoomview._segmentsLayer, "_createSegmentShape");
+			const spy = sinon.spy(zoomview.segmentsLayer, "createSegmentShape");
 
 			p.segments.add({
 				startTime: 0,
@@ -53,7 +53,7 @@ describe("SegmentsLayer", () => {
 			const zoomview = p.views.getView("zoomview");
 			expect(zoomview).to.be.ok;
 
-			const spy = sinon.spy(zoomview._segmentsLayer, "_createSegmentShape");
+			const spy = sinon.spy(zoomview.segmentsLayer, "createSegmentShape");
 
 			p.segments.add({
 				startTime: 30,
@@ -77,23 +77,23 @@ describe("SegmentsLayer", () => {
 				editable: true,
 			});
 
-			const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.be.ok;
 
-			expect(segmentShape._startMarker.getX()).to.equal(0);
-			expect(segmentShape._endMarker.getX()).to.equal(
+			expect(segmentShape.startMarkerInstance.getX()).to.equal(0);
+			expect(segmentShape.endMarkerInstance.getX()).to.equal(
 				Math.floor((2.0 * 44100) / p.zoom.getZoomLevel()),
 			);
 
-			const startMarkerUpdate = sinon.spy(segmentShape._startMarker, "update");
-			const endMarkerUpdate = sinon.spy(segmentShape._endMarker, "update");
+			const startMarkerUpdate = sinon.spy(segmentShape.startMarkerInstance, "update");
+			const endMarkerUpdate = sinon.spy(segmentShape.endMarkerInstance, "update");
 
 			segment.update({ startTime: 1.0 });
 
-			expect(segmentShape._startMarker.getX()).to.equal(
+			expect(segmentShape.startMarkerInstance.getX()).to.equal(
 				Math.floor((1.0 * 44100) / p.zoom.getZoomLevel()),
 			);
-			expect(segmentShape._endMarker.getX()).to.equal(
+			expect(segmentShape.endMarkerInstance.getX()).to.equal(
 				Math.floor((2.0 * 44100) / p.zoom.getZoomLevel()),
 			);
 
@@ -111,17 +111,17 @@ describe("SegmentsLayer", () => {
 				editable: true,
 			});
 
-			const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.be.ok;
 
-			expect(segmentShape._startMarker.getX()).to.equal(0);
+			expect(segmentShape.startMarkerInstance.getX()).to.equal(0);
 
-			const startMarkerUpdate = sinon.spy(segmentShape._startMarker, "update");
-			const endMarkerUpdate = sinon.spy(segmentShape._endMarker, "update");
+			const startMarkerUpdate = sinon.spy(segmentShape.startMarkerInstance, "update");
+			const endMarkerUpdate = sinon.spy(segmentShape.endMarkerInstance, "update");
 
 			segment.update({ endTime: 3.0 });
 
-			expect(segmentShape._endMarker.getX()).to.equal(
+			expect(segmentShape.endMarkerInstance.getX()).to.equal(
 				Math.floor((3.0 * 44100) / p.zoom.getZoomLevel()),
 			);
 
@@ -134,8 +134,8 @@ describe("SegmentsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createSegmentShape = sinon.spy(
-				zoomview._segmentsLayer,
-				"_createSegmentShape",
+				zoomview.segmentsLayer,
+				"createSegmentShape",
 			);
 
 			const segment = p.segments.add({
@@ -145,11 +145,11 @@ describe("SegmentsLayer", () => {
 				id: "segment1",
 			});
 
-			const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.be.ok;
 
-			const startMarkerUpdate = sinon.spy(segmentShape._startMarker, "update");
-			const endMarkerUpdate = sinon.spy(segmentShape._endMarker, "update");
+			const startMarkerUpdate = sinon.spy(segmentShape.startMarkerInstance, "update");
+			const endMarkerUpdate = sinon.spy(segmentShape.endMarkerInstance, "update");
 
 			segment.update({ labelText: "test" });
 
@@ -163,8 +163,8 @@ describe("SegmentsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createSegmentShape = sinon.spy(
-				zoomview._segmentsLayer,
-				"_createSegmentShape",
+				zoomview.segmentsLayer,
+				"createSegmentShape",
 			);
 
 			const segment = p.segments.add({
@@ -175,7 +175,7 @@ describe("SegmentsLayer", () => {
 
 			expect(createSegmentShape.callCount).to.equal(0);
 
-			const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.equal(undefined);
 
 			segment.update({ startTime: 0, endTime: 10 });
@@ -188,12 +188,12 @@ describe("SegmentsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createSegmentShape = sinon.spy(
-				zoomview._segmentsLayer,
-				"_createSegmentShape",
+				zoomview.segmentsLayer,
+				"createSegmentShape",
 			);
 			const removeSegment = sinon.spy(
-				zoomview._segmentsLayer,
-				"_removeSegment",
+				zoomview.segmentsLayer,
+				"removeSegment",
 			);
 
 			const segment = p.segments.add({
@@ -202,14 +202,14 @@ describe("SegmentsLayer", () => {
 				editable: true,
 			});
 
-			const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.be.ok;
 
 			const startMarkerDestroy = sinon.spy(
-				segmentShape._startMarker,
+				segmentShape.startMarkerInstance,
 				"destroy",
 			);
-			const endMarkerDestroy = sinon.spy(segmentShape._endMarker, "destroy");
+			const endMarkerDestroy = sinon.spy(segmentShape.endMarkerInstance, "destroy");
 
 			segment.update({ startTime: 30, endTime: 40 });
 

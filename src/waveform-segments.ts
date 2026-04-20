@@ -1,7 +1,7 @@
 import { Segment, validateSegmentOptions } from "./segment";
 import type { PeaksInstance, SegmentOptions } from "./types";
 import type { Writable } from "./utils";
-import { extend, isNullOrUndefined, objectHasProperty } from "./utils";
+import { extend, isNullOrUndefined } from "./utils";
 
 /**
  * Handles all functionality related to the adding, removing and manipulation
@@ -12,41 +12,39 @@ export interface WaveformSegmentsFromOptions {
 }
 
 export class WaveformSegments {
-	private readonly _peaks: PeaksInstance;
-	private _segments: Segment[];
-	private _segmentsById: Record<string, Segment>;
-	private _segmentsByPid: Record<number, Segment>;
-	private _segmentIdCounter: number;
-	private _segmentPid: number;
-	private _isInserting: boolean;
+	private readonly peaks: PeaksInstance;
+	private segments: Segment[];
+	private segmentsById = new Map<string, Segment>();
+	private segmentsByPid = new Map<number, Segment>();
+	private segmentIdCounter: number;
+	private segmentPid: number;
+	private inserting: boolean;
 
 	static from(options: WaveformSegmentsFromOptions): WaveformSegments {
 		return new WaveformSegments(options.peaks);
 	}
 
 	private constructor(peaks: PeaksInstance) {
-		this._peaks = peaks;
-		this._segments = [];
-		this._segmentsById = {};
-		this._segmentsByPid = {};
-		this._segmentIdCounter = 0;
-		this._segmentPid = 0;
-		this._isInserting = false;
+		this.peaks = peaks;
+		this.segments = [];
+		this.segmentIdCounter = 0;
+		this.segmentPid = 0;
+		this.inserting = false;
 	}
 
-	private _getNextSegmentId(): string {
-		return `peaks.segment.${this._segmentIdCounter++}`;
+	private getNextSegmentId(): string {
+		return `peaks.segment.${this.segmentIdCounter++}`;
 	}
 
-	private _getNextPid(): number {
-		return this._segmentPid++;
+	private getNextPid(): number {
+		return this.segmentPid++;
 	}
 
-	private _addSegment(segment: Segment): void {
-		this._segments.push(segment);
+	private appendSegment(segment: Segment): void {
+		this.segments.push(segment);
 
-		this._segmentsById[segment.id] = segment;
-		this._segmentsByPid[segment.pid] = segment;
+		this.segmentsById.set(segment.id, segment);
+		this.segmentsByPid.set(segment.pid, segment);
 	}
 
 	/**
@@ -56,44 +54,44 @@ export class WaveformSegments {
 	 * @throws {RangeError} If the segment times are invalid.
 	 * @throws {Error} If reserved or internal option names are provided.
 	 */
-	private _createSegment(options: SegmentOptions): Segment | never {
+	private createSegment(options: SegmentOptions): Segment | never {
 		const segmentOptions = {} as Writable<SegmentOptions>;
 
 		extend(segmentOptions, options as unknown as Record<string, unknown>);
 
 		if (isNullOrUndefined(segmentOptions.id)) {
-			segmentOptions.id = this._getNextSegmentId();
+			segmentOptions.id = this.getNextSegmentId();
 		}
 
-		const pid = this._getNextPid();
+		const pid = this.getNextPid();
 
 		validateSegmentOptions(segmentOptions, false);
 
-		const display = this._peaks.options.segmentOptions;
+		const display = this.peaks.options.segmentOptions;
 		return Segment.from({
-			peaks: this._peaks,
-			pid,
-			options: segmentOptions,
 			defaults: {
+				markers: display?.markers ?? true,
 				overlay: display?.overlay ?? false,
+				overlayBorderColor: display?.overlayBorderColor ?? "",
 				overlayColor: display?.overlayColor ?? "",
 				waveformColor: display?.waveformColor ?? "",
-				overlayBorderColor: display?.overlayBorderColor ?? "",
-				markers: display?.markers ?? true,
 			},
+			options: segmentOptions,
+			peaks: this.peaks,
+			pid,
 		});
 	}
 
 	getSegments(): Segment[] {
-		return this._segments;
+		return this.segments;
 	}
 
 	getSegment(id: string): Segment | undefined {
-		return this._segmentsById[id];
+		return this.segmentsById.get(id);
 	}
 
 	getSegmentsAtTime(time: number): Segment[] {
-		return this._segments.filter(
+		return this.segments.filter(
 			(segment: Segment) => time >= segment.startTime && time < segment.endTime,
 		);
 	}
@@ -105,19 +103,19 @@ export class WaveformSegments {
 	 * @param endTime The end of the time region, in seconds.
 	 */
 	find(startTime: number, endTime: number): Segment[] {
-		return this._segments.filter((segment: Segment) =>
+		return this.segments.filter((segment: Segment) =>
 			segment.isVisible(startTime, endTime),
 		);
 	}
 
-	private _getSortedSegments(): Segment[] {
-		return this._segments
+	private getSortedSegments(): Segment[] {
+		return this.segments
 			.slice()
 			.sort((a: Segment, b: Segment) => a.startTime - b.startTime);
 	}
 
 	findPreviousSegment(segment: Segment): Segment | undefined {
-		const sortedSegments = this._getSortedSegments();
+		const sortedSegments = this.getSortedSegments();
 
 		const index = sortedSegments.findIndex((s: Segment) => s.id === segment.id);
 
@@ -129,7 +127,7 @@ export class WaveformSegments {
 	}
 
 	findNextSegment(segment: Segment): Segment | undefined {
-		const sortedSegments = this._getSortedSegments();
+		const sortedSegments = this.getSortedSegments();
 
 		const index = sortedSegments.findIndex((s: Segment) => s.id === segment.id);
 
@@ -151,14 +149,14 @@ export class WaveformSegments {
 		...args: SegmentOptions[] | [SegmentOptions[]]
 	): Segment | Segment[] | never {
 		const arrayArgs = Array.isArray(args[0]);
-		const segments: SegmentOptions[] = arrayArgs
+		const segmentOptionsList: SegmentOptions[] = arrayArgs
 			? (args[0] as SegmentOptions[])
 			: (args as SegmentOptions[]);
 
-		const created = segments.map((segmentOptions: SegmentOptions) => {
-			const segment = this._createSegment(segmentOptions);
+		const created = segmentOptionsList.map((segmentOptions: SegmentOptions) => {
+			const segment = this.createSegment(segmentOptions);
 
-			if (objectHasProperty(this._segmentsById, segment.id)) {
+			if (this.segmentsById.has(segment.id)) {
 				throw new Error("peaks.segments.add(): duplicate id");
 			}
 
@@ -166,12 +164,12 @@ export class WaveformSegments {
 		});
 
 		for (const segment of created) {
-			this._addSegment(segment);
+			this.appendSegment(segment);
 		}
 
-		this._peaks.emit("segments.add", {
+		this.peaks.emit("segments.add", {
+			insert: this.inserting,
 			segments: created,
-			insert: this._isInserting,
 		});
 
 		return arrayArgs ? created : (created[0] as Segment);
@@ -183,12 +181,12 @@ export class WaveformSegments {
 	 * @throws {Error} If the new segment id already exists.
 	 */
 	updateSegmentId(segment: Segment, newSegmentId: string): undefined | never {
-		if (this._segmentsById[segment.id]) {
-			if (this._segmentsById[newSegmentId]) {
+		if (this.segmentsById.has(segment.id)) {
+			if (this.segmentsById.has(newSegmentId)) {
 				throw new Error("segment.update(): duplicate id");
 			} else {
-				delete this._segmentsById[segment.id];
-				this._segmentsById[newSegmentId] = segment;
+				this.segmentsById.delete(segment.id);
+				this.segmentsById.set(newSegmentId, segment);
 			}
 		}
 	}
@@ -196,12 +194,14 @@ export class WaveformSegments {
 	/**
 	 * Returns the indexes of segments that match the given predicate.
 	 */
-	private _findSegment(predicate: (segment: Segment) => boolean): number[] {
+	private findSegmentIndexes(
+		predicate: (segment: Segment) => boolean,
+	): number[] {
 		const indexes: number[] = [];
 
 		let i = 0;
 
-		for (const segment of this._segments) {
+		for (const segment of this.segments) {
 			if (predicate(segment)) {
 				indexes.push(i);
 			}
@@ -214,17 +214,17 @@ export class WaveformSegments {
 	/**
 	 * Removes the segments at the given array indexes.
 	 */
-	private _removeIndexes(indexes: number[]): Segment[] {
+	private removeIndexes(indexes: number[]): Segment[] {
 		const removed: Segment[] = [];
 
 		for (const idx of indexes) {
 			const index = idx - removed.length;
 
-			const itemRemoved = this._segments.splice(index, 1)[0];
+			const itemRemoved = this.segments.splice(index, 1)[0];
 
 			if (itemRemoved) {
-				delete this._segmentsById[itemRemoved.id];
-				delete this._segmentsByPid[itemRemoved.pid];
+				this.segmentsById.delete(itemRemoved.id);
+				this.segmentsByPid.delete(itemRemoved.pid);
 
 				removed.push(itemRemoved);
 			}
@@ -237,12 +237,12 @@ export class WaveformSegments {
 	 * Removes all segments that match a given predicate function.
 	 * After removing the segments, emits a `segments.remove` event.
 	 */
-	private _removeSegments(predicate: (segment: Segment) => boolean): Segment[] {
-		const indexes = this._findSegment(predicate);
+	private removeSegments(predicate: (segment: Segment) => boolean): Segment[] {
+		const indexes = this.findSegmentIndexes(predicate);
 
-		const removed = this._removeIndexes(indexes);
+		const removed = this.removeIndexes(indexes);
 
-		this._peaks.emit("segments.remove", {
+		this.peaks.emit("segments.remove", {
 			segments: removed,
 		});
 
@@ -250,11 +250,11 @@ export class WaveformSegments {
 	}
 
 	remove(segment: Segment): Segment[] {
-		return this._removeSegments((s: Segment) => s === segment);
+		return this.removeSegments((s: Segment) => s === segment);
 	}
 
 	removeById(segmentId: string): Segment[] {
-		return this._removeSegments((segment: Segment) => segment.id === segmentId);
+		return this.removeSegments((segment: Segment) => segment.id === segmentId);
 	}
 
 	/**
@@ -272,7 +272,7 @@ export class WaveformSegments {
 			filter = (segment: Segment) => segment.startTime === startTime;
 		}
 
-		return this._removeSegments(filter);
+		return this.removeSegments(filter);
 	}
 
 	/**
@@ -280,17 +280,17 @@ export class WaveformSegments {
 	 * After removing the segments, emits a `segments.remove_all` event.
 	 */
 	removeAll(): void {
-		this._segments = [];
-		this._segmentsById = {};
-		this._segmentsByPid = {};
-		this._peaks.emit("segments.remove_all");
+		this.segments = [];
+		this.segmentsById.clear();
+		this.segmentsByPid.clear();
+		this.peaks.emit("segments.remove_all");
 	}
 
 	setInserting(value: boolean): void {
-		this._isInserting = value;
+		this.inserting = value;
 	}
 
 	isInserting(): boolean {
-		return this._isInserting;
+		return this.inserting;
 	}
 }

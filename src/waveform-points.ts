@@ -1,7 +1,7 @@
 import { Point, validatePointOptions } from "./point";
 import type { PeaksInstance, PointOptions } from "./types";
 import type { Writable } from "./utils";
-import { extend, isNullOrUndefined, objectHasProperty } from "./utils";
+import { extend, isNullOrUndefined } from "./utils";
 
 /**
  * Handles all functionality related to the adding, removing and manipulation
@@ -71,12 +71,12 @@ export class WaveformPoints {
 		validatePointOptions(pointOptions, false);
 
 		return Point.from({
-			peaks: this.peaks,
-			pid,
-			options: pointOptions,
 			defaults: {
 				pointMarkerColor: this.peaks.options.pointMarkerColor ?? "",
 			},
+			options: pointOptions,
+			peaks: this.peaks,
+			pid,
 		});
 	}
 
@@ -185,7 +185,7 @@ export class WaveformPoints {
 
 		const created = points.map((pointOptions: PointOptions) => {
 			const point = this.createPoint(pointOptions);
-			if (objectHasProperty(this.byId, point.id)) {
+			if (this.byId.has(point.id)) {
 				throw new Error("peaks.points.add(): duplicate id");
 			}
 			return point;

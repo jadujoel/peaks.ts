@@ -16,8 +16,8 @@ export interface WaveformOverviewFromOptions {
 }
 
 export class WaveformOverview extends WaveformView {
-	declare _mouseDragHandler: SeekMouseDragHandler;
-	declare _highlightLayer?: HighlightLayer;
+	declare mouseDragHandler: SeekMouseDragHandler;
+	declare highlightLayer?: HighlightLayer;
 
 	static from(options: WaveformOverviewFromOptions): WaveformOverview {
 		return new WaveformOverview(
@@ -34,23 +34,17 @@ export class WaveformOverview extends WaveformView {
 	) {
 		super(waveformData, container, peaks, peaks.options.overview);
 
-		// Bind event handlers
-		this._onTimeUpdate = this._onTimeUpdate.bind(this);
-		this._onPlaying = this._onPlaying.bind(this);
-		this._onPause = this._onPause.bind(this);
-		this._onZoomviewUpdate = this._onZoomviewUpdate.bind(this);
-
 		// Register event handlers
-		peaks.on("player.timeupdate", this._onTimeUpdate);
-		peaks.on("player.playing", this._onPlaying);
-		peaks.on("player.pause", this._onPause);
-		peaks.on("zoomview.update", this._onZoomviewUpdate);
+		peaks.on("player.timeupdate", this.onTimeUpdate);
+		peaks.on("player.playing", this.onPlaying);
+		peaks.on("player.pause", this.onPause);
+		peaks.on("zoomview.update", this.onZoomviewUpdate);
 
-		const time = this._peaks.player.getCurrentTime();
+		const time = this.peaks.player.getCurrentTime();
 
-		this._playheadLayer.updatePlayheadTime(time);
+		this.playheadLayer.updatePlayheadTime(time);
 
-		this._mouseDragHandler = SeekMouseDragHandler.from({
+		this.mouseDragHandler = SeekMouseDragHandler.from({
 			peaks,
 			view: this as unknown as SeekMouseDragHandlerViewParam,
 		});
@@ -58,7 +52,7 @@ export class WaveformOverview extends WaveformView {
 		const zoomview = peaks.views.getView("zoomview");
 
 		if (zoomview) {
-			this._highlightLayer?.showHighlight(
+			this.highlightLayer?.showHighlight(
 				zoomview.getStartTime(),
 				zoomview.getEndTime(),
 			);
@@ -66,18 +60,18 @@ export class WaveformOverview extends WaveformView {
 	}
 
 	override initWaveformData(): void {
-		if (this._width !== 0) {
-			this._resampleAndSetWaveformData(this._originalWaveformData, this._width);
+		if (this.width !== 0) {
+			this.resampleAndSetWaveformData(this.originalWaveformData, this.width);
 		}
 	}
 
 	override initHighlightLayer(): void {
-		this._highlightLayer = HighlightLayer.from({
+		this.highlightLayer = HighlightLayer.from({
 			view: this,
-			options: this._viewOptions as OverviewOptions,
+			options: this.viewOptions as OverviewOptions,
 		});
 
-		this._highlightLayer.addToStage(this._stage);
+		this.highlightLayer.addToStage(this.stage);
 	}
 
 	override isSegmentDraggingEnabled(): boolean {
@@ -88,99 +82,99 @@ export class WaveformOverview extends WaveformView {
 		return "overview";
 	}
 
-	_onTimeUpdate(time: number): void {
-		this._playheadLayer.updatePlayheadTime(time);
-	}
+	private onTimeUpdate = (time: number): void => {
+		this.playheadLayer.updatePlayheadTime(time);
+	};
 
-	_onPlaying(time: number): void {
-		this._playheadLayer.updatePlayheadTime(time);
-	}
+	private onPlaying = (time: number): void => {
+		this.playheadLayer.updatePlayheadTime(time);
+	};
 
-	_onPause(time: number): void {
-		this._playheadLayer.stop(time);
-	}
+	private onPause = (time: number): void => {
+		this.playheadLayer.stop(time);
+	};
 
-	_onZoomviewUpdate(event: { startTime: number; endTime: number }): void {
+	private onZoomviewUpdate = (event: { startTime: number; endTime: number }): void => {
 		this.showHighlight(event.startTime, event.endTime);
-	}
+	};
 
 	showHighlight(startTime: number, endTime: number): void {
-		this._highlightLayer?.showHighlight(startTime, endTime);
+		this.highlightLayer?.showHighlight(startTime, endTime);
 	}
 
 	override setWaveformData(waveformData: WaveformData): void {
-		this._originalWaveformData = waveformData;
+		this.originalWaveformData = waveformData;
 
-		if (this._width !== 0) {
-			this._resampleAndSetWaveformData(waveformData, this._width);
+		if (this.width !== 0) {
+			this.resampleAndSetWaveformData(waveformData, this.width);
 		} else {
-			this._data = waveformData;
+			this.data = waveformData;
 		}
 
 		this.updateWaveform();
 	}
 
-	_resampleAndSetWaveformData(
+	private resampleAndSetWaveformData(
 		waveformData: WaveformData,
 		width: number,
 	): boolean {
 		try {
-			this._data = waveformData.resample({ width: width });
+			this.data = waveformData.resample({ width: width });
 			return true;
 		} catch {
 			// This error usually indicates that the waveform length
 			// is less than the container width. Ignore, and use the
 			// given waveform data
-			this._data = waveformData;
+			this.data = waveformData;
 			return false;
 		}
 	}
 
 	removeHighlightRect(): void {
-		this._highlightLayer?.removeHighlight();
+		this.highlightLayer?.removeHighlight();
 	}
 
 	override updateWaveform(): void {
-		this._waveformLayer.draw();
-		this._axisLayer.draw();
+		this.waveformLayer.draw();
+		this.axisLayer.draw();
 
-		const playheadTime = this._peaks.player.getCurrentTime();
+		const playheadTime = this.peaks.player.getCurrentTime();
 
-		this._playheadLayer.updatePlayheadTime(playheadTime);
+		this.playheadLayer.updatePlayheadTime(playheadTime);
 
-		this._highlightLayer?.updateHighlight();
+		this.highlightLayer?.updateHighlight();
 
 		const frameStartTime = 0;
-		const frameEndTime = this.pixelsToTime(this._width);
+		const frameEndTime = this.pixelsToTime(this.width);
 
-		if (this._pointsLayer) {
-			this._pointsLayer.updatePoints(frameStartTime, frameEndTime);
+		if (this.pointsLayer) {
+			this.pointsLayer.updatePoints(frameStartTime, frameEndTime);
 		}
 
-		if (this._segmentsLayer) {
-			this._segmentsLayer.updateSegments(frameStartTime, frameEndTime);
+		if (this.segmentsLayer) {
+			this.segmentsLayer.updateSegments(frameStartTime, frameEndTime);
 		}
 	}
 
 	override containerWidthChange(): boolean {
-		return this._resampleAndSetWaveformData(
-			this._originalWaveformData,
-			this._width,
+		return this.resampleAndSetWaveformData(
+			this.originalWaveformData,
+			this.width,
 		);
 	}
 
 	override containerHeightChange(): void {
-		this._highlightLayer?.fitToView();
+		this.highlightLayer?.fitToView();
 	}
 
 	override destroy(): void {
 		// Unregister event handlers
-		this._peaks.off("player.playing", this._onPlaying);
-		this._peaks.off("player.pause", this._onPause);
-		this._peaks.off("player.timeupdate", this._onTimeUpdate);
-		this._peaks.off("zoomview.update", this._onZoomviewUpdate);
+		this.peaks.off("player.playing", this.onPlaying);
+		this.peaks.off("player.pause", this.onPause);
+		this.peaks.off("player.timeupdate", this.onTimeUpdate);
+		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
 
-		this._mouseDragHandler.destroy();
+		this.mouseDragHandler.destroy();
 
 		super.destroy();
 	}

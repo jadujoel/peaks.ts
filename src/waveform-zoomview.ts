@@ -24,25 +24,25 @@ export interface WaveformZoomViewFromOptions {
 }
 
 export class WaveformZoomView extends WaveformView {
-	declare _autoScroll: boolean;
-	declare _autoScrollOffset: number;
-	declare _enableSegmentDragging: boolean;
-	declare _segmentDragMode: string;
-	declare _minSegmentDragWidth: number;
-	declare _insertSegmentShape: unknown;
-	declare _playheadClickTolerance: number;
-	declare _zoomLevelAuto: boolean;
-	declare _zoomLevelSeconds: number | undefined;
-	declare _mouseDragHandler:
+	declare autoScroll: boolean;
+	declare autoScrollOffset: number;
+	declare segmentDraggingEnabled: boolean;
+	declare segmentDragMode: string;
+	declare minSegmentDragWidth: number;
+	declare insertSegmentShape: unknown;
+	declare playheadClickTolerance: number;
+	declare zoomLevelAuto: boolean;
+	declare zoomLevelSeconds: number | undefined;
+	declare mouseDragHandler:
 		| ScrollMouseDragHandler
 		| InsertSegmentMouseDragHandler;
-	declare _wheelMode: string;
-	declare _captureVerticalScroll: boolean;
-	declare _enableWaveformCache: boolean;
-	declare _waveformData: Map<number, WaveformData>;
-	declare _waveformScales: number[];
-	declare _scale: number;
-	declare _pixelLength: number;
+	declare wheelMode: string;
+	declare captureVerticalScroll: boolean;
+	declare waveformCacheEnabled: boolean;
+	declare waveformDataCache: Map<number, WaveformData>;
+	declare waveformScales: number[];
+	declare scale: number;
+	declare pixelLength: number;
 
 	static from(options: WaveformZoomViewFromOptions): WaveformZoomView {
 		return new WaveformZoomView(
@@ -59,77 +59,65 @@ export class WaveformZoomView extends WaveformView {
 	) {
 		super(waveformData, container, peaks, peaks.options.zoomview);
 
-		// Bind event handlers
-		this._onTimeUpdate = this._onTimeUpdate.bind(this);
-		this._onPlaying = this._onPlaying.bind(this);
-		this._onPause = this._onPause.bind(this);
-		this._onKeyboardLeft = this._onKeyboardLeft.bind(this);
-		this._onKeyboardRight = this._onKeyboardRight.bind(this);
-		this._onKeyboardShiftLeft = this._onKeyboardShiftLeft.bind(this);
-		this._onKeyboardShiftRight = this._onKeyboardShiftRight.bind(this);
-
 		// Register event handlers
-		this._peaks.on("player.timeupdate", this._onTimeUpdate);
-		this._peaks.on("player.playing", this._onPlaying);
-		this._peaks.on("player.pause", this._onPause);
-		this._peaks.on("keyboard.left", this._onKeyboardLeft);
-		this._peaks.on("keyboard.right", this._onKeyboardRight);
-		this._peaks.on("keyboard.shift_left", this._onKeyboardShiftLeft);
-		this._peaks.on("keyboard.shift_right", this._onKeyboardShiftRight);
+		this.peaks.on("player.timeupdate", this.onTimeUpdate);
+		this.peaks.on("player.playing", this.onPlaying);
+		this.peaks.on("player.pause", this.onPause);
+		this.peaks.on("keyboard.left", this.onKeyboardLeft);
+		this.peaks.on("keyboard.right", this.onKeyboardRight);
+		this.peaks.on("keyboard.shift_left", this.onKeyboardShiftLeft);
+		this.peaks.on("keyboard.shift_right", this.onKeyboardShiftRight);
 
-		const zoomviewOptions = this._viewOptions as ZoomviewOptions;
+		const zoomviewOptions = this.viewOptions as ZoomviewOptions;
 
-		this._autoScroll = zoomviewOptions.autoScroll;
-		this._autoScrollOffset = zoomviewOptions.autoScrollOffset;
+		this.autoScroll = zoomviewOptions.autoScroll;
+		this.autoScrollOffset = zoomviewOptions.autoScrollOffset;
 
-		this._enableSegmentDragging = false;
-		this._segmentDragMode = "overlap";
-		this._minSegmentDragWidth = 0;
-		this._insertSegmentShape = undefined;
+		this.segmentDraggingEnabled = false;
+		this.segmentDragMode = "overlap";
+		this.minSegmentDragWidth = 0;
+		this.insertSegmentShape = undefined;
 
-		this._playheadClickTolerance = zoomviewOptions.playheadClickTolerance;
+		this.playheadClickTolerance = zoomviewOptions.playheadClickTolerance;
 
-		this._zoomLevelAuto = false;
-		this._zoomLevelSeconds = undefined;
+		this.zoomLevelAuto = false;
+		this.zoomLevelSeconds = undefined;
 
-		const time = this._peaks.player.getCurrentTime();
+		const time = this.peaks.player.getCurrentTime();
 
-		this._syncPlayhead(time);
+		this.syncPlayhead(time);
 
-		this._mouseDragHandler = ScrollMouseDragHandler.from({
+		this.mouseDragHandler = ScrollMouseDragHandler.from({
 			peaks,
 			view: this,
 		});
 
-		this._onWheel = this._onWheel.bind(this);
-		this._onWheelCaptureVerticalScroll =
-			this._onWheelCaptureVerticalScroll.bind(this);
 		this.setWheelMode(zoomviewOptions.wheelMode);
 
-		this._peaks.emit("zoomview.update", {
+		this.peaks.emit("zoomview.update", {
 			startTime: 0,
 			endTime: this.getEndTime(),
 		});
 	}
 
 	override initWaveformData(): void {
-		this._enableWaveformCache = this._options.waveformCache;
+		this.waveformCacheEnabled = this.peaksOptions.waveformCache;
 
-		this._initWaveformCache();
+		this.initWaveformCache();
 
-		const initialZoomLevel = this._peaks.zoom.getZoomLevel();
+		const initialZoomLevel = this.peaks.zoom.getZoomLevel();
 
-		this._resampleData({ scale: initialZoomLevel });
+		this.resampleData({ scale: initialZoomLevel });
 	}
 
-	_initWaveformCache(): void {
-		if (this._enableWaveformCache) {
-			this._waveformData = new Map();
-			this._waveformData.set(
-				this._originalWaveformData.scale,
-				this._originalWaveformData,
+	private initWaveformCache(): void {
+		if (this.waveformCacheEnabled) {
+			this.waveformDataCache = new Map();
+			this.waveformDataCache.set(
+				this.originalWaveformData.scale,
+				this.originalWaveformData,
 			);
-			this._waveformScales = [this._originalWaveformData.scale];
+			this.waveformScales = [this.originalWaveformData.scale];
 		}
 	}
 
@@ -144,27 +132,27 @@ export class WaveformZoomView extends WaveformView {
 		}
 
 		if (
-			mode !== this._wheelMode ||
-			options.captureVerticalScroll !== this._captureVerticalScroll
+			mode !== this.wheelMode ||
+			options.captureVerticalScroll !== this.captureVerticalScroll
 		) {
-			this._stage.off("wheel");
+			this.stage.off("wheel");
 
-			this._wheelMode = mode;
-			this._captureVerticalScroll = options.captureVerticalScroll ?? false;
+			this.wheelMode = mode;
+			this.captureVerticalScroll = options.captureVerticalScroll ?? false;
 
 			switch (mode) {
 				case "scroll":
 					if (options.captureVerticalScroll) {
-						this._stage.on("wheel", this._onWheelCaptureVerticalScroll);
+						this.stage.on("wheel", this.onWheelCaptureVerticalScroll);
 					} else {
-						this._stage.on("wheel", this._onWheel);
+						this.stage.on("wheel", this.onWheel);
 					}
 					break;
 			}
 		}
 	}
 
-	_onWheel(event: { evt: WheelEvent }): void {
+	private onWheel = (event: { evt: WheelEvent }): void => {
 		const wheelEvent = event.evt;
 		let delta: number;
 
@@ -187,21 +175,21 @@ export class WaveformZoomView extends WaveformView {
 		}
 
 		if (wheelEvent.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
-			delta *= this._width;
+			delta *= this.width;
 		}
 
 		wheelEvent.preventDefault();
 
 		const frameOffset = clamp(
-			this._frameOffset + Math.floor(delta),
+			this.frameOffset + Math.floor(delta),
 			0,
-			this._pixelLength - this._width,
+			this.pixelLength - this.width,
 		);
 
 		this.updateWaveform(frameOffset, false);
-	}
+	};
 
-	_onWheelCaptureVerticalScroll(event: { evt: WheelEvent }): void {
+	private onWheelCaptureVerticalScroll = (event: { evt: WheelEvent }): void => {
 		const wheelEvent = event.evt;
 
 		const delta =
@@ -212,27 +200,27 @@ export class WaveformZoomView extends WaveformView {
 		wheelEvent.preventDefault();
 
 		const frameOffset = clamp(
-			this._frameOffset + Math.floor(delta),
+			this.frameOffset + Math.floor(delta),
 			0,
-			this._pixelLength - this._width,
+			this.pixelLength - this.width,
 		);
 
 		this.updateWaveform(frameOffset, false);
-	}
+	};
 
 	setWaveformDragMode(mode: string): void {
-		if (this._segmentsLayer) {
-			this._mouseDragHandler.destroy();
+		if (this.segmentsLayer) {
+			this.mouseDragHandler.destroy();
 			this.dragSeek(false);
 
 			if (mode === "insert-segment") {
-				this._mouseDragHandler = InsertSegmentMouseDragHandler.from({
-					peaks: this._peaks,
+				this.mouseDragHandler = InsertSegmentMouseDragHandler.from({
+					peaks: this.peaks,
 					view: this,
 				});
 			} else {
-				this._mouseDragHandler = ScrollMouseDragHandler.from({
-					peaks: this._peaks,
+				this.mouseDragHandler = ScrollMouseDragHandler.from({
+					peaks: this.peaks,
 					view: this,
 				});
 			}
@@ -240,78 +228,78 @@ export class WaveformZoomView extends WaveformView {
 	}
 
 	enableSegmentDragging(enable: boolean): void {
-		this._enableSegmentDragging = enable;
+		this.segmentDraggingEnabled = enable;
 
 		// Update all existing segments
-		if (this._segmentsLayer) {
-			this._segmentsLayer.enableSegmentDragging(enable);
+		if (this.segmentsLayer) {
+			this.segmentsLayer.enableSegmentDragging(enable);
 		}
 	}
 
 	override isSegmentDraggingEnabled(): boolean {
-		return this._enableSegmentDragging;
+		return this.segmentDraggingEnabled;
 	}
 
 	setSegmentDragMode(mode: string): void {
-		this._segmentDragMode = mode;
+		this.segmentDragMode = mode;
 	}
 
 	getSegmentDragMode(): string {
-		return this._segmentDragMode;
+		return this.segmentDragMode;
 	}
 
 	override getName(): string {
 		return "zoomview";
 	}
 
-	_onTimeUpdate(time: number): void {
-		if (this._mouseDragHandler.isDragging()) {
+	private onTimeUpdate = (time: number): void => {
+		if (this.mouseDragHandler.isDragging()) {
 			return;
 		}
 
-		this._syncPlayhead(time);
-	}
+		this.syncPlayhead(time);
+	};
 
-	_onPlaying(time: number): void {
-		this._playheadLayer.updatePlayheadTime(time);
-	}
+	private onPlaying = (time: number): void => {
+		this.playheadLayer.updatePlayheadTime(time);
+	};
 
-	_onPause(time: number): void {
-		this._playheadLayer.stop(time);
-	}
+	private onPause = (time: number): void => {
+		this.playheadLayer.stop(time);
+	};
 
-	_onKeyboardLeft(): void {
-		this._keyboardScroll(-1, false);
-	}
+	private onKeyboardLeft = (): void => {
+		this.keyboardScroll(-1, false);
+	};
 
-	_onKeyboardRight(): void {
-		this._keyboardScroll(1, false);
-	}
+	private onKeyboardRight = (): void => {
+		this.keyboardScroll(1, false);
+	};
 
-	_onKeyboardShiftLeft(): void {
-		this._keyboardScroll(-1, true);
-	}
+	private onKeyboardShiftLeft = (): void => {
+		this.keyboardScroll(-1, true);
+	};
 
-	_onKeyboardShiftRight(): void {
-		this._keyboardScroll(1, true);
-	}
+	private onKeyboardShiftRight = (): void => {
+		this.keyboardScroll(1, true);
+	};
 
-	_keyboardScroll(direction: number, large: boolean): void {
+	private keyboardScroll(direction: number, large: boolean): void {
 		let increment: number;
 
 		if (large) {
-			increment = direction * this._width;
+			increment = direction * this.width;
 		} else {
-			increment = direction * this.timeToPixels(this._options.nudgeIncrement);
+			increment = direction * this.timeToPixels(this.peaksOptions.nudgeIncrement);
 		}
 
 		this.scrollWaveform({ pixels: increment });
 	}
 
 	override setWaveformData(waveformData: WaveformData): void {
-		this._originalWaveformData = waveformData;
+		this.originalWaveformData = waveformData;
 		// Clear cached waveforms
-		this._initWaveformCache();
+		this.initWaveformCache();
 
 		// Don't update the UI here, call setZoom().
 	}
@@ -322,17 +310,17 @@ export class WaveformZoomView extends WaveformView {
 	 */
 
 	getPlayheadOffset(): number {
-		return this._playheadLayer.getPlayheadPixel() - this._frameOffset;
+		return this.playheadLayer.getPlayheadPixel() - this.frameOffset;
 	}
 
 	getPlayheadClickTolerance(): number {
-		return this._playheadClickTolerance;
+		return this.playheadClickTolerance;
 	}
 
-	_syncPlayhead(time: number): void {
-		this._playheadLayer.updatePlayheadTime(time);
+	private syncPlayhead(time: number): void {
+		this.playheadLayer.updatePlayheadTime(time);
 
-		if (this._autoScroll && !this._zoomLevelAuto) {
+		if (this.autoScroll && !this.zoomLevelAuto) {
 			// Check for the playhead reaching the right-hand side of the window.
 
 			const pixelIndex = this.timeToPixels(time);
@@ -341,13 +329,13 @@ export class WaveformZoomView extends WaveformView {
 			// TODO: don't scroll if user has positioned view manually (e.g., using
 			// the keyboard)
 			const endThreshold =
-				this._frameOffset + this._width - this._autoScrollOffset;
+				this.frameOffset + this.width - this.autoScrollOffset;
 
-			let frameOffset = this._frameOffset;
+			let frameOffset = this.frameOffset;
 
 			if (pixelIndex >= endThreshold || pixelIndex < frameOffset) {
 				// Put the playhead at 100 pixels from the left edge
-				frameOffset = pixelIndex - this._autoScrollOffset;
+				frameOffset = pixelIndex - this.autoScrollOffset;
 
 				if (frameOffset < 0) {
 					frameOffset = 0;
@@ -358,8 +346,8 @@ export class WaveformZoomView extends WaveformView {
 		}
 	}
 
-	_getScale(duration: number): number {
-		return Math.floor((duration * this._data.sample_rate) / this._width);
+	private getScaleForDuration(duration: number): number {
+		return Math.floor((duration * this.data.sample_rate) / this.width);
 	}
 
 	/**
@@ -371,54 +359,54 @@ export class WaveformZoomView extends WaveformView {
 
 		if (isAutoScale(options)) {
 			// Use waveform duration, to match WaveformOverview
-			const seconds = this._originalWaveformData.duration;
+			const seconds = this.originalWaveformData.duration;
 
-			this._zoomLevelAuto = true;
-			this._zoomLevelSeconds = undefined;
-			scale = this._getScale(seconds);
+			this.zoomLevelAuto = true;
+			this.zoomLevelSeconds = undefined;
+			scale = this.getScaleForDuration(seconds);
 		} else {
 			if (objectHasProperty(options, "scale")) {
-				this._zoomLevelSeconds = undefined;
+				this.zoomLevelSeconds = undefined;
 				scale = Math.floor(options.scale as number);
 			} else if (objectHasProperty(options, "seconds")) {
 				if (!isValidTime(options.seconds as number)) {
 					return false;
 				}
 
-				this._zoomLevelSeconds = options.seconds as number;
-				scale = this._getScale(options.seconds as number);
+				this.zoomLevelSeconds = options.seconds as number;
+				scale = this.getScaleForDuration(options.seconds as number);
 			} else {
 				return false;
 			}
 
-			this._zoomLevelAuto = false;
+			this.zoomLevelAuto = false;
 		}
 
-		if (scale < this._originalWaveformData.scale) {
-			this._peaks._logger(
-				`peaks.zoomview.setZoom(): zoom level must be at least ${this._originalWaveformData.scale}`,
+		if (scale < this.originalWaveformData.scale) {
+			this.peaks.logger(
+				`peaks.zoomview.setZoom(): zoom level must be at least ${this.originalWaveformData.scale}`,
 			);
-			scale = this._originalWaveformData.scale;
+			scale = this.originalWaveformData.scale;
 		}
 
-		const currentTime = this._peaks.player.getCurrentTime();
+		const currentTime = this.peaks.player.getCurrentTime();
 		let apexTime: number;
 		let playheadOffsetPixels = this.getPlayheadOffset();
 
-		if (playheadOffsetPixels >= 0 && playheadOffsetPixels < this._width) {
+		if (playheadOffsetPixels >= 0 && playheadOffsetPixels < this.width) {
 			// Playhead is visible. Change the zoom level while keeping the
 			// playhead at the same position in the window.
 			apexTime = currentTime;
 		} else {
 			// Playhead is not visible. Change the zoom level while keeping the
 			// centre of the window at the same position in the waveform.
-			playheadOffsetPixels = Math.floor(this._width / 2);
+			playheadOffsetPixels = Math.floor(this.width / 2);
 			apexTime = this.pixelOffsetToTime(playheadOffsetPixels);
 		}
 
-		const prevScale = this._scale;
+		const prevScale = this.scale;
 
-		this._resampleData({ scale: scale });
+		this.resampleData({ scale: scale });
 
 		const apexPixel = this.timeToPixels(apexTime);
 
@@ -426,12 +414,12 @@ export class WaveformZoomView extends WaveformView {
 
 		this.updateWaveform(frameOffset, true);
 
-		this._playheadLayer.zoomLevelChanged();
+		this.playheadLayer.zoomLevelChanged();
 
 		// Update the playhead position after zooming.
-		this._playheadLayer.updatePlayheadTime(currentTime);
+		this.playheadLayer.updatePlayheadTime(currentTime);
 
-		this._peaks.emit("zoom.update", {
+		this.peaks.emit("zoom.update", {
 			currentZoom: scale,
 			previousZoom: prevScale,
 		});
@@ -439,18 +427,18 @@ export class WaveformZoomView extends WaveformView {
 		return true;
 	}
 
-	_resampleData(options: { scale: number } | { width: number }): void {
+	private resampleData(options: { scale: number } | { width: number }): void {
 		const scale = "scale" in options ? options.scale : undefined;
 
-		if (this._enableWaveformCache) {
-			if (scale !== undefined && !this._waveformData.has(scale)) {
-				let sourceWaveform = this._originalWaveformData;
+		if (this.waveformCacheEnabled) {
+			if (scale !== undefined && !this.waveformDataCache.has(scale)) {
+				let sourceWaveform = this.originalWaveformData;
 
 				// Resample from the next lowest available zoom level
 
-				for (const waveformScale of this._waveformScales) {
+				for (const waveformScale of this.waveformScales) {
 					if (waveformScale < scale) {
-						const cached = this._waveformData.get(waveformScale);
+						const cached = this.waveformDataCache.get(waveformScale);
 
 						if (cached) {
 							sourceWaveform = cached;
@@ -460,31 +448,31 @@ export class WaveformZoomView extends WaveformView {
 					}
 				}
 
-				this._waveformData.set(scale, sourceWaveform.resample(options));
+				this.waveformDataCache.set(scale, sourceWaveform.resample(options));
 
-				this._waveformScales.push(scale);
-				this._waveformScales.sort((a: number, b: number) => {
+				this.waveformScales.push(scale);
+				this.waveformScales.sort((a: number, b: number) => {
 					return a - b; // Ascending order
 				});
 			}
 
 			if (scale !== undefined) {
-				const cached = this._waveformData.get(scale);
+				const cached = this.waveformDataCache.get(scale);
 
-				this._data = cached ?? this._originalWaveformData.resample(options);
+				this.data = cached ?? this.originalWaveformData.resample(options);
 			} else {
-				this._data = this._originalWaveformData.resample(options);
+				this.data = this.originalWaveformData.resample(options);
 			}
 		} else {
-			this._data = this._originalWaveformData.resample(options);
+			this.data = this.originalWaveformData.resample(options);
 		}
 
-		this._scale = this._data.scale;
-		this._pixelLength = this._data.length;
+		this.scale = this.data.scale;
+		this.pixelLength = this.data.length;
 	}
 
 	isAutoZoom(): boolean {
-		return this._zoomLevelAuto;
+		return this.zoomLevelAuto;
 	}
 
 	setStartTime(time: number): void {
@@ -492,7 +480,7 @@ export class WaveformZoomView extends WaveformView {
 			time = 0;
 		}
 
-		if (this._zoomLevelAuto) {
+		if (this.zoomLevelAuto) {
 			time = 0;
 		}
 
@@ -504,7 +492,7 @@ export class WaveformZoomView extends WaveformView {
 	 */
 
 	getPixelLength(): number {
-		return this._pixelLength;
+		return this.pixelLength;
 	}
 
 	/**
@@ -529,7 +517,7 @@ export class WaveformZoomView extends WaveformView {
 			);
 		}
 
-		this.updateWaveform(this._frameOffset + scrollAmount, false);
+		this.updateWaveform(this.frameOffset + scrollAmount, false);
 	}
 
 	/**
@@ -539,81 +527,81 @@ export class WaveformZoomView extends WaveformView {
 	override updateWaveform(frameOffset: number, forceUpdate = false): void {
 		let upperLimit: number;
 
-		if (this._pixelLength < this._width) {
+		if (this.pixelLength < this.width) {
 			// Total waveform is shorter than viewport, so reset the offset to 0.
 			frameOffset = 0;
-			upperLimit = this._width;
+			upperLimit = this.width;
 		} else {
 			// Calculate the very last possible position.
-			upperLimit = this._pixelLength - this._width;
+			upperLimit = this.pixelLength - this.width;
 		}
 
 		frameOffset = clamp(frameOffset, 0, upperLimit);
 
-		if (!forceUpdate && frameOffset === this._frameOffset) {
+		if (!forceUpdate && frameOffset === this.frameOffset) {
 			return;
 		}
 
-		this._frameOffset = frameOffset;
+		this.frameOffset = frameOffset;
 
 		// Display playhead if it is within the zoom frame width.
-		const playheadPixel = this._playheadLayer.getPlayheadPixel();
+		const playheadPixel = this.playheadLayer.getPlayheadPixel();
 
-		this._playheadLayer.updatePlayheadTime(this.pixelsToTime(playheadPixel));
+		this.playheadLayer.updatePlayheadTime(this.pixelsToTime(playheadPixel));
 
 		this.drawWaveformLayer();
-		this._axisLayer.draw();
+		this.axisLayer.draw();
 
 		const frameStartTime = this.getStartTime();
 		const frameEndTime = this.getEndTime();
 
-		if (this._pointsLayer) {
-			this._pointsLayer.updatePoints(frameStartTime, frameEndTime);
+		if (this.pointsLayer) {
+			this.pointsLayer.updatePoints(frameStartTime, frameEndTime);
 		}
 
-		if (this._segmentsLayer) {
-			this._segmentsLayer.updateSegments(frameStartTime, frameEndTime);
+		if (this.segmentsLayer) {
+			this.segmentsLayer.updateSegments(frameStartTime, frameEndTime);
 		}
 
-		this._peaks.emit("zoomview.update", {
+		this.peaks.emit("zoomview.update", {
 			startTime: frameStartTime,
 			endTime: frameEndTime,
 		});
 	}
 
 	enableAutoScroll(enable: boolean, options?: { offset?: number }): void {
-		this._autoScroll = enable;
+		this.autoScroll = enable;
 
 		if (options?.offset !== undefined) {
-			this._autoScrollOffset = options.offset;
+			this.autoScrollOffset = options.offset;
 		}
 	}
 
 	getMinSegmentDragWidth(): number {
-		return this._insertSegmentShape ? 0 : this._minSegmentDragWidth;
+		return this.insertSegmentShape ? 0 : this.minSegmentDragWidth;
 	}
 
 	setMinSegmentDragWidth(width: number): void {
-		this._minSegmentDragWidth = width;
+		this.minSegmentDragWidth = width;
 	}
 
 	override containerWidthChange(): boolean {
 		let resample = false;
 		let resampleOptions: { scale: number } | { width: number } | undefined;
 
-		if (this._zoomLevelAuto) {
+		if (this.zoomLevelAuto) {
 			resample = true;
-			resampleOptions = { width: this._width };
-		} else if (this._zoomLevelSeconds !== undefined) {
+			resampleOptions = { width: this.width };
+		} else if (this.zoomLevelSeconds !== undefined) {
 			resample = true;
-			resampleOptions = { scale: this._getScale(this._zoomLevelSeconds) };
+			resampleOptions = { scale: this.getScaleForDuration(this.zoomLevelSeconds) };
 		}
 
 		if (resample && resampleOptions) {
 			try {
-				this._resampleData(resampleOptions);
+				this.resampleData(resampleOptions);
 			} catch {
-				// Ignore, and leave this._data as it was
+				// Ignore, and leave this.data as it was
 			}
 		}
 
@@ -625,30 +613,30 @@ export class WaveformZoomView extends WaveformView {
 	}
 
 	getStage(): import("konva/lib/Stage").Stage {
-		return this._stage;
+		return this.stage;
 	}
 
 	getSegmentsLayer(): import("./segments-layer").SegmentsLayer | undefined {
-		return this._segmentsLayer;
+		return this.segmentsLayer;
 	}
 
 	override destroy(): void {
 		// Unregister event handlers
-		this._peaks.off("player.playing", this._onPlaying);
-		this._peaks.off("player.pause", this._onPause);
-		this._peaks.off("player.timeupdate", this._onTimeUpdate);
-		this._peaks.off("keyboard.left", this._onKeyboardLeft);
-		this._peaks.off("keyboard.right", this._onKeyboardRight);
-		this._peaks.off("keyboard.shift_left", this._onKeyboardShiftLeft);
-		this._peaks.off("keyboard.shift_right", this._onKeyboardShiftRight);
+		this.peaks.off("player.playing", this.onPlaying);
+		this.peaks.off("player.pause", this.onPause);
+		this.peaks.off("player.timeupdate", this.onTimeUpdate);
+		this.peaks.off("keyboard.left", this.onKeyboardLeft);
+		this.peaks.off("keyboard.right", this.onKeyboardRight);
+		this.peaks.off("keyboard.shift_left", this.onKeyboardShiftLeft);
+		this.peaks.off("keyboard.shift_right", this.onKeyboardShiftRight);
 
-		if (this._enableWaveformCache) {
-			this._waveformData.clear();
+		if (this.waveformCacheEnabled) {
+			this.waveformDataCache.clear();
 		} else {
-			this._data = undefined as unknown as WaveformData;
+			this.data = undefined as unknown as WaveformData;
 		}
 
-		this._mouseDragHandler.destroy();
+		this.mouseDragHandler.destroy();
 
 		super.destroy();
 	}

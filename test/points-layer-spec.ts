@@ -38,8 +38,8 @@ describe("PointsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createPointMarker = sinon.spy(
-				zoomview._pointsLayer,
-				"_createPointMarker",
+				zoomview.pointsLayer,
+				"createPointMarker",
 			);
 
 			p.points.add({ time: 0, editable: true });
@@ -52,8 +52,8 @@ describe("PointsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createPointMarker = sinon.spy(
-				zoomview._pointsLayer,
-				"_createPointMarker",
+				zoomview.pointsLayer,
+				"createPointMarker",
 			);
 
 			p.points.add({ time: 30, editable: true });
@@ -72,12 +72,12 @@ describe("PointsLayer", () => {
 
 			const point = p.points.add({ time: 0, editable: true });
 
-			const zoomviewPointMarker = zoomview._pointsLayer.getPointMarker(point);
+			const zoomviewPointMarker = zoomview.pointsLayer.getPointMarker(point);
 			expect(zoomviewPointMarker).to.be.ok;
 
 			expect(zoomviewPointMarker.getX()).to.equal(0);
 
-			const overviewPointMarker = overview._pointsLayer.getPointMarker(point);
+			const overviewPointMarker = overview.pointsLayer.getPointMarker(point);
 			expect(overviewPointMarker).to.be.ok;
 
 			expect(overviewPointMarker.getX()).to.equal(0);
@@ -99,7 +99,7 @@ describe("PointsLayer", () => {
 			expect(zoomviewPointMarkerUpdate).calledOnceWithExactly({ time: 5.0 });
 
 			expect(overviewPointMarker.getX()).to.equal(
-				Math.floor((5.0 * 44100) / overview._data.scale),
+				Math.floor((5.0 * 44100) / overview.data.scale),
 			);
 			expect(overviewPointMarkerUpdate).calledOnceWithExactly({ time: 5.0 });
 		});
@@ -109,14 +109,14 @@ describe("PointsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createPointMarker = sinon.spy(
-				zoomview._pointsLayer,
-				"_createPointMarker",
+				zoomview.pointsLayer,
+				"createPointMarker",
 			);
-			const removePoint = sinon.spy(zoomview._pointsLayer, "_removePoint");
+			const removePoint = sinon.spy(zoomview.pointsLayer, "removePoint");
 
 			const point = p.points.add({ time: 0, editable: true });
 
-			const pointMarker = zoomview._pointsLayer.getPointMarker(point);
+			const pointMarker = zoomview.pointsLayer.getPointMarker(point);
 			expect(pointMarker).to.be.ok;
 
 			const pointMarkerDestroy = sinon.spy(pointMarker, "destroy");
@@ -133,13 +133,13 @@ describe("PointsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createPointMarker = sinon.spy(
-				zoomview._pointsLayer,
-				"_createPointMarker",
+				zoomview.pointsLayer,
+				"createPointMarker",
 			);
 
 			const point = p.points.add({ time: 0, editable: true });
 
-			const pointMarker = zoomview._pointsLayer.getPointMarker(point);
+			const pointMarker = zoomview.pointsLayer.getPointMarker(point);
 			expect(pointMarker).to.be.ok;
 
 			const pointMarkerUpdate = sinon.spy(pointMarker, "update");
@@ -155,15 +155,15 @@ describe("PointsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createPointMarker = sinon.spy(
-				zoomview._pointsLayer,
-				"_createPointMarker",
+				zoomview.pointsLayer,
+				"createPointMarker",
 			);
 
 			const point = p.points.add({ time: 30, editable: true });
 
 			expect(createPointMarker.callCount).to.equal(0);
 
-			const pointMarker = zoomview._pointsLayer.getPointMarker(point);
+			const pointMarker = zoomview.pointsLayer.getPointMarker(point);
 			expect(pointMarker).to.equal(undefined);
 
 			point.update({ time: 0, labelText: "test" });
@@ -176,14 +176,14 @@ describe("PointsLayer", () => {
 			expect(zoomview).to.be.ok;
 
 			const createPointMarker = sinon.spy(
-				zoomview._pointsLayer,
-				"_createPointMarker",
+				zoomview.pointsLayer,
+				"createPointMarker",
 			);
-			const removePoint = sinon.spy(zoomview._pointsLayer, "_removePoint");
+			const removePoint = sinon.spy(zoomview.pointsLayer, "removePoint");
 
 			const point = p.points.add({ time: 0, editable: true });
 
-			const pointMarker = zoomview._pointsLayer.getPointMarker(point);
+			const pointMarker = zoomview.pointsLayer.getPointMarker(point);
 			expect(pointMarker).to.be.ok;
 
 			const pointMarkerDestroy = sinon.spy(pointMarker, "destroy");

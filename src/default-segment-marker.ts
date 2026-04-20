@@ -9,19 +9,19 @@ export interface DefaultSegmentMarkerFromOptions {
 }
 
 export class DefaultSegmentMarker {
-	private readonly _options: CreateSegmentMarkerOptions;
-	private _editable: boolean;
-	private _label!: Text;
-	private _handle!: Rect;
-	private _line!: Line;
+	private readonly options: CreateSegmentMarkerOptions;
+	private editable: boolean;
+	private label!: Text;
+	private handle!: Rect;
+	private line!: Line;
 
 	static from(options: DefaultSegmentMarkerFromOptions): DefaultSegmentMarker {
 		return new DefaultSegmentMarker(options.options);
 	}
 
 	private constructor(options: CreateSegmentMarkerOptions) {
-		this._options = options;
-		this._editable = options.editable ?? false;
+		this.options = options;
+		this.editable = options.editable ?? false;
 	}
 
 	init(group: Group): void {
@@ -29,52 +29,52 @@ export class DefaultSegmentMarker {
 		const handleHeight = 20;
 		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
 
-		const xPosition = this._options.startMarker ? -24 : 24;
+		const xPosition = this.options.startMarker ? -24 : 24;
 
 		const time =
-			(this._options.startMarker
-				? this._options.segment?.startTime
-				: this._options.segment?.endTime) ?? 0;
+			(this.options.startMarker
+				? this.options.segment?.startTime
+				: this.options.segment?.endTime) ?? 0;
 		// Label - create with default y, the real value is set in fitToView().
-		this._label = new Text({
+		this.label = new Text({
+			fill: "#000",
+			fontFamily: this.options.fontFamily,
+			fontSize: this.options.fontSize,
+			fontStyle: this.options.fontStyle,
+			text: this.options.layer.formatTime(time),
+			textAlign: "center",
+			visible: this.editable,
 			x: xPosition,
 			y: 0,
-			text: this._options.layer.formatTime(time),
-			fontFamily: this._options.fontFamily,
-			fontSize: this._options.fontSize,
-			fontStyle: this._options.fontStyle,
-			fill: "#000",
-			textAlign: "center",
-			visible: this._editable,
 		});
 
-		this._label.hide();
+		this.label.hide();
 
 		// Handle - create with default y, the real value is set in fitToView().
-		this._handle = new Rect({
+		this.handle = new Rect({
+			fill: this.options.color,
+			height: handleHeight,
+			stroke: this.options.color,
+			strokeWidth: 1,
+			visible: this.editable,
+			width: handleWidth,
 			x: handleX,
 			y: 0,
-			width: handleWidth,
-			height: handleHeight,
-			fill: this._options.color,
-			stroke: this._options.color,
-			strokeWidth: 1,
-			visible: this._editable,
 		});
 
 		// Vertical Line - create with default y and points, the real values
 		// are set in fitToView().
-		this._line = new Line({
+		this.line = new Line({
+			stroke: this.options.color,
+			strokeWidth: 1,
+			visible: this.editable,
 			x: 0,
 			y: 0,
-			stroke: this._options.color,
-			strokeWidth: 1,
-			visible: this._editable,
 		});
 
-		group.add(this._label);
-		group.add(this._line);
-		group.add(this._handle);
+		group.add(this.label);
+		group.add(this.line);
+		group.add(this.handle);
 
 		this.fitToView();
 
@@ -82,56 +82,56 @@ export class DefaultSegmentMarker {
 	}
 
 	bindEventHandlers(group: Group): void {
-		const xPosition = this._options.startMarker ? -24 : 24;
+		const xPosition = this.options.startMarker ? -24 : 24;
 
 		group.on("dragstart", () => {
-			if (this._options.startMarker) {
-				this._label.x(xPosition - this._label.getWidth());
+			if (this.options.startMarker) {
+				this.label.x(xPosition - this.label.getWidth());
 			}
 
-			this._label.show();
+			this.label.show();
 		});
 
 		group.on("dragend", () => {
-			this._label.hide();
+			this.label.hide();
 		});
 
-		this._handle.on("mouseover touchstart", () => {
-			if (this._options.startMarker) {
-				this._label.x(xPosition - this._label.getWidth());
+		this.handle.on("mouseover touchstart", () => {
+			if (this.options.startMarker) {
+				this.label.x(xPosition - this.label.getWidth());
 			}
 
-			this._label.show();
+			this.label.show();
 		});
 
-		this._handle.on("mouseout touchend", () => {
-			this._label.hide();
+		this.handle.on("mouseout touchend", () => {
+			this.label.hide();
 		});
 	}
 
 	fitToView(): void {
-		const height = this._options.layer.getHeight();
+		const height = this.options.layer.getHeight();
 
-		this._label.y(height / 2 - 5);
-		this._handle.y(height / 2 - 10.5);
-		this._line.points([0.5, 0, 0.5, height]);
+		this.label.y(height / 2 - 5);
+		this.handle.y(height / 2 - 10.5);
+		this.line.points([0.5, 0, 0.5, height]);
 	}
 
 	update(options: SegmentUpdateOptions): void {
-		if (options.startTime !== undefined && this._options.startMarker) {
-			this._label.text(this._options.layer.formatTime(options.startTime));
+		if (options.startTime !== undefined && this.options.startMarker) {
+			this.label.text(this.options.layer.formatTime(options.startTime));
 		}
 
-		if (options.endTime !== undefined && !this._options.startMarker) {
-			this._label.text(this._options.layer.formatTime(options.endTime));
+		if (options.endTime !== undefined && !this.options.startMarker) {
+			this.label.text(this.options.layer.formatTime(options.endTime));
 		}
 
 		if (options.editable !== undefined) {
-			this._editable = options.editable;
+			this.editable = options.editable;
 
-			this._label.visible(this._editable);
-			this._handle.visible(this._editable);
-			this._line.visible(this._editable);
+			this.label.visible(this.editable);
+			this.handle.visible(this.editable);
+			this.line.visible(this.editable);
 		}
 	}
 }

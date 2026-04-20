@@ -27,12 +27,10 @@ interface SetSourceHandlerFromOptions {
 }
 
 class SetSourceHandler {
-	private readonly _eventEmitter: PeaksInstance;
-	private readonly _mediaElement: HTMLMediaElement;
-	private readonly _playerCanPlayHandler: () => void;
-	private readonly _playerErrorHandler: (err: MediaError) => void;
-	private _resolve: (() => void) | undefined;
-	private _reject: ((reason: MediaError) => void) | undefined;
+	private readonly eventEmitter: PeaksInstance;
+	private readonly mediaElement: HTMLMediaElement;
+	private resolve: (() => void) | undefined;
+	private reject: ((reason: MediaError) => void) | undefined;
 
 	static from(options: SetSourceHandlerFromOptions): SetSourceHandler {
 		return new SetSourceHandler(options.eventEmitter, options.mediaElement);
@@ -42,50 +40,45 @@ class SetSourceHandler {
 		eventEmitter: PeaksInstance,
 		mediaElement: HTMLMediaElement,
 	) {
-		this._eventEmitter = eventEmitter;
-		this._mediaElement = mediaElement;
-		this._playerCanPlayHandler = this._onPlayerCanPlay.bind(this);
-		this._playerErrorHandler = this._onPlayerError.bind(this);
+		this.eventEmitter = eventEmitter;
+		this.mediaElement = mediaElement;
 	}
 
 	setSource(options: SetSourceOptions): Promise<void> {
 		return new Promise((resolve, reject) => {
-			this._resolve = resolve;
-			this._reject = reject;
+			this.resolve = resolve;
+			this.reject = reject;
 
-			this._eventEmitter.on("player.canplay", this._playerCanPlayHandler);
-			this._eventEmitter.on("player.error", this._playerErrorHandler);
+			this.eventEmitter.on("player.canplay", this.onPlayerCanPlay);
+			this.eventEmitter.on("player.error", this.onPlayerError);
 
-			this._mediaElement.setAttribute("src", options.mediaUrl ?? "");
+			this.mediaElement.setAttribute("src", options.mediaUrl ?? "");
 
 			// Force the media element to load, in case the media element
 			// has preload="none".
-			if (this._mediaElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
-				this._mediaElement.load();
+			if (this.mediaElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
+				this.mediaElement.load();
 			}
 		});
 	}
 
-	private _reset(): void {
-		this._eventEmitter.removeListener(
-			"player.canplay",
-			this._playerCanPlayHandler,
-		);
-		this._eventEmitter.removeListener("player.error", this._playerErrorHandler);
+	private reset(): void {
+		this.eventEmitter.removeListener("player.canplay", this.onPlayerCanPlay);
+		this.eventEmitter.removeListener("player.error", this.onPlayerError);
 	}
 
-	private _onPlayerCanPlay(): void {
-		this._reset();
+	private onPlayerCanPlay = (): void => {
+		this.reset();
 
-		this._resolve?.();
-	}
+		this.resolve?.();
+	};
 
-	private _onPlayerError(err: MediaError): void {
-		this._reset();
+	private onPlayerError = (err: MediaError): void => {
+		this.reset();
 
 		// Return the MediaError object from the media element
-		this._reject?.(err);
-	}
+		this.reject?.(err);
+	};
 }
 
 interface MediaListener {
@@ -106,18 +99,18 @@ export interface MediaElementPlayerFromOptions {
 }
 
 export class MediaElementPlayer {
-	private _mediaElement: HTMLMediaElement | undefined;
-	private _eventEmitter: PeaksInstance | undefined;
-	private _listeners: MediaListener[];
+	private mediaElement: HTMLMediaElement | undefined;
+	private eventEmitter: PeaksInstance | undefined;
+	private listeners: MediaListener[];
 
 	static from(options: MediaElementPlayerFromOptions): MediaElementPlayer {
 		return new MediaElementPlayer(options.mediaElement);
 	}
 
 	private constructor(mediaElement: HTMLMediaElement) {
-		this._mediaElement = mediaElement;
-		this._eventEmitter = undefined;
-		this._listeners = [];
+		this.mediaElement = mediaElement;
+		this.eventEmitter = undefined;
+		this.listeners = [];
 	}
 
 	/**
@@ -127,61 +120,61 @@ export class MediaElementPlayer {
 	 * @param callback An event handler function.
 	 */
 
-	private _addMediaListener(type: string, callback: EventListener): void {
-		this._listeners.push({ type: type, callback: callback });
-		this._mediaElement?.addEventListener(type, callback);
+	private addMediaListener(type: string, callback: EventListener): void {
+		this.listeners.push({ callback: callback, type: type });
+		this.mediaElement?.addEventListener(type, callback);
 	}
 
 	init(eventEmitter: PeaksInstance): Promise<void> {
-		this._eventEmitter = eventEmitter;
-		this._listeners = [];
+		this.eventEmitter = eventEmitter;
+		this.listeners = [];
 
-		this._addMediaListener("timeupdate", () => {
-			this._eventEmitter?.emit("player.timeupdate", this.getCurrentTime());
+		this.addMediaListener("timeupdate", () => {
+			this.eventEmitter?.emit("player.timeupdate", this.getCurrentTime());
 		});
 
-		this._addMediaListener("playing", () => {
-			this._eventEmitter?.emit("player.playing", this.getCurrentTime());
+		this.addMediaListener("playing", () => {
+			this.eventEmitter?.emit("player.playing", this.getCurrentTime());
 		});
 
-		this._addMediaListener("pause", () => {
-			this._eventEmitter?.emit("player.pause", this.getCurrentTime());
+		this.addMediaListener("pause", () => {
+			this.eventEmitter?.emit("player.pause", this.getCurrentTime());
 		});
 
-		this._addMediaListener("ended", () => {
-			this._eventEmitter?.emit("player.ended");
+		this.addMediaListener("ended", () => {
+			this.eventEmitter?.emit("player.ended");
 		});
 
-		this._addMediaListener("seeked", () => {
-			this._eventEmitter?.emit("player.seeked", this.getCurrentTime());
+		this.addMediaListener("seeked", () => {
+			this.eventEmitter?.emit("player.seeked", this.getCurrentTime());
 		});
 
-		this._addMediaListener("canplay", () => {
-			this._eventEmitter?.emit("player.canplay");
+		this.addMediaListener("canplay", () => {
+			this.eventEmitter?.emit("player.canplay");
 		});
 
-		this._addMediaListener("error", (event: Event) => {
-			this._eventEmitter?.emit(
+		this.addMediaListener("error", (event: Event) => {
+			this.eventEmitter?.emit(
 				"player.error",
 				(event.target as HTMLMediaElement).error,
 			);
 		});
 
-		if (!this._mediaElement) {
+		if (!this.mediaElement) {
 			return Promise.resolve();
 		}
 
-		if (!mediaElementHasSource(this._mediaElement)) {
+		if (!mediaElementHasSource(this.mediaElement)) {
 			return Promise.resolve();
 		} else if (
-			this._mediaElement.error &&
-			this._mediaElement.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+			this.mediaElement.error &&
+			this.mediaElement.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
 		) {
 			// The media element has a source, but the format is not supported.
-			return Promise.reject(this._mediaElement.error);
+			return Promise.reject(this.mediaElement.error);
 		}
 
-		const mediaElement = this._mediaElement;
+		const mediaElement = this.mediaElement;
 
 		return new Promise((resolve, reject) => {
 			const cleanup = () => {
@@ -232,54 +225,54 @@ export class MediaElementPlayer {
 	 */
 
 	destroy(): void {
-		if (!this._mediaElement) {
+		if (!this.mediaElement) {
 			return;
 		}
 
-		for (const listener of this._listeners) {
-			this._mediaElement.removeEventListener(listener.type, listener.callback);
+		for (const listener of this.listeners) {
+			this.mediaElement.removeEventListener(listener.type, listener.callback);
 		}
 
-		this._listeners.length = 0;
+		this.listeners.length = 0;
 
-		this._mediaElement = undefined;
+		this.mediaElement = undefined;
 	}
 
 	play(): Promise<void> {
-		if (!this._mediaElement) {
+		if (!this.mediaElement) {
 			return Promise.resolve();
 		}
 
-		return this._mediaElement.play();
+		return this.mediaElement.play();
 	}
 
 	pause(): void {
-		this._mediaElement?.pause();
+		this.mediaElement?.pause();
 	}
 
 	isPlaying(): boolean {
-		if (!this._mediaElement) {
+		if (!this.mediaElement) {
 			return false;
 		}
 
-		return !this._mediaElement.paused;
+		return !this.mediaElement.paused;
 	}
 
 	isSeeking(): boolean {
-		return this._mediaElement?.seeking ?? false;
+		return this.mediaElement?.seeking ?? false;
 	}
 
 	getCurrentTime(): number {
-		return this._mediaElement?.currentTime ?? 0;
+		return this.mediaElement?.currentTime ?? 0;
 	}
 
 	getDuration(): number {
-		return this._mediaElement?.duration ?? 0;
+		return this.mediaElement?.duration ?? 0;
 	}
 
 	seek(time: number): void {
-		if (this._mediaElement) {
-			this._mediaElement.currentTime = time;
+		if (this.mediaElement) {
+			this.mediaElement.currentTime = time;
 		}
 	}
 
@@ -292,15 +285,15 @@ export class MediaElementPlayer {
 			);
 		}
 
-		if (!this._eventEmitter || !this._mediaElement) {
+		if (!this.eventEmitter || !this.mediaElement) {
 			return Promise.reject(
 				new Error("peaks.setSource(): player not initialized"),
 			);
 		}
 
 		const setSourceHandler = SetSourceHandler.from({
-			eventEmitter: this._eventEmitter,
-			mediaElement: this._mediaElement,
+			eventEmitter: this.eventEmitter,
+			mediaElement: this.mediaElement,
 		});
 
 		return setSourceHandler.setSource(options);

@@ -4,12 +4,11 @@ import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Shape } from "konva/lib/Shape";
 import type WaveformData from "waveform-data";
-
+import type { CueEventName } from "./cue-emitter";
 import type { Point } from "./point";
 import type { ResultCallback } from "./result-callback";
 import type { Segment } from "./segment";
 import type { WaveformColor } from "./utils";
-import type { CueEventName } from './cue-emitter';
 
 // Re-export Konva types for convenience
 export type { KonvaEventObject };
@@ -306,7 +305,7 @@ export interface WaveformViewAPI {
 	updatePlayheadTime(time: number): void;
 	drawWaveformLayer(): void;
 	playheadPosChanged?(time: number): void;
-	_height: number;
+	height: number;
 }
 
 // ─── Peaks Instance ─────────────────────────────────────────────────
@@ -317,6 +316,7 @@ export interface PeaksInstance extends EventEmitter {
 	readonly points: PointsInstance;
 	readonly zoom: ZoomInstance;
 	readonly views: ViewControllerInstance;
+	readonly logger: Logger;
 	getWaveformData(): WaveformData | undefined;
 }
 
@@ -332,7 +332,7 @@ export interface PlayerInstance {
 	getDuration(): number;
 	seek(time: number): void;
 	playSegment(segment: Segment, loop: boolean): Promise<void>;
-	_setSource(options: SetSourceOptions): Promise<void>;
+	setSource(options: SetSourceOptions): Promise<void>;
 }
 
 export interface SegmentsInstance {

@@ -8,16 +8,16 @@ export interface OverlaySegmentMarkerFromOptions {
 }
 
 export class OverlaySegmentMarker {
-	private readonly _options: CreateSegmentMarkerOptions;
-	private _label!: Text;
-	private _handle!: Rect;
+	private readonly options: CreateSegmentMarkerOptions;
+	private label!: Text;
+	private handle!: Rect;
 
 	static from(options: OverlaySegmentMarkerFromOptions): OverlaySegmentMarker {
 		return new OverlaySegmentMarker(options.options);
 	}
 
 	private constructor(options: CreateSegmentMarkerOptions) {
-		this._options = options;
+		this.options = options;
 	}
 
 	init(group: Group): void {
@@ -25,35 +25,35 @@ export class OverlaySegmentMarker {
 		const handleHeight = 20;
 		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
 
-		const xPosition = this._options.startMarker ? -24 : 24;
+		const xPosition = this.options.startMarker ? -24 : 24;
 
-		const time = this._options.startMarker
-			? this._options.segment.startTime
-			: this._options.segment.endTime;
+		const time = this.options.startMarker
+			? this.options.segment.startTime
+			: this.options.segment.endTime;
 
 		// Label - create with default y, the real value is set in fitToView().
-		this._label = new Text({
-			x: xPosition,
-			y: 0,
-			text: this._options.layer.formatTime(time),
-			fontFamily: this._options.fontFamily,
-			fontSize: this._options.fontSize,
-			fontStyle: this._options.fontStyle,
+		this.label = new Text({
 			fill: "#000",
+			fontFamily: this.options.fontFamily,
+			fontSize: this.options.fontSize,
+			fontStyle: this.options.fontStyle,
+			text: this.options.layer.formatTime(time),
 			textAlign: "center",
 			visible: false,
+			x: xPosition,
+			y: 0,
 		});
 
 		// Handle - create with default y, the real value is set in fitToView().
-		this._handle = new Rect({
+		this.handle = new Rect({
+			height: handleHeight,
+			width: handleWidth,
 			x: handleX,
 			y: 0,
-			width: handleWidth,
-			height: handleHeight,
 		});
 
-		group.add(this._label);
-		group.add(this._handle);
+		group.add(this.label);
+		group.add(this.handle);
 
 		this.fitToView();
 
@@ -61,55 +61,55 @@ export class OverlaySegmentMarker {
 	}
 
 	bindEventHandlers(group: Group): void {
-		const xPosition = this._options.startMarker ? -24 : 24;
+		const xPosition = this.options.startMarker ? -24 : 24;
 
 		group.on("dragstart", () => {
-			if (this._options.startMarker) {
-				this._label.x(xPosition - this._label.getWidth());
+			if (this.options.startMarker) {
+				this.label.x(xPosition - this.label.getWidth());
 			}
 
-			this._label.show();
+			this.label.show();
 		});
 
 		group.on("dragend", () => {
-			this._label.hide();
+			this.label.hide();
 		});
 
-		this._handle.on("mouseover touchstart", () => {
-			if (this._options.startMarker) {
-				this._label.x(xPosition - this._label.getWidth());
+		this.handle.on("mouseover touchstart", () => {
+			if (this.options.startMarker) {
+				this.label.x(xPosition - this.label.getWidth());
 			}
 
-			this._label.show();
+			this.label.show();
 
 			document.body.style.cursor = "ew-resize";
 		});
 
-		this._handle.on("mouseout touchend", () => {
-			this._label.hide();
+		this.handle.on("mouseout touchend", () => {
+			this.label.hide();
 
 			document.body.style.cursor = "default";
 		});
 	}
 
 	fitToView(): void {
-		const viewHeight = this._options.layer.getHeight();
+		const viewHeight = this.options.layer.getHeight();
 
-		const overlayOffset = this._options.segmentOptions.overlayOffset;
+		const overlayOffset = this.options.segmentOptions.overlayOffset;
 		const overlayRectHeight = Math.max(0, viewHeight - 2 * overlayOffset);
 
-		this._label.y(viewHeight / 2 - 5);
-		this._handle.y(overlayOffset);
-		this._handle.height(overlayRectHeight);
+		this.label.y(viewHeight / 2 - 5);
+		this.handle.y(overlayOffset);
+		this.handle.height(overlayRectHeight);
 	}
 
 	update(options: SegmentUpdateOptions): void {
-		if (options.startTime !== undefined && this._options.startMarker) {
-			this._label.text(this._options.layer.formatTime(options.startTime));
+		if (options.startTime !== undefined && this.options.startMarker) {
+			this.label.text(this.options.layer.formatTime(options.startTime));
 		}
 
-		if (options.endTime !== undefined && !this._options.startMarker) {
-			this._label.text(this._options.layer.formatTime(options.endTime));
+		if (options.endTime !== undefined && !this.options.startMarker) {
+			this.label.text(this.options.layer.formatTime(options.endTime));
 		}
 	}
 }

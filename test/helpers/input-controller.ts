@@ -23,9 +23,9 @@ export type MouseEventType = "mousedown" | "mousemove" | "mouseup";
 export type KeyboardEventType = "keydown" | "keyup";
 
 export class InputController {
-	private _target: HTMLCanvasElement;
-	private _top: number;
-	private _left: number;
+	private target: HTMLCanvasElement;
+	private top: number;
+	private left: number;
 
 	public constructor(containerId: string) {
 		const element = document.getElementById(containerId);
@@ -44,36 +44,36 @@ export class InputController {
 
 		const rect = element.getBoundingClientRect();
 
-		this._target = target;
-		this._top = rect.top;
-		this._left = rect.left;
+		this.target = target;
+		this.top = rect.top;
+		this.left = rect.left;
 	}
 
 	public mouseDown(pos: MousePosition): void {
-		this._dispatchMouseEvent("mousedown", pos);
+		this.dispatchMouseEvent("mousedown", pos);
 	}
 
 	public mouseMove(pos: MousePosition): void {
-		this._dispatchMouseEvent("mousemove", pos);
+		this.dispatchMouseEvent("mousemove", pos);
 	}
 
 	public mouseUp(pos: MousePosition): void {
-		this._dispatchMouseEvent("mouseup", pos);
+		this.dispatchMouseEvent("mouseup", pos);
 	}
 
 	public keyDown(key: SupportedKey, shift: boolean): void {
-		this._dispatchKeyboardEvent("keydown", key, shift);
+		this.dispatchKeyboardEvent("keydown", key, shift);
 	}
 
 	public keyUp(key: SupportedKey, shift: boolean): void {
-		this._dispatchKeyboardEvent("keyup", key, shift);
+		this.dispatchKeyboardEvent("keyup", key, shift);
 	}
 
-	private _dispatchMouseEvent(type: MouseEventType, pos: MousePosition): void {
+	private dispatchMouseEvent(type: MouseEventType, pos: MousePosition): void {
 		const event = new MouseEvent(type, {
 			bubbles: true,
-			clientX: this._left + pos.x,
-			clientY: this._top + pos.y,
+			clientX: this.left + pos.x,
+			clientY: this.top + pos.y,
 		});
 
 		Object.defineProperties(event, {
@@ -81,10 +81,10 @@ export class InputController {
 			offsetY: { configurable: true, value: pos.y },
 		});
 
-		this._target.dispatchEvent(event);
+		this.target.dispatchEvent(event);
 	}
 
-	private _dispatchKeyboardEvent(
+	private dispatchKeyboardEvent(
 		type: KeyboardEventType,
 		key: SupportedKey,
 		shift: boolean,
@@ -102,6 +102,6 @@ export class InputController {
 			which: { configurable: true, value: keyCode },
 		});
 
-		this._target.dispatchEvent(event);
+		this.target.dispatchEvent(event);
 	}
 }

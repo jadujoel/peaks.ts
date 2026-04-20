@@ -91,7 +91,7 @@ describe("WaveformView", () => {
 
 					view.setWaveformColor("#ff0000");
 
-					expect(view._waveformShape._shape.fill()).to.equal("#ff0000");
+					expect(view.waveformShape.shape.fill()).to.equal("#ff0000");
 				});
 
 				it("should set the waveform to a linear gradient color", () => {
@@ -107,13 +107,13 @@ describe("WaveformView", () => {
 					});
 
 					expect(
-						view._waveformShape._shape.fillLinearGradientStartPointY(),
+						view.waveformShape.shape.fillLinearGradientStartPointY(),
 					).to.equal(20);
 					expect(
-						view._waveformShape._shape.fillLinearGradientEndPointY(),
+						view.waveformShape.shape.fillLinearGradientEndPointY(),
 					).to.equal(60);
 					expect(
-						view._waveformShape._shape.fillLinearGradientColorStops().length,
+						view.waveformShape.shape.fillLinearGradientColorStops().length,
 					).to.equal(4);
 				});
 			});
@@ -128,7 +128,7 @@ describe("WaveformView", () => {
 
 					view.setPlayedWaveformColor("#ff0000");
 
-					expect(view._playedWaveformShape._shape.fill()).to.equal("#ff0000");
+					expect(view.playedWaveformShape.shape.fill()).to.equal("#ff0000");
 				});
 			});
 		});
@@ -142,7 +142,7 @@ describe("WaveformView", () => {
 
 					view.setAxisLabelColor("#ff0000");
 
-					expect(view._axis._axisLabelColor).to.equal("#ff0000");
+					expect(view.axis.axisLabelColor).to.equal("#ff0000");
 				});
 			});
 		});
@@ -156,7 +156,7 @@ describe("WaveformView", () => {
 
 					view.setAxisGridlineColor("#ff0000");
 
-					expect(view._axis._axisGridlineColor).to.equal("#ff0000");
+					expect(view.axis.axisGridlineColor).to.equal("#ff0000");
 				});
 			});
 		});
@@ -213,7 +213,7 @@ describe("WaveformView", () => {
 			describe(viewName, () => {
 				it("should hide the time axis labels", () => {
 					const view = p.views.getView(viewName);
-					const axisLayerDraw = sinon.spy(view._axisLayer, "draw");
+					const axisLayerDraw = sinon.spy(view.axisLayer, "draw");
 
 					view.showAxisLabels(false);
 
@@ -232,7 +232,7 @@ describe("WaveformView", () => {
 
 						view.setZoom({ scale: 512 });
 
-						expect(view._scale).to.equal(512);
+						expect(view.scale).to.equal(512);
 						expect(logger.notCalled).to.equal(true);
 					});
 				});
@@ -243,7 +243,7 @@ describe("WaveformView", () => {
 
 						view.setZoom({ scale: 128 });
 
-						expect(view._scale).to.equal(256);
+						expect(view.scale).to.equal(256);
 						expect(logger.calledOnce).to.equal(true);
 					});
 				});
@@ -252,13 +252,13 @@ describe("WaveformView", () => {
 					it("should round the scale down to an integer value", () => {
 						const view = p.views.getView("zoomview");
 
-						const resampleData = sinon.spy(view, "_resampleData");
+						const resampleData = sinon.spy(view, "resampleData");
 
 						view.setZoom({ scale: 500.5 });
 
 						expect(resampleData.callCount).to.equal(1);
 						expect(resampleData).calledWithExactly({ scale: 500 });
-						expect(view._scale).to.equal(500);
+						expect(view.scale).to.equal(500);
 					});
 				});
 
@@ -269,7 +269,7 @@ describe("WaveformView", () => {
 						view.setZoom({ scale: "auto" });
 
 						// TODO: resampling doesn't give requested length exactly
-						expect(view._data.length).to.equal(1001);
+						expect(view.data.length).to.equal(1001);
 					});
 				});
 			});
@@ -281,7 +281,7 @@ describe("WaveformView", () => {
 
 						view.setZoom({ seconds: 10.0 });
 
-						expect(view._scale).to.equal(441);
+						expect(view.scale).to.equal(441);
 						expect(logger.notCalled).to.equal(true);
 					});
 				});
@@ -292,7 +292,7 @@ describe("WaveformView", () => {
 
 						view.setZoom({ seconds: 1.0 });
 
-						expect(view._scale).to.equal(256);
+						expect(view.scale).to.equal(256);
 						expect(logger.calledOnce).to.equal(true);
 					});
 				});
@@ -304,7 +304,7 @@ describe("WaveformView", () => {
 						view.setZoom({ seconds: "auto" });
 
 						// TODO: resampling doesn't give requested length exactly
-						expect(view._data.length).to.equal(1001);
+						expect(view.data.length).to.equal(1001);
 					});
 				});
 			});

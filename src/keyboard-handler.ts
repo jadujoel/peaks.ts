@@ -13,7 +13,6 @@ export interface KeyboardHandlerFromOptions {
 
 export class KeyboardHandler {
 	private readonly eventEmitter: PeaksInstance;
-	private readonly _handleKeyEvent: (event: KeyboardEvent) => void;
 
 	static from(options: KeyboardHandlerFromOptions): KeyboardHandler {
 		return new KeyboardHandler(options.eventEmitter);
@@ -22,18 +21,16 @@ export class KeyboardHandler {
 	private constructor(eventEmitter: PeaksInstance) {
 		this.eventEmitter = eventEmitter;
 
-		this._handleKeyEvent = this._onKeyEvent.bind(this);
-
-		document.addEventListener("keydown", this._handleKeyEvent);
-		document.addEventListener("keypress", this._handleKeyEvent);
-		document.addEventListener("keyup", this._handleKeyEvent);
+		document.addEventListener("keydown", this.handleKeyEvent);
+		document.addEventListener("keypress", this.handleKeyEvent);
+		document.addEventListener("keyup", this.handleKeyEvent);
 	}
 
-	private _onKeyEvent(event: KeyboardEvent): void {
+	private handleKeyEvent = (event: KeyboardEvent): void => {
 		const target = event.target as HTMLElement;
 
-		if (nodes.indexOf(target.nodeName) === -1) {
-			if ([SPACE, TAB, LEFT_ARROW, RIGHT_ARROW].indexOf(event.keyCode) > -1) {
+		if (!nodes.includes(target.nodeName)) {
+			if ([SPACE, TAB, LEFT_ARROW, RIGHT_ARROW].includes(event.keyCode)) {
 				event.preventDefault();
 			}
 
@@ -65,11 +62,11 @@ export class KeyboardHandler {
 				}
 			}
 		}
-	}
+	};
 
 	destroy(): void {
-		document.removeEventListener("keydown", this._handleKeyEvent);
-		document.removeEventListener("keypress", this._handleKeyEvent);
-		document.removeEventListener("keyup", this._handleKeyEvent);
+		document.removeEventListener("keydown", this.handleKeyEvent);
+		document.removeEventListener("keypress", this.handleKeyEvent);
+		document.removeEventListener("keyup", this.handleKeyEvent);
 	}
 }

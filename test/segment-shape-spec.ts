@@ -154,14 +154,14 @@ describe("SegmentShape", () => {
 						const zoomview = p.views.getView("zoomview");
 
 						const segmentShape =
-							zoomview._segmentsLayer.getSegmentShape(segment);
+							zoomview.segmentsLayer.getSegmentShape(segment);
 
 						expect(segmentShape).to.be.an.instanceOf(SegmentShape);
 
-						expect(segmentShape._waveformShape).to.be.an.instanceOf(
+						expect(segmentShape.waveformShape).to.be.an.instanceOf(
 							WaveformShape,
 						);
-						expect(segmentShape._waveformShape._color).to.equal("#0074d9");
+						expect(segmentShape.waveformShape.color).to.equal("#0074d9");
 						done();
 					},
 				);
@@ -190,13 +190,13 @@ describe("SegmentShape", () => {
 						const zoomview = p.views.getView("zoomview");
 
 						const segmentShape =
-							zoomview._segmentsLayer.getSegmentShape(segment);
+							zoomview.segmentsLayer.getSegmentShape(segment);
 
 						expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-						expect(segmentShape._waveformShape).to.be.an.instanceOf(
+						expect(segmentShape.waveformShape).to.be.an.instanceOf(
 							WaveformShape,
 						);
-						expect(segmentShape._waveformShape._color).to.equal("#0f0");
+						expect(segmentShape.waveformShape.color).to.equal("#0f0");
 						done();
 					},
 				);
@@ -227,13 +227,13 @@ describe("SegmentShape", () => {
 
 					const zoomview = p.views.getView("zoomview");
 
-					const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+					const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._startMarker._marker._options.color).to.equal(
+					expect(segmentShape.startMarkerInstance.marker.options.color).to.equal(
 						"#0f0",
 					);
-					expect(segmentShape._endMarker._marker._options.color).to.equal(
+					expect(segmentShape.endMarkerInstance.marker.options.color).to.equal(
 						"#080",
 					);
 
@@ -289,10 +289,10 @@ describe("SegmentShape", () => {
 
 					const zoomview = p.views.getView("zoomview");
 
-					const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+					const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._waveformShape).to.equal(undefined);
+					expect(segmentShape.waveformShape).to.equal(undefined);
 					done();
 				},
 			);
@@ -316,14 +316,14 @@ describe("SegmentShape", () => {
 
 					const zoomview = p.views.getView("zoomview");
 
-					const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+					const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._overlayRect.getStroke()).to.equal("#ff0000");
-					expect(segmentShape._overlayRect.getStrokeWidth()).to.equal(2);
-					expect(segmentShape._overlayRect.getFill()).to.equal("#ff0000");
-					expect(segmentShape._overlayRect.getOpacity()).to.equal(0.3);
-					expect(segmentShape._overlayRect.getCornerRadius()).to.equal(5);
+					expect(segmentShape.overlayRect.getStroke()).to.equal("#ff0000");
+					expect(segmentShape.overlayRect.getStrokeWidth()).to.equal(2);
+					expect(segmentShape.overlayRect.getFill()).to.equal("#ff0000");
+					expect(segmentShape.overlayRect.getOpacity()).to.equal(0.3);
+					expect(segmentShape.overlayRect.getCornerRadius()).to.equal(5);
 					done();
 				},
 			);
@@ -349,14 +349,14 @@ describe("SegmentShape", () => {
 
 					const zoomview = p.views.getView("zoomview");
 
-					const segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+					const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._overlayRect.getStroke()).to.equal("#00ff00");
-					expect(segmentShape._overlayRect.getStrokeWidth()).to.equal(2);
-					expect(segmentShape._overlayRect.getFill()).to.equal("#0000ff");
-					expect(segmentShape._overlayRect.getOpacity()).to.equal(0.3);
-					expect(segmentShape._overlayRect.getCornerRadius()).to.equal(5);
+					expect(segmentShape.overlayRect.getStroke()).to.equal("#00ff00");
+					expect(segmentShape.overlayRect.getStrokeWidth()).to.equal(2);
+					expect(segmentShape.overlayRect.getFill()).to.equal("#0000ff");
+					expect(segmentShape.overlayRect.getOpacity()).to.equal(0.3);
+					expect(segmentShape.overlayRect.getCornerRadius()).to.equal(5);
 					done();
 				},
 			);
@@ -391,15 +391,15 @@ describe("SegmentShape", () => {
 					const zoomview = p.views.getView("zoomview");
 					const overview = p.views.getView("overview");
 
-					let segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+					let segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._overlayOffset).to.equal(20);
+					expect(segmentShape.overlayOffset).to.equal(20);
 
-					segmentShape = overview._segmentsLayer.getSegmentShape(segment);
+					segmentShape = overview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._overlayOffset).to.equal(10);
+					expect(segmentShape.overlayOffset).to.equal(10);
 					done();
 				},
 			);
@@ -438,17 +438,17 @@ describe("SegmentShape", () => {
 					const zoomview = p.views.getView("zoomview");
 					const overview = p.views.getView("overview");
 
-					let segmentShape = zoomview._segmentsLayer.getSegmentShape(segment);
+					let segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._overlayRect.getStroke()).to.equal("#222");
-					expect(segmentShape._overlayRect.getFill()).to.equal("#444");
+					expect(segmentShape.overlayRect.getStroke()).to.equal("#222");
+					expect(segmentShape.overlayRect.getFill()).to.equal("#444");
 
-					segmentShape = overview._segmentsLayer.getSegmentShape(segment);
+					segmentShape = overview.segmentsLayer.getSegmentShape(segment);
 
 					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
-					expect(segmentShape._overlayRect.getStroke()).to.equal("#222");
-					expect(segmentShape._overlayRect.getFill()).to.equal("#444");
+					expect(segmentShape.overlayRect.getStroke()).to.equal("#222");
+					expect(segmentShape.overlayRect.getFill()).to.equal("#444");
 					done();
 				},
 			);

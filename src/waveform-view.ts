@@ -24,32 +24,31 @@ export interface PlayedSegment {
 
 export class WaveformView {
 	public peaks: PeaksInstance;
-	public _peaks: PeaksInstance;
-	protected _container: HTMLDivElement;
-	protected _options: PeaksInstance["options"];
-	protected _viewOptions: ZoomviewOptions | OverviewOptions;
-	protected _originalWaveformData: WaveformData;
-	protected _data: WaveformData;
-	protected _frameOffset: number;
-	protected _width: number;
-	protected _height: number;
-	protected _amplitudeScale: number;
-	protected _waveformColor: WaveformColor;
-	protected _playedWaveformColor: WaveformColor | undefined;
-	protected _timeLabelPrecision: number;
-	protected _formatPlayheadTime: (time: number) => string;
-	protected _enableSeek: boolean;
-	protected _stage!: Stage;
-	protected _waveformLayer!: Layer;
-	protected _waveformShape!: WaveformShape;
-	protected _playedWaveformShape!: WaveformShape | undefined;
-	protected _playedSegment!: PlayedSegment | undefined;
-	protected _unplayedSegment!: PlayedSegment | undefined;
-	protected _segmentsLayer!: SegmentsLayer | undefined;
-	protected _pointsLayer!: PointsLayer | undefined;
-	protected _axisLayer!: Layer;
-	protected _axis!: WaveformAxis;
-	protected _playheadLayer!: PlayheadLayer;
+	protected container: HTMLDivElement;
+	protected peaksOptions: PeaksInstance["options"];
+	protected viewOptions: ZoomviewOptions | OverviewOptions;
+	protected originalWaveformData: WaveformData;
+	protected data: WaveformData;
+	protected frameOffset: number;
+	protected width: number;
+	public height: number;
+	protected amplitudeScale: number;
+	protected waveformColor: WaveformColor;
+	protected playedWaveformColor: WaveformColor | undefined;
+	protected timeLabelPrecision: number;
+	protected formatPlayheadTimeFn: (time: number) => string;
+	protected seekEnabled: boolean;
+	public stage!: Stage;
+	protected waveformLayer!: Layer;
+	protected waveformShape!: WaveformShape;
+	protected playedWaveformShape!: WaveformShape | undefined;
+	protected playedSegment!: PlayedSegment | undefined;
+	protected unplayedSegment!: PlayedSegment | undefined;
+	public segmentsLayer!: SegmentsLayer | undefined;
+	public pointsLayer!: PointsLayer | undefined;
+	protected axisLayer!: Layer;
+	protected axis!: WaveformAxis;
+	protected playheadLayer!: PlayheadLayer;
 
 	constructor(
 		waveformData: WaveformData,
@@ -57,35 +56,34 @@ export class WaveformView {
 		peaks: PeaksInstance,
 		viewOptions: ZoomviewOptions | OverviewOptions,
 	) {
-		this._container = container;
+		this.container = container;
 		this.peaks = peaks;
-		this._peaks = peaks;
-		this._options = peaks.options;
-		this._viewOptions = viewOptions;
+		this.peaksOptions = peaks.options;
+		this.viewOptions = viewOptions;
 
-		this._originalWaveformData = waveformData;
-		this._data = waveformData;
+		this.originalWaveformData = waveformData;
+		this.data = waveformData;
 
 		// The pixel offset of the current frame being displayed
-		this._frameOffset = 0;
-		this._width = container.clientWidth;
-		this._height = container.clientHeight;
+		this.frameOffset = 0;
+		this.width = container.clientWidth;
+		this.height = container.clientHeight;
 
-		this._amplitudeScale = 1.0;
+		this.amplitudeScale = 1.0;
 
-		this._waveformColor = this._viewOptions.waveformColor;
-		this._playedWaveformColor = this._viewOptions.playedWaveformColor;
+		this.waveformColor = this.viewOptions.waveformColor;
+		this.playedWaveformColor = this.viewOptions.playedWaveformColor;
 
-		this._timeLabelPrecision = this._viewOptions.timeLabelPrecision;
+		this.timeLabelPrecision = this.viewOptions.timeLabelPrecision;
 
-		if (this._viewOptions.formatPlayheadTime) {
-			this._formatPlayheadTime = this._viewOptions.formatPlayheadTime;
+		if (this.viewOptions.formatPlayheadTime) {
+			this.formatPlayheadTimeFn = this.viewOptions.formatPlayheadTime;
 		} else {
-			this._formatPlayheadTime = (time) =>
-				formatTime(time, this._timeLabelPrecision);
+			this.formatPlayheadTimeFn = (time) =>
+				formatTime(time, this.timeLabelPrecision);
 		}
 
-		this._enableSeek = true;
+		this.seekEnabled = true;
 
 		this.initWaveformData();
 
@@ -93,51 +91,47 @@ export class WaveformView {
 		// Recommended maximum number of layers is 3-5.
 		Konva.showWarnings = false;
 
-		this._stage = new Konva.Stage({
+		this.stage = new Konva.Stage({
 			container: container,
-			width: this._width,
-			height: this._height,
+			width: this.width,
+			height: this.height,
 		});
 
-		this._createWaveform();
+		this.createWaveform();
 
-		if (this._viewOptions.enableSegments) {
-			this._segmentsLayer = SegmentsLayer.from({
+		if (this.viewOptions.enableSegments) {
+			this.segmentsLayer = SegmentsLayer.from({
 				peaks,
 				view: this as unknown as WaveformViewAPI,
-				enableEditing: this._viewOptions.enableEditing ?? false,
+				enableEditing: this.viewOptions.enableEditing ?? false,
 			});
-			this._segmentsLayer.addToStage(this._stage);
+			this.segmentsLayer.addToStage(this.stage);
 		}
 
-		if (this._viewOptions.enablePoints) {
-			this._pointsLayer = PointsLayer.from({
+		if (this.viewOptions.enablePoints) {
+			this.pointsLayer = PointsLayer.from({
 				peaks,
 				view: this as unknown as WaveformViewAPI,
-				enableEditing: this._viewOptions.enableEditing ?? false,
+				enableEditing: this.viewOptions.enableEditing ?? false,
 			});
-			this._pointsLayer.addToStage(this._stage);
+			this.pointsLayer.addToStage(this.stage);
 		}
 
 		this.initHighlightLayer();
 
-		this._createAxisLabels();
+		this.createAxisLabels();
 
-		this._playheadLayer = PlayheadLayer.from({
+		this.playheadLayer = PlayheadLayer.from({
 			player: this.peaks.player,
 			view: this as unknown as WaveformViewAPI,
-			options: this._viewOptions,
+			options: this.viewOptions,
 		});
 
-		this._playheadLayer.addToStage(this._stage);
+		this.playheadLayer.addToStage(this.stage);
 
-		this._onClick = this._onClick.bind(this);
-		this._onDblClick = this._onDblClick.bind(this);
-		this._onContextMenu = this._onContextMenu.bind(this);
-
-		this._stage.on("click", this._onClick);
-		this._stage.on("dblclick", this._onDblClick);
-		this._stage.on("contextmenu", this._onContextMenu);
+		this.stage.on("click", this.onClick);
+		this.stage.on("dblclick", this.onDblClick);
+		this.stage.on("contextmenu", this.onContextMenu);
 	}
 
 	// Methods to be overridden by subclasses
@@ -171,7 +165,7 @@ export class WaveformView {
 	updateWaveform(_frameOffset?: number, _forceUpdate?: boolean): void {}
 
 	getViewOptions(): ZoomviewOptions | OverviewOptions {
-		return this._viewOptions;
+		return this.viewOptions;
 	}
 
 	/**
@@ -179,11 +173,11 @@ export class WaveformView {
 	 */
 
 	getWaveformData(): WaveformData {
-		return this._data;
+		return this.data;
 	}
 
 	setWaveformData(waveformData: WaveformData): void {
-		this._data = waveformData;
+		this.data = waveformData;
 	}
 
 	/**
@@ -191,7 +185,7 @@ export class WaveformView {
 	 */
 
 	timeToPixels(time: number): number {
-		return Math.floor((time * this._data.sample_rate) / this._data.scale);
+		return Math.floor((time * this.data.sample_rate) / this.data.scale);
 	}
 
 	/**
@@ -199,7 +193,7 @@ export class WaveformView {
 	 */
 
 	pixelsToTime(pixels: number): number {
-		return (pixels * this._data.scale) / this._data.sample_rate;
+		return (pixels * this.data.scale) / this.data.sample_rate;
 	}
 
 	/**
@@ -208,15 +202,15 @@ export class WaveformView {
 	 */
 
 	pixelOffsetToTime(offset: number): number {
-		const pixels = this._frameOffset + offset;
+		const pixels = this.frameOffset + offset;
 
-		return (pixels * this._data.scale) / this._data.sample_rate;
+		return (pixels * this.data.scale) / this.data.sample_rate;
 	}
 
 	timeToPixelOffset(time: number): number {
 		return (
-			Math.floor((time * this._data.sample_rate) / this._data.scale) -
-			this._frameOffset
+			Math.floor((time * this.data.sample_rate) / this.data.scale) -
+			this.frameOffset
 		);
 	}
 
@@ -225,7 +219,7 @@ export class WaveformView {
 	 */
 
 	getFrameOffset(): number {
-		return this._frameOffset;
+		return this.frameOffset;
 	}
 
 	/**
@@ -233,7 +227,7 @@ export class WaveformView {
 	 */
 
 	getWidth(): number {
-		return this._width;
+		return this.width;
 	}
 
 	/**
@@ -241,7 +235,7 @@ export class WaveformView {
 	 */
 
 	getHeight(): number {
-		return this._height;
+		return this.height;
 	}
 
 	/**
@@ -257,131 +251,131 @@ export class WaveformView {
 	 */
 
 	getEndTime(): number {
-		return this.pixelOffsetToTime(this._width);
+		return this.pixelOffsetToTime(this.width);
 	}
 
 	/**
 	 * Returns the media duration, in seconds.
 	 */
 
-	_getDuration(): number {
+	getDuration(): number {
 		return this.peaks.player.getDuration();
 	}
 
-	_createWaveform(): void {
-		this._waveformLayer = new Konva.Layer({ listening: false });
+	private createWaveform(): void {
+		this.waveformLayer = new Konva.Layer({ listening: false });
 
-		this._createWaveformShapes();
+		this.createWaveformShapes();
 
-		this._stage.add(this._waveformLayer);
+		this.stage.add(this.waveformLayer);
 	}
 
-	_createWaveformShapes(): void {
-		if (!this._waveformShape) {
-			this._waveformShape = WaveformShape.from({
-				color: this._waveformColor,
+	private createWaveformShapes(): void {
+		if (!this.waveformShape) {
+			this.waveformShape = WaveformShape.from({
+				color: this.waveformColor,
 				view: this as unknown as WaveformViewAPI,
 			});
 
-			this._waveformShape.addToLayer(this._waveformLayer);
+			this.waveformShape.addToLayer(this.waveformLayer);
 		}
 
-		if (this._playedWaveformColor && !this._playedWaveformShape) {
+		if (this.playedWaveformColor && !this.playedWaveformShape) {
 			const time = this.peaks.player.getCurrentTime();
 
-			this._playedSegment = {
+			this.playedSegment = {
 				startTime: 0,
 				endTime: time,
 			};
 
-			this._unplayedSegment = {
+			this.unplayedSegment = {
 				startTime: time,
-				endTime: this._getDuration(),
+				endTime: this.getDuration(),
 			};
 
-			this._waveformShape.setSegment(this._unplayedSegment);
+			this.waveformShape.setSegment(this.unplayedSegment);
 
-			this._playedWaveformShape = WaveformShape.from({
-				color: this._playedWaveformColor,
+			this.playedWaveformShape = WaveformShape.from({
+				color: this.playedWaveformColor,
 				view: this as unknown as WaveformViewAPI,
-				segment: this._playedSegment,
+				segment: this.playedSegment,
 			});
 
-			this._playedWaveformShape.addToLayer(this._waveformLayer);
+			this.playedWaveformShape.addToLayer(this.waveformLayer);
 		}
 	}
 
 	setWaveformColor(color: WaveformColor): void {
-		this._waveformColor = color;
-		this._waveformShape.setWaveformColor(color);
+		this.waveformColor = color;
+		this.waveformShape.setWaveformColor(color);
 	}
 
 	setPlayedWaveformColor(color: WaveformColor | undefined): void {
-		this._playedWaveformColor = color;
+		this.playedWaveformColor = color;
 
 		if (color) {
-			if (!this._playedWaveformShape) {
-				this._createWaveformShapes();
+			if (!this.playedWaveformShape) {
+				this.createWaveformShapes();
 			}
 
-			this._playedWaveformShape?.setWaveformColor(color);
+			this.playedWaveformShape?.setWaveformColor(color);
 		} else {
-			if (this._playedWaveformShape) {
-				this._destroyPlayedWaveformShape();
+			if (this.playedWaveformShape) {
+				this.destroyPlayedWaveformShape();
 			}
 		}
 	}
 
-	_destroyPlayedWaveformShape(): void {
-		this._waveformShape.setSegment(undefined);
+	private destroyPlayedWaveformShape(): void {
+		this.waveformShape.setSegment(undefined);
 
-		this._playedWaveformShape?.destroy();
-		this._playedWaveformShape = undefined;
+		this.playedWaveformShape?.destroy();
+		this.playedWaveformShape = undefined;
 
-		this._playedSegment = undefined;
-		this._unplayedSegment = undefined;
+		this.playedSegment = undefined;
+		this.unplayedSegment = undefined;
 	}
 
-	_createAxisLabels(): void {
-		this._axisLayer = new Konva.Layer({ listening: false });
-		this._axis = WaveformAxis.from({
+	private createAxisLabels(): void {
+		this.axisLayer = new Konva.Layer({ listening: false });
+		this.axis = WaveformAxis.from({
 			view: this as unknown as WaveformViewAPI,
-			options: this._viewOptions,
+			options: this.viewOptions,
 		});
 
-		this._axis.addToLayer(this._axisLayer);
-		this._stage.add(this._axisLayer);
+		this.axis.addToLayer(this.axisLayer);
+		this.stage.add(this.axisLayer);
 	}
 
 	showAxisLabels(
 		show: boolean,
 		options?: { topMarkerHeight?: number; bottomMarkerHeight?: number },
 	): void {
-		this._axis.showAxisLabels(show, options);
-		this._axisLayer.draw();
+		this.axis.showAxisLabels(show, options);
+		this.axisLayer.draw();
 	}
 
 	setAxisLabelColor(color: string): void {
-		this._axis.setAxisLabelColor(color);
-		this._axisLayer.draw();
+		this.axis.setAxisLabelColor(color);
+		this.axisLayer.draw();
 	}
 
 	setAxisGridlineColor(color: string): void {
-		this._axis.setAxisGridlineColor(color);
-		this._axisLayer.draw();
+		this.axis.setAxisGridlineColor(color);
+		this.axisLayer.draw();
 	}
 
 	showPlayheadTime(show: boolean): void {
-		this._playheadLayer.showPlayheadTime(show);
+		this.playheadLayer.showPlayheadTime(show);
 	}
 
 	setTimeLabelPrecision(precision: number): void {
-		this._timeLabelPrecision = precision;
-		this._playheadLayer.updatePlayheadText();
+		this.timeLabelPrecision = precision;
+		this.playheadLayer.updatePlayheadText();
 	}
 
 	formatTime(time: number): string {
-		return this._formatPlayheadTime(time);
+		return this.formatPlayheadTimeFn(time);
 	}
 
 	/**
@@ -396,40 +390,40 @@ export class WaveformView {
 			throw new Error("view.setAmplitudeScale(): Scale must be a valid number");
 		}
 
-		this._amplitudeScale = scale;
+		this.amplitudeScale = scale;
 
 		this.drawWaveformLayer();
 
-		if (this._segmentsLayer) {
-			this._segmentsLayer.draw();
+		if (this.segmentsLayer) {
+			this.segmentsLayer.draw();
 		}
 	}
 
 	getAmplitudeScale(): number {
-		return this._amplitudeScale;
+		return this.amplitudeScale;
 	}
 
 	enableSeek(enable: boolean): void {
-		this._enableSeek = enable;
+		this.seekEnabled = enable;
 	}
 
 	isSeekEnabled(): boolean {
-		return this._enableSeek;
+		return this.seekEnabled;
 	}
 
-	_onClick(event: KonvaEventObject<MouseEvent>): void {
-		this._clickHandler(event, "click");
-	}
+	private onClick = (event: KonvaEventObject<MouseEvent>): void => {
+		this.clickHandler(event, "click");
+	};
 
-	_onDblClick(event: KonvaEventObject<MouseEvent>): void {
-		this._clickHandler(event, "dblclick");
-	}
+	private onDblClick = (event: KonvaEventObject<MouseEvent>): void => {
+		this.clickHandler(event, "dblclick");
+	};
 
-	_onContextMenu(event: KonvaEventObject<MouseEvent>): void {
-		this._clickHandler(event, "contextmenu");
-	}
+	private onContextMenu = (event: KonvaEventObject<MouseEvent>): void => {
+		this.clickHandler(event, "contextmenu");
+	};
 
-	_clickHandler(event: KonvaEventObject<MouseEvent>, eventName: string): void {
+	private clickHandler(event: KonvaEventObject<MouseEvent>, eventName: string): void {
 		let offsetX = event.evt.offsetX;
 
 		if (offsetX < 0) {
@@ -438,7 +432,7 @@ export class WaveformView {
 
 		let emitViewEvent = true;
 
-		if (event.target !== this._stage) {
+		if (event.target !== this.stage) {
 			const marker = getMarkerObject(event.target);
 
 			if (marker) {
@@ -466,8 +460,8 @@ export class WaveformView {
 							},
 						};
 
-						if (this._segmentsLayer) {
-							this._segmentsLayer.segmentClicked(eventName, clickEvent);
+						if (this.segmentsLayer) {
+							this.segmentsLayer.segmentClicked(eventName, clickEvent);
 						}
 					}
 				}
@@ -486,33 +480,33 @@ export class WaveformView {
 	}
 
 	updatePlayheadTime(time: number): void {
-		this._playheadLayer.updatePlayheadTime(time);
+		this.playheadLayer.updatePlayheadTime(time);
 	}
 
 	playheadPosChanged(time: number): void {
 		if (
-			this._playedWaveformShape &&
-			this._playedSegment &&
-			this._unplayedSegment
+			this.playedWaveformShape &&
+			this.playedSegment &&
+			this.unplayedSegment
 		) {
-			this._playedSegment.endTime = time;
-			this._unplayedSegment.startTime = time;
+			this.playedSegment.endTime = time;
+			this.unplayedSegment.startTime = time;
 
 			this.drawWaveformLayer();
 		}
 	}
 
 	drawWaveformLayer(): void {
-		this._waveformLayer.draw();
+		this.waveformLayer.draw();
 	}
 
 	enableMarkerEditing(enable: boolean): void {
-		if (this._segmentsLayer) {
-			this._segmentsLayer.enableEditing(enable);
+		if (this.segmentsLayer) {
+			this.segmentsLayer.enableEditing(enable);
 		}
 
-		if (this._pointsLayer) {
-			this._pointsLayer.enableEditing(enable);
+		if (this.pointsLayer) {
+			this.pointsLayer.enableEditing(enable);
 		}
 	}
 
@@ -524,40 +518,40 @@ export class WaveformView {
 	 */
 
 	dragSeek(dragging: boolean): void {
-		if (this._segmentsLayer) {
-			this._segmentsLayer.setListening(!dragging);
+		if (this.segmentsLayer) {
+			this.segmentsLayer.setListening(!dragging);
 		}
 
-		if (this._pointsLayer) {
-			this._pointsLayer.setListening(!dragging);
+		if (this.pointsLayer) {
+			this.pointsLayer.setListening(!dragging);
 		}
 	}
 
 	fitToContainer(): void {
 		if (
-			this._container.clientWidth === 0 &&
-			this._container.clientHeight === 0
+			this.container.clientWidth === 0 &&
+			this.container.clientHeight === 0
 		) {
 			return;
 		}
 
 		let updateWaveform = false;
 
-		if (this._container.clientWidth !== this._width) {
-			this._width = this._container.clientWidth;
-			this._stage.width(this._width);
+		if (this.container.clientWidth !== this.width) {
+			this.width = this.container.clientWidth;
+			this.stage.width(this.width);
 
 			updateWaveform = this.containerWidthChange();
 		}
 
 		let heightChanged = false;
 
-		if (this._container.clientHeight !== this._height) {
-			this._height = this._container.clientHeight;
-			this._stage.height(this._height);
+		if (this.container.clientHeight !== this.height) {
+			this.height = this.container.clientHeight;
+			this.stage.height(this.height);
 
-			this._waveformShape.fitToView();
-			this._playheadLayer.fitToView();
+			this.waveformShape.fitToView();
+			this.playheadLayer.fitToView();
 
 			this.containerHeightChange();
 
@@ -565,31 +559,31 @@ export class WaveformView {
 		}
 
 		if (updateWaveform) {
-			this.updateWaveform(this._frameOffset, true);
+			this.updateWaveform(this.frameOffset, true);
 		} else if (heightChanged) {
-			if (this._segmentsLayer) {
-				this._segmentsLayer.fitToView();
+			if (this.segmentsLayer) {
+				this.segmentsLayer.fitToView();
 			}
 
-			if (this._pointsLayer) {
-				this._pointsLayer.fitToView();
+			if (this.pointsLayer) {
+				this.pointsLayer.fitToView();
 			}
 		}
 	}
 
 	destroy(): void {
-		this._playheadLayer.destroy();
+		this.playheadLayer.destroy();
 
-		if (this._segmentsLayer) {
-			this._segmentsLayer.destroy();
+		if (this.segmentsLayer) {
+			this.segmentsLayer.destroy();
 		}
 
-		if (this._pointsLayer) {
-			this._pointsLayer.destroy();
+		if (this.pointsLayer) {
+			this.pointsLayer.destroy();
 		}
 
-		if (this._stage) {
-			this._stage.destroy();
+		if (this.stage) {
+			this.stage.destroy();
 		}
 	}
 }

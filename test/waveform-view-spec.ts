@@ -66,8 +66,8 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._waveformShape._color).to.equal("#f00");
-						expect(view._playedWaveformShape._color).to.equal("#0f0");
+						expect(view.waveformShape.color).to.equal("#f00");
+						expect(view.playedWaveformShape.color).to.equal("#0f0");
 
 						done();
 					});
@@ -93,8 +93,8 @@ function initOptions(
 
 						view.setPlayedWaveformColor("#0f0");
 
-						expect(view._waveformShape._color).to.equal("#f00");
-						expect(view._playedWaveformShape._color).to.equal("#0f0");
+						expect(view.waveformShape.color).to.equal("#f00");
+						expect(view.playedWaveformShape.color).to.equal("#0f0");
 
 						done();
 					});
@@ -119,8 +119,8 @@ function initOptions(
 
 						view.setPlayedWaveformColor(null);
 
-						expect(view._waveformShape._color).to.equal("#f00");
-						expect(view._playedWaveformShape).to.equal(undefined);
+						expect(view.waveformShape.color).to.equal("#f00");
+						expect(view.playedWaveformShape).to.equal(undefined);
 
 						done();
 					});
@@ -143,7 +143,7 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._playheadLayer._playheadText).to.equal(undefined);
+						expect(view.playheadLayer.playheadText).to.equal(undefined);
 
 						done();
 					});
@@ -166,12 +166,12 @@ function initOptions(
 						expect(view).to.be.ok;
 
 						if (test.view === "zoomview") {
-							expect(view._playheadLayer._playheadText).to.be.ok;
-							expect(view._playheadLayer._playheadText.getText()).to.equal(
+							expect(view.playheadLayer.playheadText).to.be.ok;
+							expect(view.playheadLayer.playheadText.getText()).to.equal(
 								"00:00.00",
 							);
 						} else {
-							expect(view._playheadLayer._playheadText).to.equal(undefined);
+							expect(view.playheadLayer.playheadText).to.equal(undefined);
 						}
 
 						done();
@@ -195,7 +195,7 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._playheadLayer._playheadText).to.equal(undefined);
+						expect(view.playheadLayer.playheadText).to.equal(undefined);
 
 						done();
 					});
@@ -217,8 +217,8 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._playheadLayer._playheadText).to.be.ok;
-						expect(view._playheadLayer._playheadText.getText()).to.equal(
+						expect(view.playheadLayer.playheadText).to.be.ok;
+						expect(view.playheadLayer.playheadText.getText()).to.equal(
 							"00:00.00",
 						);
 
@@ -242,7 +242,7 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._playheadLayer._playheadText).to.equal(undefined);
+						expect(view.playheadLayer.playheadText).to.equal(undefined);
 
 						done();
 					});
@@ -268,8 +268,8 @@ function initOptions(
 
 						view.showPlayheadTime(true);
 
-						expect(view._playheadLayer._playheadText).to.be.ok;
-						expect(view._playheadLayer._playheadText.getText()).to.equal(
+						expect(view.playheadLayer.playheadText).to.be.ok;
+						expect(view.playheadLayer.playheadText.getText()).to.equal(
 							"00:00.00",
 						);
 
@@ -295,7 +295,7 @@ function initOptions(
 
 						view.showPlayheadTime(false);
 
-						expect(view._playheadLayer._playheadText).to.equal(undefined);
+						expect(view.playheadLayer.playheadText).to.equal(undefined);
 
 						done();
 					});
@@ -319,8 +319,8 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._playheadLayer._playheadText).to.be.ok;
-						expect(view._playheadLayer._playheadText.getText()).to.equal(
+						expect(view.playheadLayer.playheadText).to.be.ok;
+						expect(view.playheadLayer.playheadText.getText()).to.equal(
 							"00:00.00",
 						);
 
@@ -345,8 +345,8 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._playheadLayer._playheadText).to.be.ok;
-						expect(view._playheadLayer._playheadText.getText()).to.equal(
+						expect(view.playheadLayer.playheadText).to.be.ok;
+						expect(view.playheadLayer.playheadText.getText()).to.equal(
 							"00:00",
 						);
 
@@ -371,8 +371,8 @@ function initOptions(
 						) as unknown as InternalWaveformView;
 						expect(view).to.be.ok;
 
-						expect(view._playheadLayer._playheadText).to.be.ok;
-						expect(view._playheadLayer._playheadText.getText()).to.equal(
+						expect(view.playheadLayer.playheadText).to.be.ok;
+						expect(view.playheadLayer.playheadText.getText()).to.equal(
 							"00:00.000",
 						);
 
@@ -400,8 +400,8 @@ function initOptions(
 
 						view.setTimeLabelPrecision(0);
 
-						expect(view._playheadLayer._playheadText).to.be.ok;
-						expect(view._playheadLayer._playheadText.getText()).to.equal(
+						expect(view.playheadLayer.playheadText).to.be.ok;
+						expect(view.playheadLayer.playheadText.getText()).to.equal(
 							"00:00",
 						);
 
@@ -427,8 +427,8 @@ function initOptions(
 
 						view.setTimeLabelPrecision(3);
 
-						expect(view._playheadLayer._playheadText).to.be.ok;
-						expect(view._playheadLayer._playheadText.getText()).to.equal(
+						expect(view.playheadLayer.playheadText).to.be.ok;
+						expect(view.playheadLayer.playheadText.getText()).to.equal(
 							"00:00.000",
 						);
 

@@ -10,8 +10,6 @@ import type {
 	WaveformViewAPI,
 } from "./types";
 
-import { objectHasProperty } from "./utils";
-
 /**
  * Creates a Konva.Layer that displays segment markers against the audio
  * waveform.
@@ -24,11 +22,11 @@ export interface SegmentsLayerFromOptions {
 }
 
 export class SegmentsLayer {
-	private readonly _peaks: PeaksInstance;
-	private readonly _view: WaveformViewAPI;
-	private _enableEditing: boolean;
-	private _segmentShapes: Record<string, SegmentShape>;
-	private readonly _layer: Layer;
+	private readonly peaks: PeaksInstance;
+	private readonly view: WaveformViewAPI;
+	private editingEnabled: boolean;
+	private segmentShapes = new Map<string, SegmentShape>();
+	private readonly layer: Layer;
 
 	static from(options: SegmentsLayerFromOptions): SegmentsLayer {
 		return new SegmentsLayer(
@@ -43,23 +41,16 @@ export class SegmentsLayer {
 		view: WaveformViewAPI,
 		enableEditing: boolean,
 	) {
-		this._peaks = peaks;
-		this._view = view;
-		this._enableEditing = enableEditing;
-		this._segmentShapes = {};
-		this._layer = new Konva.Layer();
+		this.peaks = peaks;
+		this.view = view;
+		this.editingEnabled = enableEditing;
+		this.layer = new Konva.Layer();
 
-		this._onSegmentsUpdate = this._onSegmentsUpdate.bind(this);
-		this._onSegmentsAdd = this._onSegmentsAdd.bind(this);
-		this._onSegmentsRemove = this._onSegmentsRemove.bind(this);
-		this._onSegmentsRemoveAll = this._onSegmentsRemoveAll.bind(this);
-		this._onSegmentsDragged = this._onSegmentsDragged.bind(this);
-
-		this._peaks.on("segments.update", this._onSegmentsUpdate);
-		this._peaks.on("segments.add", this._onSegmentsAdd);
-		this._peaks.on("segments.remove", this._onSegmentsRemove);
-		this._peaks.on("segments.remove_all", this._onSegmentsRemoveAll);
-		this._peaks.on("segments.dragged", this._onSegmentsDragged);
+		this.peaks.on("segments.update", this.onSegmentsUpdate);
+		this.peaks.on("segments.add", this.onSegmentsAdd);
+		this.peaks.on("segments.remove", this.onSegmentsRemove);
+		this.peaks.on("segments.remove_all", this.onSegmentsRemoveAll);
+		this.peaks.on("segments.dragged", this.onSegmentsDragged);
 	}
 
 	/**
@@ -67,43 +58,41 @@ export class SegmentsLayer {
 	 */
 
 	addToStage(stage: Stage): void {
-		stage.add(this._layer);
+		stage.add(this.layer);
 	}
 
 	setListening(listening: boolean): void {
-		this._layer.listening(listening);
+		this.layer.listening(listening);
 	}
 
 	enableEditing(enable: boolean): void {
-		this._enableEditing = enable;
+		this.editingEnabled = enable;
 	}
 
 	isEditingEnabled(): boolean {
-		return this._enableEditing;
+		return this.editingEnabled;
 	}
 
 	enableSegmentDragging(enable: boolean): void {
-		for (const segmentPid in this._segmentShapes) {
-			if (objectHasProperty(this._segmentShapes, segmentPid)) {
-				this._segmentShapes[segmentPid]?.enableSegmentDragging(enable);
-			}
+		for (const [, segmentShape] of this.segmentShapes) {
+			segmentShape.enableSegmentDragging(enable);
 		}
 	}
 
 	getSegmentShape(segment: Segment): SegmentShape | undefined {
-		return this._segmentShapes[segment.pid];
+		return this.segmentShapes.get(segment.pid);
 	}
 
 	formatTime(time: number): string {
-		return this._view.formatTime(time);
+		return this.view.formatTime(time);
 	}
 
-	private _onSegmentsUpdate(
+	private onSegmentsUpdate = (
 		segment: Segment,
 		options: SegmentUpdateOptions,
-	): void {
-		const frameStartTime = this._view.getStartTime();
-		const frameEndTime = this._view.getEndTime();
+	): void => {
+		const frameStartTime = this.view.getStartTime();
+		const frameEndTime = this.view.getEndTime();
 
 		const segmentShape = this.getSegmentShape(segment);
 		const isVisible = segment.isVisible(frameStartTime, frameEndTime);
@@ -112,27 +101,27 @@ export class SegmentsLayer {
 			// Remove segment shape that is no longer visible.
 
 			if (!segmentShape.isDragging()) {
-				this._removeSegment(segment);
+				this.removeSegment(segment);
 			}
 		} else if (!segmentShape && isVisible) {
 			// Add segment shape for visible segment.
-			this._updateSegment(segment);
+			this.updateSegment(segment);
 		} else if (segmentShape && isVisible) {
 			// Update the segment shape with the changed attributes.
 			segmentShape.update(options);
 		}
-	}
+	};
 
-	private _onSegmentsAdd(event: {
+	private onSegmentsAdd = (event: {
 		segments: Segment[];
 		insert: boolean;
-	}): void {
-		const frameStartTime = this._view.getStartTime();
-		const frameEndTime = this._view.getEndTime();
+	}): void => {
+		const frameStartTime = this.view.getStartTime();
+		const frameEndTime = this.view.getEndTime();
 
 		for (const segment of event.segments) {
 			if (segment.isVisible(frameStartTime, frameEndTime)) {
-				const segmentShape = this._addSegmentShape(segment);
+				const segmentShape = this.addSegmentShape(segment);
 
 				segmentShape.update();
 			}
@@ -140,33 +129,33 @@ export class SegmentsLayer {
 
 		// Ensure segment markers are always draggable.
 		this.moveSegmentMarkersToTop();
-	}
+	};
 
-	private _onSegmentsRemove(event: { segments: Segment[] }): void {
+	private onSegmentsRemove = (event: { segments: Segment[] }): void => {
 		for (const segment of event.segments) {
-			this._removeSegment(segment);
+			this.removeSegment(segment);
 		}
-	}
+	};
 
-	private _onSegmentsRemoveAll(): void {
-		this._layer.removeChildren();
-		this._segmentShapes = {};
-	}
+	private onSegmentsRemoveAll = (): void => {
+		this.layer.removeChildren();
+		this.segmentShapes.clear();
+	};
 
-	private _onSegmentsDragged(event: { segment: Segment }): void {
-		this._updateSegment(event.segment);
-	}
+	private onSegmentsDragged = (event: { segment: Segment }): void => {
+		this.updateSegment(event.segment);
+	};
 
 	/**
 	 * Creates the Konva UI objects for a given segment.
 	 */
 
-	private _createSegmentShape(segment: Segment): SegmentShape {
+	private createSegmentShape(segment: Segment): SegmentShape {
 		return SegmentShape.from({
-			segment,
-			peaks: this._peaks,
 			layer: this,
-			view: this._view,
+			peaks: this.peaks,
+			segment,
+			view: this.view,
 		});
 	}
 
@@ -174,12 +163,12 @@ export class SegmentsLayer {
 	 * Adds a Konva UI object to the layer for a given segment.
 	 */
 
-	private _addSegmentShape(segment: Segment): SegmentShape {
-		const segmentShape = this._createSegmentShape(segment);
+	private addSegmentShape(segment: Segment): SegmentShape {
+		const segmentShape = this.createSegmentShape(segment);
 
-		segmentShape.addToLayer(this._layer);
+		segmentShape.addToLayer(this.layer);
 
-		this._segmentShapes[segment.pid] = segmentShape;
+		this.segmentShapes.set(segment.pid, segmentShape);
 
 		return segmentShape;
 	}
@@ -195,21 +184,21 @@ export class SegmentsLayer {
 
 	updateSegments(startTime: number, endTime: number): void {
 		// Update segments in visible time range.
-		const segments = this._peaks.segments.find(startTime, endTime);
+		const segments = this.peaks.segments.find(startTime, endTime);
 
 		for (const segment of segments) {
-			this._updateSegment(segment);
+			this.updateSegment(segment);
 		}
 
 		// TODO: In the overview all segments are visible, so no need to do this.
-		this._removeInvisibleSegments(startTime, endTime);
+		this.removeInvisibleSegments(startTime, endTime);
 	}
 
-	private _updateSegment(segment: Segment): void {
+	private updateSegment(segment: Segment): void {
 		let segmentShape = this.getSegmentShape(segment);
 
 		if (!segmentShape) {
-			segmentShape = this._addSegmentShape(segment);
+			segmentShape = this.addSegmentShape(segment);
 		}
 
 		segmentShape.update();
@@ -223,14 +212,12 @@ export class SegmentsLayer {
 	 * @param endTime The end of the visible time range, in seconds.
 	 */
 
-	private _removeInvisibleSegments(startTime: number, endTime: number): void {
-		for (const segmentPid in this._segmentShapes) {
-			if (objectHasProperty(this._segmentShapes, segmentPid)) {
-				const segment = this._segmentShapes[segmentPid]?.getSegment();
+	private removeInvisibleSegments(startTime: number, endTime: number): void {
+		for (const [, segmentShape] of this.segmentShapes) {
+			const segment = segmentShape.getSegment();
 
-				if (segment && !segment.isVisible(startTime, endTime)) {
-					this._removeSegment(segment);
-				}
+			if (segment && !segment.isVisible(startTime, endTime)) {
+				this.removeSegment(segment);
 			}
 		}
 	}
@@ -239,12 +226,12 @@ export class SegmentsLayer {
 	 * Removes the given segment from the view.
 	 */
 
-	private _removeSegment(segment: Segment): void {
-		const segmentShape = this._segmentShapes[segment.pid];
+	private removeSegment(segment: Segment): void {
+		const segmentShape = this.segmentShapes.get(segment.pid);
 
 		if (segmentShape) {
 			segmentShape.destroy();
-			delete this._segmentShapes[segment.pid];
+			this.segmentShapes.delete(segment.pid);
 		}
 	}
 
@@ -254,10 +241,8 @@ export class SegmentsLayer {
 	 */
 
 	moveSegmentMarkersToTop(): void {
-		for (const segmentPid in this._segmentShapes) {
-			if (objectHasProperty(this._segmentShapes, segmentPid)) {
-				this._segmentShapes[segmentPid]?.moveMarkersToTop();
-			}
+		for (const [, segmentShape] of this.segmentShapes) {
+			segmentShape.moveMarkersToTop();
 		}
 	}
 
@@ -266,11 +251,11 @@ export class SegmentsLayer {
 	 */
 
 	setVisible(visible: boolean): void {
-		this._layer.visible(visible);
+		this.layer.visible(visible);
 	}
 
 	segmentClicked(eventName: string, event: SegmentClickEvent): void {
-		const segmentShape = this._segmentShapes[event.segment.pid];
+		const segmentShape = this.segmentShapes.get(event.segment.pid);
 
 		if (segmentShape) {
 			segmentShape.segmentClicked(eventName, event);
@@ -278,30 +263,24 @@ export class SegmentsLayer {
 	}
 
 	destroy(): void {
-		this._peaks.off("segments.update", this._onSegmentsUpdate);
-		this._peaks.off("segments.add", this._onSegmentsAdd);
-		this._peaks.off("segments.remove", this._onSegmentsRemove);
-		this._peaks.off("segments.remove_all", this._onSegmentsRemoveAll);
-		this._peaks.off("segments.dragged", this._onSegmentsDragged);
+		this.peaks.off("segments.update", this.onSegmentsUpdate);
+		this.peaks.off("segments.add", this.onSegmentsAdd);
+		this.peaks.off("segments.remove", this.onSegmentsRemove);
+		this.peaks.off("segments.remove_all", this.onSegmentsRemoveAll);
+		this.peaks.off("segments.dragged", this.onSegmentsDragged);
 	}
 
 	fitToView(): void {
-		for (const segmentPid in this._segmentShapes) {
-			if (objectHasProperty(this._segmentShapes, segmentPid)) {
-				const segmentShape = this._segmentShapes[segmentPid];
-
-				if (segmentShape) {
-					segmentShape.fitToView();
-				}
-			}
+		for (const [, segmentShape] of this.segmentShapes) {
+			segmentShape.fitToView();
 		}
 	}
 
 	draw(): void {
-		this._layer.draw();
+		this.layer.draw();
 	}
 
 	getHeight(): number {
-		return this._layer.getHeight() ?? 0;
+		return this.layer.getHeight() ?? 0;
 	}
 }

@@ -38,67 +38,67 @@ import { WaveformSegments } from "./waveform-segments";
 import { ZoomController } from "./zoom-controller";
 
 export const defaultViewOptions = {
-	playheadColor: "#111111",
-	playheadTextColor: "#aaaaaa",
-	playheadBackgroundColor: "transparent",
-	playheadPadding: 2,
-	playheadWidth: 1,
-	axisGridlineColor: "#cccccc",
-	showAxisLabels: true,
-	axisTopMarkerHeight: 10,
 	axisBottomMarkerHeight: 10,
+	axisGridlineColor: "#cccccc",
 	axisLabelColor: "#aaaaaa",
+	axisTopMarkerHeight: 10,
+	enablePoints: true,
+	enableSegments: true,
 	fontFamily: "sans-serif",
 	fontSize: 11,
 	fontStyle: "normal",
+	playheadBackgroundColor: "transparent",
+	playheadColor: "#111111",
+	playheadPadding: 2,
+	playheadTextColor: "#aaaaaa",
+	playheadWidth: 1,
+	showAxisLabels: true,
 	timeLabelPrecision: 2,
-	enablePoints: true,
-	enableSegments: true,
 } as const;
 defaultViewOptions satisfies Partial<ViewOptions>;
 
 export const defaultZoomviewOptions = {
+	autoScroll: true,
+	autoScrollOffset: 100,
+	enableEditing: true,
 	// showPlayheadTime:    true,
 	playheadClickTolerance: 3,
 	waveformColor: "rgba(0, 225, 128, 1)",
 	wheelMode: "none",
-	autoScroll: true,
-	autoScrollOffset: 100,
-	enableEditing: true,
 } as const;
 defaultZoomviewOptions satisfies Partial<ViewOptions>;
 
 const defaultOverviewOptions = {
+	enableEditing: false,
+	highlightColor: "#aaaaaa",
+	highlightCornerRadius: 2,
+	highlightOffset: 11,
+	highlightOpacity: 0.3,
+	highlightStrokeColor: "transparent",
 	// showPlayheadTime:    false,
 	waveformColor: "rgba(0, 0, 0, 0.2)",
-	highlightColor: "#aaaaaa",
-	highlightStrokeColor: "transparent",
-	highlightOpacity: 0.3,
-	highlightOffset: 11,
-	highlightCornerRadius: 2,
-	enableEditing: false,
 } as const;
 defaultOverviewOptions satisfies Partial<ViewOptions>;
 
 const defaultSegmentOptions = {
-	overlay: false,
-	markers: true,
-	startMarkerColor: "#aaaaaa",
 	endMarkerColor: "#aaaaaa",
-	waveformColor: "#0074d9",
-	overlayColor: "#ff0000",
-	overlayOpacity: 0.3,
+	markers: true,
+	overlay: false,
 	overlayBorderColor: "#ff0000",
 	overlayBorderWidth: 2,
+	overlayColor: "#ff0000",
 	overlayCornerRadius: 5,
-	overlayOffset: 25,
-	overlayLabelAlign: "left",
-	overlayLabelVerticalAlign: "top",
-	overlayLabelPadding: 8,
-	overlayLabelColor: "#000000",
 	overlayFontFamily: "sans-serif",
 	overlayFontSize: 12,
 	overlayFontStyle: "normal",
+	overlayLabelAlign: "left",
+	overlayLabelColor: "#000000",
+	overlayLabelPadding: 8,
+	overlayLabelVerticalAlign: "top",
+	overlayOffset: 25,
+	overlayOpacity: 0.3,
+	startMarkerColor: "#aaaaaa",
+	waveformColor: "#0074d9",
 } as const;
 defaultSegmentOptions satisfies Partial<SegmentDisplayOptions>;
 
@@ -328,39 +328,39 @@ export class Peaks extends EventEmitter {
 	points!: WaveformPoints;
 	zoom!: ZoomController;
 	views!: ViewController;
-	declare _logger: Logger;
-	private _keyboardHandler: KeyboardHandler | undefined;
-	private _waveformBuilder: WaveformBuilder | undefined;
-	private _waveformData: WaveformData | undefined;
-	declare _cueEmitter: CueEmitter | undefined;
+	declare logger: Logger;
+	private keyboardHandler: KeyboardHandler | undefined;
+	private waveformBuilder: WaveformBuilder | undefined;
+	private waveformData: WaveformData | undefined;
+	declare cueEmitter: CueEmitter | undefined;
 
 	constructor() {
 		super();
 
 		// Set default options
 		this.options = {
-			zoomLevels: [512, 1024, 2048, 4096],
-			waveformCache: true,
+			createPointMarker: createPointMarker,
+			createSegmentLabel: createSegmentLabel,
+
+			createSegmentMarker: createSegmentMarker,
+
+			dataUri: undefined,
+
+			// eslint-disable-next-line no-console
+			logger: console.error.bind(console),
 
 			mediaElement: undefined,
 			mediaUrl: undefined,
 
-			dataUri: undefined,
-			withCredentials: false,
-
-			waveformData: undefined,
-			webAudio: undefined,
-
 			nudgeIncrement: 1.0,
 
 			pointMarkerColor: "#39cccc",
+			waveformCache: true,
 
-			createSegmentMarker: createSegmentMarker,
-			createSegmentLabel: createSegmentLabel,
-			createPointMarker: createPointMarker,
-
-			// eslint-disable-next-line no-console
-			logger: console.error.bind(console),
+			waveformData: undefined,
+			webAudio: undefined,
+			withCredentials: false,
+			zoomLevels: [512, 1024, 2048, 4096],
 		} as PeaksOptions;
 	}
 
@@ -381,7 +381,7 @@ export class Peaks extends EventEmitter {
 
 		const instance = new Peaks();
 
-		let err = instance._setOptions(opts);
+		let err = instance.setOptions(opts);
 
 		if (!err) {
 			err = checkContainerElements(instance.options);
@@ -417,7 +417,7 @@ export class Peaks extends EventEmitter {
 		}
 
 		if (opts.keyboard) {
-			instance._keyboardHandler = KeyboardHandler.from({
+			instance.keyboardHandler = KeyboardHandler.from({
 				eventEmitter: instance as unknown as PeaksInstance,
 			});
 		}
@@ -441,7 +441,7 @@ export class Peaks extends EventEmitter {
 
 			if (audioContext && (audioBuffer || url)) {
 				const clipOptions: ClipNodePlayerOptions = audioBuffer
-					? { audioContext, audioBuffer }
+					? { audioBuffer, audioContext }
 					: { audioContext, url: url as string };
 				player = ClipNodePlayer.from({ options: clipOptions });
 			} else {
@@ -455,8 +455,8 @@ export class Peaks extends EventEmitter {
 		}
 
 		instance.player = Player.from({
-			peaks: instance as unknown as PeaksInstance,
 			adapter: player,
+			peaks: instance as unknown as PeaksInstance,
 		});
 		instance.segments = WaveformSegments.from({
 			peaks: instance as unknown as PeaksInstance,
@@ -473,14 +473,14 @@ export class Peaks extends EventEmitter {
 		});
 
 		// Setup the UI components
-		instance._waveformBuilder = WaveformBuilder.from({
+		instance.waveformBuilder = WaveformBuilder.from({
 			peaks: instance as unknown as PeaksInstance,
 		});
 
 		instance.player
 			.init()
 			.then(() => {
-				instance._waveformBuilder?.init(
+				instance.waveformBuilder?.init(
 					instance.options,
 					(err, waveformData) => {
 						if (err) {
@@ -495,8 +495,8 @@ export class Peaks extends EventEmitter {
 							return;
 						}
 
-						instance._waveformBuilder = undefined;
-						instance._waveformData = waveformData;
+						instance.waveformBuilder = undefined;
+						instance.waveformData = waveformData;
 
 						const zoomviewContainer = instance.options.zoomview.container;
 						const overviewContainer = instance.options.overview.container;
@@ -526,7 +526,7 @@ export class Peaks extends EventEmitter {
 						}
 
 						if (opts.emitCueEvents) {
-							instance._cueEmitter = CueEmitter.from({
+							instance.cueEmitter = CueEmitter.from({
 								peaks: instance as unknown as PeaksInstance,
 							});
 						}
@@ -569,7 +569,7 @@ export class Peaks extends EventEmitter {
 		});
 	}
 
-	private _setOptions(opts: PeaksInitOptions) {
+	private setOptions(opts: PeaksInitOptions) {
 		if (!isObject(opts)) {
 			return new TypeError(
 				"Peaks.init(): The options parameter should be an object",
@@ -648,30 +648,30 @@ export class Peaks extends EventEmitter {
 			}
 		}
 
-		this._logger = this.options.logger;
+		this.logger = this.options.logger;
 	}
 
 	setSource(options: SetSourceOptions, callback: (err?: Error) => void) {
 		this.player
-			._setSource(options)
+			.setSource(options)
 			.then(() => {
 				if (!options.zoomLevels) {
 					(options as Writable<SetSourceOptions>).zoomLevels =
 						this.options.zoomLevels;
 				}
 
-				this._waveformBuilder = WaveformBuilder.from({
+				this.waveformBuilder = WaveformBuilder.from({
 					peaks: this as unknown as PeaksInstance,
 				});
 
-				this._waveformBuilder?.init(options, (err, data) => {
+				this.waveformBuilder?.init(options, (err, data) => {
 					if (err) {
 						callback(err);
 						return;
 					}
 
-					this._waveformBuilder = undefined;
-					this._waveformData = data;
+					this.waveformBuilder = undefined;
+					this.waveformData = data;
 
 					for (const viewName of ["overview", "zoomview"] as const) {
 						const view = this.views.getView(viewName);
@@ -694,16 +694,16 @@ export class Peaks extends EventEmitter {
 	}
 
 	getWaveformData(): WaveformData | undefined {
-		return this._waveformData;
+		return this.waveformData;
 	}
 
 	destroy() {
-		if (this._waveformBuilder) {
-			this._waveformBuilder.abort();
+		if (this.waveformBuilder) {
+			this.waveformBuilder.abort();
 		}
 
-		if (this._keyboardHandler) {
-			this._keyboardHandler.destroy();
+		if (this.keyboardHandler) {
+			this.keyboardHandler.destroy();
 		}
 
 		if (this.views) {
@@ -714,8 +714,8 @@ export class Peaks extends EventEmitter {
 			this.player.destroy();
 		}
 
-		if (this._cueEmitter) {
-			this._cueEmitter.destroy();
+		if (this.cueEmitter) {
+			this.cueEmitter.destroy();
 		}
 	}
 }

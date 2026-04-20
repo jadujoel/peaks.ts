@@ -15,136 +15,136 @@ export interface SegmentMarkerFromOptions {
 }
 
 export class SegmentMarker {
-	private readonly _segment: Segment;
-	private readonly _marker: Marker;
-	private readonly _editable: boolean;
-	private readonly _startMarker: boolean;
-	private readonly _onClick: (
+	private readonly segment: Segment;
+	private readonly marker: Marker;
+	private readonly editable: boolean;
+	private readonly startMarker: boolean;
+	private readonly onClick: (
 		marker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
 	) => void;
-	private readonly _onDragStart: (
+	private readonly onDragStart: (
 		marker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
 	) => void;
-	private readonly _onDragMove: (
+	private readonly onDragMove: (
 		marker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
 	) => void;
-	private readonly _onDragEnd: (
+	private readonly onDragEnd: (
 		marker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
 	) => void;
-	private readonly _group: Group;
+	private readonly group: Group;
 
 	static from(options: SegmentMarkerFromOptions): SegmentMarker {
 		return new SegmentMarker(options.options);
 	}
 
 	private constructor(options: SegmentMarkerOptions) {
-		this._segment = options.segment;
-		this._marker = options.marker;
-		this._editable = options.editable;
-		this._startMarker = options.startMarker;
+		this.segment = options.segment;
+		this.marker = options.marker;
+		this.editable = options.editable;
+		this.startMarker = options.startMarker;
 
-		this._onClick = options.onClick;
-		this._onDragStart = options.onDragStart;
-		this._onDragMove = options.onDragMove;
-		this._onDragEnd = options.onDragEnd;
+		this.onClick = options.onClick;
+		this.onDragStart = options.onDragStart;
+		this.onDragMove = options.onDragMove;
+		this.onDragEnd = options.onDragEnd;
 
-		this._group = new Konva.Group({
-			name: "segment-marker",
-			segment: this._segment,
-			draggable: this._editable,
-			visible: this._editable,
+		this.group = new Konva.Group({
 			dragBoundFunc: (pos: { x: number; y: number }) =>
 				options.dragBoundFunc(this, pos),
+			draggable: this.editable,
+			name: "segment-marker",
+			segment: this.segment,
+			visible: this.editable,
 		});
 
-		this._bindDefaultEventHandlers();
+		this.bindDefaultEventHandlers();
 
-		this._marker.init(this._group);
+		this.marker.init(this.group);
 	}
 
-	private _bindDefaultEventHandlers(): void {
-		this._group.on("click", (event: KonvaEventObject<MouseEvent>) => {
-			this._onClick(this, event);
+	private bindDefaultEventHandlers(): void {
+		this.group.on("click", (event: KonvaEventObject<MouseEvent>) => {
+			this.onClick(this, event);
 		});
 
-		this._group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
-			this._onDragStart(this, event);
+		this.group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
+			this.onDragStart(this, event);
 		});
 
-		this._group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
-			this._onDragMove(this, event);
+		this.group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
+			this.onDragMove(this, event);
 		});
 
-		this._group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
-			this._onDragEnd(this, event);
+		this.group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
+			this.onDragEnd(this, event);
 		});
 	}
 
 	addToLayer(layer: Layer): void {
-		layer.add(this._group);
+		layer.add(this.group);
 	}
 
 	moveToTop(): void {
-		this._group.moveToTop();
+		this.group.moveToTop();
 	}
 
 	fitToView(): void {
-		this._marker.fitToView();
+		this.marker.fitToView();
 	}
 
 	getSegment(): Segment {
-		return this._segment;
+		return this.segment;
 	}
 
 	getX(): number {
-		return this._group.x();
+		return this.group.x();
 	}
 
 	setX(x: number): void {
-		this._group.x(x);
+		this.group.x(x);
 	}
 
 	getWidth(): number {
-		return this._group.width();
+		return this.group.width();
 	}
 
 	getAbsolutePosition(): { x: number; y: number } {
-		return this._group.getAbsolutePosition();
+		return this.group.getAbsolutePosition();
 	}
 
 	isStartMarker(): boolean {
-		return this._startMarker;
+		return this.startMarker;
 	}
 
 	update(options: Record<string, unknown>): void {
 		if (options.editable !== undefined) {
-			this._group.visible(options.editable as boolean);
-			this._group.draggable(options.editable as boolean);
+			this.group.visible(options.editable as boolean);
+			this.group.draggable(options.editable as boolean);
 		}
 
-		if (this._marker.update) {
-			this._marker.update(options);
+		if (this.marker.update) {
+			this.marker.update(options);
 		}
 	}
 
 	destroy(): void {
-		if (this._marker.destroy) {
-			this._marker.destroy();
+		if (this.marker.destroy) {
+			this.marker.destroy();
 		}
 
-		this._group.destroyChildren();
-		this._group.destroy();
+		this.group.destroyChildren();
+		this.group.destroy();
 	}
 
 	startDrag(): void {
-		this._group.startDrag();
+		this.group.startDrag();
 	}
 
 	stopDrag(): void {
-		this._group.stopDrag();
+		this.group.stopDrag();
 	}
 }

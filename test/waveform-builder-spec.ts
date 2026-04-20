@@ -78,7 +78,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
+			const createXHR = sinon.spy(waveformBuilder, "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
@@ -104,7 +104,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
+			const createXHR = sinon.spy(waveformBuilder, "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
@@ -130,7 +130,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
+			const createXHR = sinon.spy(waveformBuilder, "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
@@ -157,7 +157,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
+			const createXHR = sinon.spy(waveformBuilder, "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
@@ -184,7 +184,7 @@ describe("WaveformBuilder", () => {
 
 				const waveformBuilder = WaveformBuilder.from({ peaks });
 
-				const createXHR = sinon.spy(waveformBuilder, "_createXHR");
+				const createXHR = sinon.spy(waveformBuilder, "createXHR");
 
 				waveformBuilder.init(peaks.options, (err, waveformData) => {
 					expect(err).to.equal(undefined);
@@ -291,7 +291,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "_createXHR");
+			const createXHR = sinon.spy(waveformBuilder, "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);

@@ -42,9 +42,9 @@ function applyPointDefaults(
 ): PointOptions {
 	return {
 		...options,
-		labelText: options.labelText ?? "",
-		editable: options.editable ?? false,
 		color: options.color ?? defaults.pointMarkerColor,
+		editable: options.editable ?? false,
+		labelText: options.labelText ?? "",
 	};
 }
 
@@ -128,13 +128,13 @@ export interface PointFromOptions {
 export class Point {
 	[key: string]: unknown;
 
-	private readonly _peaks: PointPeaksLike;
-	private readonly _pid: number;
-	private _id!: string;
-	private _time!: number;
-	private _labelText!: string;
-	private _color!: string;
-	private _editable!: boolean;
+	#peaks: PointPeaksLike;
+	#pid: number;
+	#id: string;
+	#time: number;
+	#labelText: string;
+	#color: string;
+	#editable: boolean;
 
 	static from(options: PointFromOptions): Point {
 		const merged = applyPointDefaults(options.options, options.defaults);
@@ -146,45 +146,70 @@ export class Point {
 		pid: number,
 		options: PointOptions,
 	) {
-		this._peaks = peaks;
-		this._pid = pid;
-		this._setUserData(options);
+		this.#peaks = peaks;
+		this.#pid = pid;
+		this.#id = options.id ?? `peaks.point.${pid}`;
+		this.#time = (options as PointOptions).time;
+		this.#labelText = options.labelText ?? "";
+		this.#color = options.color ?? "";
+		this.#editable = options.editable ?? false;
+		this.setUserData(options);
 	}
 
-	_setUserData(options: PointOptions | PointUpdateOptions): void {
+	private setUserData(options: PointOptions | PointUpdateOptions): void {
+		if (objectHasProperty(options, "id") && options.id !== undefined) {
+			this.#id = options.id;
+		}
+		if (
+			objectHasProperty(options, "time") &&
+			(options as PointOptions).time !== undefined
+		) {
+			this.#time = (options as PointOptions).time;
+		}
+		if (
+			objectHasProperty(options, "labelText") &&
+			options.labelText !== undefined
+		) {
+			this.#labelText = options.labelText;
+		}
+		if (objectHasProperty(options, "color") && options.color !== undefined) {
+			this.#color = options.color;
+		}
+		if (
+			objectHasProperty(options, "editable") &&
+			options.editable !== undefined
+		) {
+			this.#editable = options.editable;
+		}
 		for (const key in options) {
-			if (objectHasProperty(options, key)) {
-				if (pointOptions.indexOf(key) === -1) {
-					this[key] = options[key];
-				} else {
-					this[`_${key}`] = options[key];
-				}
+			if (objectHasProperty(options, key) && !pointOptions.includes(key)) {
+				this[key] = options[key];
 			}
 		}
 	}
 
 	get id(): string {
-		return this._id;
+		return this.#id;
 	}
 
 	get pid(): number {
-		return this._pid;
+		return this.#pid;
 	}
 
 	get time(): number {
-		return this._time;
+		return this.#time;
 	}
 
 	get labelText(): string {
-		return this._labelText;
+		return this.#labelText;
 	}
 
 	get color(): string {
-		return this._color;
+		return this.#color;
 	}
 
 	get editable(): boolean {
-		return this._editable;
+		return this.#editable;
 	}
 
 	/**
@@ -202,12 +227,12 @@ export class Point {
 				throw new TypeError("point.update(): invalid id");
 			}
 
-			this._peaks.points?.updatePointId(this, options.id);
+			this.#peaks.points?.updatePointId(this, options.id);
 		}
 
-		this._setUserData(options);
+		this.setUserData(options);
 
-		this._peaks.emit("points.update", this, options);
+		this.#peaks.emit("points.update", this, options);
 	}
 
 	/**
@@ -222,7 +247,7 @@ export class Point {
 		return this.time >= startTime && this.time < endTime;
 	}
 
-	_setTime(time: number): void {
-		this._time = time;
+	setTime(time: number): void {
+		this.#time = time;
 	}
 }

@@ -15,44 +15,37 @@ export interface MouseDragHandlerFromOptions {
 }
 
 export class MouseDragHandler {
-	private readonly _stage: Stage;
-	private readonly _handlers: MouseDragHandlers;
-	private _dragging: boolean;
-	private _lastMouseClientX: number | undefined;
+	private readonly stage: Stage;
+	private readonly handlers: MouseDragHandlers;
+	private dragging: boolean;
+	private lastMouseClientX: number | undefined;
 
 	static from(options: MouseDragHandlerFromOptions): MouseDragHandler {
 		return new MouseDragHandler(options.stage, options.handlers);
 	}
 
 	private constructor(stage: Stage, handlers: MouseDragHandlers) {
-		this._stage = stage;
-		this._handlers = handlers;
-		this._dragging = false;
-		this._lastMouseClientX = undefined;
+		this.stage = stage;
+		this.handlers = handlers;
+		this.dragging = false;
+		this.lastMouseClientX = undefined;
 
-		this._stage.on("mousedown", this._mouseDown);
-		this._stage.on("touchstart", this._mouseDown);
+		this.stage.on("mousedown", this.mouseDown);
+		this.stage.on("touchstart", this.mouseDown);
 	}
 
-	/**
-	 * Mouse down event handler.
-	 */
-	private _mouseDown = (
+	private mouseDown = (
 		event: KonvaEventObject<MouseEvent | TouchEvent>,
 	): void => {
 		let segment: Group | undefined;
 
 		if (event.type === "mousedown" && (event.evt as MouseEvent).button !== 0) {
-			// Mouse drag only applies to the primary mouse button.
-			// The secondary button may be used to show a context menu
-			// and we don't want to also treat this as a mouse drag operation.
 			return;
 		}
 
 		const marker = getMarkerObject(event.target);
 
 		if (marker) {
-			// Avoid interfering with drag/drop of point and segment markers.
 			if (
 				marker.attrs.name === "point-marker" ||
 				marker.attrs.name === "segment-marker"
@@ -60,78 +53,67 @@ export class MouseDragHandler {
 				return;
 			}
 
-			// Check if we're dragging a segment.
 			if (marker.attrs.name === "segment-overlay") {
 				segment = marker as unknown as Group;
 			}
 		}
 
-		this._lastMouseClientX = Math.floor(
+		this.lastMouseClientX = Math.floor(
 			event.type === "touchstart"
 				? ((event.evt as TouchEvent).touches[0]?.clientX ?? 0)
 				: (event.evt as MouseEvent).clientX,
 		);
 
-		if (this._handlers.onMouseDown) {
-			const mouseDownPosX = this._getMousePosX(this._lastMouseClientX);
+		if (this.handlers.onMouseDown) {
+			const mouseDownPosX = this.getMousePosX(this.lastMouseClientX);
 
-			this._handlers.onMouseDown(mouseDownPosX, segment);
+			this.handlers.onMouseDown(mouseDownPosX, segment);
 		}
 
-		// Use the window mousemove and mouseup handlers instead of the
-		// Konva.Stage ones so that we still receive events if the user moves the
-		// mouse outside the stage.
-		window.addEventListener("mousemove", this._mouseMove, {
+		window.addEventListener("mousemove", this.mouseMove, {
 			capture: false,
 			passive: true,
 		});
-		window.addEventListener("touchmove", this._mouseMove, {
+		window.addEventListener("touchmove", this.mouseMove, {
 			capture: false,
 			passive: true,
 		});
-		window.addEventListener("mouseup", this._mouseUp, {
+		window.addEventListener("mouseup", this.mouseUp, {
 			capture: false,
 			passive: true,
 		});
-		window.addEventListener("touchend", this._mouseUp, {
-			capture: false /* , passive: true */,
+		window.addEventListener("touchend", this.mouseUp, {
+			capture: false,
 		});
-		window.addEventListener("blur", this._mouseUp, {
+		window.addEventListener("blur", this.mouseUp, {
 			capture: false,
 			passive: true,
 		});
 	};
 
-	/**
-	 * Mouse move event handler.
-	 */
-	private _mouseMove = (event: MouseEvent | TouchEvent): void => {
+	private mouseMove = (event: MouseEvent | TouchEvent): void => {
 		const clientX = Math.floor(
 			event.type === "touchmove"
 				? ((event as TouchEvent).changedTouches[0]?.clientX ?? 0)
 				: (event as MouseEvent).clientX,
 		);
 
-		// Don't update on vertical mouse movement.
-		if (clientX === this._lastMouseClientX) {
+		if (clientX === this.lastMouseClientX) {
 			return;
 		}
 
-		this._lastMouseClientX = clientX;
+		this.lastMouseClientX = clientX;
 
-		this._dragging = true;
+		this.dragging = true;
 
-		if (this._handlers.onMouseMove) {
-			const mousePosX = this._getMousePosX(clientX);
+		if (this.handlers.onMouseMove) {
+			const mousePosX = this.getMousePosX(clientX);
 
-			this._handlers.onMouseMove(mousePosX);
+			this.handlers.onMouseMove(mousePosX);
 		}
 	};
 
-	/**
-	 * Mouse up event handler.
-	 */
-	private _mouseUp = (event: MouseEvent | TouchEvent | FocusEvent): void => {
+	private mouseUp = (event: MouseEvent | TouchEvent | FocusEvent): void => {
 		let clientX: number;
 
 		if (event.type === "touchend") {
@@ -146,45 +128,37 @@ export class MouseDragHandler {
 			clientX = Math.floor((event as MouseEvent).clientX);
 		}
 
-		if (this._handlers.onMouseUp) {
-			const mousePosX = this._getMousePosX(clientX);
+		if (this.handlers.onMouseUp) {
+			const mousePosX = this.getMousePosX(clientX);
 
-			this._handlers.onMouseUp(mousePosX);
+			this.handlers.onMouseUp(mousePosX);
 		}
 
-		window.removeEventListener("mousemove", this._mouseMove, {
+		window.removeEventListener("mousemove", this.mouseMove, {
 			capture: false,
 		});
-		window.removeEventListener("touchmove", this._mouseMove, {
+		window.removeEventListener("touchmove", this.mouseMove, {
 			capture: false,
 		});
-		window.removeEventListener("mouseup", this._mouseUp, { capture: false });
-		window.removeEventListener("touchend", this._mouseUp, { capture: false });
-		window.removeEventListener("blur", this._mouseUp, { capture: false });
+		window.removeEventListener("mouseup", this.mouseUp, { capture: false });
+		window.removeEventListener("touchend", this.mouseUp, { capture: false });
+		window.removeEventListener("blur", this.mouseUp, { capture: false });
 
-		this._dragging = false;
+		this.dragging = false;
 	};
 
-	/**
-	 * @returns The mouse X position, relative to the container that
-	 * received the mouse down event.
-	 */
-	private _getMousePosX(clientX: number): number {
-		const containerPos = this._stage.container().getBoundingClientRect();
+	private getMousePosX(clientX: number): number {
+		const containerPos = this.stage.container().getBoundingClientRect();
 
 		return Math.floor(clientX - containerPos.left);
 	}
 
-	/**
-	 * Returns true if the mouse is being dragged, i.e., moved with
-	 * the mouse button held down.
-	 */
 	isDragging(): boolean {
-		return this._dragging;
+		return this.dragging;
 	}
 
 	destroy(): void {
-		this._stage.off("mousedown", this._mouseDown);
-		this._stage.off("touchstart", this._mouseDown);
+		this.stage.off("mousedown", this.mouseDown);
+		this.stage.off("touchstart", this.mouseDown);
 	}
 }

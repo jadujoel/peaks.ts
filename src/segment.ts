@@ -227,17 +227,19 @@ export interface SegmentFromOptions {
 }
 
 export class Segment {
-	private readonly _peaks: SegmentPeaksLike;
-	private readonly _pid: number;
-	private _id!: string;
-	private _startTime!: number;
-	private _endTime!: number;
-	private _labelText!: string;
-	private _color!: string;
-	private _borderColor!: string;
-	private _editable!: boolean;
-	private _markers!: boolean;
-	private _overlay!: boolean;
+	[key: string]: unknown;
+
+	#peaks: SegmentPeaksLike;
+	#pid: number;
+	#id: string;
+	#startTime: number;
+	#endTime: number;
+	#labelText: string;
+	#color: string;
+	#borderColor: string;
+	#editable: boolean;
+	#markers: boolean;
+	#overlay: boolean;
 
 	static from(options: SegmentFromOptions): Segment {
 		const merged = applySegmentDefaults(options.options, options.defaults);
@@ -249,71 +251,103 @@ export class Segment {
 		pid: number,
 		options: SegmentOptions,
 	) {
-		this._peaks = peaks;
-		this._pid = pid;
-		this._id = options.id ?? `peaks.segment.${pid}`;
-		this._startTime = options.startTime;
-		this._endTime = options.endTime;
-		this._labelText = options.labelText ?? "";
-		this._color = options.color ?? "";
-		this._borderColor = options.borderColor ?? "";
-		this._editable = options.editable ?? false;
-		this._markers = options.markers ?? false;
-		this._overlay = options.overlay ?? false;
+		this.#peaks = peaks;
+		this.#pid = pid;
+		this.#id = options.id ?? `peaks.segment.${pid}`;
+		this.#startTime = options.startTime;
+		this.#endTime = options.endTime;
+		this.#labelText = options.labelText ?? "";
+		this.#color = options.color ?? "";
+		this.#borderColor = options.borderColor ?? "";
+		this.#editable = options.editable ?? false;
+		this.#markers = options.markers ?? false;
+		this.#overlay = options.overlay ?? false;
 
-		this._setUserData(options);
+		this.setUserData(options);
 	}
 
-	_setUserData(options: SegmentOptions | SegmentUpdateOptions): void {
+	private setUserData(options: SegmentOptions | SegmentUpdateOptions): void {
+		if (objectHasProperty(options, "id") && options.id !== undefined) {
+			this.#id = options.id;
+		}
+		if (
+			objectHasProperty(options, "startTime") &&
+			options.startTime !== undefined
+		) {
+			this.#startTime = options.startTime;
+		}
+		if (
+			objectHasProperty(options, "endTime") &&
+			options.endTime !== undefined
+		) {
+			this.#endTime = options.endTime;
+		}
+		if (
+			objectHasProperty(options, "labelText") &&
+			options.labelText !== undefined
+		) {
+			this.#labelText = options.labelText;
+		}
+		if (objectHasProperty(options, "color") && options.color !== undefined) {
+			this.#color = options.color;
+		}
+		if (
+			objectHasProperty(options, "borderColor") &&
+			options.borderColor !== undefined
+		) {
+			this.#borderColor = options.borderColor;
+		}
+		if (
+			objectHasProperty(options, "editable") &&
+			options.editable !== undefined
+		) {
+			this.#editable = options.editable;
+		}
 		for (const key in options) {
-			if (objectHasProperty(options, key)) {
-				if (segmentOptions.indexOf(key) === -1) {
-					this[key] = options[key];
-				} else {
-					this[`_${key}`] = options[key];
-				}
+			if (objectHasProperty(options, key) && !segmentOptions.includes(key)) {
+				this[key] = options[key];
 			}
 		}
 	}
 
 	get id(): string {
-		return this._id;
+		return this.#id;
 	}
 
 	get pid(): number {
-		return this._pid;
+		return this.#pid;
 	}
 
 	get startTime(): number {
-		return this._startTime;
+		return this.#startTime;
 	}
 
 	get endTime(): number {
-		return this._endTime;
+		return this.#endTime;
 	}
 
 	get labelText(): string {
-		return this._labelText;
+		return this.#labelText;
 	}
 
 	get color(): string {
-		return this._color;
+		return this.#color;
 	}
 
 	get borderColor(): string {
-		return this._borderColor;
+		return this.#borderColor;
 	}
 
 	get markers(): boolean {
-		return this._markers;
+		return this.#markers;
 	}
 
 	get overlay(): boolean {
-		return this._overlay;
+		return this.#overlay;
 	}
 
 	get editable(): boolean {
-		return this._editable;
+		return this.#editable;
 	}
 
 	/**
@@ -332,12 +366,12 @@ export class Segment {
 				throw new TypeError("segment.update(): invalid id");
 			}
 
-			this._peaks.segments?.updateSegmentId(this, options.id);
+			this.#peaks.segments?.updateSegmentId(this, options.id);
 		}
 
-		this._setUserData(options);
+		this.setUserData(options);
 
-		this._peaks.emit("segments.update", this, options);
+		this.#peaks.emit("segments.update", this, options);
 	}
 
 	/**
@@ -368,11 +402,11 @@ export class Segment {
 		return true;
 	}
 
-	_setStartTime(time: number): void {
-		this._startTime = time;
+	setStartTime(time: number): void {
+		this.#startTime = time;
 	}
 
-	_setEndTime(time: number): void {
-		this._endTime = time;
+	setEndTime(time: number): void {
+		this.#endTime = time;
 	}
 }

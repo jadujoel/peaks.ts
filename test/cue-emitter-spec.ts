@@ -3,7 +3,7 @@ import { CueEmitter } from "../src/cue-emitter";
 import { Peaks } from "../src/main";
 
 type CueEmitterWithCues = {
-	_cues: Array<{ time: number; type: string }>;
+	cues: Array<{ time: number; type: string }>;
 };
 
 describe("CueEmitter", () => {
@@ -12,17 +12,17 @@ describe("CueEmitter", () => {
 
 	beforeEach((done: DoneCallback) => {
 		const options = {
+			dataUri: {
+				arraybuffer: "base/test/data/sample.dat",
+			},
+			emitCueEvents: false,
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 			},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
 			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				arraybuffer: "base/test/data/sample.dat",
-			},
-			emitCueEvents: false,
 		};
 
 		Peaks.init(options, (err, instance) => {
@@ -45,34 +45,34 @@ describe("CueEmitter", () => {
 	});
 
 	it("should initialise correctly", () => {
-		expect(p._cueEmitter).to.be.undefined;
-		expect(cueEmitter._peaks).equals(p, "instance did not match");
-		expect(cueEmitter._cues.length).equals(0, "marker array not empty");
+		expect(p.cueEmitter).to.be.undefined;
+		expect(cueEmitter.peaks).equals(p, "instance did not match");
+		expect(cueEmitter.cues.length).equals(0, "marker array not empty");
 	});
 
 	it("should initialise with already existing points", (done: DoneCallback) => {
 		const options = {
-			overview: {
-				container: document.getElementById("overview-container"),
-			},
-			zoomview: {
-				container: document.getElementById("zoomview-container"),
-			},
-			mediaElement: document.getElementById("media"),
 			dataUri: {
 				arraybuffer: "base/test/data/sample.dat",
 			},
 			emitCueEvents: true,
+			mediaElement: document.getElementById("media"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
 			points: [{ time: 1.0 }],
-			segments: [{ startTime: 1.1, endTime: 1.2 }],
+			segments: [{ endTime: 1.2, startTime: 1.1 }],
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+			},
 		};
 
 		Peaks.init(options, (err, peaks) => {
 			expect(err).to.equal(undefined);
 			expect(peaks).to.be.an.instanceOf(Peaks);
-			expect(peaks._cueEmitter).to.be.an.instanceOf(CueEmitter);
+			expect(peaks.cueEmitter).to.be.an.instanceOf(CueEmitter);
 			expect(
-				(peaks._cueEmitter as unknown as CueEmitterWithCues)._cues.length,
+				(peaks.cueEmitter as unknown as CueEmitterWithCues).cues.length,
 			).to.equal(3);
 			done();
 		});
@@ -80,28 +80,28 @@ describe("CueEmitter", () => {
 
 	it("should be destroyed when the Peaks instance is destroyed", (done: DoneCallback) => {
 		const options = {
+			dataUri: {
+				arraybuffer: "base/test/data/sample.dat",
+			},
+			emitCueEvents: true,
+			mediaElement: document.getElementById("media"),
 			overview: {
 				container: document.getElementById("overview-container"),
 			},
 			zoomview: {
 				container: document.getElementById("zoomview-container"),
 			},
-			mediaElement: document.getElementById("media"),
-			dataUri: {
-				arraybuffer: "base/test/data/sample.dat",
-			},
-			emitCueEvents: true,
 		};
 
 		Peaks.init(options, (err, peaks) => {
 			expect(err).to.equal(undefined);
 			expect(peaks).to.be.an.instanceOf(Peaks);
-			expect(peaks._cueEmitter).to.be.an.instanceOf(CueEmitter);
+			expect(peaks.cueEmitter).to.be.an.instanceOf(CueEmitter);
 
 			p.points.add({ time: 1.0 });
 			p.destroy();
 			expect(
-				(peaks._cueEmitter as unknown as CueEmitterWithCues)._cues.length,
+				(peaks.cueEmitter as unknown as CueEmitterWithCues).cues.length,
 			).to.equal(0, "did not empty cues");
 			done();
 		});
@@ -110,124 +110,121 @@ describe("CueEmitter", () => {
 	describe("adding points", () => {
 		it("should add cues when point is added", () => {
 			p.points.add({ time: 1.0 });
-			expect(cueEmitter._cues.length).equals(1, "cues length did not match");
-			expect(cueEmitter._cues[0].time).equals(1.0, "cue time did not match");
-			expect(cueEmitter._cues[0].type).equals(
+			expect(cueEmitter.cues.length).equals(1, "cues length did not match");
+			expect(cueEmitter.cues[0].time).equals(1.0, "cue time did not match");
+			expect(cueEmitter.cues[0].type).equals(
 				Cue.POINT,
 				"cue type did not match",
 			);
 
 			p.points.add({ time: 2.0 });
-			expect(cueEmitter._cues.length).equals(2, "cues length did not match");
+			expect(cueEmitter.cues.length).equals(2, "cues length did not match");
 		});
 
 		it("should reorder cues when point is added earlier", () => {
 			p.points.add({ time: 1.0 });
 			p.points.add({ time: 1.5 });
-			expect(cueEmitter._cues[0].time).equals(1.0, "cue time did not match");
+			expect(cueEmitter.cues[0].time).equals(1.0, "cue time did not match");
 			p.points.add({ time: 0.2 });
-			expect(cueEmitter._cues[0].time).equals(0.2, "cue time did not match");
+			expect(cueEmitter.cues[0].time).equals(0.2, "cue time did not match");
 		});
 
 		it("should update cues when point is updated", () => {
 			const id = "mypoint";
 
-			p.points.add({ time: 1.1, id: id });
-			p.points.add({ time: 9.1, id: "other" });
+			p.points.add({ id: id, time: 1.1 });
+			p.points.add({ id: "other", time: 9.1 });
 
-			expect(cueEmitter._cues[0].id).equals(id, "point id did not match");
-			expect(cueEmitter._cues[0].time).equals(1.1, "time did not match");
-			expect(cueEmitter._cues[1].time).equals(9.1, "time did not match");
+			expect(cueEmitter.cues[0].id).equals(id, "point id did not match");
+			expect(cueEmitter.cues[0].time).equals(1.1, "time did not match");
+			expect(cueEmitter.cues[1].time).equals(9.1, "time did not match");
 
 			p.points.getPoint(id).update({ time: 2.2 });
-			expect(cueEmitter._cues[0].time).equals(2.2, "time did not match");
-			expect(cueEmitter._cues[1].time).equals(9.1, "time did not match");
+			expect(cueEmitter.cues[0].time).equals(2.2, "time did not match");
+			expect(cueEmitter.cues[1].time).equals(9.1, "time did not match");
 		});
 
 		it("should remove cues when point is removed", () => {
-			p.points.add({ time: 1.1, id: "id1" });
+			p.points.add({ id: "id1", time: 1.1 });
 			p.points.add({ time: 9.1 });
 			p.points.removeById("id1");
-			expect(cueEmitter._cues[0].time).equals(9.1, "time did not match");
+			expect(cueEmitter.cues[0].time).equals(9.1, "time did not match");
 		});
 
 		it("should update when all points are removed", () => {
 			p.points.add({ time: 2.1 });
 			p.points.add({ time: 3.1 });
-			p.segments.add({ startTime: 2.2, endTime: 3.2 });
+			p.segments.add({ endTime: 3.2, startTime: 2.2 });
 			p.points.removeAll();
-			expect(cueEmitter._cues.length).equals(2, "cues length did not match");
+			expect(cueEmitter.cues.length).equals(2, "cues length did not match");
 		});
 	});
 
 	describe("adding segments", () => {
 		it("should add start and end cues when segment is added", () => {
-			p.segments.add({ startTime: 2.0, endTime: 3.0 });
-			expect(cueEmitter._cues.length).equals(2, "cues length did not match");
+			p.segments.add({ endTime: 3.0, startTime: 2.0 });
+			expect(cueEmitter.cues.length).equals(2, "cues length did not match");
 
-			expect(cueEmitter._cues[0].time).equals(
+			expect(cueEmitter.cues[0].time).equals(
 				2.0,
 				"start cue time did not match",
 			);
-			expect(cueEmitter._cues[1].time).equals(
-				3.0,
-				"end cue time did not match",
-			);
+			expect(cueEmitter.cues[1].time).equals(3.0, "end cue time did not match");
 
-			expect(cueEmitter._cues[0].type).equals(
+			expect(cueEmitter.cues[0].type).equals(
 				Cue.SEGMENT_START,
 				"cue type did not match",
 			);
-			expect(cueEmitter._cues[1].type).equals(
+			expect(cueEmitter.cues[1].type).equals(
 				Cue.SEGMENT_END,
 				"cue type did not match",
 			);
 		});
 
 		it("should reorder cues when segment is added earlier", () => {
-			p.segments.add({ startTime: 2.0, endTime: 3.0, id: "seg1" });
-			p.segments.add({ startTime: 2.5, endTime: 3.3, id: "seg2" });
-			expect(cueEmitter._cues[1].time).equals(
+			p.segments.add({ endTime: 3.0, id: "seg1", startTime: 2.0 });
+			p.segments.add({ endTime: 3.3, id: "seg2", startTime: 2.5 });
+			expect(cueEmitter.cues[1].time).equals(
 				2.5,
 				"seg2 start cue time did not match",
 			);
-			expect(cueEmitter._cues[2].time).equals(
+			expect(cueEmitter.cues[2].time).equals(
 				3.0,
 				"seg1 end cue time did not match",
 			);
 		});
 
 		it("should update cues when segment is updated", () => {
-			p.segments.add({ startTime: 2.0, endTime: 3.0, id: "seg1" });
-			p.segments.getSegment("seg1").update({ startTime: 2.2, endTime: 3.3 });
-			expect(cueEmitter._cues[0].time).equals(
+			p.segments.add({ endTime: 3.0, id: "seg1", startTime: 2.0 });
+			p.segments.getSegment("seg1").update({ endTime: 3.3, startTime: 2.2 });
+			expect(cueEmitter.cues[0].time).equals(
 				2.2,
 				"start cue time did not update?",
 			);
-			expect(cueEmitter._cues[1].time).equals(
+			expect(cueEmitter.cues[1].time).equals(
 				3.3,
 				"end cue time did not update?",
 			);
 		});
 
 		it("should remove cues when segment is removed", () => {
-			p.segments.add({ startTime: 3.3, endTime: 3.4, id: "segx" });
+			p.segments.add({ endTime: 3.4, id: "segx", startTime: 3.3 });
 			p.points.add({ time: 3.3 });
 			p.segments.removeById("segx");
-			expect(cueEmitter._cues.length).equals(1, "cues length did not match");
-			expect(cueEmitter._cues[0].type).equals(
+			expect(cueEmitter.cues.length).equals(1, "cues length did not match");
+			expect(cueEmitter.cues[0].type).equals(
 				Cue.POINT,
 				"remaining cue type did not match",
 			);
 		});
 
 		it("should update when all segments are removed", () => {
-			p.segments.add({ startTime: 3.3, endTime: 3.4, id: "segx" });
-			p.segments.add({ startTime: 4.3, endTime: 4.4, id: "seg2" });
+			p.segments.add({ endTime: 3.4, id: "segx", startTime: 3.3 });
+			p.segments.add({ endTime: 4.4, id: "seg2", startTime: 4.3 });
 			p.points.add({ time: 3.3 });
 			p.segments.removeAll();
-			expect(cueEmitter._cues.length).equals(1, "did not remove all segments?");
-			expect(cueEmitter._cues[0].type).equals(
+			expect(cueEmitter.cues.length).equals(1, "did not remove all segments?");
+			expect(cueEmitter.cues[0].type).equals(
 				Cue.POINT,
 				"remaining cue type did not match",
 			);
@@ -241,12 +238,12 @@ describe("CueEmitter", () => {
 		if (!navigator.userAgent.match(/Firefox/)) {
 			it("should update internal previous time when seeking", () => {
 				p.emit("player.timeupdate", 1.0);
-				expect(cueEmitter._previousTime).equals(
+				expect(cueEmitter.previousTime).equals(
 					1.0,
 					"did not move previous time",
 				);
 				p.emit("player.timeupdate", 2.0);
-				expect(cueEmitter._previousTime).equals(
+				expect(cueEmitter.previousTime).equals(
 					2.0,
 					"did not move previous time",
 				);
@@ -256,9 +253,9 @@ describe("CueEmitter", () => {
 		it("should emit point events during forward playback", (done: DoneCallback) => {
 			const emitted = [];
 
-			p.points.add({ time: 1.05, id: "p1" });
-			p.points.add({ time: 1.07, id: "p2" });
-			p.points.add({ time: 1.09, id: "p3" });
+			p.points.add({ id: "p1", time: 1.05 });
+			p.points.add({ id: "p2", time: 1.07 });
+			p.points.add({ id: "p3", time: 1.09 });
 
 			p.on("points.enter", (event) => {
 				emitted.push(event.point.id);
@@ -271,15 +268,15 @@ describe("CueEmitter", () => {
 				}
 			});
 
-			cueEmitter._onUpdate(1.1, 1.0);
+			cueEmitter.emitCueCrossings(1.1, 1.0);
 		});
 
 		it("should emit point events during reverse playback", (done: DoneCallback) => {
 			const emitted = [];
 
-			p.points.add({ time: 1.05, id: "p1" });
-			p.points.add({ time: 1.07, id: "p2" });
-			p.points.add({ time: 1.09, id: "p3" });
+			p.points.add({ id: "p1", time: 1.05 });
+			p.points.add({ id: "p2", time: 1.07 });
+			p.points.add({ id: "p3", time: 1.09 });
 
 			p.on("points.enter", (event) => {
 				emitted.push(event.point.id);
@@ -292,13 +289,13 @@ describe("CueEmitter", () => {
 				}
 			});
 
-			cueEmitter._onUpdate(1.0, 1.1);
+			cueEmitter.emitCueCrossings(1.0, 1.1);
 		});
 
 		it("should emit segment events during forward playback", (done: DoneCallback) => {
 			const emitted = [];
 
-			p.segments.add({ startTime: 1.05, endTime: 1.09, id: "seg1" });
+			p.segments.add({ endTime: 1.09, id: "seg1", startTime: 1.05 });
 
 			p.on("segments.enter", (event) => {
 				expect(event.segment.id).equals("seg1", "segment id did not match");
@@ -314,13 +311,13 @@ describe("CueEmitter", () => {
 				done();
 			});
 
-			cueEmitter._onUpdate(1.1, 1.0);
+			cueEmitter.emitCueCrossings(1.1, 1.0);
 		});
 
 		it("should emit segment events during reverse playback", (done: DoneCallback) => {
 			const emitted = [];
 
-			p.segments.add({ startTime: 1.05, endTime: 1.09, id: "seg1" });
+			p.segments.add({ endTime: 1.09, id: "seg1", startTime: 1.05 });
 
 			p.on("segments.enter", (event) => {
 				expect(event.segment.id).equals("seg1", "segment id did not match");
@@ -334,63 +331,62 @@ describe("CueEmitter", () => {
 				done();
 			});
 
-			cueEmitter._onUpdate(1.1, 1.0);
+			cueEmitter.emitCueCrossings(1.1, 1.0);
 		});
 
 		it("should emit events on seeking", (done: DoneCallback) => {
 			// This test uses a custom player object as sometimes
 			// the test would timeout waiting for the media element to seek.
 			const player = {
+				destroy: () => {},
+
+				getCurrentTime: function () {
+					return this.currentTime;
+				},
+
+				getDuration: () => 0,
 				init: function (eventEmitter) {
-					this._eventEmitter = eventEmitter;
-					this._currentTime = 0;
+					this.eventEmitter = eventEmitter;
+					this.currentTime = 0;
 
 					return Promise.resolve();
 				},
-
-				destroy: () => {},
-
-				play: () => {},
-
-				pause: () => {},
 
 				isPlaying: () => false,
 
 				isSeeking: () => false,
 
+				pause: () => {},
+
+				play: () => {},
+
 				seek: function (time) {
-					this._currentTime = time;
-					this._eventEmitter.emit("player.seeked", time);
+					this.currentTime = time;
+					this.eventEmitter.emit("player.seeked", time);
 				},
-
-				getCurrentTime: function () {
-					return this._currentTime;
-				},
-
-				getDuration: () => 0,
 			};
 
 			const options = {
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
 				dataUri: {
 					arraybuffer: "base/test/data/sample.dat",
 				},
-				player: player,
 				emitCueEvents: true,
+				overview: {
+					container: document.getElementById("overview-container"),
+				},
+				player: player,
+				zoomview: {
+					container: document.getElementById("zoomview-container"),
+				},
 			};
 
 			Peaks.init(options, (err, peaks) => {
 				expect(err).to.equal(undefined);
 				expect(peaks).to.be.an.instanceOf(Peaks);
 
-				peaks.segments.add({ startTime: 2, endTime: 4, id: "segment.1" });
-				peaks.segments.add({ startTime: 6, endTime: 8, id: "segment.2" });
-				peaks.segments.add({ startTime: 10, endTime: 12, id: "segment.3" });
+				peaks.segments.add({ endTime: 4, id: "segment.1", startTime: 2 });
+				peaks.segments.add({ endTime: 8, id: "segment.2", startTime: 6 });
+				peaks.segments.add({ endTime: 12, id: "segment.3", startTime: 10 });
 
 				const events = [];
 				const seekTimes = [3, 11]; // Seek to segment.1 then segment.3
@@ -416,11 +412,11 @@ describe("CueEmitter", () => {
 				});
 
 				peaks.on("segments.enter", (event) => {
-					events.push({ type: "segments.enter", event: event });
+					events.push({ event: event, type: "segments.enter" });
 				});
 
 				peaks.on("segments.exit", (event) => {
-					events.push({ type: "segments.exit", event: event });
+					events.push({ event: event, type: "segments.exit" });
 				});
 
 				const time = seekTimes.shift();

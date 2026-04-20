@@ -49,11 +49,11 @@ describe("WaveformZoomView", () => {
 		describe("with a fixed zoom level", () => {
 			it("should update the waveform start position", () => {
 				const pointsLayerUpdate = sinon.spy(
-					zoomview._pointsLayer,
+					zoomview.pointsLayer,
 					"updatePoints",
 				);
 				const segmentsLayerUpdate = sinon.spy(
-					zoomview._segmentsLayer,
+					zoomview.segmentsLayer,
 					"updateSegments",
 				);
 

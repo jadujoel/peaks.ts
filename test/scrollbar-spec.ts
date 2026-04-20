@@ -145,10 +145,10 @@ describe("Scrollbar", () => {
 		});
 
 		it("should set the scrollbox width to the maximum width", () => {
-			const scrollbar = p.views._scrollbar;
+			const scrollbar = p.views.scrollbar;
 
-			expect(scrollbar._scrollboxRect.getX()).to.equal(0);
-			expect(scrollbar._scrollboxRect.getWidth()).to.equal(1000);
+			expect(scrollbar.scrollboxRect.getX()).to.equal(0);
+			expect(scrollbar.scrollboxRect.getWidth()).to.equal(1000);
 		});
 
 		describe("when a zoomview is created", () => {
@@ -156,10 +156,10 @@ describe("Scrollbar", () => {
 				const container = document.getElementById("zoomview-container");
 				p.views.createZoomview(container);
 
-				const scrollbar = p.views._scrollbar;
+				const scrollbar = p.views.scrollbar;
 
-				expect(scrollbar._scrollboxRect.getX()).to.equal(0);
-				expect(scrollbar._scrollboxRect.getWidth()).to.equal(353);
+				expect(scrollbar.scrollboxRect.getX()).to.equal(0);
+				expect(scrollbar.scrollboxRect.getWidth()).to.equal(353);
 			});
 		});
 	});

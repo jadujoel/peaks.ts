@@ -47,46 +47,46 @@ export interface ClipNodePlayerFromOptions {
 }
 
 export class ClipNodePlayer implements PlayerAdapter {
-	private readonly _audioContext: AudioContext;
-	private readonly _processorUrl: string | undefined;
-	private _eventEmitter: PeaksInstance | undefined;
-	private _node: ClipNode | undefined;
-	private _audioBuffer: AudioBuffer | undefined;
-	private _url: string | undefined;
-	private _duration: number;
+	private readonly audioContext: AudioContext;
+	private readonly processorUrl: string | undefined;
+	private eventEmitter: PeaksInstance | undefined;
+	private node: ClipNode | undefined;
+	private audioBuffer: AudioBuffer | undefined;
+	private url: string | undefined;
+	private mediaDuration: number;
 
 	static from(options: ClipNodePlayerFromOptions): ClipNodePlayer {
 		return new ClipNodePlayer(options.options);
 	}
 
 	private constructor(options: ClipNodePlayerOptions) {
-		this._audioContext = options.audioContext;
-		this._audioBuffer = options.audioBuffer;
-		this._url = options.url;
-		this._processorUrl = options.processorUrl;
-		this._eventEmitter = undefined;
-		this._node = undefined;
-		this._duration = options.audioBuffer?.duration ?? 0;
+		this.audioContext = options.audioContext;
+		this.audioBuffer = options.audioBuffer;
+		this.url = options.url;
+		this.processorUrl = options.processorUrl;
+		this.eventEmitter = undefined;
+		this.node = undefined;
+		this.mediaDuration = options.audioBuffer?.duration ?? 0;
 	}
 
 	async init(eventEmitter: PeaksInstance): Promise<void> {
-		this._eventEmitter = eventEmitter;
-		await ensureWorkletModule(this._audioContext, this._processorUrl);
-		this._createNode();
+		this.eventEmitter = eventEmitter;
+		await ensureWorkletModule(this.audioContext, this.processorUrl);
+		this.createNode();
 	}
 
 	destroy(): void {
-		this._disposeNode();
-		this._eventEmitter = undefined;
+		this.disposeNode();
+		this.eventEmitter = undefined;
 	}
 
 	play(): Promise<void> {
-		const node = this._node;
+		const node = this.node;
 		if (!node) {
 			return Promise.reject(new Error("ClipNodePlayer not initialized"));
 		}
 
-		return this._audioContext.resume().then(() => {
+		return this.audioContext.resume().then(() => {
 			if (node.state === "paused") {
 				node.resume();
 			} else if (STARTABLE_STATES.has(node.state)) {
@@ -96,7 +96,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 	}
 
 	pause(): void {
-		const node = this._node;
+		const node = this.node;
 		if (!node) {
 			return;
 		}
@@ -106,7 +106,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 	}
 
 	isPlaying(): boolean {
-		const node = this._node;
+		const node = this.node;
 		if (!node) {
 			return false;
 		}
@@ -114,34 +114,34 @@ export class ClipNodePlayer implements PlayerAdapter {
 	}
 
 	isSeeking(): boolean {
-		return this._node?.seeking ?? false;
+		return this.node?.seeking ?? false;
 	}
 
 	getCurrentTime(): number {
-		return this._node?.currentTime ?? 0;
+		return this.node?.currentTime ?? 0;
 	}
 
 	getDuration(): number {
-		const nodeDuration = this._node?.duration;
+		const nodeDuration = this.node?.duration;
 		if (typeof nodeDuration === "number" && nodeDuration > 0) {
 			return nodeDuration;
 		}
-		return this._duration;
+		return this.mediaDuration;
 	}
 
 	seek(time: number): void {
-		if (this._node) {
-			this._node.currentTime = time;
+		if (this.node) {
+			this.node.currentTime = time;
 		}
 	}
 
 	playSegment(segment: Segment, loop: boolean): Promise<void> {
-		const node = this._node;
+		const node = this.node;
 		if (!node) {
 			return Promise.reject(new Error("ClipNodePlayer not initialized"));
 		}
 
-		return this._audioContext.resume().then(() => {
+		return this.audioContext.resume().then(() => {
 			if (
 				PLAYING_STATES.has(node.state) ||
 				node.state === "paused" ||
@@ -162,49 +162,49 @@ export class ClipNodePlayer implements PlayerAdapter {
 	}
 
 	async setSource(options: SetSourceOptions): Promise<void> {
-		this._disposeNode();
+		this.disposeNode();
 
-		this._audioBuffer = options.webAudio?.audioBuffer;
-		this._url = options.mediaUrl;
-		this._duration = this._audioBuffer?.duration ?? 0;
+		this.audioBuffer = options.webAudio?.audioBuffer;
+		this.url = options.mediaUrl;
+		this.mediaDuration = this.audioBuffer?.duration ?? 0;
 
-		await ensureWorkletModule(this._audioContext, this._processorUrl);
-		this._createNode();
+		await ensureWorkletModule(this.audioContext, this.processorUrl);
+		this.createNode();
 	}
 
-	private _createNode(): void {
-		const node = this._isStreamingSource()
-			? this._createStreamingNode()
-			: new ClipNode(this._audioContext);
+	private createNode(): void {
+		const node = this.isStreamingSource()
+			? this.createStreamingNode()
+			: new ClipNode(this.audioContext);
 
-		this._node = node;
-		this._wireEvents(node);
-		node.connect(this._audioContext.destination);
+		this.node = node;
+		this.wireEvents(node);
+		node.connect(this.audioContext.destination);
 
 		if (node instanceof StreamingClipNode) {
-			if (this._url !== undefined) {
-				node.url = this._url;
+			if (this.url !== undefined) {
+				node.url = this.url;
 			}
-		} else if (this._audioBuffer) {
-			node.buffer = this._audioBuffer;
-			this._duration = this._audioBuffer.duration;
-			this._eventEmitter?.emit("player.canplay");
+		} else if (this.audioBuffer) {
+			node.buffer = this.audioBuffer;
+			this.mediaDuration = this.audioBuffer.duration;
+			this.eventEmitter?.emit("player.canplay");
 		}
 	}
 
-	private _isStreamingSource(): boolean {
-		return this._url !== undefined && this._audioBuffer === undefined;
+	private isStreamingSource(): boolean {
+		return this.url !== undefined && this.audioBuffer === undefined;
 	}
 
-	private _createStreamingNode(): StreamingClipNode {
-		return new StreamingClipNode(this._audioContext, undefined, {
+	private createStreamingNode(): StreamingClipNode {
+		return new StreamingClipNode(this.audioContext, undefined, {
 			defaultFormat: null,
-			targetSampleRate: this._audioContext.sampleRate,
+			targetSampleRate: this.audioContext.sampleRate,
 		});
 	}
 
-	private _wireEvents(node: ClipNode): void {
-		const emitter = this._eventEmitter;
+	private wireEvents(node: ClipNode): void {
+		const emitter = this.eventEmitter;
 		if (!emitter) {
 			return;
 		}
@@ -231,7 +231,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 			emitter.emit("player.timeupdate", time);
 		};
 		node.ondurationchange = (duration: number) => {
-			this._duration = duration;
+			this.mediaDuration = duration;
 		};
 
 		if (node instanceof StreamingClipNode) {
@@ -244,16 +244,16 @@ export class ClipNodePlayer implements PlayerAdapter {
 		}
 	}
 
-	private _disposeNode(): void {
-		if (!this._node) {
+	private disposeNode(): void {
+		if (!this.node) {
 			return;
 		}
 		try {
-			this._node.disconnect();
+			this.node.disconnect();
 		} catch {
 			// already disconnected
 		}
-		this._node.dispose();
-		this._node = undefined;
+		this.node.dispose();
+		this.node = undefined;
 	}
 }

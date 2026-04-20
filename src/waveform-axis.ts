@@ -15,49 +15,48 @@ export interface WaveformAxisFromOptions {
 }
 
 export class WaveformAxis {
-	private _axisGridlineColor: string;
-	private _axisLabelColor: string;
-	private _showAxisLabels: boolean;
-	private _axisTopMarkerHeight: number;
-	private _axisBottomMarkerHeight: number;
-	private readonly _formatAxisTime: (time: number) => string;
-	private readonly _axisLabelFont: string;
-	private readonly _axisShape: Shape;
+	private axisGridlineColor: string;
+	private axisLabelColor: string;
+	private showAxisLabelsFlag: boolean;
+	private axisTopMarkerHeight: number;
+	private axisBottomMarkerHeight: number;
+	private readonly formatAxisTimeFn: (time: number) => string;
+	private readonly axisLabelFont: string;
+	private readonly axisShape: Shape;
 
 	static from(options: WaveformAxisFromOptions): WaveformAxis {
 		return new WaveformAxis(options.view, options.options);
 	}
 
 	private constructor(view: WaveformViewAPI, options: ViewOptions) {
-		this._axisGridlineColor = options.axisGridlineColor;
-		this._axisLabelColor = options.axisLabelColor;
-		this._showAxisLabels = options.showAxisLabels;
-		this._axisTopMarkerHeight = options.axisTopMarkerHeight;
-		this._axisBottomMarkerHeight = options.axisBottomMarkerHeight;
+		this.axisGridlineColor = options.axisGridlineColor;
+		this.axisLabelColor = options.axisLabelColor;
+		this.showAxisLabelsFlag = options.showAxisLabels;
+		this.axisTopMarkerHeight = options.axisTopMarkerHeight;
+		this.axisBottomMarkerHeight = options.axisBottomMarkerHeight;
 
 		if (options.formatAxisTime) {
-			this._formatAxisTime = options.formatAxisTime;
+			this.formatAxisTimeFn = options.formatAxisTime;
 		} else {
-			this._formatAxisTime = (time: number) => {
-				// precision = 0, drops the fractional seconds
+			this.formatAxisTimeFn = (time: number) => {
 				return formatTime(time, 0);
 			};
 		}
 
-		this._axisLabelFont = WaveformAxis._buildFontString(
+		this.axisLabelFont = WaveformAxis.buildFontString(
 			options.fontFamily,
 			options.fontSize,
 			options.fontStyle,
 		);
 
-		this._axisShape = new Konva.Shape({
+		this.axisShape = new Konva.Shape({
 			sceneFunc: (context: Context) => {
-				this._drawAxis(context, view);
+				this.drawAxis(context, view);
 			},
 		});
 	}
 
-	private static _buildFontString(
+	private static buildFontString(
 		fontFamily: string,
 		fontSize: number,
 		fontStyle: string,
@@ -78,44 +77,36 @@ export class WaveformAxis {
 	}
 
 	addToLayer(layer: Layer): void {
-		layer.add(this._axisShape);
+		layer.add(this.axisShape);
 	}
 
 	showAxisLabels(
 		show: boolean,
 		options?: { topMarkerHeight?: number; bottomMarkerHeight?: number },
 	): void {
-		this._showAxisLabels = show;
+		this.showAxisLabelsFlag = show;
 
 		if (options) {
 			if (options.topMarkerHeight !== undefined) {
-				this._axisTopMarkerHeight = options.topMarkerHeight;
+				this.axisTopMarkerHeight = options.topMarkerHeight;
 			}
 
 			if (options.bottomMarkerHeight !== undefined) {
-				this._axisBottomMarkerHeight = options.bottomMarkerHeight;
+				this.axisBottomMarkerHeight = options.bottomMarkerHeight;
 			}
 		}
 	}
 
 	setAxisLabelColor(color: string): void {
-		this._axisLabelColor = color;
+		this.axisLabelColor = color;
 	}
 
 	setAxisGridlineColor(color: string): void {
-		this._axisGridlineColor = color;
+		this.axisGridlineColor = color;
 	}
 
-	/**
-	 * Returns number of seconds for each x-axis marker, appropriate for the
-	 * current zoom level, ensuring that markers are not too close together
-	 * and that markers are placed at intuitive time intervals (i.e., every 1,
-	 * 2, 5, 10, 20, 30 seconds, then every 1, 2, 5, 10, 20, 30 minutes, then
-	 * every 1, 2, 5, 10, 20, 30 hours).
-	 */
-
-	private _getAxisLabelScale(view: WaveformViewAPI): number {
-		let baseSecs = 1; // seconds
+	private getAxisLabelScale(view: WaveformViewAPI): number {
+		let baseSecs = 1;
 		const steps = [1, 2, 5, 10, 20, 30];
 		const minSpacing = 60;
 		let index = 0;
@@ -128,7 +119,7 @@ export class WaveformAxis {
 
 			if (pixels < minSpacing) {
 				if (++index === steps.length) {
-					baseSecs *= 60; // seconds -> minutes -> hours
+					baseSecs *= 60;
 					index = 0;
 				}
 			} else {
@@ -139,34 +130,25 @@ export class WaveformAxis {
 		return secs;
 	}
 
-	/**
-	 * Draws the time axis and labels onto a view.
-	 */
-
-	private _drawAxis(context: Context, view: WaveformViewAPI): void {
+	private drawAxis(context: Context, view: WaveformViewAPI): void {
 		const currentFrameStartTime = view.getStartTime();
 
-		// Time interval between axis markers (seconds)
-		const axisLabelIntervalSecs = this._getAxisLabelScale(view);
+		const axisLabelIntervalSecs = this.getAxisLabelScale(view);
 
-		// Time of first axis marker (seconds)
 		const firstAxisLabelSecs = roundUpToNearest(
 			currentFrameStartTime,
 			axisLabelIntervalSecs,
 		);
 
-		// Distance between waveform start time and first axis marker (seconds)
 		const axisLabelOffsetSecs = firstAxisLabelSecs - currentFrameStartTime;
 
-		// Distance between waveform start time and first axis marker (pixels)
 		const axisLabelOffsetPixels = view.timeToPixels(axisLabelOffsetSecs);
 
-		context.setAttr("strokeStyle", this._axisGridlineColor);
+		context.setAttr("strokeStyle", this.axisGridlineColor);
 		context.setAttr("lineWidth", 1);
 
-		// Set text style
-		context.setAttr("font", this._axisLabelFont);
-		context.setAttr("fillStyle", this._axisLabelColor);
+		context.setAttr("font", this.axisLabelFont);
+		context.setAttr("fillStyle", this.axisLabelColor);
 		context.setAttr("textAlign", "left");
 		context.setAttr("textBaseline", "bottom");
 
@@ -176,7 +158,6 @@ export class WaveformAxis {
 		let secs = firstAxisLabelSecs;
 
 		for (;;) {
-			// Position of axis marker (pixels)
 			const x =
 				axisLabelOffsetPixels + view.timeToPixels(secs - firstAxisLabelSecs);
 
@@ -184,25 +165,25 @@ export class WaveformAxis {
 				break;
 			}
 
-			if (this._axisTopMarkerHeight > 0) {
+			if (this.axisTopMarkerHeight > 0) {
 				context.beginPath();
 				context.moveTo(x + 0.5, 0);
-				context.lineTo(x + 0.5, 0 + this._axisTopMarkerHeight);
+				context.lineTo(x + 0.5, 0 + this.axisTopMarkerHeight);
 				context.stroke();
 			}
 
-			if (this._axisBottomMarkerHeight > 0) {
+			if (this.axisBottomMarkerHeight > 0) {
 				context.beginPath();
 				context.moveTo(x + 0.5, height);
-				context.lineTo(x + 0.5, height - this._axisBottomMarkerHeight);
+				context.lineTo(x + 0.5, height - this.axisBottomMarkerHeight);
 				context.stroke();
 			}
 
-			if (this._showAxisLabels) {
-				const label = this._formatAxisTime(secs);
+			if (this.showAxisLabelsFlag) {
+				const label = this.formatAxisTimeFn(secs);
 				const labelWidth = context.measureText(label).width;
 				const labelX = x - labelWidth / 2;
-				const labelY = height - 1 - this._axisBottomMarkerHeight;
+				const labelY = height - 1 - this.axisBottomMarkerHeight;
 
 				if (labelX >= 0) {
 					context.fillText(label, labelX, labelY);

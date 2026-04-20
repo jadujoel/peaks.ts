@@ -25,10 +25,10 @@ export interface WaveformShapeFromOptions {
  */
 
 export class WaveformShape {
-	private readonly _color: WaveformColor;
-	private readonly _shape: Shape;
-	private readonly _view: WaveformViewAPI;
-	private _segment: TimeRange | undefined;
+	private readonly color: WaveformColor;
+	private readonly shape: Shape;
+	private readonly view: WaveformViewAPI;
+	private segment: TimeRange | undefined;
 
 	/**
 	 * Creates a waveform shape for a solid color or linear gradient fill.
@@ -40,7 +40,7 @@ export class WaveformShape {
 	}
 
 	private constructor(options: WaveformShapeFromOptions) {
-		this._color = options.color;
+		this.color = options.color;
 
 		const shapeOptions: ShapeConfig = {};
 
@@ -48,9 +48,9 @@ export class WaveformShape {
 			shapeOptions.fill = options.color;
 		} else if (isLinearGradientColor(options.color)) {
 			const startY =
-				options.view._height * (options.color.linearGradientStart / 100);
+				options.view.height * (options.color.linearGradientStart / 100);
 			const endY =
-				options.view._height * (options.color.linearGradientEnd / 100);
+				options.view.height * (options.color.linearGradientEnd / 100);
 
 			shapeOptions.fillLinearGradientStartPointY = startY;
 			shapeOptions.fillLinearGradientEndPointY = endY;
@@ -64,23 +64,23 @@ export class WaveformShape {
 			throw new TypeError("Unknown type for color property");
 		}
 
-		this._shape = new Konva.Shape(shapeOptions);
-		this._view = options.view;
-		this._segment = options.segment;
+		this.shape = new Konva.Shape(shapeOptions);
+		this.view = options.view;
+		this.segment = options.segment;
 
-		this._shape.sceneFunc(this._sceneFunc.bind(this));
+		this.shape.sceneFunc(this.sceneFunc);
 	}
 
 	getX(): number {
-		return this._shape.x();
+		return this.shape.x();
 	}
 
 	setX(x: number): void {
-		this._shape.x(x);
+		this.shape.x(x);
 	}
 
 	setSegment(segment: TimeRange | undefined): void {
-		this._segment = segment;
+		this.segment = segment;
 	}
 
 	/**
@@ -90,20 +90,20 @@ export class WaveformShape {
 	 */
 	setWaveformColor(color: WaveformColor): undefined | never {
 		if (isString(color)) {
-			this._shape.fill(color);
+			this.shape.fill(color);
 
-			this._shape.fillLinearGradientStartPointY(null);
-			this._shape.fillLinearGradientEndPointY(null);
-			this._shape.fillLinearGradientColorStops(null);
+			this.shape.fillLinearGradientStartPointY(null);
+			this.shape.fillLinearGradientEndPointY(null);
+			this.shape.fillLinearGradientColorStops(null);
 		} else if (isLinearGradientColor(color)) {
-			this._shape.fill(null);
+			this.shape.fill(null);
 
-			const startY = this._view._height * (color.linearGradientStart / 100);
-			const endY = this._view._height * (color.linearGradientEnd / 100);
+			const startY = this.view.height * (color.linearGradientStart / 100);
+			const endY = this.view.height * (color.linearGradientEnd / 100);
 
-			this._shape.fillLinearGradientStartPointY(startY);
-			this._shape.fillLinearGradientEndPointY(endY);
-			this._shape.fillLinearGradientColorStops([
+			this.shape.fillLinearGradientStartPointY(startY);
+			this.shape.fillLinearGradientEndPointY(endY);
+			this.shape.fillLinearGradientColorStops([
 				0,
 				color.linearGradientColorStops[0] as string | number,
 				1,
@@ -115,34 +115,34 @@ export class WaveformShape {
 	}
 
 	fitToView(): void {
-		this.setWaveformColor(this._color);
+		this.setWaveformColor(this.color);
 	}
 
-	private _sceneFunc(context: Context): void {
-		const frameOffset = this._view.getFrameOffset();
-		const width = this._view.getWidth();
-		const height = this._view.getHeight();
+	private sceneFunc = (context: Context): void => {
+		const frameOffset = this.view.getFrameOffset();
+		const width = this.view.getWidth();
+		const height = this.view.getHeight();
 
-		const waveformData = this._view.getWaveformData();
+		const waveformData = this.view.getWaveformData();
 
 		if (!waveformData) {
 			return;
 		}
 
-		this._drawWaveform(
+		this.drawWaveform(
 			context,
 			waveformData,
 			frameOffset,
-			this._segment
-				? this._view.timeToPixels(this._segment.startTime)
+			this.segment
+				? this.view.timeToPixels(this.segment.startTime)
 				: frameOffset,
-			this._segment
-				? this._view.timeToPixels(this._segment.endTime)
+			this.segment
+				? this.view.timeToPixels(this.segment.endTime)
 				: frameOffset + width,
 			width,
 			height,
 		);
-	}
+	};
 
 	/**
 	 * Draws a waveform on a canvas context.
@@ -159,7 +159,7 @@ export class WaveformShape {
 	 * @param height The height of the waveform area, in pixels.
 	 */
 
-	private _drawWaveform(
+	private drawWaveform(
 		context: Context,
 		waveformData: WaveformData,
 		frameOffset: number,
@@ -192,7 +192,7 @@ export class WaveformShape {
 				waveformHeight = height - (channels - 1) * waveformHeight;
 			}
 
-			this._drawChannel(
+			this.drawChannel(
 				context,
 				waveformData.channel(i),
 				frameOffset,
@@ -221,7 +221,7 @@ export class WaveformShape {
 	 * @param height The height of the waveform channel area, in pixels.
 	 */
 
-	private _drawChannel(
+	private drawChannel(
 		context: Context,
 		channel: WaveformDataChannel,
 		frameOffset: number,
@@ -233,7 +233,7 @@ export class WaveformShape {
 		let x: number;
 		let amplitude: number;
 
-		const amplitudeScale = this._view.getAmplitudeScale();
+		const amplitudeScale = this.view.getAmplitudeScale();
 
 		let lineX: number;
 		let lineY: number;
@@ -262,29 +262,29 @@ export class WaveformShape {
 
 		context.closePath();
 
-		context.fillShape(this._shape);
+		context.fillShape(this.shape);
 	}
 
 	addToLayer(layer: Layer): void {
-		layer.add(this._shape);
+		layer.add(this.shape);
 	}
 
 	destroy(): void {
-		this._shape.destroy();
+		this.shape.destroy();
 	}
 
 	on(
 		event: string,
 		handler: (event: KonvaEventObject<MouseEvent>) => void,
 	): void {
-		this._shape.on(event, handler);
+		this.shape.on(event, handler);
 	}
 
 	off(
 		event: string,
 		handler: (event: KonvaEventObject<MouseEvent>) => void,
 	): void {
-		this._shape.off(event, handler);
+		this.shape.off(event, handler);
 	}
 
 	/**

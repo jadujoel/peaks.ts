@@ -42,7 +42,7 @@ export type WaveformBuilderPeaksLike = {
 	readonly options: {
 		mediaElement?: HTMLMediaElement;
 	};
-	readonly _logger?: Logger;
+	readonly logger?: Logger;
 	readonly once?: (eventName: string, listener: () => void) => void;
 };
 
@@ -52,7 +52,7 @@ export interface WaveformBuilderFromOptions {
 
 export class WaveformBuilder {
 	public readonly peaks: WaveformBuilderPeaksLike;
-	private _xhr: XMLHttpRequest | undefined = undefined;
+	private xhr: XMLHttpRequest | undefined = undefined;
 
 	static from(options: WaveformBuilderFromOptions): WaveformBuilder {
 		return new WaveformBuilder(options.peaks);
@@ -81,7 +81,7 @@ export class WaveformBuilder {
 		}
 
 		if (options.audioContext) {
-			this.peaks._logger?.(
+			this.peaks.logger?.(
 				"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
 			);
 
@@ -91,14 +91,14 @@ export class WaveformBuilder {
 		}
 
 		if (options.dataUri) {
-			this._getRemoteWaveformData(options, callback);
+			this.getRemoteWaveformData(options, callback);
 		} else if (options.waveformData) {
-			this._buildWaveformFromLocalData(options, callback);
+			this.buildWaveformFromLocalData(options, callback);
 		} else if (options.webAudio) {
 			if (options.webAudio.audioBuffer) {
-				this._buildWaveformDataFromAudioBuffer(options, callback);
+				this.buildWaveformDataFromAudioBuffer(options, callback);
 			} else {
-				this._buildWaveformDataUsingWebAudio(options, callback);
+				this.buildWaveformDataUsingWebAudio(options, callback);
 			}
 		} else {
 			callback(
@@ -110,7 +110,7 @@ export class WaveformBuilder {
 		}
 	}
 
-	private _getRemoteWaveformData(
+	private getRemoteWaveformData(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
@@ -151,7 +151,7 @@ export class WaveformBuilder {
 			return;
 		}
 
-		self._xhr = self._createXHR(
+		self.xhr = self.createXHR(
 			url,
 			requestType,
 			options.withCredentials ?? false,
@@ -159,8 +159,6 @@ export class WaveformBuilder {
 				if (this.readyState !== 4) {
 					return;
 				}
-
-				// See https://github.com/bbc/peaks.js/issues/491
 
 				if (
 					this.status !== 200 &&
@@ -176,7 +174,7 @@ export class WaveformBuilder {
 					return;
 				}
 
-				self._xhr = undefined;
+				self.xhr = undefined;
 
 				const waveformData = WaveformData.create(this.response as ArrayBuffer);
 
@@ -206,10 +204,10 @@ export class WaveformBuilder {
 			},
 		);
 
-		self._xhr.send();
+		self.xhr.send();
 	}
 
-	private _buildWaveformFromLocalData(
+	private buildWaveformFromLocalData(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
@@ -270,7 +268,7 @@ export class WaveformBuilder {
 		}
 	}
 
-	private _buildWaveformDataUsingWebAudio(
+	private buildWaveformDataUsingWebAudio(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
@@ -310,7 +308,7 @@ export class WaveformBuilder {
 		const mediaSourceUrl = this.peaks.options.mediaElement?.currentSrc;
 
 		if (mediaSourceUrl) {
-			this._requestAudioAndBuildWaveformData(
+			this.requestAudioAndBuildWaveformData(
 				mediaSourceUrl,
 				webAudioOptions,
 				options.withCredentials ?? false,
@@ -318,7 +316,7 @@ export class WaveformBuilder {
 			);
 		} else {
 			this.peaks.once?.("player.canplay", () => {
-				this._requestAudioAndBuildWaveformData(
+				this.requestAudioAndBuildWaveformData(
 					this.peaks.options.mediaElement?.currentSrc ?? "",
 					webAudioOptions,
 					options.withCredentials ?? false,
@@ -328,7 +326,7 @@ export class WaveformBuilder {
 		}
 	}
 
-	private _buildWaveformDataFromAudioBuffer(
+	private buildWaveformDataFromAudioBuffer(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
@@ -365,8 +363,8 @@ export class WaveformBuilder {
 			disable_worker: boolean;
 		} = {
 			audio_buffer: webAudioOptions.audioBuffer,
-			split_channels: webAudioOptions.multiChannel ?? false,
 			disable_worker: true,
+			split_channels: webAudioOptions.multiChannel ?? false,
 		};
 
 		if (webAudioOptions.scale !== undefined) {
@@ -383,7 +381,7 @@ export class WaveformBuilder {
 		});
 	}
 
-	private _requestAudioAndBuildWaveformData(
+	private requestAudioAndBuildWaveformData(
 		url: string,
 		webAudio: WebAudioOptions,
 		withCredentials: boolean,
@@ -392,11 +390,11 @@ export class WaveformBuilder {
 		const self = this;
 
 		if (!url) {
-			self.peaks._logger?.("Peaks.init(): The mediaElement src is invalid");
+			self.peaks.logger?.("Peaks.init(): The mediaElement src is invalid");
 			return;
 		}
 
-		self._xhr = self._createXHR(
+		self.xhr = self.createXHR(
 			url,
 			"arraybuffer",
 			withCredentials,
@@ -421,7 +419,7 @@ export class WaveformBuilder {
 					return;
 				}
 
-				self._xhr = undefined;
+				self.xhr = undefined;
 
 				if (!webAudio.audioContext) {
 					callback(new Error("Missing audioContext"), undefined);
@@ -434,8 +432,8 @@ export class WaveformBuilder {
 					split_channels: boolean;
 					scale?: number;
 				} = {
-					audio_context: webAudio.audioContext,
 					array_buffer: this.response as ArrayBuffer,
+					audio_context: webAudio.audioContext,
 					split_channels: webAudio.multiChannel ?? false,
 				};
 
@@ -460,16 +458,16 @@ export class WaveformBuilder {
 			},
 		);
 
-		self._xhr.send();
+		self.xhr.send();
 	}
 
 	abort(): void {
-		if (this._xhr) {
-			this._xhr.abort();
+		if (this.xhr) {
+			this.xhr.abort();
 		}
 	}
 
-	_createXHR(
+	private createXHR(
 		url: string,
 		requestType: string,
 		withCredentials: boolean,

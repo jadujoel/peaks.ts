@@ -10,9 +10,9 @@ export interface ViewControllerFromOptions {
 
 export class ViewController {
 	public readonly peaks: PeaksInstance;
-	private _overview?: WaveformOverview | undefined;
-	private _zoomview?: WaveformZoomView | undefined;
-	private _scrollbar?: Scrollbar | undefined;
+	private overview?: WaveformOverview | undefined;
+	private zoomview?: WaveformZoomView | undefined;
+	private scrollbar?: Scrollbar | undefined;
 
 	static from(options: ViewControllerFromOptions): ViewController {
 		return new ViewController(options.peaks);
@@ -28,8 +28,8 @@ export class ViewController {
 	 * @throws {Error} If waveform data has not been initialized yet.
 	 */
 	createOverview(container: HTMLDivElement): WaveformOverview | never {
-		if (this._overview) {
-			return this._overview;
+		if (this.overview) {
+			return this.overview;
 		}
 
 		const waveformData = this.peaks.getWaveformData();
@@ -38,20 +38,20 @@ export class ViewController {
 			throw new Error("No waveform data available");
 		}
 
-		this._overview = WaveformOverview.from({
+		this.overview = WaveformOverview.from({
 			waveformData,
 			container,
 			peaks: this.peaks,
 		});
 
-		if (this._zoomview) {
-			this._overview.showHighlight(
-				this._zoomview.getStartTime(),
-				this._zoomview.getEndTime(),
+		if (this.zoomview) {
+			this.overview.showHighlight(
+				this.zoomview.getStartTime(),
+				this.zoomview.getEndTime(),
 			);
 		}
 
-		return this._overview;
+		return this.overview;
 	}
 
 	/**
@@ -60,8 +60,8 @@ export class ViewController {
 	 * @throws {Error} If waveform data has not been initialized yet.
 	 */
 	createZoomview(container: HTMLDivElement): WaveformZoomView | never {
-		if (this._zoomview) {
-			return this._zoomview;
+		if (this.zoomview) {
+			return this.zoomview;
 		}
 
 		const waveformData = this.peaks.getWaveformData();
@@ -70,17 +70,17 @@ export class ViewController {
 			throw new Error("No waveform data available");
 		}
 
-		this._zoomview = WaveformZoomView.from({
+		this.zoomview = WaveformZoomView.from({
 			waveformData,
 			container,
 			peaks: this.peaks,
 		});
 
-		if (this._scrollbar) {
-			this._scrollbar.setZoomview(this._zoomview);
+		if (this.scrollbar) {
+			this.scrollbar.setZoomview(this.zoomview);
 		}
 
-		return this._zoomview;
+		return this.zoomview;
 	}
 
 	/**
@@ -89,74 +89,74 @@ export class ViewController {
 	 * @throws {Error} If scrollbar options are missing from the Peaks configuration.
 	 */
 	createScrollbar(container: HTMLDivElement): Scrollbar | never {
-		this._scrollbar = Scrollbar.from({ container, peaks: this.peaks });
+		this.scrollbar = Scrollbar.from({ container, peaks: this.peaks });
 
-		return this._scrollbar;
+		return this.scrollbar;
 	}
 
 	destroyOverview(): void {
-		if (!this._overview) {
+		if (!this.overview) {
 			return;
 		}
 
-		if (!this._zoomview) {
+		if (!this.zoomview) {
 			return;
 		}
 
-		this._overview.destroy();
-		this._overview = undefined;
+		this.overview.destroy();
+		this.overview = undefined;
 	}
 
 	destroyZoomview(): void {
-		if (!this._zoomview) {
+		if (!this.zoomview) {
 			return;
 		}
 
-		if (!this._overview) {
+		if (!this.overview) {
 			return;
 		}
 
-		this._zoomview.destroy();
-		this._zoomview = undefined;
+		this.zoomview.destroy();
+		this.zoomview = undefined;
 
-		this._overview.removeHighlightRect();
+		this.overview.removeHighlightRect();
 	}
 
 	destroy(): void {
-		if (this._overview) {
-			this._overview.destroy();
-			this._overview = undefined;
+		if (this.overview) {
+			this.overview.destroy();
+			this.overview = undefined;
 		}
 
-		if (this._zoomview) {
-			this._zoomview.destroy();
-			this._zoomview = undefined;
+		if (this.zoomview) {
+			this.zoomview.destroy();
+			this.zoomview = undefined;
 		}
 
-		if (this._scrollbar) {
-			this._scrollbar.destroy();
-			this._scrollbar = undefined;
+		if (this.scrollbar) {
+			this.scrollbar.destroy();
+			this.scrollbar = undefined;
 		}
 	}
 
 	getView(name?: string): WaveformOverview | WaveformZoomView | undefined {
 		if (isNullOrUndefined(name)) {
-			if (this._overview && this._zoomview) {
+			if (this.overview && this.zoomview) {
 				return undefined;
-			} else if (this._overview) {
-				return this._overview;
-			} else if (this._zoomview) {
-				return this._zoomview;
+			} else if (this.overview) {
+				return this.overview;
+			} else if (this.zoomview) {
+				return this.zoomview;
 			} else {
 				return undefined;
 			}
 		} else {
 			switch (name) {
 				case "overview":
-					return this._overview;
+					return this.overview;
 
 				case "zoomview":
-					return this._zoomview;
+					return this.zoomview;
 
 				default:
 					return undefined;
@@ -165,6 +165,6 @@ export class ViewController {
 	}
 
 	getScrollbar(): Scrollbar | undefined {
-		return this._scrollbar;
+		return this.scrollbar;
 	}
 }

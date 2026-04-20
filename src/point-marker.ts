@@ -10,115 +10,109 @@ export interface PointMarkerFromOptions {
 }
 
 export class PointMarker {
-	private readonly _point: Point;
-	private readonly _marker: Marker;
-	private readonly _draggable: boolean;
-	private readonly _onDragStart: (event: KonvaMouseEvent, point: Point) => void;
-	private readonly _onDragMove: (event: KonvaMouseEvent, point: Point) => void;
-	private readonly _onDragEnd: (event: KonvaMouseEvent, point: Point) => void;
-	private readonly _onMouseEnter: (
-		event: KonvaMouseEvent,
-		point: Point,
-	) => void;
-	private readonly _onMouseLeave: (
-		event: KonvaMouseEvent,
-		point: Point,
-	) => void;
-	private readonly _group: Group;
+	private readonly point: Point;
+	private readonly marker: Marker;
+	private readonly draggable: boolean;
+	private readonly onDragStart: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly onDragMove: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly onDragEnd: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly onMouseEnter: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly onMouseLeave: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly group: Group;
 
 	static from(options: PointMarkerFromOptions): PointMarker {
 		return new PointMarker(options.options);
 	}
 
 	private constructor(options: PointMarkerOptions) {
-		this._point = options.point;
-		this._marker = options.marker;
-		this._draggable = options.draggable;
+		this.point = options.point;
+		this.marker = options.marker;
+		this.draggable = options.draggable;
 
-		this._onDragStart = options.onDragStart;
-		this._onDragMove = options.onDragMove;
-		this._onDragEnd = options.onDragEnd;
-		this._onMouseEnter = options.onMouseEnter;
-		this._onMouseLeave = options.onMouseLeave;
+		this.onDragStart = options.onDragStart;
+		this.onDragMove = options.onDragMove;
+		this.onDragEnd = options.onDragEnd;
+		this.onMouseEnter = options.onMouseEnter;
+		this.onMouseLeave = options.onMouseLeave;
 
-		this._group = new Konva.Group({
-			name: "point-marker",
-			point: this._point,
-			draggable: this._draggable,
+		this.group = new Konva.Group({
 			dragBoundFunc: options.dragBoundFunc,
+			draggable: this.draggable,
+			name: "point-marker",
+			point: this.point,
 		});
 
-		this._bindDefaultEventHandlers();
+		this.bindDefaultEventHandlers();
 
-		this._marker.init(this._group);
+		this.marker.init(this.group);
 	}
 
-	private _bindDefaultEventHandlers(): void {
-		this._group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
-			this._onDragStart(event, this._point);
+	private bindDefaultEventHandlers(): void {
+		this.group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
+			this.onDragStart(event, this.point);
 		});
 
-		this._group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
-			this._onDragMove(event, this._point);
+		this.group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
+			this.onDragMove(event, this.point);
 		});
 
-		this._group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
-			this._onDragEnd(event, this._point);
+		this.group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
+			this.onDragEnd(event, this.point);
 		});
 
-		this._group.on("mouseenter", (event: KonvaEventObject<MouseEvent>) => {
-			this._onMouseEnter(event, this._point);
+		this.group.on("mouseenter", (event: KonvaEventObject<MouseEvent>) => {
+			this.onMouseEnter(event, this.point);
 		});
 
-		this._group.on("mouseleave", (event: KonvaEventObject<MouseEvent>) => {
-			this._onMouseLeave(event, this._point);
+		this.group.on("mouseleave", (event: KonvaEventObject<MouseEvent>) => {
+			this.onMouseLeave(event, this.point);
 		});
 	}
 
 	addToLayer(layer: Layer): void {
-		layer.add(this._group);
+		layer.add(this.group);
 	}
 
 	fitToView(): void {
-		this._marker.fitToView();
+		this.marker.fitToView();
 	}
 
 	getPoint(): Point {
-		return this._point;
+		return this.point;
 	}
 
 	getX(): number {
-		return this._group.x();
+		return this.group.x();
 	}
 
 	setX(x: number): void {
-		this._group.x(x);
+		this.group.x(x);
 	}
 
 	getWidth(): number {
-		return this._group.width();
+		return this.group.width();
 	}
 
 	getAbsolutePosition(): { x: number; y: number } {
-		return this._group.getAbsolutePosition();
+		return this.group.getAbsolutePosition();
 	}
 
 	update(options: Record<string, unknown>): void {
 		if (options.editable !== undefined) {
-			this._group.draggable(options.editable as boolean);
+			this.group.draggable(options.editable as boolean);
 		}
 
-		if (this._marker.update) {
-			this._marker.update(options);
+		if (this.marker.update) {
+			this.marker.update(options);
 		}
 	}
 
 	destroy(): void {
-		if (this._marker.destroy) {
-			this._marker.destroy();
+		if (this.marker.destroy) {
+			this.marker.destroy();
 		}
 
-		this._group.destroyChildren();
-		this._group.destroy();
+		this.group.destroyChildren();
+		this.group.destroy();
 	}
 }

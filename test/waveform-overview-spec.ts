@@ -23,10 +23,10 @@ describe("WaveformOverview", () => {
 					}
 
 					const overview = instance.views.getView("overview");
-					expect(overview._data).to.be.ok;
+					expect(overview.data).to.be.ok;
 
 					// TODO: Resampling by width isn't precise
-					const diff = Math.abs(overview._data.length - container.offsetWidth);
+					const diff = Math.abs(overview.data.length - container.offsetWidth);
 					expect(diff).to.be.lessThan(2);
 
 					done();
@@ -51,8 +51,8 @@ describe("WaveformOverview", () => {
 					}
 
 					const view = instance.views.getView();
-					expect(view._data).to.be.ok;
-					expect(view._data.scale).to.equal(32);
+					expect(view.data).to.be.ok;
+					expect(view.data.scale).to.equal(32);
 					done();
 				});
 			});
