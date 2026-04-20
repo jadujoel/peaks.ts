@@ -2,25 +2,25 @@ import type { PeaksInstance } from "./types";
 
 export interface ZoomControllerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly zoomLevels: number[];
+	readonly zoomLevels: readonly number[];
 }
 
 export class ZoomController {
 	private readonly peaks: PeaksInstance;
-	private zoomLevels: number[];
+	private zoomLevels: readonly number[];
 	private zoomLevelIndex: number;
 
 	static from(options: ZoomControllerFromOptions): ZoomController {
 		return new ZoomController(options.peaks, options.zoomLevels);
 	}
 
-	private constructor(peaks: PeaksInstance, zoomLevels: number[]) {
+	private constructor(peaks: PeaksInstance, zoomLevels: readonly number[]) {
 		this.peaks = peaks;
 		this.zoomLevels = zoomLevels;
 		this.zoomLevelIndex = 0;
 	}
 
-	setZoomLevels(zoomLevels: number[]): void {
+	setZoomLevels(zoomLevels: readonly number[]): void {
 		this.zoomLevels = zoomLevels;
 		this.setZoom(0, true);
 	}

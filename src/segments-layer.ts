@@ -25,7 +25,7 @@ export class SegmentsLayer {
 	private readonly peaks: PeaksInstance;
 	private readonly view: WaveformViewAPI;
 	private editingEnabled: boolean;
-	private segmentShapes = new Map<string, SegmentShape>();
+	private segmentShapes = new Map<number, SegmentShape>();
 	private readonly layer: Layer;
 
 	static from(options: SegmentsLayerFromOptions): SegmentsLayer {
@@ -108,7 +108,7 @@ export class SegmentsLayer {
 			this.updateSegment(segment);
 		} else if (segmentShape && isVisible) {
 			// Update the segment shape with the changed attributes.
-			segmentShape.update(options);
+			segmentShape.update(options as unknown as Record<string, unknown>);
 		}
 	};
 

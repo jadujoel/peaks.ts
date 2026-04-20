@@ -112,4 +112,8 @@ export class OverlaySegmentMarker {
 			this.label.text(this.options.layer.formatTime(options.endTime));
 		}
 	}
+
+	dispose(): void {
+		// No external resources to clean up
+	}
 }

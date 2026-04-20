@@ -6,7 +6,7 @@ import type { Stage } from "konva/lib/Stage";
 import { Rect } from "konva/lib/shapes/Rect";
 import type { PeaksInstance, ScrollbarDisplayOptions } from "./types";
 import { clamp } from "./utils";
-import type WaveformZoomView from "./waveform-zoomview";
+import type { WaveformZoomView } from "./waveform-zoomview";
 
 /**
  * Creates a scrollbar.

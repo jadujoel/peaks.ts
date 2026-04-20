@@ -509,7 +509,7 @@ export class WaveformView {
 		}
 
 		if (this.pointsLayer) {
-			this.pointsLayer.enableEditing(enable);
+			this.pointsLayer.enableEditing = enable;
 		}
 	}
 

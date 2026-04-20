@@ -4,7 +4,7 @@ import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Shape } from "konva/lib/Shape";
 import type WaveformData from "waveform-data";
-import type { CueEventName } from "./cue-emitter";
+
 import type { Point } from "./point";
 import type { ResultCallback } from "./result-callback";
 import type { Segment } from "./segment";
@@ -41,109 +41,104 @@ export interface PlayerAdapter {
 
 // ─── Peaks Options ─────────────────────────────────────────────────
 export interface ViewOptions {
-	readonly container?: HTMLElement;
-	readonly playheadColor?: string;
-	readonly playheadTextColor?: string;
-	readonly playheadBackgroundColor?: string;
-	readonly playheadPadding?: number;
-	readonly playheadWidth?: number;
-	readonly playheadFontFamily?: string;
-	readonly playheadFontSize?: number;
-	readonly playheadFontStyle?: string;
-	readonly axisGridlineColor?: string;
-	readonly showAxisLabels?: boolean;
-	readonly axisTopMarkerHeight?: number;
-	readonly axisBottomMarkerHeight?: number;
-	readonly axisLabelColor?: string;
-	readonly fontFamily?: string;
-	readonly fontSize?: number;
-	readonly fontStyle?: string;
+	readonly container?: HTMLDivElement;
+	readonly playheadColor: string;
+	readonly playheadTextColor: string;
+	readonly playheadBackgroundColor: string;
+	readonly playheadPadding: number;
+	readonly playheadWidth: number;
+	readonly playheadFontFamily: string;
+	readonly playheadFontSize: number;
+	readonly playheadFontStyle: string;
+	readonly axisGridlineColor: string;
+	readonly showAxisLabels: boolean;
+	readonly axisTopMarkerHeight: number;
+	readonly axisBottomMarkerHeight: number;
+	readonly axisLabelColor: string;
+	readonly fontFamily: string;
+	readonly fontSize: number;
+	readonly fontStyle: string;
 	readonly formatAxisTime?: (time: number) => string;
 	readonly formatPlayheadTime?: (time: number) => string;
-	readonly timeLabelPrecision?: number;
-	readonly enablePoints?: boolean;
-	readonly enableSegments?: boolean;
+	readonly timeLabelPrecision: number;
+	readonly enablePoints: boolean;
+	readonly enableSegments: boolean;
+	readonly showPlayheadTime?: boolean;
 }
 
 export interface ZoomviewOptions extends ViewOptions {
-	readonly playheadClickTolerance?: number;
-	readonly waveformColor?: WaveformColor;
-	readonly wheelMode?: string;
-	readonly autoScroll?: boolean;
-	readonly autoScrollOffset?: number;
-	readonly enableEditing?: boolean;
+	readonly playheadClickTolerance: number;
+	readonly waveformColor: WaveformColor;
+	readonly wheelMode: string;
+	readonly autoScroll: boolean;
+	readonly autoScrollOffset: number;
+	readonly enableEditing: boolean;
 	readonly playedWaveformColor?: WaveformColor;
-	readonly formatPlayheadTime?: (time: number) => string;
-	readonly formatAxisTime?: (time: number) => string;
-	readonly showPlayheadTime?: boolean;
 	readonly segmentOptions: SegmentDisplayOptions;
 }
 
 export interface OverviewOptions extends ViewOptions {
-	readonly waveformColor?: WaveformColor;
-	readonly highlightColor?: string;
-	readonly highlightStrokeColor?: string;
-	readonly highlightOpacity?: number;
-	readonly highlightOffset?: number;
-	readonly highlightCornerRadius?: number;
-	readonly enableEditing?: boolean;
+	readonly waveformColor: WaveformColor;
+	readonly highlightColor: string;
+	readonly highlightStrokeColor: string;
+	readonly highlightOpacity: number;
+	readonly highlightOffset: number;
+	readonly highlightCornerRadius: number;
+	readonly enableEditing: boolean;
 	readonly playedWaveformColor?: WaveformColor;
-	readonly formatPlayheadTime?: (time: number) => string;
-	readonly formatAxisTime?: (time: number) => string;
-	readonly showPlayheadTime?: boolean;
 	readonly segmentOptions: SegmentDisplayOptions;
 }
 
 export interface SegmentDisplayOptions {
-	readonly overlay?: boolean;
-	readonly markers?: boolean;
-	readonly startMarkerColor?: string;
-	readonly endMarkerColor?: string;
-	readonly waveformColor?: string;
-	readonly overlayColor?: string;
-	readonly overlayOpacity?: number;
-	readonly overlayBorderColor?: string;
-	readonly overlayBorderWidth?: number;
-	readonly overlayCornerRadius?: number;
-	readonly overlayOffset?: number;
-	readonly overlayLabelAlign?: string;
-	readonly overlayLabelVerticalAlign?: string;
-	readonly overlayLabelPadding?: number;
-	readonly overlayLabelColor?: string;
-	readonly overlayFontFamily?: string;
-	readonly overlayFontSize?: number;
-	readonly overlayFontStyle?: string;
+	readonly overlay: boolean;
+	readonly markers: boolean;
+	readonly startMarkerColor: string;
+	readonly endMarkerColor: string;
+	readonly waveformColor: string;
+	readonly overlayColor: string;
+	readonly overlayOpacity: number;
+	readonly overlayBorderColor: string;
+	readonly overlayBorderWidth: number;
+	readonly overlayCornerRadius: number;
+	readonly overlayOffset: number;
+	readonly overlayLabelAlign: string;
+	readonly overlayLabelVerticalAlign: string;
+	readonly overlayLabelPadding: number;
+	readonly overlayLabelColor: string;
+	readonly overlayFontFamily: string;
+	readonly overlayFontSize: number;
+	readonly overlayFontStyle: string;
 }
 
 export interface ScrollbarDisplayOptions {
-	readonly container?: HTMLElement;
-	readonly color?: string;
-	readonly minWidth?: number;
+	readonly container?: HTMLDivElement;
+	readonly color: string;
+	readonly minWidth: number;
 }
 
 export interface PeaksOptions {
-	readonly zoomLevels?: readonly number[];
-	readonly waveformCache?: boolean;
+	readonly zoomLevels: readonly number[];
+	readonly waveformCache: boolean;
 	readonly mediaElement?: HTMLMediaElement;
 	readonly mediaUrl?: string;
 	readonly dataUri?: Record<string, string>;
-	readonly withCredentials?: boolean;
+	readonly withCredentials: boolean;
 	readonly waveformData?: Record<string, unknown>;
 	readonly webAudio?: WebAudioOptions;
-	readonly nudgeIncrement?: number;
-	readonly pointMarkerColor?: string;
-	readonly createSegmentMarker?: (
+	readonly nudgeIncrement: number;
+	readonly pointMarkerColor: string;
+	readonly createSegmentMarker: (
 		options: CreateSegmentMarkerOptions,
 	) => Marker | undefined;
-	readonly createSegmentLabel?: (
+	readonly createSegmentLabel: (
 		options: CreateSegmentLabelOptions,
 	) => Shape | undefined;
 	readonly createPointMarker: (
 		options: CreatePointMarkerOptions,
 	) => Marker | undefined;
-	readonly logger?: Logger;
-	readonly overview?: OverviewOptions;
-	readonly zoomview?: ZoomviewOptions;
+	readonly logger: Logger;
+	readonly overview: OverviewOptions;
+	readonly zoomview: ZoomviewOptions;
 	readonly scrollbar?: ScrollbarDisplayOptions;
 	readonly segmentOptions?: SegmentDisplayOptions;
 	readonly player?: PlayerAdapter;
@@ -178,10 +173,10 @@ export interface PeaksInitOptions {
 	) => Shape | undefined;
 	readonly createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
 	readonly logger?: Logger;
-	readonly overview?: OverviewOptions;
-	readonly zoomview?: ZoomviewOptions;
-	readonly scrollbar?: ScrollbarDisplayOptions;
-	readonly segmentOptions?: SegmentDisplayOptions;
+	readonly overview?: Partial<OverviewOptions>;
+	readonly zoomview?: Partial<ZoomviewOptions>;
+	readonly scrollbar?: Partial<ScrollbarDisplayOptions>;
+	readonly segmentOptions?: Partial<SegmentDisplayOptions>;
 	readonly keyboard?: boolean;
 	readonly emitCueEvents?: boolean;
 	readonly segments?: readonly SegmentOptions[];
@@ -191,7 +186,7 @@ export interface PeaksInitOptions {
 
 // ─── Segment / Point Options ────────────────────────────────────────
 export interface SegmentOptions {
-	readonly id?: CueEventName;
+	readonly id?: string;
 	readonly startTime: number;
 	readonly endTime: number;
 	readonly labelText?: string;
@@ -242,25 +237,25 @@ export interface MarkerUpdateOptions {
 }
 
 export interface CreateSegmentMarkerOptions {
-	readonly segment?: Segment;
-	readonly editable?: boolean;
-	readonly startMarker?: boolean;
-	readonly color?: string;
-	readonly fontFamily?: string;
-	readonly fontSize?: number;
-	readonly fontStyle?: string;
-	readonly layer?: SegmentsLayerAPI;
-	readonly view?: string;
-	readonly segmentOptions?: SegmentDisplayOptions;
+	readonly segment: Segment;
+	readonly editable: boolean;
+	readonly startMarker: boolean;
+	readonly color: string;
+	readonly fontFamily: string;
+	readonly fontSize: number;
+	readonly fontStyle: string;
+	readonly layer: SegmentsLayerAPI;
+	readonly view: string;
+	readonly segmentOptions: SegmentDisplayOptions;
 }
 
 export interface CreateSegmentLabelOptions {
-	readonly segment?: Segment;
-	readonly view?: string;
-	readonly layer?: SegmentsLayerAPI;
-	readonly fontFamily?: string;
-	readonly fontSize?: number;
-	readonly fontStyle?: string;
+	readonly segment: Segment;
+	readonly view: string;
+	readonly layer: SegmentsLayerAPI;
+	readonly fontFamily: string;
+	readonly fontSize: number;
+	readonly fontStyle: string;
 }
 
 export interface CreatePointMarkerOptions {
@@ -342,7 +337,9 @@ export interface PlayerInstance {
 }
 
 export interface SegmentsInstance {
-	add(...args: (SegmentOptions | SegmentOptions[])[]): Segment | Segment[];
+	add(
+		...args: (SegmentOptions | SegmentOptions[] | readonly SegmentOptions[])[]
+	): Segment | Segment[];
 	getSegments(): Segment[];
 	getSegment(id: string): Segment | undefined;
 	getSegmentsAtTime(time: number): Segment[];
@@ -371,7 +368,7 @@ export interface PointsInstance {
 }
 
 export interface ZoomInstance {
-	setZoomLevels(zoomLevels: number[]): void;
+	setZoomLevels(zoomLevels: readonly number[]): void;
 	zoomIn(): void;
 	zoomOut(): void;
 	setZoom(zoomLevelIndex: number, forceUpdate: boolean): void;
@@ -428,11 +425,11 @@ export interface XY {
 
 // ─── Segment Shape interfaces ──────────────────────────────────────
 export interface SegmentMarkerOptions {
-	readonly segment?: Segment;
+	readonly segment: Segment;
 	readonly segmentShape?: SegmentShapeAPI;
-	readonly editable?: boolean;
-	readonly startMarker?: boolean;
-	readonly marker?: Marker;
+	readonly editable: boolean;
+	readonly startMarker: boolean;
+	readonly marker: Marker;
 	onClick: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
 	onDragStart: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
 	onDragMove: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;

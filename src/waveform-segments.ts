@@ -146,7 +146,7 @@ export class WaveformSegments {
 	 * @throws {Error} If a duplicate id or reserved option name is provided.
 	 */
 	add(
-		...args: SegmentOptions[] | [SegmentOptions[]]
+		...args: SegmentOptions[] | [readonly SegmentOptions[]]
 	): Segment | Segment[] | never {
 		const arrayArgs = Array.isArray(args[0]);
 		const segmentOptionsList: SegmentOptions[] = arrayArgs

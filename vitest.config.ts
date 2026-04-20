@@ -3,13 +3,14 @@ import { extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { playwright } from "@vitest/browser-playwright";
+import type { Plugin, ViteDevServer } from "vite";
 import { defineConfig } from "vitest/config";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const testDataDir = resolve(rootDir, "test/data");
 const requestPrefix = "/base/test/data/";
 
-const contentTypes = {
+const contentTypes: Record<string, string> = {
 	".dat": "application/octet-stream",
 	".json": "application/json",
 	".mp3": "audio/mpeg",
@@ -17,9 +18,9 @@ const contentTypes = {
 	".wav": "audio/wav",
 };
 
-function serveTestData() {
+function serveTestData(): Plugin {
 	return {
-		configureServer(server) {
+		configureServer(server: ViteDevServer) {
 			server.middlewares.use((req, res, next) => {
 				const requestUrl = req.url ?? "";
 
@@ -29,7 +30,7 @@ function serveTestData() {
 				}
 
 				const relativePath = decodeURIComponent(
-					requestUrl.slice(requestPrefix.length).split("?")[0],
+					requestUrl.slice(requestPrefix.length).split("?")[0] ?? "",
 				);
 				const filePath = resolve(testDataDir, relativePath);
 
@@ -64,7 +65,7 @@ function serveTestData() {
 						return;
 					}
 
-					const start = Number.parseInt(match[1], 10);
+					const start = Number.parseInt(match[1] ?? "0", 10);
 					const end = match[2]
 						? Number.parseInt(match[2], 10)
 						: fileStat.size - 1;

@@ -89,7 +89,7 @@ export function extend<T extends Record<string, unknown>>(
 	return to;
 }
 
-export function isInAscendingOrder(array: number[]): boolean {
+export function isInAscendingOrder(array: readonly number[]): boolean {
 	if (array.length === 0) {
 		return true;
 	}

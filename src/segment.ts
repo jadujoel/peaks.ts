@@ -304,8 +304,11 @@ export class Segment {
 			this.#editable = options.editable;
 		}
 		for (const key in options) {
-			if (objectHasProperty(options, key) && !segmentOptions.includes(key)) {
-				this[key] = options[key];
+			if (
+				objectHasProperty(options, key) &&
+				!segmentOptions.includes(key as (typeof segmentOptions)[number])
+			) {
+				this[key] = (options as Record<string, unknown>)[key];
 			}
 		}
 	}

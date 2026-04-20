@@ -20,7 +20,8 @@ import type {
 	ScrollbarDisplayOptions,
 	SegmentDisplayOptions,
 	SetSourceOptions,
-	ViewOptions,
+	WebAudioOptions,
+	ZoomviewOptions,
 } from "./types";
 import type { Writable } from "./utils";
 import {
@@ -55,7 +56,6 @@ export const defaultViewOptions = {
 	showAxisLabels: true,
 	timeLabelPrecision: 2,
 } as const;
-defaultViewOptions satisfies Partial<ViewOptions>;
 
 export const defaultZoomviewOptions = {
 	autoScroll: true,
@@ -66,7 +66,6 @@ export const defaultZoomviewOptions = {
 	waveformColor: "rgba(0, 225, 128, 1)",
 	wheelMode: "none",
 } as const;
-defaultZoomviewOptions satisfies Partial<ViewOptions>;
 
 const defaultOverviewOptions = {
 	enableEditing: false,
@@ -78,7 +77,6 @@ const defaultOverviewOptions = {
 	// showPlayheadTime:    false,
 	waveformColor: "rgba(0, 0, 0, 0.2)",
 } as const;
-defaultOverviewOptions satisfies Partial<ViewOptions>;
 
 const defaultSegmentOptions = {
 	endMarkerColor: "#aaaaaa",
@@ -100,16 +98,14 @@ const defaultSegmentOptions = {
 	startMarkerColor: "#aaaaaa",
 	waveformColor: "#0074d9",
 } as const;
-defaultSegmentOptions satisfies Partial<SegmentDisplayOptions>;
 
 const defaultScrollbarOptions = {
 	color: "#888888",
 	minWidth: 50,
 } as const;
-defaultScrollbarOptions satisfies Partial<ScrollbarDisplayOptions>;
 
-export function getOverviewOptions(options: PeaksInitOptions) {
-	const overviewOptions: Writable<Partial<OverviewOptions>> = {};
+export function getOverviewOptions(options: PeaksInitOptions): OverviewOptions {
+	const overviewOptions: Record<string, unknown> = {};
 
 	if (options.overview?.showPlayheadTime) {
 		overviewOptions.showPlayheadTime = options.overview.showPlayheadTime;
@@ -145,24 +141,29 @@ export function getOverviewOptions(options: PeaksInitOptions) {
 		"enableEditing",
 	];
 
+	const overviewDefaults = defaultOverviewOptions as Record<string, unknown>;
+	const viewDefaults = defaultViewOptions as Record<string, unknown>;
+	const userOverview = options.overview as Record<string, unknown> | undefined;
+	const userOpts = options as unknown as Record<string, unknown>;
+
 	for (const optName of optNames) {
-		if (options.overview && objectHasProperty(options.overview, optName)) {
-			overviewOptions[optName] = options.overview[optName];
-		} else if (objectHasProperty(options, optName)) {
-			overviewOptions[optName] = options[optName];
+		if (userOverview && objectHasProperty(userOverview, optName)) {
+			overviewOptions[optName] = userOverview[optName];
+		} else if (objectHasProperty(userOpts, optName)) {
+			overviewOptions[optName] = userOpts[optName];
 		} else if (!objectHasProperty(overviewOptions, optName)) {
-			if (objectHasProperty(defaultOverviewOptions, optName)) {
-				overviewOptions[optName] = defaultOverviewOptions[optName];
-			} else if (objectHasProperty(defaultViewOptions, optName)) {
-				overviewOptions[optName] = defaultViewOptions[optName];
+			if (objectHasProperty(overviewDefaults, optName)) {
+				overviewOptions[optName] = overviewDefaults[optName];
+			} else if (objectHasProperty(viewDefaults, optName)) {
+				overviewOptions[optName] = viewDefaults[optName];
 			}
 		}
 	}
 
-	return overviewOptions;
+	return overviewOptions as unknown as OverviewOptions;
 }
 
-export function getZoomviewOptions(opts: PeaksInitOptions) {
+export function getZoomviewOptions(opts: PeaksInitOptions): ZoomviewOptions {
 	const zoomviewOptions: Record<string, unknown> = {};
 
 	if (opts.showPlayheadTime) {
@@ -202,11 +203,14 @@ export function getZoomviewOptions(opts: PeaksInitOptions) {
 
 	const zoomviewDefaults = defaultZoomviewOptions as Record<string, unknown>;
 	const viewDefaults = defaultViewOptions as Record<string, unknown>;
+	const userZoomview = opts.zoomview as Record<string, unknown> | undefined;
+	const userOpts = opts as unknown as Record<string, unknown>;
+
 	for (const optName of optNames) {
-		if (opts.zoomview && objectHasProperty(opts.zoomview, optName)) {
-			zoomviewOptions[optName] = opts.zoomview[optName];
-		} else if (objectHasProperty(opts, optName)) {
-			zoomviewOptions[optName] = opts[optName];
+		if (userZoomview && objectHasProperty(userZoomview, optName)) {
+			zoomviewOptions[optName] = userZoomview[optName];
+		} else if (objectHasProperty(userOpts, optName)) {
+			zoomviewOptions[optName] = userOpts[optName];
 		} else if (!objectHasProperty(zoomviewOptions, optName)) {
 			if (objectHasProperty(zoomviewDefaults, optName)) {
 				zoomviewOptions[optName] = zoomviewDefaults[optName];
@@ -216,29 +220,23 @@ export function getZoomviewOptions(opts: PeaksInitOptions) {
 		}
 	}
 
-	return zoomviewOptions;
+	return zoomviewOptions as unknown as ZoomviewOptions;
 }
 
-function getScrollbarOptions(opts: PeaksInitOptions) {
+function getScrollbarOptions(
+	opts: PeaksInitOptions,
+): ScrollbarDisplayOptions | undefined {
 	const scrollbar = opts.scrollbar;
 
 	if (!scrollbar) {
 		return undefined;
 	}
 
-	const scrollbarOptions: Record<string, unknown> = {};
-
-	const optNames = ["container", "color", "minWidth"] as const;
-
-	for (const key of optNames) {
-		if (objectHasProperty(scrollbar, key)) {
-			scrollbarOptions[key] = scrollbar[key];
-		} else {
-			scrollbarOptions[key] = defaultScrollbarOptions[key];
-		}
-	}
-
-	return scrollbarOptions;
+	return {
+		color: scrollbar.color ?? defaultScrollbarOptions.color,
+		...(scrollbar.container ? { container: scrollbar.container } : {}),
+		minWidth: scrollbar.minWidth ?? defaultScrollbarOptions.minWidth,
+	} as ScrollbarDisplayOptions;
 }
 
 export function extendOptions(
@@ -260,7 +258,10 @@ export function addSegmentOptions(
 ) {
 	options.segmentOptions = {} as SegmentDisplayOptions;
 
-	extend(options.segmentOptions, defaultSegmentOptions);
+	extend(
+		options.segmentOptions as unknown as Record<string, unknown>,
+		defaultSegmentOptions as unknown as Record<string, unknown>,
+	);
 
 	if (opts.segmentOptions) {
 		extendOptions(
@@ -271,7 +272,10 @@ export function addSegmentOptions(
 
 	const zoomview = options.zoomview as Writable<ZoomviewOptions>;
 	zoomview.segmentOptions = {} as SegmentDisplayOptions;
-	extend(zoomview.segmentOptions, options.segmentOptions);
+	extend(
+		zoomview.segmentOptions as unknown as Record<string, unknown>,
+		options.segmentOptions as unknown as Record<string, unknown>,
+	);
 
 	if (opts.zoomview?.segmentOptions) {
 		extendOptions(
@@ -282,7 +286,10 @@ export function addSegmentOptions(
 
 	const overview = options.overview as Writable<OverviewOptions>;
 	overview.segmentOptions = {} as SegmentDisplayOptions;
-	extend(overview.segmentOptions, options.segmentOptions);
+	extend(
+		overview.segmentOptions as unknown as Record<string, unknown>,
+		options.segmentOptions as unknown as Record<string, unknown>,
+	);
 
 	if (opts.overview?.segmentOptions) {
 		extendOptions(
@@ -337,11 +344,10 @@ export class Peaks extends EventEmitter {
 	constructor() {
 		super();
 
-		// Set default options
+		// Set default options - overview/zoomview are populated in setOptions()
 		this.options = {
 			createPointMarker: createPointMarker,
 			createSegmentLabel: createSegmentLabel,
-
 			createSegmentMarker: createSegmentMarker,
 
 			dataUri: undefined,
@@ -353,7 +359,6 @@ export class Peaks extends EventEmitter {
 			mediaUrl: undefined,
 
 			nudgeIncrement: 1.0,
-
 			pointMarkerColor: "#39cccc",
 			waveformCache: true,
 
@@ -361,7 +366,7 @@ export class Peaks extends EventEmitter {
 			webAudio: undefined,
 			withCredentials: false,
 			zoomLevels: [512, 1024, 2048, 4096],
-		} as PeaksOptions;
+		} as unknown as PeaksOptions;
 	}
 
 	/**
@@ -392,7 +397,7 @@ export class Peaks extends EventEmitter {
 			return;
 		}
 
-		let scrollbarContainer: HTMLElement | undefined;
+		let scrollbarContainer: HTMLDivElement | undefined;
 
 		if (instance.options.scrollbar) {
 			scrollbarContainer = instance.options.scrollbar.container;
@@ -577,9 +582,10 @@ export class Peaks extends EventEmitter {
 		}
 
 		if (!opts.player) {
+			const webAudio = opts.webAudio as WebAudioOptions | undefined;
 			const hasAudioContextSource =
-				(opts.audioContext ?? opts.webAudio?.audioContext) !== undefined &&
-				(opts.webAudio?.audioBuffer !== undefined ||
+				(opts.audioContext ?? webAudio?.audioContext) !== undefined &&
+				(webAudio?.audioBuffer !== undefined ||
 					typeof opts.mediaUrl === "string");
 
 			if (!opts.mediaElement && !hasAudioContextSource) {
@@ -622,15 +628,13 @@ export class Peaks extends EventEmitter {
 		);
 
 		const writableOptions = this.options as Writable<PeaksOptions>;
-		writableOptions.overview = getOverviewOptions(
-			opts,
-		) as unknown as PeaksOptions["overview"];
-		writableOptions.zoomview = getZoomviewOptions(
-			opts,
-		) as unknown as PeaksOptions["zoomview"];
-		writableOptions.scrollbar = getScrollbarOptions(
-			opts,
-		) as PeaksOptions["scrollbar"];
+		writableOptions.overview = getOverviewOptions(opts);
+		writableOptions.zoomview = getZoomviewOptions(opts);
+
+		const scrollbarOptions = getScrollbarOptions(opts);
+		if (scrollbarOptions) {
+			writableOptions.scrollbar = scrollbarOptions;
+		}
 
 		addSegmentOptions(writableOptions, opts);
 

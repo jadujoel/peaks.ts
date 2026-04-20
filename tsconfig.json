@@ -41,7 +41,6 @@
 	"include": [
 		"src/**/*.ts",
 		"e2e/**/*.ts",
-		"playwright.config.ts",
-		"post-publish-test.ts"
+		"*.ts",
 	]
 }
