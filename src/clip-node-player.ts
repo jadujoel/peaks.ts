@@ -75,7 +75,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 		this.createNode();
 	}
 
-	destroy(): void {
+	dispose(): void {
 		this.disposeNode();
 		this.eventEmitter = undefined;
 	}

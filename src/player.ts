@@ -104,7 +104,7 @@ export class Player {
 		this.playingSegment = false;
 		this.loop = false;
 		this.segment = undefined;
-		this.adapter.destroy();
+		this.adapter.dispose();
 	}
 
 	/**

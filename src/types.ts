@@ -22,7 +22,7 @@ export type Logger = (...args: unknown[]) => void;
 // ─── Player Adapter ─────────────────────────────────────────────────
 export interface PlayerAdapter {
 	init(eventEmitter: PeaksInstance): Promise<void> | void;
-	destroy(): void;
+	dispose(): void;
 	play(): Promise<void> | void;
 	pause(): void;
 	isPlaying(): boolean;
