@@ -14,15 +14,15 @@ export interface ScrollMouseDragHandlerFromOptions {
 }
 
 export class ScrollMouseDragHandler {
-	private _peaks: PeaksInstance;
-	private _view: import("./waveform-zoomview").WaveformZoomView;
+	private readonly _peaks: PeaksInstance;
+	private readonly _view: import("./waveform-zoomview").WaveformZoomView;
 	private _seeking: boolean;
 	private _firstMove: boolean;
 	private _segment: Group | undefined;
 	private _segmentIsDraggable: boolean;
 	private _initialFrameOffset: number;
 	private _mouseDownX: number;
-	private _mouseDragHandler: MouseDragHandler;
+	private readonly _mouseDragHandler: MouseDragHandler;
 
 	static from(
 		options: ScrollMouseDragHandlerFromOptions,

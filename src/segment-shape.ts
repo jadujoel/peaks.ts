@@ -47,10 +47,10 @@ export interface SegmentShapeFromOptions {
 }
 
 export class SegmentShape {
-	private _segment: Segment;
-	private _peaks: PeaksInstance;
-	private _layer: SegmentsLayerAPI;
-	private _view: WaveformViewAPI;
+	private readonly _segment: Segment;
+	private readonly _peaks: PeaksInstance;
+	private readonly _layer: SegmentsLayerAPI;
+	private readonly _view: WaveformViewAPI;
 	private _label: Shape | undefined;
 	private _startMarker: SegmentMarker | undefined;
 	private _endMarker: SegmentMarker | undefined;
@@ -58,8 +58,8 @@ export class SegmentShape {
 	private _borderColor: string | undefined;
 	private _draggable: boolean;
 	private _dragging: boolean;
-	private _overlayOffset: number;
-	private _waveformShape: WaveformShape | undefined;
+	private readonly _overlayOffset: number;
+	private readonly _waveformShape: WaveformShape | undefined;
 	private _overlay!: Group;
 	private _overlayRect!: Rect;
 	private _overlayText: Text | undefined;
@@ -69,19 +69,19 @@ export class SegmentShape {
 	private _dragStartTime = 0;
 	private _dragEndTime = 0;
 
-	private _onMouseEnter: OnSegmentMove;
-	private _onMouseLeave: OnSegmentMove;
-	private _onMouseDown: OnSegmentMove;
-	private _onMouseUp: OnSegmentMove;
-	private _dragBoundFunc: (pos: XY) => XY;
-	private _onSegmentDragStart: OnSegmentMove;
-	private _onSegmentDragMove: OnSegmentMove;
-	private _onSegmentDragEnd: OnSegmentMove;
-	private _onSegmentMarkerClick: OnSegmentMarker;
-	private _onSegmentMarkerDragStart: OnSegmentMarker;
-	private _onSegmentMarkerDragMove: OnSegmentMarker;
-	private _onSegmentMarkerDragEnd: OnSegmentMarker;
-	private _segmentMarkerDragBoundFunc: (
+	private readonly _onMouseEnter: OnSegmentMove;
+	private readonly _onMouseLeave: OnSegmentMove;
+	private readonly _onMouseDown: OnSegmentMove;
+	private readonly _onMouseUp: OnSegmentMove;
+	private readonly _dragBoundFunc: (pos: XY) => XY;
+	private readonly _onSegmentDragStart: OnSegmentMove;
+	private readonly _onSegmentDragMove: OnSegmentMove;
+	private readonly _onSegmentDragEnd: OnSegmentMove;
+	private readonly _onSegmentMarkerClick: OnSegmentMarker;
+	private readonly _onSegmentMarkerDragStart: OnSegmentMarker;
+	private readonly _onSegmentMarkerDragMove: OnSegmentMarker;
+	private readonly _onSegmentMarkerDragEnd: OnSegmentMarker;
+	private readonly _segmentMarkerDragBoundFunc: (
 		marker: SegmentMarkerAPI,
 		pos: XY,
 	) => XY;
@@ -756,9 +756,6 @@ export class SegmentShape {
 		// Move this segment to the top of the z-order, so that it remains on top
 		// of any adjacent segments that the marker is dragged over.
 		this._moveToTop();
-
-		this._startMarkerX = this._startMarker.getX();
-		this._endMarkerX = this._endMarker.getX();
 
 		this._peaks.emit("segments.dragstart", {
 			segment: this._segment,

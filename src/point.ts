@@ -28,21 +28,24 @@ export const pointOptions = [
 
 export const invalidOptions = ["update", "isVisible", "peaks", "pid"] as const;
 
-export function setDefaultPointOptions(
+export interface PointDefaults {
+	readonly pointMarkerColor: string;
+}
+
+const DEFAULT_POINT_DEFAULTS: PointDefaults = {
+	pointMarkerColor: "",
+};
+
+function applyPointDefaults(
 	options: PointOptions,
-	peaksOptions: { readonly pointMarkerColor: string },
-): void {
-	if (isNullOrUndefined(options.labelText)) {
-		options.labelText = "";
-	}
-
-	if (isNullOrUndefined(options.editable)) {
-		options.editable = false;
-	}
-
-	if (isNullOrUndefined(options.color)) {
-		options.color = peaksOptions.pointMarkerColor;
-	}
+	defaults: PointDefaults = DEFAULT_POINT_DEFAULTS,
+): PointOptions {
+	return {
+		...options,
+		labelText: options.labelText ?? "",
+		editable: options.editable ?? false,
+		color: options.color ?? defaults.pointMarkerColor,
+	};
 }
 
 /**
@@ -73,11 +76,19 @@ export function validatePointOptions(
 		);
 	}
 
-	if (objectHasProperty(options, "labelText") && !isString(options.labelText)) {
+	if (
+		objectHasProperty(options, "labelText") &&
+		!(!updating && isNullOrUndefined(options.labelText)) &&
+		!isString(options.labelText)
+	) {
 		throw new TypeError(`peaks.points.${context}: labelText must be a string`);
 	}
 
-	if (objectHasProperty(options, "editable") && !isBoolean(options.editable)) {
+	if (
+		objectHasProperty(options, "editable") &&
+		!(!updating && isNullOrUndefined(options.editable)) &&
+		!isBoolean(options.editable)
+	) {
 		throw new TypeError(
 			`peaks.points.${context}: editable must be true or false`,
 		);
@@ -85,6 +96,7 @@ export function validatePointOptions(
 
 	if (
 		objectHasProperty(options, "color") &&
+		!(!updating && isNullOrUndefined(options.color)) &&
 		!isString(options.color) &&
 		!isLinearGradientColor(options.color)
 	) {
@@ -110,13 +122,14 @@ export interface PointFromOptions {
 	readonly peaks: PointPeaksLike;
 	readonly pid: number;
 	readonly options: PointOptions;
+	readonly defaults?: PointDefaults;
 }
 
 export class Point {
 	[key: string]: unknown;
 
-	private _peaks: PointPeaksLike;
-	private _pid: number;
+	private readonly _peaks: PointPeaksLike;
+	private readonly _pid: number;
 	private _id!: string;
 	private _time!: number;
 	private _labelText!: string;
@@ -124,7 +137,8 @@ export class Point {
 	private _editable!: boolean;
 
 	static from(options: PointFromOptions): Point {
-		return new Point(options.peaks, options.pid, options.options);
+		const merged = applyPointDefaults(options.options, options.defaults);
+		return new Point(options.peaks, options.pid, merged);
 	}
 
 	private constructor(

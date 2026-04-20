@@ -15,24 +15,27 @@ export interface SegmentMarkerFromOptions {
 }
 
 export class SegmentMarker {
-	private _segment: Segment;
-	private _marker: Marker;
-	private _editable: boolean;
-	private _startMarker: boolean;
-	private _onClick: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
-	private _onDragStart: (
+	private readonly _segment: Segment;
+	private readonly _marker: Marker;
+	private readonly _editable: boolean;
+	private readonly _startMarker: boolean;
+	private readonly _onClick: (
 		marker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
 	) => void;
-	private _onDragMove: (
+	private readonly _onDragStart: (
 		marker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
 	) => void;
-	private _onDragEnd: (
+	private readonly _onDragMove: (
 		marker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
 	) => void;
-	private _group: Group;
+	private readonly _onDragEnd: (
+		marker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => void;
+	private readonly _group: Group;
 
 	static from(options: SegmentMarkerFromOptions): SegmentMarker {
 		return new SegmentMarker(options.options);

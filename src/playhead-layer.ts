@@ -20,20 +20,20 @@ export interface PlayheadLayerFromOptions {
 }
 
 export class PlayheadLayer {
-	private _player: PlayerInstance;
-	private _view: WaveformViewAPI;
+	private readonly _player: PlayerInstance;
+	private readonly _view: WaveformViewAPI;
 	private _playheadPixel: number;
 	private _playheadLineAnimation: Animation | undefined;
 	private _playheadVisible: boolean;
-	private _playheadColor: string;
-	private _playheadTextColor: string;
-	private _playheadBackgroundColor: string;
-	private _playheadPadding: number;
-	private _playheadWidth: number;
-	private _playheadFontFamily: string;
-	private _playheadFontSize: number;
-	private _playheadFontStyle: string;
-	private _playheadLayer: Layer;
+	private readonly _playheadColor: string;
+	private readonly _playheadTextColor: string;
+	private readonly _playheadBackgroundColor: string;
+	private readonly _playheadPadding: number;
+	private readonly _playheadWidth: number;
+	private readonly _playheadFontFamily: string;
+	private readonly _playheadFontSize: number;
+	private readonly _playheadFontStyle: string;
+	private readonly _playheadLayer: Layer;
 	private _playheadLine!: Line;
 	private _playheadGroup!: Group;
 	private _playheadText: Text | undefined;

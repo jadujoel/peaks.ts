@@ -8,7 +8,7 @@ export interface OverlaySegmentMarkerFromOptions {
 }
 
 export class OverlaySegmentMarker {
-	private _options: CreateSegmentMarkerOptions;
+	private readonly _options: CreateSegmentMarkerOptions;
 	private _label!: Text;
 	private _handle!: Rect;
 

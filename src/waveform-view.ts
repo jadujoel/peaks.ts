@@ -18,36 +18,38 @@ import { WaveformAxis } from "./waveform-axis";
 import { WaveformShape } from "./waveform-shape";
 
 export interface PlayedSegment {
-	readonly startTime: number;
-	readonly endTime: number;
+	startTime: number;
+	endTime: number;
 }
 
 export class WaveformView {
 	public peaks: PeaksInstance;
 	public _peaks: PeaksInstance;
-	private _container: HTMLDivElement;
-	private _viewOptions: ZoomviewOptions | OverviewOptions;
-	private _data: WaveformData;
-	private _frameOffset: number;
-	private _width: number;
-	private _height: number;
-	private _amplitudeScale: number;
-	private _waveformColor: WaveformColor;
-	private _playedWaveformColor: WaveformColor | undefined;
-	private _timeLabelPrecision: number;
-	private _formatPlayheadTime: (time: number) => string;
-	private _enableSeek: boolean;
-	private _stage!: Stage;
-	private _waveformLayer!: Layer;
-	private _waveformShape!: WaveformShape;
-	private _playedWaveformShape!: WaveformShape | undefined;
-	private _playedSegment!: PlayedSegment | undefined;
-	private _unplayedSegment!: PlayedSegment | undefined;
-	private _segmentsLayer!: SegmentsLayer | undefined;
-	private _pointsLayer!: PointsLayer | undefined;
-	private _axisLayer!: Layer;
-	private _axis!: WaveformAxis;
-	private _playheadLayer!: PlayheadLayer;
+	protected _container: HTMLDivElement;
+	protected _options: PeaksInstance["options"];
+	protected _viewOptions: ZoomviewOptions | OverviewOptions;
+	protected _originalWaveformData: WaveformData;
+	protected _data: WaveformData;
+	protected _frameOffset: number;
+	protected _width: number;
+	protected _height: number;
+	protected _amplitudeScale: number;
+	protected _waveformColor: WaveformColor;
+	protected _playedWaveformColor: WaveformColor | undefined;
+	protected _timeLabelPrecision: number;
+	protected _formatPlayheadTime: (time: number) => string;
+	protected _enableSeek: boolean;
+	protected _stage!: Stage;
+	protected _waveformLayer!: Layer;
+	protected _waveformShape!: WaveformShape;
+	protected _playedWaveformShape!: WaveformShape | undefined;
+	protected _playedSegment!: PlayedSegment | undefined;
+	protected _unplayedSegment!: PlayedSegment | undefined;
+	protected _segmentsLayer!: SegmentsLayer | undefined;
+	protected _pointsLayer!: PointsLayer | undefined;
+	protected _axisLayer!: Layer;
+	protected _axis!: WaveformAxis;
+	protected _playheadLayer!: PlayheadLayer;
 
 	constructor(
 		waveformData: WaveformData,
@@ -278,7 +280,7 @@ export class WaveformView {
 		if (!this._waveformShape) {
 			this._waveformShape = WaveformShape.from({
 				color: this._waveformColor,
-				view: this,
+				view: this as unknown as WaveformViewAPI,
 			});
 
 			this._waveformShape.addToLayer(this._waveformLayer);
@@ -301,7 +303,7 @@ export class WaveformView {
 
 			this._playedWaveformShape = WaveformShape.from({
 				color: this._playedWaveformColor,
-				view: this,
+				view: this as unknown as WaveformViewAPI,
 				segment: this._playedSegment,
 			});
 

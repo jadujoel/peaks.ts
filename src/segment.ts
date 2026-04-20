@@ -27,37 +27,37 @@ export const segmentOptions = [
 
 export const invalidOptions = ["update", "isVisible", "peaks", "pid"] as const;
 
-export function setDefaultSegmentOptions(
+export interface SegmentDefaults {
+	readonly overlay: boolean;
+	readonly overlayColor: string;
+	readonly waveformColor: string;
+	readonly overlayBorderColor: string;
+	readonly markers: boolean;
+}
+
+const DEFAULT_SEGMENT_DEFAULTS: SegmentDefaults = {
+	overlay: false,
+	overlayColor: "",
+	waveformColor: "",
+	overlayBorderColor: "",
+	markers: true,
+};
+
+function applySegmentDefaults(
 	options: SegmentOptions,
-	globalSegmentOptions: Record<string, unknown>,
-): void {
-	if (isNullOrUndefined(options.color)) {
-		if (globalSegmentOptions.overlay) {
-			options.color = globalSegmentOptions.overlayColor as string;
-		} else {
-			options.color = globalSegmentOptions.waveformColor as string;
-		}
-	}
-
-	if (isNullOrUndefined(options.borderColor)) {
-		options.borderColor = globalSegmentOptions.overlayBorderColor as string;
-	}
-
-	if (isNullOrUndefined(options.labelText)) {
-		options.labelText = "";
-	}
-
-	if (isNullOrUndefined(options.markers)) {
-		options.markers = globalSegmentOptions.markers as boolean;
-	}
-
-	if (isNullOrUndefined(options.overlay)) {
-		options.overlay = globalSegmentOptions.overlay as boolean;
-	}
-
-	if (isNullOrUndefined(options.editable)) {
-		options.editable = false;
-	}
+	defaults: SegmentDefaults = DEFAULT_SEGMENT_DEFAULTS,
+): SegmentOptions {
+	return {
+		...options,
+		color:
+			options.color ??
+			(defaults.overlay ? defaults.overlayColor : defaults.waveformColor),
+		borderColor: options.borderColor ?? defaults.overlayBorderColor,
+		labelText: options.labelText ?? "",
+		markers: options.markers ?? defaults.markers,
+		overlay: options.overlay ?? defaults.overlay,
+		editable: options.editable ?? false,
+	};
 }
 
 /**
@@ -120,7 +120,11 @@ export function validateSegmentOptions(
 		);
 	}
 
-	if (objectHasProperty(options, "labelText") && !isString(options.labelText)) {
+	if (
+		objectHasProperty(options, "labelText") &&
+		!(!updating && isNullOrUndefined(options.labelText)) &&
+		!isString(options.labelText)
+	) {
 		throw new TypeError(
 			`peaks.segments.${context}: labelText must be a string`,
 		);
@@ -134,6 +138,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "markers") &&
+		!(!updating && isNullOrUndefined((options as SegmentOptions).markers)) &&
 		!isBoolean((options as SegmentOptions).markers)
 	) {
 		throw new TypeError(
@@ -149,6 +154,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "overlay") &&
+		!(!updating && isNullOrUndefined((options as SegmentOptions).overlay)) &&
 		!isBoolean((options as SegmentOptions).overlay)
 	) {
 		throw new TypeError(
@@ -156,7 +162,11 @@ export function validateSegmentOptions(
 		);
 	}
 
-	if (objectHasProperty(options, "editable") && !isBoolean(options.editable)) {
+	if (
+		objectHasProperty(options, "editable") &&
+		!(!updating && isNullOrUndefined(options.editable)) &&
+		!isBoolean(options.editable)
+	) {
 		throw new TypeError(
 			`peaks.segments.${context}: editable must be true or false`,
 		);
@@ -164,6 +174,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "color") &&
+		!(!updating && isNullOrUndefined(options.color)) &&
 		!isString(options.color) &&
 		!isLinearGradientColor(options.color)
 	) {
@@ -174,6 +185,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "borderColor") &&
+		!(!updating && isNullOrUndefined(options.borderColor)) &&
 		!isString(options.borderColor)
 	) {
 		throw new TypeError(
@@ -211,13 +223,14 @@ export interface SegmentFromOptions {
 	readonly peaks: SegmentPeaksLike;
 	readonly pid: number;
 	readonly options: SegmentOptions;
+	readonly defaults?: SegmentDefaults;
 }
 
 export class Segment {
 	[key: string]: unknown;
 
-	private _peaks: SegmentPeaksLike;
-	private _pid: number;
+	private readonly _peaks: SegmentPeaksLike;
+	private readonly _pid: number;
 	private _id!: string;
 	private _startTime!: number;
 	private _endTime!: number;
@@ -229,7 +242,8 @@ export class Segment {
 	private _overlay!: boolean;
 
 	static from(options: SegmentFromOptions): Segment {
-		return new Segment(options.peaks, options.pid, options.options);
+		const merged = applySegmentDefaults(options.options, options.defaults);
+		return new Segment(options.peaks, options.pid, merged);
 	}
 
 	private constructor(

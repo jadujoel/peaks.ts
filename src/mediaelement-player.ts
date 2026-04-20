@@ -27,10 +27,10 @@ interface SetSourceHandlerFromOptions {
 }
 
 class SetSourceHandler {
-	private _eventEmitter: PeaksInstance;
-	private _mediaElement: HTMLMediaElement;
-	private _playerCanPlayHandler: () => void;
-	private _playerErrorHandler: (err: MediaError) => void;
+	private readonly _eventEmitter: PeaksInstance;
+	private readonly _mediaElement: HTMLMediaElement;
+	private readonly _playerCanPlayHandler: () => void;
+	private readonly _playerErrorHandler: (err: MediaError) => void;
 	private _resolve: (() => void) | undefined;
 	private _reject: ((reason: MediaError) => void) | undefined;
 

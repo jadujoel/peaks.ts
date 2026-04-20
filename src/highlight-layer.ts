@@ -11,16 +11,16 @@ export interface HighlightLayerFromOptions {
 }
 
 export class HighlightLayer {
-	private _view: WaveformViewAPI;
-	private _offset: number;
-	private _color: string;
-	private _layer: Layer;
+	private readonly _view: WaveformViewAPI;
+	private readonly _offset: number;
+	private readonly _color: string;
+	private readonly _layer: Layer;
 	private _highlightRect?: Rect | undefined;
 	private _startTime?: number;
 	private _endTime?: number;
-	private _strokeColor: string;
-	private _opacity: number;
-	private _cornerRadius: number;
+	private readonly _strokeColor: string;
+	private readonly _opacity: number;
+	private readonly _cornerRadius: number;
 
 	static from(options: HighlightLayerFromOptions): HighlightLayer {
 		return new HighlightLayer(options.view, options.options);

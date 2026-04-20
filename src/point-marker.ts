@@ -10,15 +10,21 @@ export interface PointMarkerFromOptions {
 }
 
 export class PointMarker {
-	private _point: Point;
-	private _marker: Marker;
-	private _draggable: boolean;
-	private _onDragStart: (event: KonvaMouseEvent, point: Point) => void;
-	private _onDragMove: (event: KonvaMouseEvent, point: Point) => void;
-	private _onDragEnd: (event: KonvaMouseEvent, point: Point) => void;
-	private _onMouseEnter: (event: KonvaMouseEvent, point: Point) => void;
-	private _onMouseLeave: (event: KonvaMouseEvent, point: Point) => void;
-	private _group: Group;
+	private readonly _point: Point;
+	private readonly _marker: Marker;
+	private readonly _draggable: boolean;
+	private readonly _onDragStart: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly _onDragMove: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly _onDragEnd: (event: KonvaMouseEvent, point: Point) => void;
+	private readonly _onMouseEnter: (
+		event: KonvaMouseEvent,
+		point: Point,
+	) => void;
+	private readonly _onMouseLeave: (
+		event: KonvaMouseEvent,
+		point: Point,
+	) => void;
+	private readonly _group: Group;
 
 	static from(options: PointMarkerFromOptions): PointMarker {
 		return new PointMarker(options.options);

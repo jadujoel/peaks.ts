@@ -9,7 +9,7 @@ export interface DefaultSegmentMarkerFromOptions {
 }
 
 export class DefaultSegmentMarker {
-	private _options: CreateSegmentMarkerOptions;
+	private readonly _options: CreateSegmentMarkerOptions;
 	private _editable: boolean;
 	private _label!: Text;
 	private _handle!: Rect;

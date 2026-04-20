@@ -25,9 +25,9 @@ export interface WaveformShapeFromOptions {
  */
 
 export class WaveformShape {
-	private _color: WaveformColor;
-	private _shape: Shape;
-	private _view: WaveformViewAPI;
+	private readonly _color: WaveformColor;
+	private readonly _shape: Shape;
+	private readonly _view: WaveformViewAPI;
 	private _segment: TimeRange | undefined;
 
 	/**

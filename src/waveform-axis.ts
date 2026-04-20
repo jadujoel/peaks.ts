@@ -20,9 +20,9 @@ export class WaveformAxis {
 	private _showAxisLabels: boolean;
 	private _axisTopMarkerHeight: number;
 	private _axisBottomMarkerHeight: number;
-	private _formatAxisTime: (time: number) => string;
-	private _axisLabelFont: string;
-	private _axisShape: Shape;
+	private readonly _formatAxisTime: (time: number) => string;
+	private readonly _axisLabelFont: string;
+	private readonly _axisShape: Shape;
 
 	static from(options: WaveformAxisFromOptions): WaveformAxis {
 		return new WaveformAxis(options.view, options.options);

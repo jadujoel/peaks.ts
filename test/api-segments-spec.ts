@@ -179,6 +179,19 @@ describe("Peaks.segments", () => {
 			expect(p.segments.getSegments()[0].labelText).to.equal("");
 		});
 
+		it("should apply every optional default when only times are provided", () => {
+			p.segments.add({ startTime: 0, endTime: 10 });
+
+			const segment = p.segments.getSegments()[0];
+			expect(segment.labelText).to.equal("");
+			expect(segment.editable).to.equal(false);
+			expect(segment.color).to.be.a("string");
+			expect(segment.borderColor).to.be.a("string");
+			expect(segment.markers).to.be.a("boolean");
+			expect(segment.overlay).to.be.a("boolean");
+			expect(segment.id).to.be.a("string");
+		});
+
 		it("should throw if the label text is not a string", () => {
 			expect(() => {
 				p.segments.add({ startTime: 0, endTime: 10, labelText: 1 });

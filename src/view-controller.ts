@@ -9,7 +9,7 @@ export interface ViewControllerFromOptions {
 }
 
 export class ViewController {
-	public peaks: PeaksInstance;
+	public readonly peaks: PeaksInstance;
 	private _overview?: WaveformOverview | undefined;
 	private _zoomview?: WaveformZoomView | undefined;
 	private _scrollbar?: Scrollbar | undefined;

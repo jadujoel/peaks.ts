@@ -6,7 +6,7 @@ export interface ZoomControllerFromOptions {
 }
 
 export class ZoomController {
-	private _peaks: PeaksInstance;
+	private readonly _peaks: PeaksInstance;
 	private _zoomLevels: number[];
 	private _zoomLevelIndex: number;
 

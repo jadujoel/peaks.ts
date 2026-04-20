@@ -22,11 +22,11 @@ export interface PointsLayerFromOptions {
 }
 
 export class PointsLayer {
-	private _peaks: PeaksInstance;
-	private _view: WaveformViewAPI;
+	private readonly _peaks: PeaksInstance;
+	private readonly _view: WaveformViewAPI;
 	private _enableEditing: boolean;
 	private _pointMarkers: Record<string, PointMarker>;
-	private _layer: Layer;
+	private readonly _layer: Layer;
 	private _dragPointMarker: PointMarker | undefined;
 
 	static from(options: PointsLayerFromOptions): PointsLayer {

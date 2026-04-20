@@ -163,6 +163,16 @@ describe("Peaks.points", () => {
 			expect(p.points.getPoints()[0].labelText).to.equal("");
 		});
 
+		it("should apply every optional default when only time is provided", () => {
+			p.points.add({ time: 10 });
+
+			const point = p.points.getPoints()[0];
+			expect(point.labelText).to.equal("");
+			expect(point.editable).to.equal(false);
+			expect(point.color).to.be.a("string");
+			expect(point.id).to.be.a("string");
+		});
+
 		it("should throw if the label text is not a string", () => {
 			expect(() => {
 				p.points.add({ time: 10, labelText: 1 });

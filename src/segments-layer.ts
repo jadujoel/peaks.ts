@@ -24,11 +24,11 @@ export interface SegmentsLayerFromOptions {
 }
 
 export class SegmentsLayer {
-	private _peaks: PeaksInstance;
-	private _view: WaveformViewAPI;
+	private readonly _peaks: PeaksInstance;
+	private readonly _view: WaveformViewAPI;
 	private _enableEditing: boolean;
 	private _segmentShapes: Record<string, SegmentShape>;
-	private _layer: Layer;
+	private readonly _layer: Layer;
 
 	static from(options: SegmentsLayerFromOptions): SegmentsLayer {
 		return new SegmentsLayer(

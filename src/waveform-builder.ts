@@ -1,5 +1,6 @@
 import WaveformData from "waveform-data";
 import type { Logger, WaveformBuilderCallback, WebAudioOptions } from "./types";
+import type { Writable } from "./utils";
 import { isArrayBuffer, isObject } from "./utils";
 
 export interface WaveformBuilderOptions {
@@ -50,7 +51,7 @@ export interface WaveformBuilderFromOptions {
 }
 
 export class WaveformBuilder {
-	public peaks: WaveformBuilderPeaksLike;
+	public readonly peaks: WaveformBuilderPeaksLike;
 	private _xhr: XMLHttpRequest | undefined = undefined;
 
 	static from(options: WaveformBuilderFromOptions): WaveformBuilder {
@@ -84,7 +85,7 @@ export class WaveformBuilder {
 				"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
 			);
 
-			options.webAudio = {
+			(options as Writable<WaveformBuilderOptions>).webAudio = {
 				audioContext: options.audioContext,
 			};
 		}
@@ -299,7 +300,7 @@ export class WaveformBuilder {
 			firstZoomLevel !== undefined &&
 			webAudioOptions.scale !== firstZoomLevel
 		) {
-			webAudioOptions.scale = firstZoomLevel;
+			(webAudioOptions as Writable<WebAudioOptions>).scale = firstZoomLevel;
 		}
 
 		// If the media element has already selected which source to play, its
@@ -346,7 +347,7 @@ export class WaveformBuilder {
 			firstZoomLevel !== undefined &&
 			webAudioOptions.scale !== firstZoomLevel
 		) {
-			webAudioOptions.scale = firstZoomLevel;
+			(webAudioOptions as Writable<WebAudioOptions>).scale = firstZoomLevel;
 		}
 
 		if (!webAudioOptions.audioBuffer) {

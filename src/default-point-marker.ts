@@ -17,7 +17,7 @@ export interface DefaultPointMarkerFromOptions {
 }
 
 export class DefaultPointMarker {
-	private _options: CreatePointMarkerOptions;
+	private readonly _options: CreatePointMarkerOptions;
 	private _label: Text | undefined;
 	private _handle!: Rect;
 	private _line!: Line;

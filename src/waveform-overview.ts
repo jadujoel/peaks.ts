@@ -17,6 +17,7 @@ export interface WaveformOverviewFromOptions {
 
 export class WaveformOverview extends WaveformView {
 	declare _mouseDragHandler: SeekMouseDragHandler;
+	declare _highlightLayer?: HighlightLayer;
 
 	static from(options: WaveformOverviewFromOptions): WaveformOverview {
 		return new WaveformOverview(

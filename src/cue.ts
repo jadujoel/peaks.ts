@@ -18,8 +18,8 @@ export class Cue {
 	}
 
 	private constructor(
-		public time: number,
-		public type: number,
-		public id: string,
+		public readonly time: number,
+		public readonly type: number,
+		public readonly id: string,
 	) {}
 }

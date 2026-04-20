@@ -110,11 +110,11 @@ export interface CueEmitterFromOptions {
 }
 
 export class CueEmitter {
-	private _cues: Cue[];
-	private _peaks: PeaksInstance;
+	private readonly _cues: Cue[];
+	private readonly _peaks: PeaksInstance;
 	private _previousTime: number;
 	private _rAFHandle: number | undefined;
-	private _activeSegments: Record<string, Segment>;
+	private readonly _activeSegments: Record<string, Segment>;
 
 	static from(options: CueEmitterFromOptions): CueEmitter {
 		return new CueEmitter(options.peaks);
@@ -349,9 +349,7 @@ export class CueEmitter {
 			cancelAnimationFrame(this._rAFHandle);
 			this._rAFHandle = undefined;
 		}
-
 		this._detachEventHandlers();
-
 		this._previousTime = -1;
 	}
 }

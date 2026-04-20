@@ -1,9 +1,6 @@
-import {
-	Segment,
-	setDefaultSegmentOptions,
-	validateSegmentOptions,
-} from "./segment";
+import { Segment, validateSegmentOptions } from "./segment";
 import type { PeaksInstance, SegmentOptions } from "./types";
+import type { Writable } from "./utils";
 import { extend, isNullOrUndefined, objectHasProperty } from "./utils";
 
 /**
@@ -15,7 +12,7 @@ export interface WaveformSegmentsFromOptions {
 }
 
 export class WaveformSegments {
-	private _peaks: PeaksInstance;
+	private readonly _peaks: PeaksInstance;
 	private _segments: Segment[];
 	private _segmentsById: Record<string, Segment>;
 	private _segmentsByPid: Record<number, Segment>;
@@ -60,7 +57,7 @@ export class WaveformSegments {
 	 * @throws {Error} If reserved or internal option names are provided.
 	 */
 	private _createSegment(options: SegmentOptions): Segment | never {
-		const segmentOptions = {} as SegmentOptions;
+		const segmentOptions = {} as Writable<SegmentOptions>;
 
 		extend(segmentOptions, options as unknown as Record<string, unknown>);
 
@@ -70,17 +67,20 @@ export class WaveformSegments {
 
 		const pid = this._getNextPid();
 
-		setDefaultSegmentOptions(
-			segmentOptions,
-			this._peaks.options.segmentOptions,
-		);
-
 		validateSegmentOptions(segmentOptions, false);
 
+		const display = this._peaks.options.segmentOptions;
 		return Segment.from({
 			peaks: this._peaks,
 			pid,
 			options: segmentOptions,
+			defaults: {
+				overlay: display?.overlay ?? false,
+				overlayColor: display?.overlayColor ?? "",
+				waveformColor: display?.waveformColor ?? "",
+				overlayBorderColor: display?.overlayBorderColor ?? "",
+				markers: display?.markers ?? true,
+			},
 		});
 	}
 

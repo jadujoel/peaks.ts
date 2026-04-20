@@ -15,8 +15,8 @@ export interface MouseDragHandlerFromOptions {
 }
 
 export class MouseDragHandler {
-	private _stage: Stage;
-	private _handlers: MouseDragHandlers;
+	private readonly _stage: Stage;
+	private readonly _handlers: MouseDragHandlers;
 	private _dragging: boolean;
 	private _lastMouseClientX: number | undefined;
 

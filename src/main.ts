@@ -22,6 +22,7 @@ import type {
 	SetSourceOptions,
 	ViewOptions,
 } from "./types";
+import type { Writable } from "./utils";
 import {
 	extend,
 	isFunction,
@@ -108,7 +109,7 @@ const defaultScrollbarOptions = {
 defaultScrollbarOptions satisfies Partial<ScrollbarDisplayOptions>;
 
 export function getOverviewOptions(options: PeaksInitOptions) {
-	const overviewOptions: Partial<OverviewOptions> = {};
+	const overviewOptions: Writable<Partial<OverviewOptions>> = {};
 
 	if (options.overview?.showPlayheadTime) {
 		overviewOptions.showPlayheadTime = options.overview.showPlayheadTime;
@@ -199,16 +200,18 @@ export function getZoomviewOptions(opts: PeaksInitOptions) {
 		"enableEditing",
 	] as const;
 
+	const zoomviewDefaults = defaultZoomviewOptions as Record<string, unknown>;
+	const viewDefaults = defaultViewOptions as Record<string, unknown>;
 	for (const optName of optNames) {
 		if (opts.zoomview && objectHasProperty(opts.zoomview, optName)) {
 			zoomviewOptions[optName] = opts.zoomview[optName];
 		} else if (objectHasProperty(opts, optName)) {
 			zoomviewOptions[optName] = opts[optName];
 		} else if (!objectHasProperty(zoomviewOptions, optName)) {
-			if (objectHasProperty(defaultZoomviewOptions, optName)) {
-				zoomviewOptions[optName] = defaultZoomviewOptions[optName];
-			} else if (objectHasProperty(defaultViewOptions, optName)) {
-				zoomviewOptions[optName] = defaultViewOptions[optName];
+			if (objectHasProperty(zoomviewDefaults, optName)) {
+				zoomviewOptions[optName] = zoomviewDefaults[optName];
+			} else if (objectHasProperty(viewDefaults, optName)) {
+				zoomviewOptions[optName] = viewDefaults[optName];
 			}
 		}
 	}
@@ -252,7 +255,7 @@ export function extendOptions(
 }
 
 export function addSegmentOptions(
-	options: PeaksOptions,
+	options: Writable<PeaksOptions>,
 	opts: PeaksInitOptions,
 ) {
 	options.segmentOptions = {} as SegmentDisplayOptions;
@@ -266,22 +269,24 @@ export function addSegmentOptions(
 		);
 	}
 
-	options.zoomview.segmentOptions = {} as SegmentDisplayOptions;
-	extend(options.zoomview.segmentOptions, options.segmentOptions);
+	const zoomview = options.zoomview as Writable<ZoomviewOptions>;
+	zoomview.segmentOptions = {} as SegmentDisplayOptions;
+	extend(zoomview.segmentOptions, options.segmentOptions);
 
 	if (opts.zoomview?.segmentOptions) {
 		extendOptions(
-			options.zoomview.segmentOptions as unknown as Record<string, unknown>,
+			zoomview.segmentOptions as unknown as Record<string, unknown>,
 			opts.zoomview.segmentOptions as unknown as Record<string, unknown>,
 		);
 	}
 
-	options.overview.segmentOptions = {} as SegmentDisplayOptions;
-	extend(options.overview.segmentOptions, options.segmentOptions);
+	const overview = options.overview as Writable<OverviewOptions>;
+	overview.segmentOptions = {} as SegmentDisplayOptions;
+	extend(overview.segmentOptions, options.segmentOptions);
 
 	if (opts.overview?.segmentOptions) {
 		extendOptions(
-			options.overview.segmentOptions as unknown as Record<string, unknown>,
+			overview.segmentOptions as unknown as Record<string, unknown>,
 			opts.overview.segmentOptions as unknown as Record<string, unknown>,
 		);
 	}
@@ -616,17 +621,18 @@ export class Peaks extends EventEmitter {
 			opts as unknown as Record<string, unknown>,
 		);
 
-		this.options.overview = getOverviewOptions(
+		const writableOptions = this.options as Writable<PeaksOptions>;
+		writableOptions.overview = getOverviewOptions(
 			opts,
 		) as unknown as PeaksOptions["overview"];
-		this.options.zoomview = getZoomviewOptions(
+		writableOptions.zoomview = getZoomviewOptions(
 			opts,
 		) as unknown as PeaksOptions["zoomview"];
-		this.options.scrollbar = getScrollbarOptions(
+		writableOptions.scrollbar = getScrollbarOptions(
 			opts,
 		) as PeaksOptions["scrollbar"];
 
-		addSegmentOptions(this.options, opts);
+		addSegmentOptions(writableOptions, opts);
 
 		if (!Array.isArray(this.options.zoomLevels)) {
 			return new TypeError(
@@ -650,7 +656,8 @@ export class Peaks extends EventEmitter {
 			._setSource(options)
 			.then(() => {
 				if (!options.zoomLevels) {
-					options.zoomLevels = this.options.zoomLevels;
+					(options as Writable<SetSourceOptions>).zoomLevels =
+						this.options.zoomLevels;
 				}
 
 				this._waveformBuilder = WaveformBuilder.from({

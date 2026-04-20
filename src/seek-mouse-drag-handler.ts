@@ -1,24 +1,24 @@
+import type { Stage } from "konva/lib/Stage";
 import { MouseDragHandler } from "./mouse-drag-handler";
 import type { PeaksInstance, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
 
 export interface SeekMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: WaveformViewAPI & {
-		_stage: import("konva/lib/Stage").Stage;
-		dragSeek(dragging: boolean): void;
-	};
+	readonly view: SeekMouseDragHandlerView;
+}
+
+export interface SeekMouseDragHandlerView extends WaveformViewAPI {
+	readonly _stage: Stage;
+	dragSeek(dragging: boolean): void;
 }
 
 export class SeekMouseDragHandler {
-	private _peaks: PeaksInstance;
-	private _view: WaveformViewAPI & {
-		_stage: import("konva/lib/Stage").Stage;
-		dragSeek(dragging: boolean): void;
-	};
+	private readonly _peaks: PeaksInstance;
+	private readonly _view: SeekMouseDragHandlerView;
 	private _firstMove: boolean;
-	private _width!: number;
-	private _mouseDragHandler: MouseDragHandler;
+	private readonly _width!: number;
+	private readonly _mouseDragHandler: MouseDragHandler;
 
 	static from(options: SeekMouseDragHandlerFromOptions): SeekMouseDragHandler {
 		return new SeekMouseDragHandler(options.peaks, options.view);

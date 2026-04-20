@@ -9,6 +9,8 @@ export interface LinearGradientColor {
 
 export type WaveformColor = string | LinearGradientColor;
 
+export type Writable<T> = { -readonly [P in keyof T]: T[P] };
+
 function zeroPad(number: number | string, precision: number): string {
 	let str = number.toString();
 

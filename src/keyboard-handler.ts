@@ -12,8 +12,8 @@ export interface KeyboardHandlerFromOptions {
 }
 
 export class KeyboardHandler {
-	private eventEmitter: PeaksInstance;
-	private _handleKeyEvent: (event: KeyboardEvent) => void;
+	private readonly eventEmitter: PeaksInstance;
+	private readonly _handleKeyEvent: (event: KeyboardEvent) => void;
 
 	static from(options: KeyboardHandlerFromOptions): KeyboardHandler {
 		return new KeyboardHandler(options.eventEmitter);

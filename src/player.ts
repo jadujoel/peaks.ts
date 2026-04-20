@@ -63,11 +63,11 @@ export interface PlayerFromOptions {
 }
 
 export class Player {
-	private _peaks: PeaksInstance | undefined;
+	private readonly _peaks: PeaksInstance | undefined;
 	private _playingSegment: boolean;
 	private _segment: Segment | undefined;
 	private _loop: boolean;
-	private _adapter: PlayerAdapter;
+	private readonly _adapter: PlayerAdapter;
 
 	/**
 	 * Creates a player wrapper around the supplied adapter.

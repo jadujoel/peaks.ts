@@ -20,20 +20,20 @@ export interface ScrollbarFromOptions {
 }
 
 export class Scrollbar {
-	private _container: HTMLDivElement;
-	private _peaks: PeaksInstance;
-	private _options: ScrollbarDisplayOptions;
+	private readonly _container: HTMLDivElement;
+	private readonly _peaks: PeaksInstance;
+	private readonly _options: ScrollbarDisplayOptions;
 	private _zoomview: WaveformZoomView | undefined;
 	private _width: number;
 	private _height: number;
-	private _stage: Stage;
-	private _layer: Layer;
-	private _color: string;
+	private readonly _stage: Stage;
+	private readonly _layer: Layer;
+	private readonly _color: string;
 	private _scrollboxX: number;
-	private _minScrollboxWidth: number;
-	private _offsetY: number;
-	private _scrollbox: Group;
-	private _scrollboxRect: Rect;
+	private readonly _minScrollboxWidth: number;
+	private readonly _offsetY: number;
+	private readonly _scrollbox: Group;
+	private readonly _scrollboxRect: Rect;
 	private _scrollboxWidth!: number;
 	private _dragging!: boolean;
 

@@ -9,13 +9,13 @@ export interface InsertSegmentMouseDragHandlerFromOptions {
 }
 
 export class InsertSegmentMouseDragHandler {
-	private _peaks: PeaksInstance;
-	private _view: import("./waveform-zoomview").WaveformZoomView;
+	private readonly _peaks: PeaksInstance;
+	private readonly _view: import("./waveform-zoomview").WaveformZoomView;
 	private _insertSegment: Segment | undefined;
 	private _insertSegmentShape: SegmentShapeAPI | undefined;
 	private _segmentIsDraggable: boolean;
 	private _segment: Group | undefined;
-	private _mouseDragHandler: MouseDragHandler;
+	private readonly _mouseDragHandler: MouseDragHandler;
 
 	static from(
 		options: InsertSegmentMouseDragHandlerFromOptions,
