@@ -36,11 +36,11 @@ export interface SegmentDefaults {
 }
 
 const DEFAULT_SEGMENT_DEFAULTS: SegmentDefaults = {
+	markers: true,
 	overlay: false,
+	overlayBorderColor: "",
 	overlayColor: "",
 	waveformColor: "",
-	overlayBorderColor: "",
-	markers: true,
 };
 
 function applySegmentDefaults(
@@ -49,14 +49,14 @@ function applySegmentDefaults(
 ): SegmentOptions {
 	return {
 		...options,
+		borderColor: options.borderColor ?? defaults.overlayBorderColor,
 		color:
 			options.color ??
 			(defaults.overlay ? defaults.overlayColor : defaults.waveformColor),
-		borderColor: options.borderColor ?? defaults.overlayBorderColor,
+		editable: options.editable ?? false,
 		labelText: options.labelText ?? "",
 		markers: options.markers ?? defaults.markers,
 		overlay: options.overlay ?? defaults.overlay,
-		editable: options.editable ?? false,
 	};
 }
 
@@ -122,7 +122,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "labelText") &&
-		!(!updating && isNullOrUndefined(options.labelText)) &&
+		!isNullOrUndefined(options.labelText) &&
 		!isString(options.labelText)
 	) {
 		throw new TypeError(
@@ -138,7 +138,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "markers") &&
-		!(!updating && isNullOrUndefined((options as SegmentOptions).markers)) &&
+		!isNullOrUndefined((options as SegmentOptions).markers) &&
 		!isBoolean((options as SegmentOptions).markers)
 	) {
 		throw new TypeError(
@@ -154,7 +154,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "overlay") &&
-		!(!updating && isNullOrUndefined((options as SegmentOptions).overlay)) &&
+		!isNullOrUndefined((options as SegmentOptions).overlay) &&
 		!isBoolean((options as SegmentOptions).overlay)
 	) {
 		throw new TypeError(
@@ -164,7 +164,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "editable") &&
-		!(!updating && isNullOrUndefined(options.editable)) &&
+		!isNullOrUndefined(options.editable) &&
 		!isBoolean(options.editable)
 	) {
 		throw new TypeError(
@@ -174,7 +174,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "color") &&
-		!(!updating && isNullOrUndefined(options.color)) &&
+		!isNullOrUndefined(options.color) &&
 		!isString(options.color) &&
 		!isLinearGradientColor(options.color)
 	) {
@@ -185,7 +185,7 @@ export function validateSegmentOptions(
 
 	if (
 		objectHasProperty(options, "borderColor") &&
-		!(!updating && isNullOrUndefined(options.borderColor)) &&
+		!isNullOrUndefined(options.borderColor) &&
 		!isString(options.borderColor)
 	) {
 		throw new TypeError(
@@ -227,8 +227,6 @@ export interface SegmentFromOptions {
 }
 
 export class Segment {
-	[key: string]: unknown;
-
 	private readonly _peaks: SegmentPeaksLike;
 	private readonly _pid: number;
 	private _id!: string;

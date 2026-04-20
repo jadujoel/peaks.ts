@@ -1,4 +1,11 @@
 {
+	"assist": {
+		"actions": {
+			"source": {
+				"useSortedKeys": "on"
+			}
+		}
+	},
 	"files": {
 		"includes": [
 			"**",
@@ -64,8 +71,8 @@
 			"linter": {
 				"rules": {
 					"suspicious": {
-						"noImplicitAnyLet": "off",
 						"noAssignInExpressions": "off",
+						"noImplicitAnyLet": "off",
 						"noSelfCompare": "off",
 						"noShadowRestrictedNames": "off"
 					}

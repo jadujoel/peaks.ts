@@ -5,8 +5,8 @@ import { Text } from "konva/lib/shapes/Text";
 import type { CreatePointMarkerOptions, PointUpdateOptions } from "./types";
 
 export const DefaultOptions = {
-	editable: false,
 	color: "#000",
+	editable: false,
 	fontFamily: "sans-serif",
 	fontSize: 10,
 	fontStyle: "normal",
@@ -48,35 +48,35 @@ export class DefaultPointMarker {
 		if (this._options.view === "zoomview") {
 			// Label - create with default y, the real value is set in fitToView().
 			this._label = new Text({
-				x: 2,
-				y: 0,
-				text: this._options.point?.labelText ?? "",
-				textAlign: "left",
+				fill: "#000",
 				fontFamily: this._options.fontFamily || "sans-serif",
 				fontSize: this._options.fontSize || 10,
 				fontStyle: this._options.fontStyle || "normal",
-				fill: "#000",
+				text: this._options.point?.labelText ?? "",
+				textAlign: "left",
+				x: 2,
+				y: 0,
 			});
 		}
 
 		// Handle - create with default y, the real value is set in fitToView().
 
 		this._handle = new Rect({
+			fill: this._options.color ?? DefaultOptions.color,
+			height: handleHeight,
+			visible: this._draggable,
+			width: handleWidth,
 			x: handleX,
 			y: 0,
-			width: handleWidth,
-			height: handleHeight,
-			fill: this._options.color ?? DefaultOptions.color,
-			visible: this._draggable,
 		});
 
 		// Line - create with default y and points, the real values
 		// are set in fitToView().
 		this._line = new Line({
-			x: 0,
-			y: 0,
 			stroke: this._options.color ?? DefaultOptions.color,
 			strokeWidth: 1,
+			x: 0,
+			y: 0,
 		});
 
 		const point = this._options.point;
@@ -89,14 +89,14 @@ export class DefaultPointMarker {
 		// Time label - create with default y, the real value is set
 		// in fitToView().
 		this._time = new Text({
-			x: -24,
-			y: 0,
-			text: this._options.layer?.formatTime(point.time) ?? "",
+			fill: "#000",
 			fontFamily: this._options.fontFamily ?? DefaultOptions.fontFamily,
 			fontSize: this._options.fontSize ?? DefaultOptions.fontSize,
 			fontStyle: this._options.fontStyle ?? DefaultOptions.fontStyle,
-			fill: "#000",
+			text: this._options.layer?.formatTime(point.time) ?? "",
 			textAlign: "center",
+			x: -24,
+			y: 0,
 		});
 
 		this._time.hide();

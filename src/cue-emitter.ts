@@ -3,34 +3,119 @@ import type { Point } from "./point";
 import type { Segment } from "./segment";
 import type { PeaksInstance } from "./types";
 
-export const EVENT_TYPE_POINT = 0;
-export const EVENT_TYPE_SEGMENT_ENTER = 1;
-export const EVENT_TYPE_SEGMENT_EXIT = 2;
+// ─── Domain: data and pure functions ────────────────────────────────
 
-export const EVENT_TYPES = {
-	forward: {
-		[Cue.POINT]: EVENT_TYPE_POINT,
-		[Cue.SEGMENT_START]: EVENT_TYPE_SEGMENT_ENTER,
-		[Cue.SEGMENT_END]: EVENT_TYPE_SEGMENT_EXIT,
-	},
-	reverse: {
-		[Cue.POINT]: EVENT_TYPE_POINT,
-		[Cue.SEGMENT_START]: EVENT_TYPE_SEGMENT_EXIT,
-		[Cue.SEGMENT_END]: EVENT_TYPE_SEGMENT_ENTER,
-	},
-} as const;
+export const CUE_EVENT_POINT_ENTER = "points.enter" as const;
+export const CUE_EVENT_SEGMENT_ENTER = "segments.enter" as const;
+export const CUE_EVENT_SEGMENT_EXIT = "segments.exit" as const;
 
-const EVENT_NAMES = {
-	[EVENT_TYPE_POINT]: "points.enter",
-	[EVENT_TYPE_SEGMENT_ENTER]: "segments.enter",
-	[EVENT_TYPE_SEGMENT_EXIT]: "segments.exit",
-} as const;
+export type CueEventName =
+	| typeof CUE_EVENT_POINT_ENTER
+	| typeof CUE_EVENT_SEGMENT_ENTER
+	| typeof CUE_EVENT_SEGMENT_EXIT;
 
-const EVENT_ATTRIBUTES = {
-	[EVENT_TYPE_POINT]: "point",
-	[EVENT_TYPE_SEGMENT_ENTER]: "segment",
-	[EVENT_TYPE_SEGMENT_EXIT]: "segment",
-} as const;
+export interface BuildCuesInput {
+	readonly points: readonly Point[];
+	readonly segments: readonly Segment[];
+}
+
+/**
+ * Builds a time-sorted list of cues from the given points and segments.
+ */
+export function buildCues(input: BuildCuesInput): Cue[] {
+	const cues: Cue[] = [];
+
+	for (const point of input.points) {
+		cues.push(Cue.from({ id: point.id, time: point.time, type: Cue.POINT }));
+	}
+
+	for (const segment of input.segments) {
+		cues.push(
+			Cue.from({
+				id: segment.id,
+				time: segment.startTime,
+				type: Cue.SEGMENT_START,
+			}),
+		);
+		cues.push(
+			Cue.from({
+				id: segment.id,
+				time: segment.endTime,
+				type: Cue.SEGMENT_END,
+			}),
+		);
+	}
+
+	cues.sort(Cue.sorter);
+	return cues;
+}
+
+/**
+ * Yields cues crossed by a playhead moving from `previousTime` to `time`,
+ * in the order they are crossed. Direction is implied by the sign of
+ * `time - previousTime`. Assumes `cues` is sorted by time ascending.
+ */
+export function* crossedCues(
+	cues: readonly Cue[],
+	previousTime: number,
+	time: number,
+): Generator<Cue> {
+	const isForward = time > previousTime;
+	const start = isForward ? 0 : cues.length - 1;
+	const end = isForward ? cues.length : -1;
+	const step = isForward ? 1 : -1;
+
+	for (let i = start; isForward ? i < end : i > end; i += step) {
+		const cue = cues[i];
+		if (!cue) {
+			continue;
+		}
+
+		const passedPrevious = isForward
+			? cue.time > previousTime
+			: cue.time < previousTime;
+		if (!passedPrevious) {
+			continue;
+		}
+
+		const reachedCurrent = isForward ? cue.time > time : cue.time < time;
+		if (reachedCurrent) {
+			return;
+		}
+
+		yield cue;
+	}
+}
+
+/**
+ * Maps a cue and playback direction to the emitter event it triggers.
+ */
+export function cueEventName(cue: Cue, isForward: boolean): CueEventName {
+	if (cue.type === Cue.POINT) {
+		return CUE_EVENT_POINT_ENTER;
+	}
+
+	const entering = isForward
+		? cue.type === Cue.SEGMENT_START
+		: cue.type === Cue.SEGMENT_END;
+
+	return entering ? CUE_EVENT_SEGMENT_ENTER : CUE_EVENT_SEGMENT_EXIT;
+}
+
+// ─── Infrastructure ─────────────────────────────────────────────────
+
+export const TRACKED_EVENTS = [
+	"points.update",
+	"points.dragmove",
+	"points.add",
+	"points.remove",
+	"points.remove_all",
+	"segments.update",
+	"segments.dragged",
+	"segments.add",
+	"segments.remove",
+	"segments.remove_all",
+] as const;
 
 const isHeadless = /HeadlessChrome/.test(navigator.userAgent);
 
@@ -46,217 +131,97 @@ export function isWindowVisible(): boolean {
 	);
 }
 
-/**
- * Given a cue instance, returns the corresponding Point or Segment.
- *
- * @throws {Error} If the cue refers to a missing point or segment, or to an unknown cue type.
- */
-export function getPointOrSegment(
-	peaks: PeaksInstance,
-	cue: Cue,
-): Point | Segment | never {
-	switch (cue.type) {
-		case Cue.POINT: {
-			const point = peaks.points.getPoint(cue.id);
-			if (!point) {
-				throw new Error(`getPointOrSegment: point not found: ${cue.id}`);
-			}
-			return point;
-		}
-
-		case Cue.SEGMENT_START:
-		case Cue.SEGMENT_END: {
-			const segment = peaks.segments.getSegment(cue.id);
-			if (!segment) {
-				throw new Error(`getPointOrSegment: segment not found: ${cue.id}`);
-			}
-			return segment;
-		}
-
-		default:
-			throw new Error("getPointOrSegment: id not found?");
-	}
-}
-
-export function getSegmentIdComparator(id: string) {
-	return function compareSegmentIds(segment: Segment) {
-		return segment.id === id;
-	};
-}
-
-export const EVENTS = [
-	"points.update",
-	"points.dragmove",
-	"points.add",
-	"points.remove",
-	"points.remove_all",
-	"segments.update",
-	"segments.dragged",
-	"segments.add",
-	"segments.remove",
-	"segments.remove_all",
-] as const;
-
-/**
- * CueEmitter is responsible for emitting `points.enter`,
- * `segments.enter`, and `segments.exit` events.
- */
 export interface CueEmitterFromOptions {
 	readonly peaks: PeaksInstance;
 }
 
-export class CueEmitter {
-	private readonly cues: Cue[];
-	private previousTime: number;
-	private rAFHandle: number | undefined;
-	private readonly activeSegments: Record<string, Segment>;
+export type ActiveSegmentsMap = Map<CueEventName | (string & {}), Segment>;
 
+/**
+ * CueEmitter emits `points.enter`, `segments.enter`, and `segments.exit`
+ * events on a PeaksInstance as the playhead crosses cues.
+ */
+export class CueEmitter {
 	static from(options: CueEmitterFromOptions): CueEmitter {
 		const emitter = new CueEmitter(options.peaks);
 		emitter.addEventHandlers();
 		return emitter;
 	}
 
-	private constructor(public readonly peaks: PeaksInstance) {
-		this.cues = [];
-		this.previousTime = -1;
-		this.updateCues = this.updateCues.bind(this);
-		this.onPlaying = this.onPlaying.bind(this);
-		this.onSeeked = this.onSeeked.bind(this);
-		this.onTimeUpdate = this.onTimeUpdate.bind(this);
-		this.onAnimationFrame = this.onAnimationFrame.bind(this);
-		this.rAFHandle = undefined;
-		this.activeSegments = {};
-	}
+	private constructor(
+		private readonly peaks: Pick<
+			PeaksInstance,
+			"points" | "segments" | "player" | "emit" | "on" | "off"
+		>,
+		private readonly cues: Cue[] = [],
+		private readonly active: ActiveSegmentsMap = new Map(),
+		private previousTime: number = -1,
+		private rAFHandle: number = -1,
+	) {}
 
-	/**
-	 * Updates the list of cues when points or segments are mutated.
-	 */
-	private updateCues(): void {
-		const points = this.peaks.points.getPoints();
-		const segments = this.peaks.segments.getSegments();
+	private readonly rebuildCues = (): void => {
+		const rebuilt = buildCues({
+			points: this.peaks.points.getPoints(),
+			segments: this.peaks.segments.getSegments(),
+		});
 
 		this.cues.length = 0;
+		this.cues.push(...rebuilt);
 
-		for (const point of points) {
-			this.cues.push(
-				Cue.from({ time: point.time, type: Cue.POINT, id: point.id }),
-			);
+		this.syncActiveSegments(this.peaks.player.getCurrentTime());
+	};
+
+	private emitCrossing(cue: Cue, time: number, isForward: boolean): void {
+		const kind = cueEventName(cue, isForward);
+
+		if (kind === CUE_EVENT_POINT_ENTER) {
+			const point = this.peaks.points.getPoint(cue.id);
+			if (!point) {
+				return;
+			}
+			this.peaks.emit(kind, { point, time });
+			return;
 		}
 
-		for (const segment of segments) {
-			this.cues.push(
-				Cue.from({
-					time: segment.startTime,
-					type: Cue.SEGMENT_START,
-					id: segment.id,
-				}),
-			);
-			this.cues.push(
-				Cue.from({
-					time: segment.endTime,
-					type: Cue.SEGMENT_END,
-					id: segment.id,
-				}),
-			);
+		const segment = this.peaks.segments.getSegment(cue.id);
+		if (!segment) {
+			return;
 		}
 
-		this.cues.sort(Cue.sorter);
-
-		const time = this.peaks.player.getCurrentTime();
-
-		this.updateActiveSegments(time);
-	}
-
-	/**
-	 * Emits events for any cues passed through during media playback.
-	 */
-	private onUpdate(time: number, previousTime: number): void {
-		const isForward = time > previousTime;
-		let start: number;
-		let end: number;
-		let step: number;
-
-		if (isForward) {
-			start = 0;
-			end = this.cues.length;
-			step = 1;
+		if (kind === CUE_EVENT_SEGMENT_ENTER) {
+			this.active.set(segment.id, segment);
 		} else {
-			start = this.cues.length - 1;
-			end = -1;
-			step = -1;
+			this.active.delete(segment.id);
 		}
+		this.peaks.emit(kind, { segment, time });
+	}
 
-		// Cues are sorted.
-		for (let i = start; isForward ? i < end : i > end; i += step) {
-			const cue = this.cues[i];
-
-			if (!cue) {
-				continue;
-			}
-
-			if (isForward ? cue.time > previousTime : cue.time < previousTime) {
-				if (isForward ? cue.time > time : cue.time < time) {
-					break;
-				}
-
-				// Cue falls between time and previousTime.
-
-				const marker = getPointOrSegment(this.peaks, cue);
-
-				const eventType = isForward
-					? EVENT_TYPES.forward[cue.type]
-					: EVENT_TYPES.reverse[cue.type];
-
-				if (eventType === undefined) {
-					continue;
-				}
-
-				if (eventType === EVENT_TYPE_SEGMENT_ENTER) {
-					this.activeSegments[(marker as Segment).id] = marker as Segment;
-				} else if (eventType === EVENT_TYPE_SEGMENT_EXIT) {
-					delete this.activeSegments[(marker as Segment).id];
-				}
-
-				const event: Record<string, unknown> = {
-					time: time,
-				};
-
-				const attrKey = EVENT_ATTRIBUTES[eventType];
-				const eventName = EVENT_NAMES[eventType];
-
-				if (attrKey) {
-					event[attrKey] = marker;
-				}
-
-				if (eventName) {
-					this.peaks.emit(eventName, event);
-				}
-			}
+	private emitCueCrossings(time: number, previousTime: number): void {
+		const isForward = time > previousTime;
+		for (const cue of crossedCues(this.cues, previousTime, time)) {
+			this.emitCrossing(cue, time, isForward);
 		}
 	}
 
-	// The next handler and onAnimationFrame are bound together
-	// when the window isn't in focus, rAF is throttled
-	// falling back to timeUpdate.
-
-	private onTimeUpdate(time: number): void {
+	// onTimeUpdate and onAnimationFrame cooperate: when the window isn't
+	// visible, rAF is throttled, so we fall back to timeupdate events.
+	private readonly onTimeUpdate = (time: number): void => {
 		if (isWindowVisible()) {
 			return;
 		}
 
 		if (this.peaks.player.isPlaying() && !this.peaks.player.isSeeking()) {
-			this.onUpdate(time, this.previousTime);
+			this.emitCueCrossings(time, this.previousTime);
 		}
 
 		this.previousTime = time;
-	}
+	};
 
-	private onAnimationFrame(): void {
+	private readonly onAnimationFrame = (): void => {
 		const time = this.peaks.player.getCurrentTime();
 
 		if (!this.peaks.player.isSeeking()) {
-			this.onUpdate(time, this.previousTime);
+			this.emitCueCrossings(time, this.previousTime);
 		}
 
 		this.previousTime = time;
@@ -264,54 +229,37 @@ export class CueEmitter {
 		if (this.peaks.player.isPlaying()) {
 			this.rAFHandle = requestAnimationFrame(this.onAnimationFrame);
 		}
-	}
+	};
 
-	private onPlaying(): void {
+	private readonly onPlaying = (): void => {
 		this.previousTime = this.peaks.player.getCurrentTime();
 		this.rAFHandle = requestAnimationFrame(this.onAnimationFrame);
-	}
+	};
 
-	private onSeeked(time: number): void {
+	private readonly onSeeked = (time: number): void => {
 		this.previousTime = time;
-
-		this.updateActiveSegments(time);
-	}
+		this.syncActiveSegments(time);
+	};
 
 	/**
-	 * The active segments is the set of all segments which overlap the current
-	 * playhead position. This function updates that set and emits
-	 * `segments.enter` and `segments.exit` events.
+	 * Reconciles the active-segment set against the segments overlapping
+	 * `time`, emitting segments.enter and segments.exit for the diff.
 	 */
-	private updateActiveSegments(time: number): void {
-		const activeSegments = this.peaks.segments.getSegmentsAtTime(time);
+	private syncActiveSegments(time: number): void {
+		const current = this.peaks.segments.getSegmentsAtTime(time);
+		const currentIds = new Set(current.map((segment) => segment.id));
 
-		// Remove any segments no longer active.
-
-		for (const id in this.activeSegments) {
-			if (Object.hasOwn(this.activeSegments, id)) {
-				const segment = activeSegments.find(getSegmentIdComparator(id));
-
-				if (!segment) {
-					this.peaks.emit("segments.exit", {
-						segment: this.activeSegments[id],
-						time: time,
-					});
-
-					delete this.activeSegments[id];
-				}
+		for (const [id, segment] of this.active) {
+			if (!currentIds.has(id)) {
+				this.peaks.emit(CUE_EVENT_SEGMENT_EXIT, { segment, time });
+				this.active.delete(id);
 			}
 		}
 
-		// Add new active segments.
-
-		for (const segment of activeSegments) {
-			if (!(segment.id in this.activeSegments)) {
-				this.activeSegments[segment.id] = segment;
-
-				this.peaks.emit("segments.enter", {
-					segment: segment,
-					time: time,
-				});
+		for (const segment of current) {
+			if (!this.active.has(segment.id)) {
+				this.active.set(segment.id, segment);
+				this.peaks.emit(CUE_EVENT_SEGMENT_ENTER, { segment, time });
 			}
 		}
 	}
@@ -321,11 +269,11 @@ export class CueEmitter {
 		this.peaks.on("player.playing", this.onPlaying);
 		this.peaks.on("player.seeked", this.onSeeked);
 
-		for (const event of EVENTS) {
-			this.peaks.on(event, this.updateCues);
+		for (const event of TRACKED_EVENTS) {
+			this.peaks.on(event, this.rebuildCues);
 		}
 
-		this.updateCues();
+		this.rebuildCues();
 	}
 
 	private removeEventHandlers(): void {
@@ -333,16 +281,13 @@ export class CueEmitter {
 		this.peaks.off("player.playing", this.onPlaying);
 		this.peaks.off("player.seeked", this.onSeeked);
 
-		for (const event of EVENTS) {
-			this.peaks.off(event, this.updateCues);
+		for (const event of TRACKED_EVENTS) {
+			this.peaks.off(event, this.rebuildCues);
 		}
 	}
 
 	destroy(): void {
-		if (this.rAFHandle) {
-			cancelAnimationFrame(this.rAFHandle);
-			this.rAFHandle = undefined;
-		}
+		cancelAnimationFrame(this.rAFHandle);
 		this.removeEventHandlers();
 		this.previousTime = -1;
 	}

@@ -9,6 +9,7 @@ import type { Point } from "./point";
 import type { ResultCallback } from "./result-callback";
 import type { Segment } from "./segment";
 import type { WaveformColor } from "./utils";
+import type { CueEventName } from './cue-emitter';
 
 // Re-export Konva types for convenience
 export type { KonvaEventObject };
@@ -191,7 +192,7 @@ export interface PeaksInitOptions {
 
 // ─── Segment / Point Options ────────────────────────────────────────
 export interface SegmentOptions {
-	readonly id?: string;
+	readonly id?: CueEventName;
 	readonly startTime: number;
 	readonly endTime: number;
 	readonly labelText?: string;
