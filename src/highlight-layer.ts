@@ -11,29 +11,33 @@ export interface HighlightLayerFromOptions {
 }
 
 export class HighlightLayer {
-	private readonly view: WaveformViewAPI;
-	private readonly offset: number;
-	private readonly color: string;
-	private readonly layer: Layer;
-	private highlightRect?: Rect | undefined;
-	private startTime?: number;
-	private endTime?: number;
-	private readonly strokeColor: string;
-	private readonly opacity: number;
-	private readonly cornerRadius: number;
+	private constructor(
+		private readonly view: WaveformViewAPI,
+		private readonly offset: number,
+		private readonly color: string,
+		private readonly strokeColor: string,
+		private readonly opacity: number,
+		private readonly cornerRadius: number,
+		private readonly layer: Layer,
+		private highlightRect: Rect | undefined,
+		private startTime: number | undefined,
+		private endTime: number | undefined,
+	) {}
 
 	static from(options: HighlightLayerFromOptions): HighlightLayer {
-		return new HighlightLayer(options.view, options.options);
-	}
-
-	private constructor(view: WaveformViewAPI, options: OverviewOptions) {
-		this.view = view;
-		this.offset = options.highlightOffset ?? 0;
-		this.color = options.highlightColor ?? "#000";
-		this.layer = new Layer({ listening: false });
-		this.strokeColor = options.highlightStrokeColor ?? "#000";
-		this.opacity = options.highlightOpacity ?? 0.5;
-		this.cornerRadius = options.highlightCornerRadius ?? 0;
+		const opts = options.options;
+		return new HighlightLayer(
+			options.view,
+			opts.highlightOffset ?? 0,
+			opts.highlightColor ?? "#000",
+			opts.highlightStrokeColor ?? "#000",
+			opts.highlightOpacity ?? 0.5,
+			opts.highlightCornerRadius ?? 0,
+			new Layer({ listening: false }),
+			undefined,
+			undefined,
+			undefined,
+		);
 	}
 
 	addToStage(stage: Stage): void {
@@ -46,6 +50,36 @@ export class HighlightLayer {
 		}
 
 		this.update(startTime, endTime);
+	}
+
+	removeHighlight(): void {
+		if (this.highlightRect) {
+			this.highlightRect.destroy();
+			this.highlightRect = undefined;
+		}
+	}
+
+	updateHighlight(): void {
+		if (
+			this.highlightRect &&
+			this.startTime !== undefined &&
+			this.endTime !== undefined
+		) {
+			this.update(this.startTime, this.endTime);
+		}
+	}
+
+	fitToView(): void {
+		if (!this.highlightRect) {
+			return;
+		}
+		const height = this.view.getHeight();
+		const offset = clamp(this.offset, 0, Math.floor(height / 2));
+
+		this.highlightRect.setAttrs({
+			height: height - offset * 2,
+			y: offset,
+		});
 	}
 
 	private update(startTime: number, endTime: number): void {
@@ -85,34 +119,5 @@ export class HighlightLayer {
 		this.fitToView();
 
 		this.layer.add(this.highlightRect);
-	}
-
-	removeHighlight(): void {
-		if (this.highlightRect) {
-			this.highlightRect.destroy();
-			this.highlightRect = undefined;
-		}
-	}
-
-	updateHighlight(): void {
-		if (
-			this.highlightRect &&
-			this.startTime !== undefined &&
-			this.endTime !== undefined
-		) {
-			this.update(this.startTime, this.endTime);
-		}
-	}
-
-	fitToView(): void {
-		if (this.highlightRect) {
-			const height = this.view.getHeight();
-			const offset = clamp(this.offset, 0, Math.floor(height / 2));
-
-			this.highlightRect.setAttrs({
-				height: height - offset * 2,
-				y: offset,
-			});
-		}
 	}
 }
