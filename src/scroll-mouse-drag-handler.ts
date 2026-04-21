@@ -10,51 +10,43 @@ import { clamp } from "./utils";
 
 export interface ScrollMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: import("./waveform-zoomview").WaveformZoomView;
+	readonly view: import("./waveform/zoomview").WaveformZoomView;
 }
 
 export class ScrollMouseDragHandler {
-	private readonly peaks: PeaksInstance;
-	private readonly view: import("./waveform-zoomview").WaveformZoomView;
-	private seeking: boolean;
-	private firstMove: boolean;
-	private segment: Group | undefined;
-	private segmentIsDraggable: boolean;
-	private initialFrameOffset: number;
-	private mouseDownX: number;
-	private readonly mouseDragHandler: MouseDragHandler;
+	private constructor(
+		private readonly peaks: PeaksInstance,
+		private readonly view: import("./waveform/zoomview").WaveformZoomView,
+		private seeking: boolean = false,
+		private firstMove: boolean = false,
+		private segment: Group | undefined = undefined,
+		private segmentIsDraggable: boolean = false,
+		private initialFrameOffset: number = 0,
+		private mouseDownX: number = 0,
+		private mouseDragHandler: MouseDragHandler | undefined = undefined,
+	) {}
 
 	static from(
 		options: ScrollMouseDragHandlerFromOptions,
 	): ScrollMouseDragHandler {
-		return new ScrollMouseDragHandler(options.peaks, options.view);
-	}
-
-	private constructor(
-		peaks: PeaksInstance,
-		view: import("./waveform-zoomview").WaveformZoomView,
-	) {
-		this.peaks = peaks;
-		this.view = view;
-		this.seeking = false;
-		this.firstMove = false;
-		this.segment = undefined;
-		this.segmentIsDraggable = false;
-		this.initialFrameOffset = 0;
-		this.mouseDownX = 0;
-
-		this.mouseDragHandler = MouseDragHandler.from({
+		const instance = new ScrollMouseDragHandler(options.peaks, options.view);
+		instance.mouseDragHandler = MouseDragHandler.from({
 			handlers: {
-				onMouseDown: this.onMouseDown,
-				onMouseMove: this.onMouseMove,
-				onMouseUp: this.onMouseUp,
+				onMouseDown: instance.onMouseDown,
+				onMouseMove: instance.onMouseMove,
+				onMouseUp: instance.onMouseUp,
 			},
-			stage: view.stage,
+			stage: options.view.stage,
 		});
+		return instance;
 	}
 
 	isDragging(): boolean {
-		return this.mouseDragHandler.isDragging();
+		return this.mouseDragHandler?.isDragging() ?? false;
+	}
+
+	destroy(): void {
+		this.mouseDragHandler?.dispose();
 	}
 
 	private onMouseDown = (
@@ -133,7 +125,7 @@ export class ScrollMouseDragHandler {
 		if (this.seeking) {
 			this.view.dragSeek(false);
 		} else {
-			if (this.view.isSeekEnabled() && !this.mouseDragHandler.isDragging()) {
+			if (this.view.isSeekEnabled() && !this.mouseDragHandler?.isDragging()) {
 				const time = this.view.pixelOffsetToTime(this.mouseDownX);
 
 				this.seek(time);
@@ -157,9 +149,5 @@ export class ScrollMouseDragHandler {
 		this.view.updatePlayheadTime(time);
 
 		this.peaks.player.seek(time);
-	}
-
-	destroy(): void {
-		this.mouseDragHandler.destroy();
 	}
 }

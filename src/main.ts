@@ -36,9 +36,9 @@ import {
 	objectHasProperty,
 } from "./utils";
 import { ViewController } from "./view-controller";
-import { WaveformBuilder } from "./waveform-builder";
-import { WaveformPoints } from "./waveform-points";
-import { WaveformSegments } from "./waveform-segments";
+import { WaveformBuilder } from "./waveform/builder";
+import { WaveformPoints } from "./waveform/points";
+import { WaveformSegments } from "./waveform/segments";
 import { ZoomController } from "./zoom-controller";
 
 export const defaultViewOptions = {
@@ -473,8 +473,8 @@ export class Peaks extends EventEmitter {
 			peaks: instance as unknown as PeaksInstance,
 		});
 		instance.zoom = ZoomController.from({
+			levels: instance.options.zoomLevels,
 			peaks: instance as unknown as PeaksInstance,
-			zoomLevels: instance.options.zoomLevels,
 		});
 		instance.views = ViewController.from({
 			peaks: instance as unknown as PeaksInstance,

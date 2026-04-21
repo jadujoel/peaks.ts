@@ -5,48 +5,44 @@ import type { PeaksInstance, SegmentShapeAPI } from "./types";
 
 export interface InsertSegmentMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: import("./waveform-zoomview").WaveformZoomView;
+	readonly view: import("./waveform/zoomview").WaveformZoomView;
 }
 
 export class InsertSegmentMouseDragHandler {
-	private readonly peaks: PeaksInstance;
-	private readonly view: import("./waveform-zoomview").WaveformZoomView;
-	private insertSegment: Segment | undefined;
-	private insertSegmentShape: SegmentShapeAPI | undefined;
-	private segmentIsDraggable: boolean;
-	private segment: Group | undefined;
-	private readonly mouseDragHandler: MouseDragHandler;
+	private constructor(
+		private readonly peaks: PeaksInstance,
+		private readonly view: import("./waveform/zoomview").WaveformZoomView,
+		private insertSegment: Segment | undefined = undefined,
+		private insertSegmentShape: SegmentShapeAPI | undefined = undefined,
+		private segmentIsDraggable: boolean = false,
+		private segment: Group | undefined = undefined,
+		private mouseDragHandler: MouseDragHandler | undefined = undefined,
+	) {}
 
 	static from(
 		options: InsertSegmentMouseDragHandlerFromOptions,
 	): InsertSegmentMouseDragHandler {
-		return new InsertSegmentMouseDragHandler(options.peaks, options.view);
-	}
-
-	private constructor(
-		peaks: PeaksInstance,
-		view: import("./waveform-zoomview").WaveformZoomView,
-	) {
-		this.peaks = peaks;
-		this.view = view;
-
-		this.insertSegment = undefined;
-		this.insertSegmentShape = undefined;
-		this.segmentIsDraggable = false;
-		this.segment = undefined;
-
-		this.mouseDragHandler = MouseDragHandler.from({
+		const instance = new InsertSegmentMouseDragHandler(
+			options.peaks,
+			options.view,
+		);
+		instance.mouseDragHandler = MouseDragHandler.from({
 			handlers: {
-				onMouseDown: this.onMouseDown,
-				onMouseMove: this.onMouseMove,
-				onMouseUp: this.onMouseUp,
+				onMouseDown: instance.onMouseDown,
+				onMouseMove: instance.onMouseMove,
+				onMouseUp: instance.onMouseUp,
 			},
-			stage: view.stage,
+			stage: options.view.stage,
 		});
+		return instance;
 	}
 
 	isDragging(): boolean {
-		return this.mouseDragHandler.isDragging();
+		return this.mouseDragHandler?.isDragging() ?? false;
+	}
+
+	destroy(): void {
+		this.mouseDragHandler?.dispose();
 	}
 
 	private reset(): void {
@@ -113,8 +109,4 @@ export class InsertSegmentMouseDragHandler {
 
 		this.peaks.segments.setInserting(false);
 	};
-
-	destroy(): void {
-		this.mouseDragHandler.destroy();
-	}
 }

@@ -229,128 +229,37 @@ export interface SegmentFromOptions {
 export class Segment {
 	[key: string]: unknown;
 
-	#peaks: SegmentPeaksLike;
-	#pid: number;
-	#id: string;
-	#startTime: number;
-	#endTime: number;
-	#labelText: string;
-	#color: string;
-	#borderColor: string;
-	#editable: boolean;
-	#markers: boolean;
-	#overlay: boolean;
+	private constructor(
+		public readonly peaks: SegmentPeaksLike,
+		public readonly pid: number,
+		public readonly markers: boolean,
+		public readonly overlay: boolean,
+		public id: string,
+		public startTime: number,
+		public endTime: number,
+		public labelText: string,
+		public color: string,
+		public borderColor: string,
+		public editable: boolean,
+	) {}
 
 	static from(options: SegmentFromOptions): Segment {
 		const merged = applySegmentDefaults(options.options, options.defaults);
-		return new Segment(options.peaks, options.pid, merged);
-	}
-
-	private constructor(
-		peaks: SegmentPeaksLike,
-		pid: number,
-		options: SegmentOptions,
-	) {
-		this.#peaks = peaks;
-		this.#pid = pid;
-		this.#id = options.id ?? `peaks.segment.${pid}`;
-		this.#startTime = options.startTime;
-		this.#endTime = options.endTime;
-		this.#labelText = options.labelText ?? "";
-		this.#color = options.color ?? "";
-		this.#borderColor = options.borderColor ?? "";
-		this.#editable = options.editable ?? false;
-		this.#markers = options.markers ?? false;
-		this.#overlay = options.overlay ?? false;
-
-		this.setUserData(options);
-	}
-
-	private setUserData(options: SegmentOptions | SegmentUpdateOptions): void {
-		if (objectHasProperty(options, "id") && options.id !== undefined) {
-			this.#id = options.id;
-		}
-		if (
-			objectHasProperty(options, "startTime") &&
-			options.startTime !== undefined
-		) {
-			this.#startTime = options.startTime;
-		}
-		if (
-			objectHasProperty(options, "endTime") &&
-			options.endTime !== undefined
-		) {
-			this.#endTime = options.endTime;
-		}
-		if (
-			objectHasProperty(options, "labelText") &&
-			options.labelText !== undefined
-		) {
-			this.#labelText = options.labelText;
-		}
-		if (objectHasProperty(options, "color") && options.color !== undefined) {
-			this.#color = options.color;
-		}
-		if (
-			objectHasProperty(options, "borderColor") &&
-			options.borderColor !== undefined
-		) {
-			this.#borderColor = options.borderColor;
-		}
-		if (
-			objectHasProperty(options, "editable") &&
-			options.editable !== undefined
-		) {
-			this.#editable = options.editable;
-		}
-		for (const key in options) {
-			if (
-				objectHasProperty(options, key) &&
-				!segmentOptions.includes(key as (typeof segmentOptions)[number])
-			) {
-				this[key] = (options as Record<string, unknown>)[key];
-			}
-		}
-	}
-
-	get id(): string {
-		return this.#id;
-	}
-
-	get pid(): number {
-		return this.#pid;
-	}
-
-	get startTime(): number {
-		return this.#startTime;
-	}
-
-	get endTime(): number {
-		return this.#endTime;
-	}
-
-	get labelText(): string {
-		return this.#labelText;
-	}
-
-	get color(): string {
-		return this.#color;
-	}
-
-	get borderColor(): string {
-		return this.#borderColor;
-	}
-
-	get markers(): boolean {
-		return this.#markers;
-	}
-
-	get overlay(): boolean {
-		return this.#overlay;
-	}
-
-	get editable(): boolean {
-		return this.#editable;
+		const instance = new Segment(
+			options.peaks,
+			options.pid,
+			merged.markers ?? false,
+			merged.overlay ?? false,
+			merged.id ?? `peaks.segment.${options.pid}`,
+			merged.startTime,
+			merged.endTime,
+			merged.labelText ?? "",
+			merged.color ?? "",
+			merged.borderColor ?? "",
+			merged.editable ?? false,
+		);
+		applyUserData(instance, options.options);
+		return instance;
 	}
 
 	/**
@@ -369,12 +278,13 @@ export class Segment {
 				throw new TypeError("segment.update(): invalid id");
 			}
 
-			this.#peaks.segments?.updateSegmentId(this, options.id);
+			this.peaks.segments?.updateSegmentId(this, options.id);
 		}
 
-		this.setUserData(options);
+		applyOptionOverrides(this, options);
+		applyUserData(this, options);
 
-		this.#peaks.emit("segments.update", this, options);
+		this.peaks.emit("segments.update", this, options);
 	}
 
 	/**
@@ -384,7 +294,6 @@ export class Segment {
 	 * @param {Number} endTime The end of the time region, in seconds.
 	 * @returns {Boolean}
 	 */
-
 	isVisible(startTime: number, endTime: number): boolean {
 		// A special case, where the segment has zero duration
 		// and is at the start of the region.
@@ -406,10 +315,63 @@ export class Segment {
 	}
 
 	setStartTime(time: number): void {
-		this.#startTime = time;
+		this.startTime = time;
 	}
 
 	setEndTime(time: number): void {
-		this.#endTime = time;
+		this.endTime = time;
+	}
+}
+
+function applyOptionOverrides(
+	segment: Segment,
+	options: SegmentUpdateOptions,
+): void {
+	if (objectHasProperty(options, "id") && options.id !== undefined) {
+		segment.id = options.id;
+	}
+	if (
+		objectHasProperty(options, "startTime") &&
+		options.startTime !== undefined
+	) {
+		segment.startTime = options.startTime;
+	}
+	if (objectHasProperty(options, "endTime") && options.endTime !== undefined) {
+		segment.endTime = options.endTime;
+	}
+	if (
+		objectHasProperty(options, "labelText") &&
+		options.labelText !== undefined
+	) {
+		segment.labelText = options.labelText;
+	}
+	if (objectHasProperty(options, "color") && options.color !== undefined) {
+		segment.color = options.color;
+	}
+	if (
+		objectHasProperty(options, "borderColor") &&
+		options.borderColor !== undefined
+	) {
+		segment.borderColor = options.borderColor;
+	}
+	if (
+		objectHasProperty(options, "editable") &&
+		options.editable !== undefined
+	) {
+		segment.editable = options.editable;
+	}
+}
+
+function applyUserData(
+	segment: Segment,
+	options: SegmentOptions | SegmentUpdateOptions,
+): void {
+	for (const key in options) {
+		if (
+			objectHasProperty(options, key) &&
+			!segmentOptions.includes(key as (typeof segmentOptions)[number])
+		) {
+			segment[key] = (options as Record<string, unknown>)[key];
+		}
 	}
 }

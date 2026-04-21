@@ -139,7 +139,7 @@ export interface PeaksOptions {
 	readonly logger: Logger;
 	readonly overview: OverviewOptions;
 	readonly zoomview: ZoomviewOptions;
-	readonly scrollbar?: ScrollbarDisplayOptions;
+	readonly scrollbar: ScrollbarDisplayOptions;
 	readonly segmentOptions?: SegmentDisplayOptions;
 	readonly player?: PlayerAdapter;
 }
@@ -392,7 +392,11 @@ export interface WaveformViewLike {
 	getStartTime(): number;
 	getEndTime(): number;
 	setWaveformData(waveformData: WaveformData): void;
-	setZoom?(options: Record<string, unknown>): boolean;
+	setZoom(options: SetZoomOptions): boolean;
+}
+
+export interface SetZoomOptions {
+	readonly scale?: number;
 }
 
 // ─── Set Source Options ─────────────────────────────────────────────
@@ -407,9 +411,9 @@ export interface SetSourceOptions {
 
 // ─── Mouse drag handler interfaces ─────────────────────────────────
 export interface MouseDragHandlers {
-	onMouseDown?: (mousePosX: number, segment: Group | undefined) => void;
-	onMouseMove?: (mousePosX: number) => void;
-	onMouseUp?: (mousePosX: number) => void;
+	readonly onMouseDown: (mousePosX: number, segment?: Group) => void;
+	readonly onMouseMove: (mousePosX: number) => void;
+	readonly onMouseUp: (mousePosX: number) => void;
 }
 
 // ─── Waveform builder callback ──────────────────────────────────────

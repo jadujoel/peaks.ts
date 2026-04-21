@@ -27,21 +27,15 @@ interface SetSourceHandlerFromOptions {
 }
 
 class SetSourceHandler {
-	private readonly eventEmitter: PeaksInstance;
-	private readonly mediaElement: HTMLMediaElement;
-	private resolve: (() => void) | undefined;
-	private reject: ((reason: MediaError) => void) | undefined;
+	private constructor(
+		private readonly eventEmitter: PeaksInstance,
+		private readonly mediaElement: HTMLMediaElement,
+		private resolve: (() => void) | undefined = undefined,
+		private reject: ((reason: MediaError) => void) | undefined = undefined,
+	) {}
 
 	static from(options: SetSourceHandlerFromOptions): SetSourceHandler {
 		return new SetSourceHandler(options.eventEmitter, options.mediaElement);
-	}
-
-	private constructor(
-		eventEmitter: PeaksInstance,
-		mediaElement: HTMLMediaElement,
-	) {
-		this.eventEmitter = eventEmitter;
-		this.mediaElement = mediaElement;
 	}
 
 	setSource(options: SetSourceOptions): Promise<void> {
@@ -99,18 +93,14 @@ export interface MediaElementPlayerFromOptions {
 }
 
 export class MediaElementPlayer {
-	private mediaElement: HTMLMediaElement | undefined;
-	private eventEmitter: PeaksInstance | undefined;
-	private listeners: MediaListener[];
+	private constructor(
+		private mediaElement: HTMLMediaElement | undefined,
+		private eventEmitter: PeaksInstance | undefined = undefined,
+		private listeners: MediaListener[] = [],
+	) {}
 
 	static from(options: MediaElementPlayerFromOptions): MediaElementPlayer {
 		return new MediaElementPlayer(options.mediaElement);
-	}
-
-	private constructor(mediaElement: HTMLMediaElement) {
-		this.mediaElement = mediaElement;
-		this.eventEmitter = undefined;
-		this.listeners = [];
 	}
 
 	/**

@@ -20,7 +20,7 @@ import type {
 	WaveformViewAPI,
 	XY,
 } from "./types";
-import { WaveformShape } from "./waveform-shape";
+import { WaveformShape } from "./waveform/shape";
 
 export function createOverlayMarker(
 	options: CreateSegmentMarkerOptions,
@@ -40,118 +40,90 @@ export interface SegmentShapeFromOptions {
 }
 
 export class SegmentShape {
-	private readonly segment: Segment;
-	private readonly peaks: PeaksInstance;
-	private readonly layer: SegmentsLayerAPI;
-	private readonly view: WaveformViewAPI;
-	private label: Shape | undefined;
-	private startMarkerInstance: SegmentMarker | undefined;
-	private endMarkerInstance: SegmentMarker | undefined;
-	private color: string | undefined;
-	private borderColor: string | undefined;
-	private draggable: boolean;
-	private dragging: boolean;
-	private readonly overlayOffset: number;
-	private readonly waveformShape: WaveformShape | undefined;
-	private overlay!: Group;
-	private overlayRect!: Rect;
-	private overlayText: Text | undefined;
-	private nextSegment: Segment | undefined = undefined;
-	private previousSegment: Segment | undefined = undefined;
-	private dragStartX = 0;
-	private dragStartTime = 0;
-	private dragEndTime = 0;
+	private constructor(
+		private readonly segment: Segment,
+		private readonly peaks: PeaksInstance,
+		private readonly layer: SegmentsLayerAPI,
+		private readonly view: WaveformViewAPI,
+		private readonly overlayOffset: number,
+		private readonly waveformShape: WaveformShape | undefined,
+		private readonly overlay: Group,
+		private readonly overlayRect: Rect,
+		private readonly overlayText: Text | undefined,
+		private readonly label: Shape | undefined,
+		private color: string | undefined,
+		private borderColor: string | undefined,
+		private draggable: boolean,
+		private dragging: boolean,
+		private startMarkerInstance: SegmentMarker | undefined,
+		private endMarkerInstance: SegmentMarker | undefined,
+		private nextSegment: Segment | undefined,
+		private previousSegment: Segment | undefined,
+		private dragStartX: number,
+		private dragStartTime: number,
+		private dragEndTime: number,
+	) {}
 
 	static from(options: SegmentShapeFromOptions): SegmentShape {
-		return new SegmentShape(
-			options.segment,
-			options.peaks,
-			options.layer,
-			options.view,
-		);
-	}
-
-	private constructor(
-		segment: Segment,
-		peaks: PeaksInstance,
-		layer: SegmentsLayerAPI,
-		view: WaveformViewAPI,
-	) {
-		this.segment = segment;
-		this.peaks = peaks;
-		this.layer = layer;
-		this.view = view;
-		this.label = undefined;
-		this.startMarkerInstance = undefined;
-		this.endMarkerInstance = undefined;
-		this.color = segment.color;
-		this.borderColor = segment.borderColor;
-		this.draggable =
-			this.segment.editable && this.view.isSegmentDraggingEnabled();
-		this.dragging = false;
-
+		const { segment, peaks, layer, view } = options;
 		const viewOptions = view.getViewOptions();
 		const segmentOptions = viewOptions.segmentOptions;
+		const overlayOffset = segmentOptions.overlayOffset;
+		const draggable = segment.editable && view.isSegmentDraggingEnabled();
 
-		this.overlayOffset = segmentOptions.overlayOffset;
-
+		let waveformShape: WaveformShape | undefined;
 		if (!segment.overlay) {
-			this.waveformShape = WaveformShape.from({
+			waveformShape = WaveformShape.from({
 				color: segment.color,
 				segment: segment,
 				view: view,
 			});
 		}
 
-		this.label = this.peaks.options.createSegmentLabel({
+		const label = peaks.options.createSegmentLabel({
 			fontFamily: viewOptions.fontFamily,
 			fontSize: viewOptions.fontSize,
 			fontStyle: viewOptions.fontStyle,
-			layer: this.layer,
+			layer: layer,
 			segment: segment,
-			view: this.view.getName(),
+			view: view.getName(),
 		});
 
-		if (this.label) {
-			this.label.hide();
+		if (label) {
+			label.hide();
 		}
 
-		const segmentStartOffset = this.view.timeToPixelOffset(
-			this.segment.startTime,
-		);
-		const segmentEndOffset = this.view.timeToPixelOffset(this.segment.endTime);
+		const segmentStartOffset = view.timeToPixelOffset(segment.startTime);
+		const segmentEndOffset = view.timeToPixelOffset(segment.endTime);
+		const overlayRectHeight = Math.max(0, view.getHeight() - 2 * overlayOffset);
 
-		const overlayRectHeight = Math.max(
-			0,
-			this.view.getHeight() - 2 * this.overlayOffset,
-		);
-
-		this.overlay = new Konva.Group({
+		let instance: SegmentShape;
+		const overlay = new Konva.Group({
 			clipHeight: overlayRectHeight,
 			clipWidth: segmentEndOffset - segmentStartOffset,
 			clipX: 0,
-			clipY: this.overlayOffset,
-			dragBoundFunc: this.onDragBoundFunc,
-			draggable: this.draggable,
-			height: this.view.getHeight(),
+			clipY: overlayOffset,
+			dragBoundFunc: (pos: XY) => instance.onDragBoundFunc(pos),
+			draggable: draggable,
+			height: view.getHeight(),
 			name: "segment-overlay",
-			segment: this.segment,
+			segment: segment,
 			width: segmentEndOffset - segmentStartOffset,
 			x: segmentStartOffset,
 			y: 0,
 		});
 
-		let overlayBorderColor: string | undefined,
-			overlayBorderWidth: number | undefined,
-			overlayColor: string | undefined,
-			overlayOpacity: number | undefined,
-			overlayCornerRadius: number | undefined;
+		let overlayBorderColor: string | undefined;
+		let overlayBorderWidth: number | undefined;
+		let overlayColor: string | undefined;
+		let overlayOpacity: number | undefined;
+		let overlayCornerRadius: number | undefined;
 
 		if (segment.overlay) {
 			overlayBorderColor =
-				this.borderColor || segmentOptions.overlayBorderColor;
+				segment.borderColor || segmentOptions.overlayBorderColor;
 			overlayBorderWidth = segmentOptions.overlayBorderWidth;
-			overlayColor = this.color || segmentOptions.overlayColor;
+			overlayColor = segment.color || segmentOptions.overlayColor;
 			overlayOpacity = segmentOptions.overlayOpacity;
 			overlayCornerRadius = segmentOptions.overlayCornerRadius;
 		}
@@ -160,7 +132,7 @@ export class SegmentShape {
 			height: overlayRectHeight,
 			width: segmentEndOffset - segmentStartOffset,
 			x: 0,
-			y: this.overlayOffset,
+			y: overlayOffset,
 		};
 
 		if (overlayBorderColor !== undefined) {
@@ -175,17 +147,16 @@ export class SegmentShape {
 		if (overlayOpacity !== undefined) {
 			rectConfig.opacity = overlayOpacity;
 		}
-
 		if (overlayCornerRadius !== undefined) {
 			rectConfig.cornerRadius = overlayCornerRadius;
 		}
 
-		this.overlayRect = new Rect(rectConfig);
+		const overlayRect = new Rect(rectConfig);
+		overlay.add(overlayRect);
 
-		this.overlay.add(this.overlayRect);
-
+		let overlayText: Text | undefined;
 		if (segment.overlay) {
-			this.overlayText = new Text({
+			overlayText = new Text({
 				align: segmentOptions.overlayLabelAlign,
 				fill: segmentOptions.overlayLabelColor,
 				fontFamily: segmentOptions.overlayFontFamily,
@@ -194,120 +165,54 @@ export class SegmentShape {
 				height: overlayRectHeight,
 				listening: false,
 				padding: segmentOptions.overlayLabelPadding,
-				text: this.segment.labelText,
+				text: segment.labelText,
 				verticalAlign: segmentOptions.overlayLabelVerticalAlign,
 				width: segmentEndOffset - segmentStartOffset,
 				x: 0,
-				y: this.overlayOffset,
+				y: overlayOffset,
 			});
-
-			this.overlay.add(this.overlayText);
+			overlay.add(overlayText);
 		}
 
-		this.overlay.on("mouseenter", this.onMouseEnter);
-		this.overlay.on("mouseleave", this.onMouseLeave);
+		instance = new SegmentShape(
+			segment,
+			peaks,
+			layer,
+			view,
+			overlayOffset,
+			waveformShape,
+			overlay,
+			overlayRect,
+			overlayText,
+			label,
+			segment.color,
+			segment.borderColor,
+			draggable,
+			false,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			0,
+			0,
+			0,
+		);
 
-		this.overlay.on("mousedown", this.onMouseDown);
-		this.overlay.on("mouseup", this.onMouseUp);
+		overlay.on("mouseenter", instance.onMouseEnter);
+		overlay.on("mouseleave", instance.onMouseLeave);
+		overlay.on("mousedown", instance.onMouseDown);
+		overlay.on("mouseup", instance.onMouseUp);
 
-		if (this.draggable) {
-			this.overlay.on("dragstart", this.onSegmentDragStart);
-			this.overlay.on("dragmove", this.onSegmentDragMove);
-			this.overlay.on("dragend", this.onSegmentDragEnd);
+		if (draggable) {
+			overlay.on("dragstart", instance.onSegmentDragStart);
+			overlay.on("dragmove", instance.onSegmentDragMove);
+			overlay.on("dragend", instance.onSegmentDragEnd);
 		}
 
-		this.createMarkers();
+		instance.createMarkers();
+
+		return instance;
 	}
-
-	private createMarkers() {
-		const editable = this.layer.isEditingEnabled() && this.segment.editable;
-		const viewOptions = this.view.getViewOptions();
-		const segmentOptions = viewOptions.segmentOptions;
-
-		let createSegmentMarkerFn:
-			| ((options: CreateSegmentMarkerOptions) => Marker | undefined)
-			| undefined;
-		let startMarker: Marker | undefined;
-		let endMarker: Marker | undefined;
-
-		if (this.segment.markers) {
-			createSegmentMarkerFn = this.peaks.options.createSegmentMarker;
-		} else if (this.segment.overlay) {
-			createSegmentMarkerFn = createOverlayMarker;
-		}
-
-		if (createSegmentMarkerFn) {
-			startMarker = createSegmentMarkerFn({
-				color: segmentOptions.startMarkerColor,
-				editable: editable,
-				fontFamily: viewOptions.fontFamily,
-				fontSize: viewOptions.fontSize,
-				fontStyle: viewOptions.fontStyle,
-				layer: this.layer,
-				segment: this.segment,
-				segmentOptions: this.view.getViewOptions().segmentOptions,
-				startMarker: true,
-				view: this.view.getName(),
-			});
-		}
-
-		if (startMarker) {
-			this.startMarkerInstance = SegmentMarker.from({
-				options: {
-					dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
-					editable: editable,
-					marker: startMarker,
-					onClick: this.onSegmentMarkerClick,
-					onDragEnd: this.onSegmentMarkerDragEnd,
-					onDragMove: this.onSegmentMarkerDragMove,
-					onDragStart: this.onSegmentMarkerDragStart,
-					segment: this.segment,
-					segmentShape: this,
-					startMarker: true,
-				},
-			});
-		}
-
-		if (createSegmentMarkerFn) {
-			endMarker = createSegmentMarkerFn({
-				color: segmentOptions.endMarkerColor,
-				editable: editable,
-				fontFamily: viewOptions.fontFamily,
-				fontSize: viewOptions.fontSize,
-				fontStyle: viewOptions.fontStyle,
-				layer: this.layer,
-				segment: this.segment,
-				segmentOptions: this.view.getViewOptions().segmentOptions,
-				startMarker: false,
-				view: this.view.getName(),
-			});
-		}
-
-		if (endMarker) {
-			this.endMarkerInstance = SegmentMarker.from({
-				options: {
-					dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
-					editable: editable,
-					marker: endMarker,
-					onClick: this.onSegmentMarkerClick,
-					onDragEnd: this.onSegmentMarkerDragEnd,
-					onDragMove: this.onSegmentMarkerDragMove,
-					onDragStart: this.onSegmentMarkerDragStart,
-					segment: this.segment,
-					segmentShape: this,
-					startMarker: false,
-				},
-			});
-		}
-	}
-
-	private onDragBoundFunc = (pos: XY) => {
-		// Allow the segment to be moved horizontally but not vertically.
-		return {
-			x: pos.x,
-			y: 0,
-		};
-	};
 
 	update(options?: Record<string, unknown>) {
 		const segmentStartOffset = this.view.timeToPixelOffset(
@@ -418,53 +323,10 @@ export class SegmentShape {
 		return this.dragging;
 	}
 
-	private onMouseEnter = (event: KonvaEventObject<MouseEvent>) => {
-		if (this.label) {
-			this.label.moveToTop();
-			this.label.show();
-		}
-
-		this.peaks.emit("segments.mouseenter", {
-			evt: event.evt,
-			segment: this.segment,
-		});
-	};
-
-	private onMouseLeave = (event: KonvaEventObject<MouseEvent>) => {
-		if (this.label) {
-			this.label.hide();
-		}
-
-		this.peaks.emit("segments.mouseleave", {
-			evt: event.evt,
-			segment: this.segment,
-		});
-	};
-
-	private onMouseDown = (event: KonvaEventObject<MouseEvent>) => {
-		this.peaks.emit("segments.mousedown", {
-			evt: event.evt,
-			segment: this.segment,
-		});
-	};
-
-	private onMouseUp = (event: KonvaEventObject<MouseEvent>) => {
-		this.peaks.emit("segments.mouseup", {
-			evt: event.evt,
-			segment: this.segment,
-		});
-	};
-
 	segmentClicked(eventName: string, event: SegmentClickEvent) {
 		this.moveSegmentToTop();
 
 		this.peaks.emit(`segments.${eventName}`, event);
-	}
-
-	private moveSegmentToTop() {
-		this.overlay.moveToTop();
-
-		this.layer.moveSegmentMarkersToTop();
 	}
 
 	enableSegmentDragging(enable: boolean) {
@@ -485,189 +347,6 @@ export class SegmentShape {
 		this.overlay.draggable(enable);
 		this.draggable = enable;
 	}
-
-	private setPreviousAndNextSegments() {
-		if (this.view.getSegmentDragMode() !== "overlap") {
-			this.nextSegment = this.peaks.segments.findNextSegment(this.segment);
-			this.previousSegment = this.peaks.segments.findPreviousSegment(
-				this.segment,
-			);
-		} else {
-			this.nextSegment = undefined;
-			this.previousSegment = undefined;
-		}
-	}
-
-	private onSegmentDragStart = (event: KonvaEventObject<MouseEvent>) => {
-		this.setPreviousAndNextSegments();
-
-		this.dragging = true;
-		this.dragStartX = this.overlay?.x();
-		this.dragStartTime = this.segment.startTime;
-		this.dragEndTime = this.segment.endTime;
-
-		this.peaks.emit("segments.dragstart", {
-			evt: event.evt,
-			marker: false,
-			segment: this.segment,
-			startMarker: false,
-		});
-	};
-
-	private onSegmentDragMove = (event: KonvaEventObject<MouseEvent>) => {
-		const x = this.overlay?.x();
-		const offsetX = x - this.dragStartX;
-		const timeOffset = this.view.pixelsToTime(offsetX);
-
-		// The WaveformShape for a segment fills the canvas width
-		// but only draws a subset of the horizontal range. When dragged
-		// we need to keep the shape object in its position but
-		// update the segment start and end time so that the right
-		// subset is drawn.
-
-		// Calculate new segment start/end time based on drag position. We'll
-		// correct this later based on the drag mode, to prevent overlapping
-		// segments or to compress the adjacent segment.
-
-		let startTime = this.dragStartTime + timeOffset;
-		let endTime = this.dragEndTime + timeOffset;
-		const segmentDuration = this.segment.endTime - this.segment.startTime;
-		let dragMode;
-		const minSegmentWidth = this.view.getMinSegmentDragWidth();
-		const minSegmentDuration = this.view.pixelsToTime(minSegmentWidth);
-		let previousSegmentUpdated = false;
-		let nextSegmentUpdated = false;
-
-		// Prevent the segment from being dragged beyond the start of the waveform.
-
-		if (startTime < 0) {
-			startTime = 0;
-			endTime = segmentDuration;
-			this.overlay?.x(this.view.timeToPixelOffset(startTime));
-		}
-
-		// Adjust segment position if it now overlaps the previous segment?
-
-		if (this.previousSegment) {
-			let previousSegmentEndX = this.view.timeToPixelOffset(
-				this.previousSegment.endTime,
-			);
-
-			if (startTime < this.previousSegment.endTime) {
-				dragMode = this.view.getSegmentDragMode();
-
-				if (
-					dragMode === "no-overlap" ||
-					(dragMode === "compress" && !this.previousSegment.editable)
-				) {
-					startTime = this.previousSegment.endTime;
-					endTime = startTime + segmentDuration;
-					this.overlay?.x(previousSegmentEndX);
-				} else if (dragMode === "compress") {
-					let previousSegmentEndTime = startTime;
-
-					const minPreviousSegmentEndTime =
-						this.previousSegment.startTime + minSegmentDuration;
-
-					if (previousSegmentEndTime < minPreviousSegmentEndTime) {
-						previousSegmentEndTime = minPreviousSegmentEndTime;
-
-						previousSegmentEndX = this.view.timeToPixelOffset(
-							previousSegmentEndTime,
-						);
-
-						this.overlay?.x(previousSegmentEndX);
-
-						startTime = previousSegmentEndTime;
-						endTime = startTime + segmentDuration;
-					}
-
-					this.previousSegment.update({ endTime: previousSegmentEndTime });
-
-					previousSegmentUpdated = true;
-				}
-			}
-		}
-
-		// Adjust segment position if it now overlaps the following segment?
-
-		if (this.nextSegment) {
-			let nextSegmentStartX = this.view.timeToPixelOffset(
-				this.nextSegment.startTime,
-			);
-
-			if (endTime > this.nextSegment.startTime) {
-				dragMode = this.view.getSegmentDragMode();
-
-				if (
-					dragMode === "no-overlap" ||
-					(dragMode === "compress" && !this.nextSegment.editable)
-				) {
-					endTime = this.nextSegment.startTime;
-					startTime = endTime - segmentDuration;
-					this.overlay?.x(nextSegmentStartX - this.overlay?.width());
-				} else if (dragMode === "compress") {
-					let nextSegmentStartTime = endTime;
-
-					const maxNextSegmentStartTime =
-						this.nextSegment.endTime - minSegmentDuration;
-
-					if (nextSegmentStartTime > maxNextSegmentStartTime) {
-						nextSegmentStartTime = maxNextSegmentStartTime;
-
-						nextSegmentStartX =
-							this.view.timeToPixelOffset(nextSegmentStartTime);
-
-						this.overlay?.x(nextSegmentStartX - this.overlay?.width());
-
-						endTime = nextSegmentStartTime;
-						startTime = endTime - segmentDuration;
-					}
-
-					this.nextSegment.update({ startTime: nextSegmentStartTime });
-
-					nextSegmentUpdated = true;
-				}
-			}
-		}
-
-		this.segment.setStartTime(startTime);
-		this.segment.setEndTime(endTime);
-
-		this.peaks.emit("segments.dragged", {
-			evt: event.evt,
-			marker: false,
-			segment: this.segment,
-			startMarker: false,
-		});
-
-		if (previousSegmentUpdated) {
-			this.peaks.emit("segments.dragged", {
-				evt: event.evt,
-				marker: false,
-				segment: this.previousSegment,
-				startMarker: false,
-			});
-		} else if (nextSegmentUpdated) {
-			this.peaks.emit("segments.dragged", {
-				evt: event.evt,
-				marker: false,
-				segment: this.nextSegment,
-				startMarker: false,
-			});
-		}
-	};
-
-	private onSegmentDragEnd = (event: KonvaEventObject<MouseEvent>) => {
-		this.dragging = false;
-
-		this.peaks.emit("segments.dragend", {
-			evt: event.evt,
-			marker: false,
-			segment: this.segment,
-			startMarker: false,
-		});
-	};
 
 	moveMarkersToTop() {
 		if (this.startMarkerInstance) {
@@ -691,40 +370,162 @@ export class SegmentShape {
 		}
 	}
 
-	private onSegmentMarkerDragStart = (
-		segmentMarker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => {
-		if (!this.startMarkerInstance || !this.endMarkerInstance) {
-			return;
+	fitToView() {
+		if (this.startMarkerInstance) {
+			this.startMarkerInstance.fitToView();
 		}
 
-		this.setPreviousAndNextSegments();
+		if (this.endMarkerInstance) {
+			this.endMarkerInstance.fitToView();
+		}
 
-		// Move this segment to the top of the z-order, so that it remains on top
-		// of any adjacent segments that the marker is dragged over.
-		this.moveSegmentToTop();
+		if (this.overlay) {
+			const height = this.view.getHeight();
 
-		this.peaks.emit("segments.dragstart", {
-			evt: event.evt,
-			marker: true,
-			segment: this.segment,
-			startMarker: segmentMarker.isStartMarker(),
-		});
-	};
+			const overlayRectHeight = Math.max(0, height - this.overlayOffset * 2);
 
-	private onSegmentMarkerDragMove = (
-		segmentMarker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => {
-		if (segmentMarker.isStartMarker()) {
-			this.segmentStartMarkerDragMove(segmentMarker, event);
-			segmentMarker.update({ startTime: this.segment.startTime });
+			this.overlay.setAttrs({
+				clipHeight: overlayRectHeight,
+				clipY: this.overlayOffset,
+				height: height,
+				y: 0,
+			});
+
+			this.overlayRect.setAttrs({
+				height: overlayRectHeight,
+				y: this.overlayOffset,
+			});
+
+			if (this.overlayText) {
+				this.overlayText.setAttrs({
+					height: overlayRectHeight,
+					y: this.overlayOffset,
+				});
+			}
+		}
+	}
+
+	destroy() {
+		if (this.waveformShape) {
+			this.waveformShape.destroy();
+		}
+
+		if (this.label) {
+			this.label.destroy();
+		}
+
+		if (this.startMarkerInstance) {
+			this.startMarkerInstance.destroy();
+		}
+
+		if (this.endMarkerInstance) {
+			this.endMarkerInstance.destroy();
+		}
+
+		if (this.overlay) {
+			this.overlay.destroy();
+		}
+	}
+
+	private createMarkers() {
+		const editable = this.layer.isEditingEnabled() && this.segment.editable;
+		const viewOptions = this.view.getViewOptions();
+		const segmentOptions = viewOptions.segmentOptions;
+
+		let createSegmentMarkerFn:
+			| ((options: CreateSegmentMarkerOptions) => Marker | undefined)
+			| undefined;
+		let startMarker: Marker | undefined;
+		let endMarker: Marker | undefined;
+
+		if (this.segment.markers) {
+			createSegmentMarkerFn = this.peaks.options.createSegmentMarker;
+		} else if (this.segment.overlay) {
+			createSegmentMarkerFn = createOverlayMarker;
+		}
+
+		if (createSegmentMarkerFn) {
+			startMarker = createSegmentMarkerFn({
+				color: segmentOptions.startMarkerColor,
+				editable: editable,
+				fontFamily: viewOptions.fontFamily,
+				fontSize: viewOptions.fontSize,
+				fontStyle: viewOptions.fontStyle,
+				layer: this.layer,
+				segment: this.segment,
+				segmentOptions: this.view.getViewOptions().segmentOptions,
+				startMarker: true,
+				view: this.view.getName(),
+			});
+		}
+
+		if (startMarker) {
+			this.startMarkerInstance = SegmentMarker.from({
+				options: {
+					dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
+					editable: editable,
+					marker: startMarker,
+					onClick: this.onSegmentMarkerClick,
+					onDragEnd: this.onSegmentMarkerDragEnd,
+					onDragMove: this.onSegmentMarkerDragMove,
+					onDragStart: this.onSegmentMarkerDragStart,
+					segment: this.segment,
+					segmentShape: this,
+					startMarker: true,
+				},
+			});
+		}
+
+		if (createSegmentMarkerFn) {
+			endMarker = createSegmentMarkerFn({
+				color: segmentOptions.endMarkerColor,
+				editable: editable,
+				fontFamily: viewOptions.fontFamily,
+				fontSize: viewOptions.fontSize,
+				fontStyle: viewOptions.fontStyle,
+				layer: this.layer,
+				segment: this.segment,
+				segmentOptions: this.view.getViewOptions().segmentOptions,
+				startMarker: false,
+				view: this.view.getName(),
+			});
+		}
+
+		if (endMarker) {
+			this.endMarkerInstance = SegmentMarker.from({
+				options: {
+					dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
+					editable: editable,
+					marker: endMarker,
+					onClick: this.onSegmentMarkerClick,
+					onDragEnd: this.onSegmentMarkerDragEnd,
+					onDragMove: this.onSegmentMarkerDragMove,
+					onDragStart: this.onSegmentMarkerDragStart,
+					segment: this.segment,
+					segmentShape: this,
+					startMarker: false,
+				},
+			});
+		}
+	}
+
+	private moveSegmentToTop() {
+		this.overlay.moveToTop();
+
+		this.layer.moveSegmentMarkersToTop();
+	}
+
+	private setPreviousAndNextSegments() {
+		if (this.view.getSegmentDragMode() !== "overlap") {
+			this.nextSegment = this.peaks.segments.findNextSegment(this.segment);
+			this.previousSegment = this.peaks.segments.findPreviousSegment(
+				this.segment,
+			);
 		} else {
-			this.segmentEndMarkerDragMove(segmentMarker, event);
-			segmentMarker.update({ endTime: this.segment.endTime });
+			this.nextSegment = undefined;
+			this.previousSegment = undefined;
 		}
-	};
+	}
 
 	private segmentStartMarkerDragMove(
 		segmentMarker: SegmentMarkerAPI,
@@ -970,6 +771,239 @@ export class SegmentShape {
 		}
 	}
 
+	private onDragBoundFunc = (pos: XY) => {
+		// Allow the segment to be moved horizontally but not vertically.
+		return {
+			x: pos.x,
+			y: 0,
+		};
+	};
+
+	private onMouseEnter = (event: KonvaEventObject<MouseEvent>) => {
+		if (this.label) {
+			this.label.moveToTop();
+			this.label.show();
+		}
+
+		this.peaks.emit("segments.mouseenter", {
+			evt: event.evt,
+			segment: this.segment,
+		});
+	};
+
+	private onMouseLeave = (event: KonvaEventObject<MouseEvent>) => {
+		if (this.label) {
+			this.label.hide();
+		}
+
+		this.peaks.emit("segments.mouseleave", {
+			evt: event.evt,
+			segment: this.segment,
+		});
+	};
+
+	private onMouseDown = (event: KonvaEventObject<MouseEvent>) => {
+		this.peaks.emit("segments.mousedown", {
+			evt: event.evt,
+			segment: this.segment,
+		});
+	};
+
+	private onMouseUp = (event: KonvaEventObject<MouseEvent>) => {
+		this.peaks.emit("segments.mouseup", {
+			evt: event.evt,
+			segment: this.segment,
+		});
+	};
+
+	private onSegmentDragStart = (event: KonvaEventObject<MouseEvent>) => {
+		this.setPreviousAndNextSegments();
+
+		this.dragging = true;
+		this.dragStartX = this.overlay?.x();
+		this.dragStartTime = this.segment.startTime;
+		this.dragEndTime = this.segment.endTime;
+
+		this.peaks.emit("segments.dragstart", {
+			evt: event.evt,
+			marker: false,
+			segment: this.segment,
+			startMarker: false,
+		});
+	};
+
+	private onSegmentDragMove = (event: KonvaEventObject<MouseEvent>) => {
+		const x = this.overlay?.x();
+		const offsetX = x - this.dragStartX;
+		const timeOffset = this.view.pixelsToTime(offsetX);
+
+		let startTime = this.dragStartTime + timeOffset;
+		let endTime = this.dragEndTime + timeOffset;
+		const segmentDuration = this.segment.endTime - this.segment.startTime;
+		let dragMode;
+		const minSegmentWidth = this.view.getMinSegmentDragWidth();
+		const minSegmentDuration = this.view.pixelsToTime(minSegmentWidth);
+		let previousSegmentUpdated = false;
+		let nextSegmentUpdated = false;
+
+		if (startTime < 0) {
+			startTime = 0;
+			endTime = segmentDuration;
+			this.overlay?.x(this.view.timeToPixelOffset(startTime));
+		}
+
+		if (this.previousSegment) {
+			let previousSegmentEndX = this.view.timeToPixelOffset(
+				this.previousSegment.endTime,
+			);
+
+			if (startTime < this.previousSegment.endTime) {
+				dragMode = this.view.getSegmentDragMode();
+
+				if (
+					dragMode === "no-overlap" ||
+					(dragMode === "compress" && !this.previousSegment.editable)
+				) {
+					startTime = this.previousSegment.endTime;
+					endTime = startTime + segmentDuration;
+					this.overlay?.x(previousSegmentEndX);
+				} else if (dragMode === "compress") {
+					let previousSegmentEndTime = startTime;
+
+					const minPreviousSegmentEndTime =
+						this.previousSegment.startTime + minSegmentDuration;
+
+					if (previousSegmentEndTime < minPreviousSegmentEndTime) {
+						previousSegmentEndTime = minPreviousSegmentEndTime;
+
+						previousSegmentEndX = this.view.timeToPixelOffset(
+							previousSegmentEndTime,
+						);
+
+						this.overlay?.x(previousSegmentEndX);
+
+						startTime = previousSegmentEndTime;
+						endTime = startTime + segmentDuration;
+					}
+
+					this.previousSegment.update({ endTime: previousSegmentEndTime });
+
+					previousSegmentUpdated = true;
+				}
+			}
+		}
+
+		if (this.nextSegment) {
+			let nextSegmentStartX = this.view.timeToPixelOffset(
+				this.nextSegment.startTime,
+			);
+
+			if (endTime > this.nextSegment.startTime) {
+				dragMode = this.view.getSegmentDragMode();
+
+				if (
+					dragMode === "no-overlap" ||
+					(dragMode === "compress" && !this.nextSegment.editable)
+				) {
+					endTime = this.nextSegment.startTime;
+					startTime = endTime - segmentDuration;
+					this.overlay?.x(nextSegmentStartX - this.overlay?.width());
+				} else if (dragMode === "compress") {
+					let nextSegmentStartTime = endTime;
+
+					const maxNextSegmentStartTime =
+						this.nextSegment.endTime - minSegmentDuration;
+
+					if (nextSegmentStartTime > maxNextSegmentStartTime) {
+						nextSegmentStartTime = maxNextSegmentStartTime;
+
+						nextSegmentStartX =
+							this.view.timeToPixelOffset(nextSegmentStartTime);
+
+						this.overlay?.x(nextSegmentStartX - this.overlay?.width());
+
+						endTime = nextSegmentStartTime;
+						startTime = endTime - segmentDuration;
+					}
+
+					this.nextSegment.update({ startTime: nextSegmentStartTime });
+
+					nextSegmentUpdated = true;
+				}
+			}
+		}
+
+		this.segment.setStartTime(startTime);
+		this.segment.setEndTime(endTime);
+
+		this.peaks.emit("segments.dragged", {
+			evt: event.evt,
+			marker: false,
+			segment: this.segment,
+			startMarker: false,
+		});
+
+		if (previousSegmentUpdated) {
+			this.peaks.emit("segments.dragged", {
+				evt: event.evt,
+				marker: false,
+				segment: this.previousSegment,
+				startMarker: false,
+			});
+		} else if (nextSegmentUpdated) {
+			this.peaks.emit("segments.dragged", {
+				evt: event.evt,
+				marker: false,
+				segment: this.nextSegment,
+				startMarker: false,
+			});
+		}
+	};
+
+	private onSegmentDragEnd = (event: KonvaEventObject<MouseEvent>) => {
+		this.dragging = false;
+
+		this.peaks.emit("segments.dragend", {
+			evt: event.evt,
+			marker: false,
+			segment: this.segment,
+			startMarker: false,
+		});
+	};
+
+	private onSegmentMarkerDragStart = (
+		segmentMarker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => {
+		if (!this.startMarkerInstance || !this.endMarkerInstance) {
+			return;
+		}
+
+		this.setPreviousAndNextSegments();
+
+		this.moveSegmentToTop();
+
+		this.peaks.emit("segments.dragstart", {
+			evt: event.evt,
+			marker: true,
+			segment: this.segment,
+			startMarker: segmentMarker.isStartMarker(),
+		});
+	};
+
+	private onSegmentMarkerDragMove = (
+		segmentMarker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => {
+		if (segmentMarker.isStartMarker()) {
+			this.segmentStartMarkerDragMove(segmentMarker, event);
+			segmentMarker.update({ startTime: this.segment.startTime });
+		} else {
+			this.segmentEndMarkerDragMove(segmentMarker, event);
+			segmentMarker.update({ endTime: this.segment.endTime });
+		}
+	};
+
 	private onSegmentMarkerDragEnd = (
 		segmentMarker: SegmentMarkerAPI,
 		event: KonvaMouseEvent,
@@ -991,7 +1025,6 @@ export class SegmentShape {
 		segmentMarker: SegmentMarkerAPI,
 		pos: XY,
 	) => {
-		// Allow the marker to be moved horizontally but not vertically.
 		return {
 			x: pos.x,
 			y: segmentMarker.getAbsolutePosition().y,
@@ -999,64 +1032,6 @@ export class SegmentShape {
 	};
 
 	private onSegmentMarkerClick = () => {
-		// Move this segment to the top of the z-order.
 		this.moveSegmentToTop();
 	};
-
-	fitToView() {
-		if (this.startMarkerInstance) {
-			this.startMarkerInstance.fitToView();
-		}
-
-		if (this.endMarkerInstance) {
-			this.endMarkerInstance.fitToView();
-		}
-
-		if (this.overlay) {
-			const height = this.view.getHeight();
-
-			const overlayRectHeight = Math.max(0, height - this.overlayOffset * 2);
-
-			this.overlay.setAttrs({
-				clipHeight: overlayRectHeight,
-				clipY: this.overlayOffset,
-				height: height,
-				y: 0,
-			});
-
-			this.overlayRect.setAttrs({
-				height: overlayRectHeight,
-				y: this.overlayOffset,
-			});
-
-			if (this.overlayText) {
-				this.overlayText.setAttrs({
-					height: overlayRectHeight,
-					y: this.overlayOffset,
-				});
-			}
-		}
-	}
-
-	destroy() {
-		if (this.waveformShape) {
-			this.waveformShape.destroy();
-		}
-
-		if (this.label) {
-			this.label.destroy();
-		}
-
-		if (this.startMarkerInstance) {
-			this.startMarkerInstance.destroy();
-		}
-
-		if (this.endMarkerInstance) {
-			this.endMarkerInstance.destroy();
-		}
-
-		if (this.overlay) {
-			this.overlay.destroy();
-		}
-	}
 }

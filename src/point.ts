@@ -126,52 +126,30 @@ export interface PointFromOptions {
 
 export class Point {
 	[key: string]: unknown;
-	#time: number;
-	#labelText: string;
-	#color: string;
-	#editable: boolean;
+
+	private constructor(
+		public readonly peaks: PointPeaksLike,
+		public readonly pid: number,
+		public id: string,
+		public time: number,
+		public labelText: string,
+		public color: string,
+		public editable: boolean,
+	) {}
 
 	static from(options: PointFromOptions): Point {
 		const merged = applyPointDefaults(options.options, options.defaults);
-		return new Point(options.peaks, options.pid, merged);
-	}
-
-	private constructor(
-		private readonly peaks: PointPeaksLike,
-		public readonly pid: number,
-		options: PointOptions,
-		public id: string = options.id ?? `peaks.point.${pid}`,
-	) {
-		this.#time = options.time;
-		this.#labelText = options.labelText ?? "";
-		this.#color = options.color ?? "";
-		this.#editable = options.editable ?? false;
-		this.applyUserData(options);
-	}
-
-	private applyUserData(options: PointOptions | PointUpdateOptions): void {
-		for (const key of Object.keys(options)) {
-			if (!pointOptions.includes(key as keyof PointOptions)) {
-				// @ts-expect-error -- allow arbitrary user data properties on the point instance
-				this[key] = options[key];
-			}
-		}
-	}
-
-	get time(): number {
-		return this.#time;
-	}
-
-	get labelText(): string {
-		return this.#labelText;
-	}
-
-	get color(): string {
-		return this.#color;
-	}
-
-	get editable(): boolean {
-		return this.#editable;
+		const instance = new Point(
+			options.peaks,
+			options.pid,
+			merged.id ?? `peaks.point.${options.pid}`,
+			merged.time,
+			merged.labelText ?? "",
+			merged.color ?? "",
+			merged.editable ?? false,
+		);
+		applyUserData(instance, options.options);
+		return instance;
 	}
 
 	/**
@@ -194,22 +172,22 @@ export class Point {
 		}
 
 		if (Object.hasOwn(options, "time") && options.time !== undefined) {
-			this.#time = options.time;
+			this.time = options.time;
 		}
 		if (
 			Object.hasOwn(options, "labelText") &&
 			options.labelText !== undefined
 		) {
-			this.#labelText = options.labelText;
+			this.labelText = options.labelText;
 		}
 		if (Object.hasOwn(options, "color") && options.color !== undefined) {
-			this.#color = options.color;
+			this.color = options.color;
 		}
 		if (Object.hasOwn(options, "editable") && options.editable !== undefined) {
-			this.#editable = options.editable;
+			this.editable = options.editable;
 		}
 
-		this.applyUserData(options);
+		applyUserData(this, options);
 
 		this.peaks.emit("points.update", this, options);
 	}
@@ -219,6 +197,17 @@ export class Point {
 	}
 
 	setTime(time: number): void {
-		this.#time = time;
+		this.time = time;
+	}
+}
+
+function applyUserData(
+	point: Point,
+	options: PointOptions | PointUpdateOptions,
+): void {
+	for (const key of Object.keys(options)) {
+		if (!pointOptions.includes(key as keyof PointOptions)) {
+			point[key] = (options as Record<string, unknown>)[key];
+		}
 	}
 }

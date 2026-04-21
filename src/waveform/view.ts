@@ -3,19 +3,20 @@ import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
 import type WaveformData from "waveform-data";
-import { PlayheadLayer } from "./playhead-layer";
-import { PointsLayer } from "./points-layer";
-import { SegmentsLayer } from "./segments-layer";
+import { PlayheadLayer } from "../playhead-layer";
+import { PointsLayer } from "../points-layer";
+import { SegmentsLayer } from "../segments-layer";
 import type {
 	OverviewOptions,
 	PeaksInstance,
 	WaveformViewAPI,
 	ZoomviewOptions,
-} from "./types";
-import type { WaveformColor } from "./utils";
-import { formatTime, getMarkerObject, isFinite, isNumber } from "./utils";
-import { WaveformAxis } from "./waveform-axis";
-import { WaveformShape } from "./waveform-shape";
+} from "../types";
+import type { WaveformColor } from "../utils";
+import { formatTime, getMarkerObject, isFinite, isNumber } from "../utils";
+
+import { WaveformAxis } from "./axis";
+import { WaveformShape } from "./shape";
 
 export interface PlayedSegment {
 	startTime: number;
@@ -509,7 +510,7 @@ export class WaveformView {
 		}
 
 		if (this.pointsLayer) {
-			this.pointsLayer.enableEditing = enable;
+			this.pointsLayer.enableEditing(enable);
 		}
 	}
 
@@ -572,10 +573,10 @@ export class WaveformView {
 	}
 
 	destroy(): void {
-		this.playheadLayer.destroy();
+		this.playheadLayer.dispose();
 
 		if (this.segmentsLayer) {
-			this.segmentsLayer.destroy();
+			this.segmentsLayer.dispose();
 		}
 
 		if (this.pointsLayer) {

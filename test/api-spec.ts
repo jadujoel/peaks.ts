@@ -2,8 +2,8 @@ import Konva from "konva";
 import sinon, { type SinonSpy } from "sinon";
 import { Peaks } from "../src/main";
 import { Scrollbar } from "../src/scrollbar";
-import { WaveformOverview } from "../src/waveform-overview";
-import { WaveformZoomView } from "../src/waveform-zoomview";
+import { WaveformOverview } from "../src/waveform/overview";
+import { WaveformZoomView } from "../src/waveform/zoomview";
 import sampleJsonData from "./data/sample.json";
 
 const TestAudioContext = window.AudioContext;

@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import WaveformData from "waveform-data";
 import type { WaveformBuilderCallback } from "../src/types";
-import { WaveformBuilder } from "../src/waveform-builder";
+import { WaveformBuilder } from "../src/waveform/builder";
 import sampleJsonData from "./data/sample.json";
 
 const TestAudioContext = window.AudioContext;

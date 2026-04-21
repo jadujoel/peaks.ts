@@ -23,13 +23,14 @@ export interface PointsLayerFromOptions {
 
 export class PointsLayer {
 	private constructor(
-		public readonly peaks: PeaksInstance,
-		public readonly view: WaveformViewAPI,
-		public enableEditing: boolean,
+		private readonly peaks: PeaksInstance,
+		private readonly view: WaveformViewAPI,
+		private editingEnabled: boolean,
 		private readonly layer: Layer,
 		private readonly markers: Map<number, PointMarker>,
 		private dragPointMarker: PointMarker | undefined,
 	) {}
+
 	static from(options: PointsLayerFromOptions): PointsLayer {
 		const layers = new PointsLayer(
 			options.peaks,
@@ -47,6 +48,14 @@ export class PointsLayer {
 		layers.peaks.on("points.dragmove", layers.onPointsDrag);
 		layers.peaks.on("points.dragend", layers.onPointsDrag);
 		return layers;
+	}
+
+	enableEditing(enable: boolean): void {
+		this.editingEnabled = enable;
+	}
+
+	isEditingEnabled(): boolean {
+		return this.editingEnabled;
 	}
 
 	addToStage(stage: Stage): void {
@@ -149,7 +158,7 @@ export class PointsLayer {
 	 * Creates the Konva UI objects for a given point.
 	 */
 	private createPointMarker(point: Point): PointMarker {
-		const editable = this.enableEditing && point.editable;
+		const editable = this.editingEnabled && point.editable;
 		const viewOptions = this.view.getViewOptions();
 
 		const marker = this.peaks.options.createPointMarker({

@@ -15,23 +15,32 @@ export interface MouseDragHandlerFromOptions {
 }
 
 export class MouseDragHandler {
-	private readonly stage: Stage;
-	private readonly handlers: MouseDragHandlers;
-	private dragging: boolean;
-	private lastMouseClientX: number | undefined;
+	private constructor(
+		private readonly stage: Stage,
+		private readonly handlers: MouseDragHandlers,
+		private dragging: boolean,
+		private lastMouseClientX: number | undefined,
+	) {}
 
 	static from(options: MouseDragHandlerFromOptions): MouseDragHandler {
-		return new MouseDragHandler(options.stage, options.handlers);
+		const instance = new MouseDragHandler(
+			options.stage,
+			options.handlers,
+			false,
+			undefined,
+		);
+		instance.stage.on("mousedown", instance.mouseDown);
+		instance.stage.on("touchstart", instance.mouseDown);
+		return instance;
 	}
 
-	private constructor(stage: Stage, handlers: MouseDragHandlers) {
-		this.stage = stage;
-		this.handlers = handlers;
-		this.dragging = false;
-		this.lastMouseClientX = undefined;
+	isDragging(): boolean {
+		return this.dragging;
+	}
 
-		this.stage.on("mousedown", this.mouseDown);
-		this.stage.on("touchstart", this.mouseDown);
+	dispose(): void {
+		this.stage.off("mousedown", this.mouseDown);
+		this.stage.off("touchstart", this.mouseDown);
 	}
 
 	private mouseDown = (
@@ -151,14 +160,5 @@ export class MouseDragHandler {
 		const containerPos = this.stage.container().getBoundingClientRect();
 
 		return Math.floor(clientX - containerPos.left);
-	}
-
-	isDragging(): boolean {
-		return this.dragging;
-	}
-
-	destroy(): void {
-		this.stage.off("mousedown", this.mouseDown);
-		this.stage.off("touchstart", this.mouseDown);
 	}
 }

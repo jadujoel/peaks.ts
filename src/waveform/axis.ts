@@ -2,8 +2,8 @@ import type { Context } from "konva/lib/Context";
 import Konva from "konva/lib/Core";
 import type { Layer } from "konva/lib/Layer";
 import type { Shape } from "konva/lib/Shape";
-import type { ViewOptions, WaveformViewAPI } from "./types";
-import { formatTime, roundUpToNearest } from "./utils";
+import type { ViewOptions, WaveformViewAPI } from "../types";
+import { formatTime, roundUpToNearest } from "../utils";
 
 /**
  * Creates the waveform axis shapes and adds them to the given view layer.
@@ -15,65 +15,48 @@ export interface WaveformAxisFromOptions {
 }
 
 export class WaveformAxis {
-	private axisGridlineColor: string;
-	private axisLabelColor: string;
-	private showAxisLabelsFlag: boolean;
-	private axisTopMarkerHeight: number;
-	private axisBottomMarkerHeight: number;
-	private readonly formatAxisTimeFn: (time: number) => string;
-	private readonly axisLabelFont: string;
-	private readonly axisShape: Shape;
+	private constructor(
+		private readonly formatAxisTimeFn: (time: number) => string,
+		private readonly axisLabelFont: string,
+		private readonly axisShape: Shape,
+		private axisGridlineColor: string,
+		private axisLabelColor: string,
+		private showAxisLabelsFlag: boolean,
+		private axisTopMarkerHeight: number,
+		private axisBottomMarkerHeight: number,
+	) {}
 
 	static from(options: WaveformAxisFromOptions): WaveformAxis {
-		return new WaveformAxis(options.view, options.options);
-	}
+		const view = options.view;
+		const opts = options.options;
 
-	private constructor(view: WaveformViewAPI, options: ViewOptions) {
-		this.axisGridlineColor = options.axisGridlineColor;
-		this.axisLabelColor = options.axisLabelColor;
-		this.showAxisLabelsFlag = options.showAxisLabels;
-		this.axisTopMarkerHeight = options.axisTopMarkerHeight;
-		this.axisBottomMarkerHeight = options.axisBottomMarkerHeight;
+		const formatAxisTimeFn =
+			opts.formatAxisTime ?? ((time: number) => formatTime(time, 0));
 
-		if (options.formatAxisTime) {
-			this.formatAxisTimeFn = options.formatAxisTime;
-		} else {
-			this.formatAxisTimeFn = (time: number) => {
-				return formatTime(time, 0);
-			};
-		}
-
-		this.axisLabelFont = WaveformAxis.buildFontString(
-			options.fontFamily,
-			options.fontSize,
-			options.fontStyle,
+		const axisLabelFont = WaveformAxis.buildFontString(
+			opts.fontFamily,
+			opts.fontSize,
+			opts.fontStyle,
 		);
 
-		this.axisShape = new Konva.Shape({
+		let instance: WaveformAxis;
+		const axisShape = new Konva.Shape({
 			sceneFunc: (context: Context) => {
-				this.drawAxis(context, view);
+				instance.drawAxis(context, view);
 			},
 		});
-	}
 
-	private static buildFontString(
-		fontFamily: string,
-		fontSize: number,
-		fontStyle: string,
-	): string {
-		if (!fontSize) {
-			fontSize = 11;
-		}
-
-		if (!fontFamily) {
-			fontFamily = "sans-serif";
-		}
-
-		if (!fontStyle) {
-			fontStyle = "normal";
-		}
-
-		return `${fontStyle} ${fontSize}px ${fontFamily}`;
+		instance = new WaveformAxis(
+			formatAxisTimeFn,
+			axisLabelFont,
+			axisShape,
+			opts.axisGridlineColor,
+			opts.axisLabelColor,
+			opts.showAxisLabels,
+			opts.axisTopMarkerHeight,
+			opts.axisBottomMarkerHeight,
+		);
+		return instance;
 	}
 
 	addToLayer(layer: Layer): void {
@@ -103,6 +86,26 @@ export class WaveformAxis {
 
 	setAxisGridlineColor(color: string): void {
 		this.axisGridlineColor = color;
+	}
+
+	private static buildFontString(
+		fontFamily: string,
+		fontSize: number,
+		fontStyle: string,
+	): string {
+		if (!fontSize) {
+			fontSize = 11;
+		}
+
+		if (!fontFamily) {
+			fontFamily = "sans-serif";
+		}
+
+		if (!fontStyle) {
+			fontStyle = "normal";
+		}
+
+		return `${fontStyle} ${fontSize}px ${fontFamily}`;
 	}
 
 	private getAxisLabelScale(view: WaveformViewAPI): number {

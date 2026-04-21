@@ -12,9 +12,9 @@ type InternalPlayheadText = {
 };
 
 type InternalWaveformView = {
-	_waveformShape: { _color: string };
-	_playedWaveformShape: { _color: string } | null;
-	_playheadLayer: { _playheadText?: InternalPlayheadText };
+	waveformShape: { color: string };
+	playedWaveformShape: { color: string } | null;
+	playheadLayer: { playheadText?: InternalPlayheadText };
 	setPlayedWaveformColor(color: string | null): void;
 	showPlayheadTime(show: boolean): void;
 	setTimeLabelPrecision(precision: number): void;

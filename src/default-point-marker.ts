@@ -24,7 +24,7 @@ export class DefaultPointMarker {
 		private readonly handle: Rect,
 		private readonly line: Line,
 		private readonly time: Text,
-		private draggable: boolean = options.draggable ?? false,
+		private draggable: boolean,
 	) {}
 
 	static DefaultOptions = DefaultOptions;

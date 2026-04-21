@@ -1,13 +1,12 @@
 import type WaveformData from "waveform-data";
-import { HighlightLayer } from "./highlight-layer";
-import { SeekMouseDragHandler } from "./seek-mouse-drag-handler";
+import { HighlightLayer } from "../highlight-layer";
+import { SeekMouseDragHandler } from "../seek-mouse-drag-handler";
+import type { OverviewOptions, PeaksInstance } from "../types";
+import { WaveformView } from "./view";
 
-type SeekMouseDragHandlerViewParam = Parameters<
+export type SeekMouseDragHandlerViewParam = Parameters<
 	typeof SeekMouseDragHandler.from
 >[0]["view"];
-
-import type { OverviewOptions, PeaksInstance } from "./types";
-import { WaveformView } from "./waveform-view";
 
 export interface WaveformOverviewFromOptions {
 	readonly waveformData: WaveformData;
@@ -177,7 +176,7 @@ export class WaveformOverview extends WaveformView {
 		this.peaks.off("player.timeupdate", this.onTimeUpdate);
 		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
 
-		this.mouseDragHandler.destroy();
+		this.mouseDragHandler.dispose();
 
 		super.destroy();
 	}

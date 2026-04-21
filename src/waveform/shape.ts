@@ -5,9 +5,9 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Shape, ShapeConfig } from "konva/lib/Shape";
 import type WaveformData from "waveform-data";
 import type { WaveformDataChannel } from "waveform-data";
-import type { WaveformViewAPI } from "./types";
-import type { WaveformColor } from "./utils";
-import { clamp, isLinearGradientColor, isString } from "./utils";
+import type { WaveformViewAPI } from "../types";
+import type { WaveformColor } from "../utils";
+import { clamp, isLinearGradientColor, isString } from "../utils";
 
 interface TimeRange {
 	startTime: number;
@@ -25,10 +25,12 @@ export interface WaveformShapeFromOptions {
  */
 
 export class WaveformShape {
-	private readonly color: WaveformColor;
-	private readonly shape: Shape;
-	private readonly view: WaveformViewAPI;
-	private segment: TimeRange | undefined;
+	private constructor(
+		private readonly color: WaveformColor,
+		private readonly shape: Shape,
+		private readonly view: WaveformViewAPI,
+		private segment: TimeRange | undefined,
+	) {}
 
 	/**
 	 * Creates a waveform shape for a solid color or linear gradient fill.
@@ -36,12 +38,6 @@ export class WaveformShape {
 	 * @throws {TypeError} If the provided color is neither a string nor a valid linear gradient.
 	 */
 	static from(options: WaveformShapeFromOptions): WaveformShape {
-		return new WaveformShape(options);
-	}
-
-	private constructor(options: WaveformShapeFromOptions) {
-		this.color = options.color;
-
 		const shapeOptions: ShapeConfig = {};
 
 		if (isString(options.color)) {
@@ -64,11 +60,31 @@ export class WaveformShape {
 			throw new TypeError("Unknown type for color property");
 		}
 
-		this.shape = new Konva.Shape(shapeOptions);
-		this.view = options.view;
-		this.segment = options.segment;
+		const shape = new Konva.Shape(shapeOptions);
+		const instance = new WaveformShape(
+			options.color,
+			shape,
+			options.view,
+			options.segment,
+		);
+		shape.sceneFunc(instance.sceneFunc);
+		return instance;
+	}
 
-		this.shape.sceneFunc(this.sceneFunc);
+	/**
+	 * Scales the waveform data for drawing on a canvas context.
+	 *
+	 * @see https://stats.stackexchange.com/questions/281162
+	 *
+	 * @param amplitude The waveform data point amplitude.
+	 * @param height The height of the waveform, in pixels.
+	 * @param scale Amplitude scaling factor.
+	 * @returns The scaled waveform data point.
+	 */
+	static scaleY(amplitude: number, height: number, scale: number): number {
+		const y = (-(height - 1) * (amplitude * scale + 128)) / 255 + (height - 1);
+
+		return clamp(Math.floor(y), 0, height - 1);
 	}
 
 	getX(): number {
@@ -118,6 +134,28 @@ export class WaveformShape {
 		this.setWaveformColor(this.color);
 	}
 
+	addToLayer(layer: Layer): void {
+		layer.add(this.shape);
+	}
+
+	destroy(): void {
+		this.shape.destroy();
+	}
+
+	on(
+		event: string,
+		handler: (event: KonvaEventObject<MouseEvent>) => void,
+	): void {
+		this.shape.on(event, handler);
+	}
+
+	off(
+		event: string,
+		handler: (event: KonvaEventObject<MouseEvent>) => void,
+	): void {
+		this.shape.off(event, handler);
+	}
+
 	private sceneFunc = (context: Context): void => {
 		const frameOffset = this.view.getFrameOffset();
 		const width = this.view.getWidth();
@@ -146,17 +184,6 @@ export class WaveformShape {
 
 	/**
 	 * Draws a waveform on a canvas context.
-	 *
-	 * @param context The canvas context to draw on.
-	 * @param waveformData The waveform data to draw.
-	 * @param frameOffset The start position of the waveform shown
-	 *   in the view, in pixels.
-	 * @param startPixels The start position of the waveform to draw,
-	 *   in pixels.
-	 * @param endPixels The end position of the waveform to draw,
-	 *   in pixels.
-	 * @param width The width of the waveform area, in pixels.
-	 * @param height The height of the waveform area, in pixels.
 	 */
 
 	private drawWaveform(
@@ -208,17 +235,6 @@ export class WaveformShape {
 
 	/**
 	 * Draws a single waveform channel on a canvas context.
-	 *
-	 * @param context The canvas context to draw on.
-	 * @param channel The waveform data to draw.
-	 * @param frameOffset The start position of the waveform shown
-	 *   in the view, in pixels.
-	 * @param startPixels The start position of the waveform to draw,
-	 *   in pixels.
-	 * @param endPixels The end position of the waveform to draw,
-	 *   in pixels.
-	 * @param top The top of the waveform channel area, in pixels.
-	 * @param height The height of the waveform channel area, in pixels.
 	 */
 
 	private drawChannel(
@@ -263,44 +279,5 @@ export class WaveformShape {
 		context.closePath();
 
 		context.fillShape(this.shape);
-	}
-
-	addToLayer(layer: Layer): void {
-		layer.add(this.shape);
-	}
-
-	destroy(): void {
-		this.shape.destroy();
-	}
-
-	on(
-		event: string,
-		handler: (event: KonvaEventObject<MouseEvent>) => void,
-	): void {
-		this.shape.on(event, handler);
-	}
-
-	off(
-		event: string,
-		handler: (event: KonvaEventObject<MouseEvent>) => void,
-	): void {
-		this.shape.off(event, handler);
-	}
-
-	/**
-	 * Scales the waveform data for drawing on a canvas context.
-	 *
-	 * @see https://stats.stackexchange.com/questions/281162
-	 *
-	 * @param amplitude The waveform data point amplitude.
-	 * @param height The height of the waveform, in pixels.
-	 * @param scale Amplitude scaling factor.
-	 * @returns The scaled waveform data point.
-	 */
-
-	static scaleY(amplitude: number, height: number, scale: number): number {
-		const y = (-(height - 1) * (amplitude * scale + 128)) / 255 + (height - 1);
-
-		return clamp(Math.floor(y), 0, height - 1);
 	}
 }

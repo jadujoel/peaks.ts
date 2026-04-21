@@ -8,50 +8,45 @@ export interface OverlaySegmentMarkerFromOptions {
 }
 
 export class OverlaySegmentMarker {
-	private readonly options: CreateSegmentMarkerOptions;
-	private label!: Text;
-	private handle!: Rect;
+	private constructor(
+		private readonly options: CreateSegmentMarkerOptions,
+		private readonly label: Text,
+		private readonly handle: Rect,
+	) {}
 
-	static from(options: OverlaySegmentMarkerFromOptions): OverlaySegmentMarker {
-		return new OverlaySegmentMarker(options.options);
-	}
-
-	private constructor(options: CreateSegmentMarkerOptions) {
-		this.options = options;
-	}
-
-	init(group: Group): void {
+	static from(opts: OverlaySegmentMarkerFromOptions): OverlaySegmentMarker {
+		const options = opts.options;
 		const handleWidth = 10;
 		const handleHeight = 20;
-		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
+		const handleX = -(handleWidth / 2) + 0.5;
+		const xPosition = options.startMarker ? -24 : 24;
+		const time = options.startMarker
+			? options.segment.startTime
+			: options.segment.endTime;
 
-		const xPosition = this.options.startMarker ? -24 : 24;
-
-		const time = this.options.startMarker
-			? this.options.segment.startTime
-			: this.options.segment.endTime;
-
-		// Label - create with default y, the real value is set in fitToView().
-		this.label = new Text({
+		const label = new Text({
 			fill: "#000",
-			fontFamily: this.options.fontFamily,
-			fontSize: this.options.fontSize,
-			fontStyle: this.options.fontStyle,
-			text: this.options.layer.formatTime(time),
+			fontFamily: options.fontFamily,
+			fontSize: options.fontSize,
+			fontStyle: options.fontStyle,
+			text: options.layer.formatTime(time),
 			textAlign: "center",
 			visible: false,
 			x: xPosition,
 			y: 0,
 		});
 
-		// Handle - create with default y, the real value is set in fitToView().
-		this.handle = new Rect({
+		const handle = new Rect({
 			height: handleHeight,
 			width: handleWidth,
 			x: handleX,
 			y: 0,
 		});
 
+		return new OverlaySegmentMarker(options, label, handle);
+	}
+
+	init(group: Group): void {
 		group.add(this.label);
 		group.add(this.handle);
 

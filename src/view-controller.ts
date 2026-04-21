@@ -1,25 +1,23 @@
 import { Scrollbar } from "./scrollbar";
 import type { PeaksInstance } from "./types";
 import { isNullOrUndefined } from "./utils";
-import { WaveformOverview } from "./waveform-overview";
-import { WaveformZoomView } from "./waveform-zoomview";
+import { WaveformOverview } from "./waveform/overview";
+import { WaveformZoomView } from "./waveform/zoomview";
 
 export interface ViewControllerFromOptions {
 	readonly peaks: PeaksInstance;
 }
 
 export class ViewController {
-	public readonly peaks: PeaksInstance;
-	private overview?: WaveformOverview | undefined;
-	private zoomview?: WaveformZoomView | undefined;
-	private scrollbar?: Scrollbar | undefined;
+	private constructor(
+		private readonly peaks: PeaksInstance,
+		private overview: WaveformOverview | undefined,
+		private zoomview: WaveformZoomView | undefined,
+		private scrollbar: Scrollbar | undefined,
+	) {}
 
 	static from(options: ViewControllerFromOptions): ViewController {
-		return new ViewController(options.peaks);
-	}
-
-	private constructor(peaks: PeaksInstance) {
-		this.peaks = peaks;
+		return new ViewController(options.peaks, undefined, undefined, undefined);
 	}
 
 	/**
@@ -134,7 +132,7 @@ export class ViewController {
 		}
 
 		if (this.scrollbar) {
-			this.scrollbar.destroy();
+			this.scrollbar.dispose();
 			this.scrollbar = undefined;
 		}
 	}

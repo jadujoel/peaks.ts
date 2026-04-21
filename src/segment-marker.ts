@@ -6,82 +6,66 @@ import type { Segment } from "./segment";
 import type {
 	KonvaMouseEvent,
 	Marker,
+	MarkerUpdateOptions,
 	SegmentMarkerAPI,
 	SegmentMarkerOptions,
+	XY,
 } from "./types";
 
-export interface SegmentMarkerFromOptions {
-	readonly options: SegmentMarkerOptions;
+export interface SegmentMarkerHandlers {
+	readonly onClick: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
+	readonly onDragStart: (
+		marker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => void;
+	readonly onDragMove: (
+		marker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => void;
+	readonly onDragEnd: (
+		marker: SegmentMarkerAPI,
+		event: KonvaMouseEvent,
+	) => void;
+}
+
+export type SegmentMarkerDragBoundFunc = (marker: SegmentMarker, pos: XY) => XY;
+
+export interface SegmentMarkerFromOptions extends SegmentMarkerOptions {
+	readonly handlers: SegmentMarkerHandlers;
 }
 
 export class SegmentMarker {
-	private readonly segment: Segment;
-	private readonly marker: Marker;
-	private readonly editable: boolean;
-	private readonly startMarker: boolean;
-	private readonly onClick: (
-		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	private readonly onDragStart: (
-		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	private readonly onDragMove: (
-		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	private readonly onDragEnd: (
-		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
-	) => void;
-	private readonly group: Group;
+	private constructor(
+		private readonly segment: Segment,
+		private readonly marker: Marker,
+		private readonly editable: boolean,
+		private readonly startMarker: boolean,
+		private readonly handlers: SegmentMarkerHandlers,
+		private readonly group: Group,
+	) {}
 
 	static from(options: SegmentMarkerFromOptions): SegmentMarker {
-		return new SegmentMarker(options.options);
-	}
-
-	private constructor(options: SegmentMarkerOptions) {
-		this.segment = options.segment;
-		this.marker = options.marker;
-		this.editable = options.editable;
-		this.startMarker = options.startMarker;
-
-		this.onClick = options.onClick;
-		this.onDragStart = options.onDragStart;
-		this.onDragMove = options.onDragMove;
-		this.onDragEnd = options.onDragEnd;
-
-		this.group = new Konva.Group({
-			dragBoundFunc: (pos: { x: number; y: number }) =>
-				options.dragBoundFunc(this, pos),
-			draggable: this.editable,
+		let instance: SegmentMarker;
+		const group = new Konva.Group({
+			dragBoundFunc: (pos: XY) => {
+				return options.dragBoundFunc(instance, pos);
+			},
+			draggable: options.editable,
 			name: "segment-marker",
-			segment: this.segment,
-			visible: this.editable,
+			segment: options.segment,
+			visible: options.editable,
 		});
-
-		this.bindDefaultEventHandlers();
-
-		this.marker.init(this.group);
-	}
-
-	private bindDefaultEventHandlers(): void {
-		this.group.on("click", (event: KonvaEventObject<MouseEvent>) => {
-			this.onClick(this, event);
-		});
-
-		this.group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
-			this.onDragStart(this, event);
-		});
-
-		this.group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
-			this.onDragMove(this, event);
-		});
-
-		this.group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
-			this.onDragEnd(this, event);
-		});
+		instance = new SegmentMarker(
+			options.segment,
+			options.marker,
+			options.editable,
+			options.startMarker,
+			options.handlers,
+			group,
+		);
+		instance.bindDefaultEventHandlers();
+		options.marker.init(group);
+		return instance;
 	}
 
 	addToLayer(layer: Layer): void {
@@ -120,7 +104,7 @@ export class SegmentMarker {
 		return this.startMarker;
 	}
 
-	update(options: Record<string, unknown>): void {
+	update(options: MarkerUpdateOptions): void {
 		if (options.editable !== undefined) {
 			this.group.visible(options.editable as boolean);
 			this.group.draggable(options.editable as boolean);
@@ -146,5 +130,23 @@ export class SegmentMarker {
 
 	stopDrag(): void {
 		this.group.stopDrag();
+	}
+
+	private bindDefaultEventHandlers(): void {
+		this.group.on("click", (event: KonvaEventObject<MouseEvent>) => {
+			this.handlers.onClick(this, event);
+		});
+
+		this.group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
+			this.handlers.onDragStart(this, event);
+		});
+
+		this.group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
+			this.handlers.onDragMove(this, event);
+		});
+
+		this.group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
+			this.handlers.onDragEnd(this, event);
+		});
 	}
 }

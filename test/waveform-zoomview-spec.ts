@@ -2,7 +2,7 @@ import sinon from "sinon";
 import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
-import type WaveformZoomView from "../src/waveform-zoomview";
+import type WaveformZoomView from "../src/waveform/zoomview";
 import { InputController } from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 

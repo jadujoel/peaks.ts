@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { Peaks } from "../src/main";
-import { WaveformOverview } from "../src/waveform-overview";
-import { WaveformZoomView } from "../src/waveform-zoomview";
+import { WaveformOverview } from "../src/waveform/overview";
+import { WaveformZoomView } from "../src/waveform/zoomview";
 
 describe("Peaks.views", () => {
 	let p = null;

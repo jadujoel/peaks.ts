@@ -63,11 +63,13 @@ export interface PlayerFromOptions {
 }
 
 export class Player {
-	private readonly peaks: PeaksInstance | undefined;
-	private playingSegment: boolean;
-	private segment: Segment | undefined;
-	private loop: boolean;
-	private readonly adapter: PlayerAdapter;
+	private constructor(
+		private readonly peaks: PeaksInstance | undefined,
+		private readonly adapter: PlayerAdapter,
+		private playingSegment: boolean = false,
+		private segment: Segment | undefined = undefined,
+		private loop: boolean = false,
+	) {}
 
 	/**
 	 * Creates a player wrapper around the supplied adapter.
@@ -75,21 +77,8 @@ export class Player {
 	 * @throws {TypeError} If the adapter does not implement the required player methods.
 	 */
 	static from(options: PlayerFromOptions): Player {
+		validateAdapter(options.adapter);
 		return new Player(options.peaks, options.adapter);
-	}
-
-	private constructor(
-		peaks: PeaksInstance | undefined,
-		adapter: PlayerAdapter,
-	) {
-		this.peaks = peaks;
-
-		this.playingSegment = false;
-		this.segment = undefined;
-		this.loop = false;
-
-		validateAdapter(adapter);
-		this.adapter = adapter;
 	}
 
 	init(): Promise<void> {

@@ -4,103 +4,110 @@ import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
 import { Rect } from "konva/lib/shapes/Rect";
-import type { PeaksInstance, ScrollbarDisplayOptions } from "./types";
+import type { PeaksInstance, ScrollbarDisplayOptions, XY } from "./types";
 import { clamp } from "./utils";
-import type { WaveformZoomView } from "./waveform-zoomview";
-
-/**
- * Creates a scrollbar.
- *
- * @throws {Error} If scrollbar display options are missing from the Peaks configuration.
- */
+import type { WaveformZoomView } from "./waveform/zoomview";
 
 export interface ScrollbarFromOptions {
 	readonly container: HTMLDivElement;
 	readonly peaks: PeaksInstance;
 }
 
+function scrollboxDragBoundFunc(pos: XY): XY {
+	// Allow the scrollbar to be moved horizontally but not vertically.
+	return {
+		x: pos.x,
+		y: 0,
+	};
+}
+
+/**
+ * Creates a scrollbar.
+ *
+ * @throws {Error} If scrollbar display options are missing from the Peaks configuration.
+ */
 export class Scrollbar {
-	private readonly container: HTMLDivElement;
-	private readonly peaks: PeaksInstance;
-	private readonly scrollbarOptions: ScrollbarDisplayOptions;
-	private zoomview: WaveformZoomView | undefined;
-	private width: number;
-	private height: number;
-	private readonly stage: Stage;
-	private readonly layer: Layer;
-	private readonly color: string;
-	private scrollboxX: number;
-	private readonly minScrollboxWidth: number;
-	private readonly offsetY: number;
-	private readonly scrollbox: Group;
-	private readonly scrollboxRect: Rect;
-	private scrollboxWidth!: number;
-	private dragging!: boolean;
+	private constructor(
+		private readonly container: Pick<
+			HTMLElement,
+			"clientWidth" | "clientHeight"
+		>,
+		private readonly peaks: PeaksInstance,
+		private readonly stage: Stage,
+		private readonly layer: Layer,
+		private readonly scrollbox: Group,
+		private readonly scrollboxRect: Rect,
+		private readonly color: string,
+		private readonly minScrollboxWidth: number,
+		private readonly offsetY: number,
+		private width: number,
+		private height: number,
+		private scrollboxX: number = 0,
+		private scrollboxWidth: number = 0,
+		private zoomview: WaveformZoomView | undefined = undefined,
+		private dragging: boolean = false,
+	) {}
 
 	static from(options: ScrollbarFromOptions): Scrollbar {
-		return new Scrollbar(options.container, options.peaks);
-	}
+		const scrollbarOptions = options.peaks.options.scrollbar;
+		const width = options.container.clientWidth;
+		const height = options.container.clientHeight;
 
-	private constructor(container: HTMLDivElement, peaks: PeaksInstance) {
-		this.container = container;
-		this.peaks = peaks;
-
-		const scrollbarOptions = peaks.options.scrollbar;
-
-		if (!scrollbarOptions) {
-			throw new Error("Scrollbar: missing scrollbar options");
-		}
-
-		this.scrollbarOptions = scrollbarOptions;
-		this.zoomview = peaks.views.getView("zoomview") as
-			| WaveformZoomView
-			| undefined;
-
-		this.peaks.on("zoomview.update", this.onZoomviewUpdate);
-
-		this.width = container.clientWidth;
-		this.height = container.clientHeight;
-
-		this.stage = new Konva.Stage({
-			container: container,
-			height: this.height,
-			width: this.width,
+		const stage = new Konva.Stage({
+			container: options.container,
+			height,
+			width,
 		});
 
-		this.layer = new Konva.Layer();
-		this.stage.on("click", this.onScrollbarClick);
+		const layer = new Konva.Layer();
+		stage.add(layer);
 
-		this.stage.add(this.layer);
-
-		this.color = this.scrollbarOptions.color;
-		this.scrollboxX = 0;
-		this.minScrollboxWidth = this.scrollbarOptions.minWidth;
-
-		this.offsetY = 0;
-
-		this.scrollbox = new Konva.Group({
-			dragBoundFunc: this.dragBoundFunc,
+		const scrollbox = new Konva.Group({
+			dragBoundFunc: scrollboxDragBoundFunc,
 			draggable: true,
 		});
 
-		this.scrollboxRect = new Rect({
-			fill: this.color,
-			height: this.height,
+		const scrollboxRect = new Rect({
+			fill: scrollbarOptions.color,
+			height,
 			width: 0,
-			x: this.scrollboxX,
-			y: this.offsetY,
+			x: 0,
+			y: 0,
 		});
 
-		this.scrollbox.add(this.scrollboxRect);
-		this.setScrollboxWidth();
+		scrollbox.add(scrollboxRect);
+		layer.add(scrollbox);
 
-		this.scrollbox.on("dragstart", this.onScrollboxDragStart);
-		this.scrollbox.on("dragmove", this.onScrollboxDragMove);
-		this.scrollbox.on("dragend", this.onScrollboxDragEnd);
+		const zoomview = options.peaks.views.getView("zoomview") as
+			| WaveformZoomView
+			| undefined;
 
-		this.layer.add(this.scrollbox);
+		const instance = new Scrollbar(
+			options.container,
+			options.peaks,
+			stage,
+			layer,
+			scrollbox,
+			scrollboxRect,
+			scrollbarOptions.color,
+			scrollbarOptions.minWidth,
+			0,
+			width,
+			height,
+			0,
+			0,
+			zoomview,
+		);
 
-		this.updateScrollbarWidthAndPosition();
+		stage.on("click", instance.onScrollbarClick);
+		scrollbox.on("dragstart", instance.onScrollboxDragStart);
+		scrollbox.on("dragmove", instance.onScrollboxDragMove);
+		scrollbox.on("dragend", instance.onScrollboxDragEnd);
+		options.peaks.on("zoomview.update", instance.onZoomviewUpdate);
+
+		instance.updateScrollbarWidthAndPosition();
+
+		return instance;
 	}
 
 	setZoomview(zoomview: WaveformZoomView | undefined): void {
@@ -109,11 +116,32 @@ export class Scrollbar {
 		this.updateScrollbarWidthAndPosition();
 	}
 
+	fitToContainer(): void {
+		if (this.container.clientWidth === 0 && this.container.clientHeight === 0) {
+			return;
+		}
+
+		if (this.container.clientWidth !== this.width) {
+			this.width = this.container.clientWidth;
+			this.stage.width(this.width);
+
+			this.updateScrollbarWidthAndPosition();
+		}
+
+		this.height = this.container.clientHeight;
+		this.stage.height(this.height);
+	}
+
+	dispose(): void {
+		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
+		this.layer.destroy();
+		this.stage.destroy();
+	}
+
 	/**
 	 * Sets the width of the scrollbox, based on the visible waveform region
 	 * in the zoomview and minimum scrollbox width option.
 	 */
-
 	private setScrollboxWidth(): void {
 		if (this.zoomview) {
 			this.scrollboxWidth = Math.floor(
@@ -131,24 +159,9 @@ export class Scrollbar {
 		this.scrollboxRect.width(this.scrollboxWidth);
 	}
 
-	/**
-	 * @returns {Number} The maximum scrollbox position, in pixels.
-	 */
-
 	private getScrollbarRange(): number {
 		return this.width - this.scrollboxWidth;
 	}
-
-	private dragBoundFunc = (pos: {
-		x: number;
-		y: number;
-	}): { x: number; y: number } => {
-		// Allow the scrollbar to be moved horizontally but not vertically.
-		return {
-			x: pos.x,
-			y: 0,
-		};
-	};
 
 	private onScrollboxDragStart = (): void => {
 		this.dragging = true;
@@ -217,7 +230,6 @@ export class Scrollbar {
 	/**
 	 * Sets the zoomview waveform position based on scrollbar position.
 	 */
-
 	private updateWaveformPosition(x: number): void {
 		if (!this.zoomview) {
 			return;
@@ -229,29 +241,5 @@ export class Scrollbar {
 		);
 
 		this.zoomview.updateWaveform(offset);
-	}
-
-	fitToContainer(): void {
-		if (this.container.clientWidth === 0 && this.container.clientHeight === 0) {
-			return;
-		}
-
-		if (this.container.clientWidth !== this.width) {
-			this.width = this.container.clientWidth;
-			this.stage.width(this.width);
-
-			this.updateScrollbarWidthAndPosition();
-		}
-
-		this.height = this.container.clientHeight;
-		this.stage.height(this.height);
-	}
-
-	destroy(): void {
-		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
-
-		this.layer.destroy();
-
-		this.stage.destroy();
 	}
 }

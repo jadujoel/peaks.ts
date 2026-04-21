@@ -12,18 +12,20 @@ export interface KeyboardHandlerFromOptions {
 }
 
 export class KeyboardHandler {
-	private readonly eventEmitter: PeaksInstance;
+	private constructor(private readonly eventEmitter: PeaksInstance) {}
 
 	static from(options: KeyboardHandlerFromOptions): KeyboardHandler {
-		return new KeyboardHandler(options.eventEmitter);
+		const instance = new KeyboardHandler(options.eventEmitter);
+		document.addEventListener("keydown", instance.handleKeyEvent);
+		document.addEventListener("keypress", instance.handleKeyEvent);
+		document.addEventListener("keyup", instance.handleKeyEvent);
+		return instance;
 	}
 
-	private constructor(eventEmitter: PeaksInstance) {
-		this.eventEmitter = eventEmitter;
-
-		document.addEventListener("keydown", this.handleKeyEvent);
-		document.addEventListener("keypress", this.handleKeyEvent);
-		document.addEventListener("keyup", this.handleKeyEvent);
+	destroy(): void {
+		document.removeEventListener("keydown", this.handleKeyEvent);
+		document.removeEventListener("keypress", this.handleKeyEvent);
+		document.removeEventListener("keyup", this.handleKeyEvent);
 	}
 
 	private handleKeyEvent = (event: KeyboardEvent): void => {
@@ -63,10 +65,4 @@ export class KeyboardHandler {
 			}
 		}
 	};
-
-	destroy(): void {
-		document.removeEventListener("keydown", this.handleKeyEvent);
-		document.removeEventListener("keypress", this.handleKeyEvent);
-		document.removeEventListener("keyup", this.handleKeyEvent);
-	}
 }

@@ -1,7 +1,11 @@
 import WaveformData from "waveform-data";
-import type { Logger, WaveformBuilderCallback, WebAudioOptions } from "./types";
-import type { Writable } from "./utils";
-import { isArrayBuffer, isObject } from "./utils";
+import type {
+	Logger,
+	WaveformBuilderCallback,
+	WebAudioOptions,
+} from "../types";
+import type { Writable } from "../utils";
+import { isArrayBuffer, isObject } from "../utils";
 
 export interface WaveformBuilderOptions {
 	readonly dataUri?: Record<string, string> | string;
@@ -51,15 +55,13 @@ export interface WaveformBuilderFromOptions {
 }
 
 export class WaveformBuilder {
-	public readonly peaks: WaveformBuilderPeaksLike;
-	private xhr: XMLHttpRequest | undefined = undefined;
+	private constructor(
+		public readonly peaks: WaveformBuilderPeaksLike,
+		private xhr: XMLHttpRequest | undefined = undefined,
+	) {}
 
 	static from(options: WaveformBuilderFromOptions): WaveformBuilder {
 		return new WaveformBuilder(options.peaks);
-	}
-
-	private constructor(peaks: WaveformBuilderPeaksLike) {
-		this.peaks = peaks;
 	}
 
 	init(

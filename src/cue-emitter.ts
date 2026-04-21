@@ -141,6 +141,17 @@ export function isWindowVisible(): boolean {
  * events on a PeaksInstance as the playhead crosses cues.
  */
 export class CueEmitter {
+	private constructor(
+		private readonly peaks: Pick<
+			PeaksInstance,
+			"points" | "segments" | "player" | "emit" | "on" | "off"
+		>,
+		private readonly cues: Cue[] = [],
+		private readonly active: ActiveSegmentsMap = new Map(),
+		private previousTime: number = -1,
+		private rAFHandle: number = -1,
+	) {}
+
 	public static from(options: CueEmitterFromOptions): CueEmitter {
 		const emitter = new CueEmitter(options.peaks);
 		emitter.addEventHandlers();
@@ -157,17 +168,6 @@ export class CueEmitter {
 		}
 		this.previousTime = -1;
 	}
-
-	private constructor(
-		private readonly peaks: Pick<
-			PeaksInstance,
-			"points" | "segments" | "player" | "emit" | "on" | "off"
-		>,
-		private readonly cues: Cue[] = [],
-		private readonly active: ActiveSegmentsMap = new Map(),
-		private previousTime: number = -1,
-		private rAFHandle: number = -1,
-	) {}
 
 	private readonly rebuildCues = (): void => {
 		const rebuilt = buildCues({

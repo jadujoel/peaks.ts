@@ -20,61 +20,73 @@ export interface PlayheadLayerFromOptions {
 }
 
 export class PlayheadLayer {
-	private readonly player: PlayerInstance;
-	private readonly view: WaveformViewAPI;
-	private playheadPixel: number;
-	private playheadLineAnimation: Animation | undefined;
-	private playheadVisible: boolean;
-	private readonly playheadColor: string;
-	private readonly playheadTextColor: string;
-	private readonly playheadBackgroundColor: string;
-	private readonly playheadPadding: number;
-	private readonly playheadWidth: number;
-	private readonly playheadFontFamily: string;
-	private readonly playheadFontSize: number;
-	private readonly playheadFontStyle: string;
-	private readonly playheadLayer: Layer;
-	private playheadLine!: Line;
-	private playheadGroup!: Group;
-	private playheadText: Text | undefined;
-	private useAnimation: boolean;
+	private constructor(
+		private readonly player: PlayerInstance,
+		private readonly view: WaveformViewAPI,
+		private readonly playheadColor: string,
+		private readonly playheadTextColor: string,
+		private readonly playheadBackgroundColor: string,
+		private readonly playheadPadding: number,
+		private readonly playheadWidth: number,
+		private readonly playheadFontFamily: string,
+		private readonly playheadFontSize: number,
+		private readonly playheadFontStyle: string,
+		private readonly playheadLayer: Layer,
+		private readonly playheadLine: Line,
+		private readonly playheadGroup: Group,
+		private playheadPixel: number,
+		private playheadLineAnimation: Animation | undefined,
+		private playheadVisible: boolean,
+		private playheadText: Text | undefined,
+		private useAnimation: boolean,
+	) {}
 
 	static from(options: PlayheadLayerFromOptions): PlayheadLayer {
-		return new PlayheadLayer(options.player, options.view, options.options);
-	}
+		const opts = options.options;
+		const playheadLine = new Line({
+			stroke: opts.playheadColor,
+			strokeWidth: opts.playheadWidth,
+		});
 
-	private constructor(
-		player: PlayerInstance,
-		view: WaveformViewAPI,
-		options: ViewOptions,
-	) {
-		this.player = player;
-		this.view = view;
-		this.playheadPixel = 0;
-		this.playheadLineAnimation = undefined;
-		this.playheadVisible = false;
-		this.playheadColor = options.playheadColor;
-		this.playheadTextColor = options.playheadTextColor;
-		this.playheadBackgroundColor = options.playheadBackgroundColor;
-		this.playheadPadding = options.playheadPadding;
-		this.playheadWidth = options.playheadWidth;
+		const playheadGroup = new Konva.Group({
+			x: 0,
+			y: 0,
+		});
 
-		this.playheadFontFamily = options.playheadFontFamily;
-		this.playheadFontSize = options.playheadFontSize;
-		this.playheadFontStyle = options.playheadFontStyle;
+		playheadGroup.add(playheadLine);
 
-		this.playheadLayer = new Konva.Layer({ listening: false });
-		this.useAnimation = false;
+		const playheadLayer = new Konva.Layer({ listening: false });
+		playheadLayer.add(playheadGroup);
 
-		this.createPlayhead();
+		const instance = new PlayheadLayer(
+			options.player,
+			options.view,
+			opts.playheadColor,
+			opts.playheadTextColor,
+			opts.playheadBackgroundColor,
+			opts.playheadPadding,
+			opts.playheadWidth,
+			opts.playheadFontFamily,
+			opts.playheadFontSize,
+			opts.playheadFontStyle,
+			playheadLayer,
+			playheadLine,
+			playheadGroup,
+			0,
+			undefined,
+			false,
+			undefined,
+			false,
+		);
 
-		if (options.showPlayheadTime) {
-			this.createPlayheadText();
+		if (opts.showPlayheadTime) {
+			instance.createPlayheadText();
 		}
 
-		this.fitToView();
+		instance.fitToView();
+		instance.zoomLevelChanged();
 
-		this.zoomLevelChanged();
+		return instance;
 	}
 
 	addToStage(stage: Stage): void {
@@ -109,19 +121,56 @@ export class PlayheadLayer {
 		}
 	}
 
-	private createPlayhead(): void {
-		this.playheadLine = new Line({
-			stroke: this.playheadColor,
-			strokeWidth: this.playheadWidth,
-		});
+	updatePlayheadTime(time: number): void {
+		this.syncPlayhead(time);
 
-		this.playheadGroup = new Konva.Group({
-			x: 0,
-			y: 0,
-		});
+		if (this.player.isPlaying()) {
+			this.start();
+		}
+	}
 
-		this.playheadGroup.add(this.playheadLine);
-		this.playheadLayer.add(this.playheadGroup);
+	stop(time: number): void {
+		if (this.playheadLineAnimation) {
+			this.playheadLineAnimation.stop();
+			this.playheadLineAnimation = undefined;
+		}
+
+		this.syncPlayhead(time);
+	}
+
+	getPlayheadPixel(): number {
+		return this.playheadPixel;
+	}
+
+	showPlayheadTime(show: boolean): void {
+		if (show) {
+			if (!this.playheadText) {
+				this.createPlayheadText();
+				this.fitToView();
+			}
+		} else {
+			if (this.playheadText) {
+				this.playheadText.remove();
+				this.playheadText.destroy();
+				this.playheadText = undefined;
+			}
+		}
+	}
+
+	updatePlayheadText(): void {
+		if (this.playheadText) {
+			const time = this.player.getCurrentTime();
+			const text = this.view.formatTime(time);
+
+			this.playheadText.setText(text);
+		}
+	}
+
+	dispose(): void {
+		if (this.playheadLineAnimation) {
+			this.playheadLineAnimation.stop();
+			this.playheadLineAnimation = undefined;
+		}
 	}
 
 	private createPlayheadText(): void {
@@ -149,14 +198,6 @@ export class PlayheadLayer {
 		});
 
 		this.playheadGroup.add(this.playheadText);
-	}
-
-	updatePlayheadTime(time: number): void {
-		this.syncPlayhead(time);
-
-		if (this.player.isPlaying()) {
-			this.start();
-		}
 	}
 
 	private syncPlayhead(time: number): void {
@@ -227,49 +268,5 @@ export class PlayheadLayer {
 		}, this.playheadLayer);
 
 		this.playheadLineAnimation.start();
-	}
-
-	stop(time: number): void {
-		if (this.playheadLineAnimation) {
-			this.playheadLineAnimation.stop();
-			this.playheadLineAnimation = undefined;
-		}
-
-		this.syncPlayhead(time);
-	}
-
-	getPlayheadPixel(): number {
-		return this.playheadPixel;
-	}
-
-	showPlayheadTime(show: boolean): void {
-		if (show) {
-			if (!this.playheadText) {
-				this.createPlayheadText();
-				this.fitToView();
-			}
-		} else {
-			if (this.playheadText) {
-				this.playheadText.remove();
-				this.playheadText.destroy();
-				this.playheadText = undefined;
-			}
-		}
-	}
-
-	updatePlayheadText(): void {
-		if (this.playheadText) {
-			const time = this.player.getCurrentTime();
-			const text = this.view.formatTime(time);
-
-			this.playheadText.setText(text);
-		}
-	}
-
-	destroy(): void {
-		if (this.playheadLineAnimation) {
-			this.playheadLineAnimation.stop();
-			this.playheadLineAnimation = undefined;
-		}
 	}
 }

@@ -5,78 +5,67 @@ import { clamp } from "./utils";
 
 export interface SeekMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: SeekMouseDragHandlerView;
+	readonly view: SeekMouseDragHandlerViewApi;
 }
 
-export interface SeekMouseDragHandlerView extends WaveformViewAPI {
+export interface SeekMouseDragHandlerViewApi extends WaveformViewAPI {
 	readonly stage: Stage;
 	dragSeek(dragging: boolean): void;
 }
 
 export class SeekMouseDragHandler {
-	private readonly peaks: PeaksInstance;
-	private readonly view: SeekMouseDragHandlerView;
-	private firstMove: boolean;
-	private readonly width!: number;
-	private readonly mouseDragHandler: MouseDragHandler;
+	private constructor(
+		private readonly peaks: PeaksInstance,
+		private readonly view: SeekMouseDragHandlerViewApi,
+		private firstMove: boolean = false,
+		private handler: MouseDragHandler | undefined = undefined,
+	) {}
 
 	static from(options: SeekMouseDragHandlerFromOptions): SeekMouseDragHandler {
-		return new SeekMouseDragHandler(options.peaks, options.view);
-	}
-
-	private constructor(peaks: PeaksInstance, view: SeekMouseDragHandlerView) {
-		this.peaks = peaks;
-		this.view = view;
-		this.firstMove = false;
-
-		this.mouseDragHandler = MouseDragHandler.from({
+		const instance = new SeekMouseDragHandler(options.peaks, options.view);
+		instance.handler = MouseDragHandler.from({
 			handlers: {
-				onMouseDown: this.onMouseDown,
-				onMouseMove: this.onMouseMove,
-				onMouseUp: this.onMouseUp,
+				onMouseDown: instance.onMouseDown,
+				onMouseMove: instance.onMouseMove,
+				onMouseUp: instance.onMouseUp,
 			},
-			stage: view.stage,
+			stage: options.view.stage,
 		});
+		return instance;
 	}
 
-	private onMouseDown = (mousePosX: number): void => {
+	dispose(): void {
+		this.handler?.dispose();
+	}
+
+	private onMouseDown = (x: number): void => {
 		this.firstMove = true;
-		this.seek(mousePosX);
+		this.seek(x);
 	};
 
-	private onMouseMove = (mousePosX: number): void => {
+	private onMouseMove = (x: number): void => {
 		if (this.firstMove) {
 			this.view.dragSeek(true);
 			this.firstMove = false;
 		}
 
-		this.seek(mousePosX);
+		this.seek(x);
 	};
 
 	private onMouseUp = (): void => {
 		this.view.dragSeek(false);
 	};
 
-	private seek(mousePosX: number): void {
+	private seek(x: number): void {
 		if (!this.view.isSeekEnabled()) {
 			return;
 		}
 
-		mousePosX = clamp(mousePosX, 0, this.width);
-
-		let time = this.view.pixelsToTime(mousePosX);
+		const clamped = clamp(x, 0, this.view.getWidth());
 		const duration = this.peaks.player.getDuration();
-
-		if (time > duration) {
-			time = duration;
-		}
+		const time = Math.min(this.view.pixelsToTime(clamped), duration);
 
 		this.view.updatePlayheadTime(time);
-
 		this.peaks.player.seek(time);
-	}
-
-	destroy(): void {
-		this.mouseDragHandler.destroy();
 	}
 }

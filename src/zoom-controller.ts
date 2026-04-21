@@ -1,71 +1,69 @@
+import { err, ok, type Result } from "neverthrow";
 import type { PeaksInstance } from "./types";
+import { clamp } from "./utils";
 
 export interface ZoomControllerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly zoomLevels: readonly number[];
+	readonly levels: readonly number[];
 }
 
 export class ZoomController {
-	private readonly peaks: PeaksInstance;
-	private zoomLevels: readonly number[];
-	private zoomLevelIndex: number;
+	private constructor(
+		private readonly peaks: PeaksInstance,
+		private levels: readonly number[],
+		private index: number = 0,
+	) {}
 
 	static from(options: ZoomControllerFromOptions): ZoomController {
-		return new ZoomController(options.peaks, options.zoomLevels);
+		return new ZoomController(options.peaks, options.levels);
 	}
 
-	private constructor(peaks: PeaksInstance, zoomLevels: readonly number[]) {
-		this.peaks = peaks;
-		this.zoomLevels = zoomLevels;
-		this.zoomLevelIndex = 0;
+	static ErrorMessages = {
+		INVALID_ZOOM_LEVEL_INDEX: "ZoomController: Invalid zoom level index",
+		ZOOMVIEW_NOT_FOUND: "ZoomController: Zoomview not found",
+	} as const;
+
+	setZoomLevels(levels: readonly number[]): Result<undefined, Error> {
+		this.levels = levels;
+		return this.setZoom(0, true);
 	}
 
-	setZoomLevels(zoomLevels: readonly number[]): void {
-		this.zoomLevels = zoomLevels;
-		this.setZoom(0, true);
+	zoomIn(): Result<undefined, Error> {
+		return this.setZoom(this.index - 1);
 	}
 
-	zoomIn(): void {
-		this.setZoom(this.zoomLevelIndex - 1, false);
+	zoomOut(): Result<undefined, Error> {
+		return this.setZoom(this.index + 1);
 	}
 
-	zoomOut(): void {
-		this.setZoom(this.zoomLevelIndex + 1, false);
-	}
-
-	setZoom(zoomLevelIndex: number, forceUpdate: boolean): void {
-		if (zoomLevelIndex >= this.zoomLevels.length) {
-			zoomLevelIndex = this.zoomLevels.length - 1;
+	setZoom(
+		index: number = this.index,
+		forceUpdate: boolean = false,
+	): Result<undefined, Error> {
+		const clamped = clamp(index, 0, this.levels.length - 1);
+		if (clamped === this.index && !forceUpdate) {
+			return ok(undefined);
 		}
-
-		if (zoomLevelIndex < 0) {
-			zoomLevelIndex = 0;
-		}
-
-		if (!forceUpdate && zoomLevelIndex === this.zoomLevelIndex) {
-			return;
-		}
-
-		this.zoomLevelIndex = zoomLevelIndex;
+		this.index = clamped;
 
 		const zoomview = this.peaks.views.getView("zoomview");
-
 		if (!zoomview) {
-			return;
+			return err(new Error(ZoomController.ErrorMessages.ZOOMVIEW_NOT_FOUND));
 		}
 
-		const scale = this.zoomLevels[zoomLevelIndex];
-
-		if (scale !== undefined) {
-			zoomview.setZoom?.({ scale });
+		const scale = this.levels[clamped];
+		if (scale === undefined) {
+			throw new Error(ZoomController.ErrorMessages.INVALID_ZOOM_LEVEL_INDEX);
 		}
+		zoomview.setZoom({ scale });
+		return ok(undefined);
 	}
 
 	getZoom(): number {
-		return this.zoomLevelIndex;
+		return this.index;
 	}
 
 	getZoomLevel(): number {
-		return this.zoomLevels[this.zoomLevelIndex] ?? 0;
+		return this.levels[this.index] ?? 0;
 	}
 }

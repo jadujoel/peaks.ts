@@ -1,7 +1,7 @@
-import { Segment, validateSegmentOptions } from "./segment";
-import type { PeaksInstance, SegmentOptions } from "./types";
-import type { Writable } from "./utils";
-import { extend, isNullOrUndefined } from "./utils";
+import { Segment, validateSegmentOptions } from "../segment";
+import type { PeaksInstance, SegmentOptions } from "../types";
+import type { Writable } from "../utils";
+import { extend, isNullOrUndefined } from "../utils";
 
 /**
  * Handles all functionality related to the adding, removing and manipulation
@@ -12,24 +12,18 @@ export interface WaveformSegmentsFromOptions {
 }
 
 export class WaveformSegments {
-	private readonly peaks: PeaksInstance;
-	private segments: Segment[];
-	private segmentsById = new Map<string, Segment>();
-	private segmentsByPid = new Map<number, Segment>();
-	private segmentIdCounter: number;
-	private segmentPid: number;
-	private inserting: boolean;
+	private constructor(
+		private readonly peaks: PeaksInstance,
+		private readonly segmentsById: Map<string, Segment> = new Map(),
+		private readonly segmentsByPid: Map<number, Segment> = new Map(),
+		private segments: Segment[] = [],
+		private segmentIdCounter: number = 0,
+		private segmentPid: number = 0,
+		private inserting: boolean = false,
+	) {}
 
 	static from(options: WaveformSegmentsFromOptions): WaveformSegments {
 		return new WaveformSegments(options.peaks);
-	}
-
-	private constructor(peaks: PeaksInstance) {
-		this.peaks = peaks;
-		this.segments = [];
-		this.segmentIdCounter = 0;
-		this.segmentPid = 0;
-		this.inserting = false;
 	}
 
 	private getNextSegmentId(): string {

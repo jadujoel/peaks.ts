@@ -1,13 +1,22 @@
+import type { Stage } from "konva/lib/Stage";
 import type WaveformData from "waveform-data";
-import { InsertSegmentMouseDragHandler } from "./insert-segment-mouse-drag-handler";
-import { ScrollMouseDragHandler } from "./scroll-mouse-drag-handler";
-import type { PeaksInstance, ZoomviewOptions } from "./types";
-import { clamp, isValidTime, objectHasProperty } from "./utils";
-import { WaveformView } from "./waveform-view";
+import { InsertSegmentMouseDragHandler } from "../insert-segment-mouse-drag-handler";
+import { ScrollMouseDragHandler } from "../scroll-mouse-drag-handler";
+import type { SegmentsLayer } from "../segments-layer";
+import type { PeaksInstance, ZoomviewOptions } from "../types";
+import { clamp, isValidTime, objectHasProperty } from "../utils";
+
+import { WaveformView } from "./view";
 
 export interface ZoomOptions {
 	readonly scale?: number | "auto";
 	readonly seconds?: number | "auto";
+}
+
+export interface WaveformZoomViewFromOptions {
+	readonly waveformData: WaveformData;
+	readonly container: HTMLDivElement;
+	readonly peaks: PeaksInstance;
 }
 
 export function isAutoScale(options: ZoomOptions): boolean {
@@ -15,12 +24,6 @@ export function isAutoScale(options: ZoomOptions): boolean {
 		(objectHasProperty(options, "scale") && options.scale === "auto") ||
 		(objectHasProperty(options, "seconds") && options.seconds === "auto")
 	);
-}
-
-export interface WaveformZoomViewFromOptions {
-	readonly waveformData: WaveformData;
-	readonly container: HTMLDivElement;
-	readonly peaks: PeaksInstance;
 }
 
 export class WaveformZoomView extends WaveformView {
@@ -615,11 +618,11 @@ export class WaveformZoomView extends WaveformView {
 		// Nothing
 	}
 
-	getStage(): import("konva/lib/Stage").Stage {
+	getStage(): Stage {
 		return this.stage;
 	}
 
-	getSegmentsLayer(): import("./segments-layer").SegmentsLayer | undefined {
+	getSegmentsLayer(): SegmentsLayer | undefined {
 		return this.segmentsLayer;
 	}
 
