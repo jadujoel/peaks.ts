@@ -12,7 +12,7 @@ describe("Player", () => {
 			logger = sinon.spy();
 
 			player = {
-				destroy: sinon.spy(),
+				dispose: sinon.spy(),
 				getCurrentTime: sinon.spy(() => 111),
 				getDuration: sinon.spy(() => 123),
 				init: sinon.spy(() => Promise.resolve()),
@@ -47,7 +47,7 @@ describe("Player", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 			}
 		});
@@ -59,13 +59,16 @@ describe("Player", () => {
 				};
 
 				expect(() => {
-					new Player(null, adapter as unknown as never);
+					Player.from({
+						adapter: adapter as unknown as never,
+						peaks: null as unknown as never,
+					});
 				}).to.throw(TypeError);
 			});
 
 			it("should throw a type error if an adapter property is not a function", () => {
 				const adapter = {
-					destroy: sinon.spy(),
+					dispose: sinon.spy(),
 					getCurrentTime: sinon.spy(),
 					getDuration: sinon.spy(),
 					init: "wrong: this should be a function",
@@ -77,7 +80,10 @@ describe("Player", () => {
 				};
 
 				expect(() => {
-					new Player(null, adapter as unknown as never);
+					Player.from({
+						adapter: adapter as unknown as never,
+						peaks: null as unknown as never,
+					});
 				}).to.throw(TypeError);
 			});
 		});
@@ -88,13 +94,13 @@ describe("Player", () => {
 			});
 		});
 
-		describe("destroy", () => {
-			it("should call the player's destroy() method", () => {
-				expect(player.destroy.notCalled).to.equal(true);
+		describe("dispose", () => {
+			it("should call the player's dispose() method", () => {
+				expect(player.dispose.notCalled).to.equal(true);
 
-				p.destroy();
+				p.dispose();
 
-				expect(player.destroy.calledOnce).to.equal(true);
+				expect(player.dispose.calledOnce).to.equal(true);
 			});
 		});
 
@@ -232,7 +238,7 @@ describe("Player", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 			}
 		});
@@ -358,9 +364,9 @@ describe("Player", () => {
 			});
 		});
 
-		describe("destroy", () => {
+		describe("dispose", () => {
 			it("should remove all event listeners", () => {
-				p.player.destroy();
+				p.player.dispose();
 
 				expect(p.player.adapter.listeners).to.be.empty;
 			});
@@ -372,7 +378,7 @@ describe("Player", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 			}
 		});
@@ -380,7 +386,7 @@ describe("Player", () => {
 		describe("init", () => {
 			it("should cause Peaks.init() to return an error", (done: DoneCallback) => {
 				const player = {
-					destroy: sinon.spy(),
+					dispose: sinon.spy(),
 					getCurrentTime: sinon.spy(() => 111),
 					getDuration: sinon.spy(() => 123),
 					init: sinon.spy(() => Promise.reject(new Error("failed"))),

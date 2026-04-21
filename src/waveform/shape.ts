@@ -138,7 +138,7 @@ export class WaveformShape {
 		layer.add(this.shape);
 	}
 
-	destroy(): void {
+	dispose(): void {
 		this.shape.destroy();
 	}
 

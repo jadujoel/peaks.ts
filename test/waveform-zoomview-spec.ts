@@ -2,7 +2,7 @@ import sinon from "sinon";
 import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
-import type WaveformZoomView from "../src/waveform/zoomview";
+import type { WaveformZoomView } from "../src/waveform/zoomview";
 import { InputController } from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
@@ -40,7 +40,7 @@ describe("WaveformZoomView", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 				zoomview = null;
 			}
@@ -169,7 +169,7 @@ describe("WaveformZoomView", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 				zoomview = null;
 				inputController = null;
@@ -459,7 +459,7 @@ describe("WaveformZoomView", () => {
 
 				afterEach(() => {
 					if (p) {
-						p.destroy();
+						p.dispose();
 						p = null;
 						zoomview = null;
 						inputController = null;
@@ -1239,7 +1239,7 @@ describe("WaveformZoomView", () => {
 
 			afterEach(() => {
 				if (p) {
-					p.destroy();
+					p.dispose();
 					p = null;
 					zoomview = null;
 					inputController = null;
@@ -1414,7 +1414,7 @@ describe("WaveformZoomView", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = undefined;
 				inputController = undefined;
 			}
@@ -1589,7 +1589,7 @@ describe("WaveformZoomView", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 				zoomview = null;
 				inputController = null;

@@ -88,7 +88,7 @@ describe("WaveformOverview", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 			}
 		});

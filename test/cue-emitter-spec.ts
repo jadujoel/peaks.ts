@@ -37,7 +37,7 @@ describe("CueEmitter", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 			p = null;
 		}
 
@@ -99,7 +99,7 @@ describe("CueEmitter", () => {
 			expect(peaks.cueEmitter).to.be.an.instanceOf(CueEmitter);
 
 			p.points.add({ time: 1.0 });
-			p.destroy();
+			p.dispose();
 			expect(
 				(peaks.cueEmitter as unknown as CueEmitterWithCues).cues.length,
 			).to.equal(0, "did not empty cues");
@@ -339,6 +339,7 @@ describe("CueEmitter", () => {
 			// the test would timeout waiting for the media element to seek.
 			const player = {
 				destroy: () => {},
+				dispose: () => {},
 
 				getCurrentTime: function () {
 					return this.currentTime;

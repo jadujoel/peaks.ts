@@ -118,7 +118,7 @@ export class SegmentMarker {
 		}
 	}
 
-	destroy(): void {
+	dispose(): void {
 		if (this.marker.dispose) {
 			this.marker.dispose();
 		}

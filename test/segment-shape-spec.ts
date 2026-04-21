@@ -43,7 +43,7 @@ describe("SegmentShape", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 			p = null;
 		}
 	});

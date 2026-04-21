@@ -38,7 +38,7 @@ describe("Scrollbar", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 			}
 		});
@@ -139,7 +139,7 @@ describe("Scrollbar", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 				p = null;
 			}
 		});

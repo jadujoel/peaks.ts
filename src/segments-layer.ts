@@ -227,7 +227,7 @@ export class SegmentsLayer {
 		const segmentShape = this.segmentShapes.get(segment.pid);
 
 		if (segmentShape) {
-			segmentShape.destroy();
+			segmentShape.dispose();
 			this.segmentShapes.delete(segment.pid);
 		}
 	}

@@ -22,7 +22,7 @@ export type Logger = (...args: unknown[]) => void;
 // ─── Player Adapter ─────────────────────────────────────────────────
 export interface PlayerAdapter {
 	init(eventEmitter: PeaksInstance): Promise<void> | void;
-	dispose(): void;
+	dispose?(): void;
 	play(): Promise<void> | void;
 	pause(): void;
 	isPlaying(): boolean;
@@ -197,6 +197,7 @@ export interface PeaksInitOptions {
 	formatPlayheadTime?: (time: number) => string;
 	playheadBackgroundColor?: string;
 	playheadColor?: string;
+	playheadTextColor?: string;
 	playheadPadding?: number;
 	playheadWidth?: number;
 	playedWaveformColor?: WaveformColor;
@@ -357,7 +358,7 @@ export interface PeaksInstance extends EventEmitter {
 // Lightweight interface for Player (to avoid circular imports)
 export interface PlayerInstance {
 	init(peaks: PeaksInstance): Promise<void>;
-	destroy(): void;
+	dispose(): void;
 	play(): Promise<void>;
 	pause(): void;
 	isPlaying(): boolean;
@@ -417,17 +418,19 @@ export interface ViewControllerInstance {
 	createScrollbar(container: HTMLDivElement): unknown;
 	destroyOverview(): void;
 	destroyZoomview(): void;
-	destroy(): void;
+	dispose(): void;
 	getView(name?: string): WaveformViewLike | undefined;
 	getScrollbar(): unknown;
 }
 
 // Lighter view interface for cross-referencing
+// `setZoom` is only implemented by the zoom view, so it is optional here
+// since `getView()` may return either an overview or a zoom view.
 export interface WaveformViewLike {
 	getStartTime(): number;
 	getEndTime(): number;
 	setWaveformData(waveformData: WaveformData): void;
-	setZoom(options: SetZoomOptions): boolean;
+	setZoom?(options: SetZoomOptions): boolean;
 }
 
 export interface SetZoomOptions {
@@ -486,7 +489,7 @@ export interface SegmentMarkerAPI {
 	fitToView(): void;
 	addToLayer(layer: Layer): void;
 	moveToTop(): void;
-	destroy(): void;
+	dispose(): void;
 	startDrag(): void;
 	stopDrag(): void;
 }
@@ -503,7 +506,7 @@ export interface SegmentShapeAPI {
 	update(options?: Record<string, unknown>): void;
 	fitToView(): void;
 	addToLayer(layer: Layer): void;
-	destroy(): void;
+	dispose(): void;
 	segmentClicked(eventName: string, event: SegmentClickEvent): void;
 }
 
@@ -528,7 +531,7 @@ export interface PointMarkerAPI {
 	update(options: Record<string, unknown>): void;
 	fitToView(): void;
 	addToLayer(layer: Layer): void;
-	destroy(): void;
+	dispose(): void;
 }
 // ─── Waveform Shape options ─────────────────────────────────────────
 export interface WaveformShapeOptions {

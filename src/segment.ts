@@ -230,7 +230,6 @@ export class Segment {
 	[key: string]: unknown;
 
 	private constructor(
-		private readonly peaks: SegmentPeaksLike,
 		public readonly pid: number,
 		public readonly markers: boolean,
 		public readonly overlay: boolean,
@@ -241,12 +240,12 @@ export class Segment {
 		public color: string,
 		public borderColor: string,
 		public editable: boolean,
+		private readonly peaks: SegmentPeaksLike,
 	) {}
 
 	static from(options: SegmentFromOptions): Segment {
 		const merged = applySegmentDefaults(options.options, options.defaults);
 		const instance = new Segment(
-			options.peaks,
 			options.pid,
 			merged.markers ?? false,
 			merged.overlay ?? false,
@@ -257,6 +256,7 @@ export class Segment {
 			merged.color ?? "",
 			merged.borderColor ?? "",
 			merged.editable ?? false,
+			options.peaks,
 		);
 		applyUserData(instance, options.options);
 		return instance;
@@ -320,6 +320,10 @@ export class Segment {
 
 	setEndTime(time: number): void {
 		this.endTime = time;
+	}
+
+	dispose(): void {
+		// No external resources held; included to satisfy the lifecycle contract.
 	}
 }
 

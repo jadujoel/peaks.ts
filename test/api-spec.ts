@@ -10,6 +10,7 @@ const TestAudioContext = window.AudioContext;
 
 const externalPlayer = {
 	destroy: () => {},
+	dispose: () => {},
 	getCurrentTime: () => 0,
 	getDuration: () => 0,
 	init: () => Promise.resolve(),
@@ -21,30 +22,30 @@ const externalPlayer = {
 };
 
 type InternalPlayheadLayer = {
-	_playheadColor: string;
-	_playheadTextColor: string;
-	_playheadText?: object;
+	playheadColor: string;
+	playheadTextColor: string;
+	playheadText?: object;
 };
 
 type InternalAxis = {
-	_axisLabelColor: string;
-	_axisGridlineColor: string;
+	axisLabelColor: string;
+	axisGridlineColor: string;
 };
 
 type InternalHighlightLayer = {
-	_offset: number;
-	_color: string;
-	_strokeColor: string;
-	_opacity: number;
-	_cornerRadius: number;
+	offset: number;
+	color: string;
+	strokeColor: string;
+	opacity: number;
+	cornerRadius: number;
 };
 
 type InternalView = {
-	_playheadLayer: InternalPlayheadLayer;
+	playheadLayer: InternalPlayheadLayer;
 	drawWaveformLayer?: () => void;
-	_formatPlayheadTime?: (time: number) => string;
-	_axis: InternalAxis;
-	_highlightLayer: InternalHighlightLayer;
+	formatPlayheadTimeFn?: (time: number) => string;
+	axis: InternalAxis;
+	highlightLayer: InternalHighlightLayer;
 };
 
 function expectPresent<T>(value: T | null | undefined): NonNullable<T> {
@@ -59,7 +60,7 @@ describe("Peaks", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 			p = null;
 		}
 	});
@@ -96,7 +97,7 @@ describe("Peaks", () => {
 					(err, instance) => {
 						expect(err).to.equal(undefined);
 						expect(instance).to.be.an.instanceOf(Peaks);
-						instance?.destroy();
+						instance?.dispose();
 						done();
 					},
 				);
@@ -118,7 +119,7 @@ describe("Peaks", () => {
 						expect(err).to.equal(undefined);
 						expect(instance).to.be.an.instanceOf(Peaks);
 						expect(result).to.equal(undefined);
-						instance?.destroy();
+						instance?.dispose();
 						done();
 					},
 				);
@@ -479,7 +480,7 @@ describe("Peaks", () => {
 							const waveformData = expectPresent(peaks.getWaveformData());
 							expect(peaks).to.be.an.instanceOf(Peaks);
 							expect(waveformData.channels).to.equal(2);
-							peaks.destroy();
+							peaks.dispose();
 							done();
 						},
 					);
@@ -507,7 +508,7 @@ describe("Peaks", () => {
 							const waveformData = expectPresent(peaks.getWaveformData());
 							expect(peaks).to.be.an.instanceOf(Peaks);
 							expect(waveformData.channels).to.equal(1);
-							peaks.destroy();
+							peaks.dispose();
 							done();
 						},
 					);
@@ -538,7 +539,7 @@ describe("Peaks", () => {
 									const waveformData = expectPresent(peaks.getWaveformData());
 									expect(peaks).to.be.an.instanceOf(Peaks);
 									expect(waveformData.channels).to.equal(1);
-									peaks.destroy();
+									peaks.dispose();
 									done();
 								},
 							);
@@ -568,7 +569,7 @@ describe("Peaks", () => {
 							const waveformData = expectPresent(peaks.getWaveformData());
 							expect(peaks).to.be.an.instanceOf(Peaks);
 							expect(waveformData.channels).to.equal(2);
-							peaks.destroy();
+							peaks.dispose();
 							done();
 						},
 					);
@@ -604,7 +605,7 @@ describe("Peaks", () => {
 									const waveformData = expectPresent(peaks.getWaveformData());
 									expect(peaks).to.be.an.instanceOf(Peaks);
 									expect(waveformData.channels).to.equal(2);
-									peaks.destroy();
+									peaks.dispose();
 									done();
 								},
 							);
@@ -632,7 +633,7 @@ describe("Peaks", () => {
 							expect(err).to.equal(undefined);
 							const peaks = expectPresent(instance);
 							expect(peaks).to.be.an.instanceOf(Peaks);
-							peaks.destroy();
+							peaks.dispose();
 							done();
 						},
 					);
@@ -1406,7 +1407,7 @@ describe("Peaks", () => {
 					expect(err).to.equal(undefined);
 
 					setTimeout(() => {
-						expectPresent(instance).destroy();
+						expectPresent(instance).dispose();
 
 						const e = document.createEvent("HTMLEvents");
 						e.initEvent("resize", true, false);
@@ -1441,8 +1442,8 @@ describe("Peaks", () => {
 					expect(err).to.equal(undefined);
 
 					const instance = expectPresent(peaks);
-					instance.destroy();
-					instance.destroy();
+					instance.dispose();
+					instance.dispose();
 
 					done();
 				},

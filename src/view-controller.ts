@@ -101,7 +101,7 @@ export class ViewController {
 			return;
 		}
 
-		this.overview.destroy();
+		this.overview.dispose();
 		this.overview = undefined;
 	}
 
@@ -114,20 +114,20 @@ export class ViewController {
 			return;
 		}
 
-		this.zoomview.destroy();
+		this.zoomview.dispose();
 		this.zoomview = undefined;
 
 		this.overview.removeHighlightRect();
 	}
 
-	destroy(): void {
+	dispose(): void {
 		if (this.overview) {
-			this.overview.destroy();
+			this.overview.dispose();
 			this.overview = undefined;
 		}
 
 		if (this.zoomview) {
-			this.zoomview.destroy();
+			this.zoomview.dispose();
 			this.zoomview = undefined;
 		}
 

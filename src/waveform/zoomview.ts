@@ -268,7 +268,7 @@ export class WaveformZoomView extends WaveformView {
 
 	setWaveformDragMode(mode: string): void {
 		if (this.segmentsLayer) {
-			this.mouseDragHandler?.destroy();
+			this.mouseDragHandler?.dispose();
 			this.dragSeek(false);
 
 			if (mode === "insert-segment") {
@@ -681,7 +681,7 @@ export class WaveformZoomView extends WaveformView {
 		return this.segmentsLayer;
 	}
 
-	override destroy(): void {
+	override dispose(): void {
 		// Unregister event handlers
 		this.peaks.off("player.playing", this.onPlaying);
 		this.peaks.off("player.pause", this.onPause);
@@ -697,8 +697,8 @@ export class WaveformZoomView extends WaveformView {
 			this.data = undefined as unknown as WaveformData;
 		}
 
-		this.mouseDragHandler?.destroy();
+		this.mouseDragHandler?.dispose();
 
-		super.destroy();
+		super.dispose();
 	}
 }

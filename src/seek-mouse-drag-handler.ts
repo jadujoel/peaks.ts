@@ -61,9 +61,13 @@ export class SeekMouseDragHandler {
 			return;
 		}
 
-		const clamped = clamp(x, 0, this.view.getWidth());
+		const width = this.view.getWidth();
+		const clamped = clamp(x, 0, width);
 		const duration = this.peaks.player.getDuration();
-		const time = Math.min(this.view.pixelsToTime(clamped), duration);
+		const time =
+			clamped >= width
+				? duration
+				: Math.min(this.view.pixelsToTime(clamped), duration);
 
 		this.view.updatePlayheadTime(time);
 		this.peaks.player.seek(time);

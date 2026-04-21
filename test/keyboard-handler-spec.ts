@@ -37,7 +37,7 @@ describe("KeyboardHandler", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 			p = null;
 			zoomview = null;
 			inputController = null;

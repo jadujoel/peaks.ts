@@ -38,7 +38,7 @@ describe("WaveformView", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 			p = null;
 		}
 	});

@@ -29,7 +29,7 @@ describe("Peaks.zoom", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 			}
 		});
 
@@ -127,7 +127,7 @@ describe("Peaks.zoom", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 			}
 		});
 

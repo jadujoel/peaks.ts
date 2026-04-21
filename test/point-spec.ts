@@ -27,7 +27,7 @@ describe("Point", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 			}
 		});
 

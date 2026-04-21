@@ -183,7 +183,7 @@ export class WaveformOverview extends WaveformView {
 		this.highlightLayer?.fitToView();
 	}
 
-	override destroy(): void {
+	override dispose(): void {
 		// Unregister event handlers
 		this.peaks.off("player.playing", this.onPlaying);
 		this.peaks.off("player.pause", this.onPause);
@@ -191,7 +191,8 @@ export class WaveformOverview extends WaveformView {
 		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
 
 		this.mouseDragHandler?.dispose();
+		this.highlightLayer?.dispose();
 
-		super.destroy();
+		super.dispose();
 	}
 }

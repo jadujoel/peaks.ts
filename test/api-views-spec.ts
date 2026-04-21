@@ -8,7 +8,7 @@ describe("Peaks.views", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 		}
 	});
 
@@ -290,7 +290,7 @@ describe("Peaks.views", () => {
 
 			it("should destroy the zoomview", () => {
 				const view = p.views.getView("zoomview");
-				const spy = sinon.spy(view, "destroy");
+				const spy = sinon.spy(view, "dispose");
 
 				p.views.destroyZoomview();
 
@@ -379,7 +379,7 @@ describe("Peaks.views", () => {
 
 			it("should destroy the overview", () => {
 				const view = p.views.getView("overview");
-				const spy = sinon.spy(view, "destroy");
+				const spy = sinon.spy(view, "dispose");
 
 				p.views.destroyOverview();
 

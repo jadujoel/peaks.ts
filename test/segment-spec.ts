@@ -27,7 +27,7 @@ describe("Segment", () => {
 
 		afterEach(() => {
 			if (p) {
-				p.destroy();
+				p.dispose();
 			}
 		});
 

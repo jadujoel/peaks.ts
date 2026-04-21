@@ -367,7 +367,7 @@ export class WaveformView {
 	private destroyPlayedWaveformShape(): void {
 		this.waveformShape.setSegment(undefined);
 
-		this.playedWaveformShape?.destroy();
+		this.playedWaveformShape?.dispose();
 		this.playedWaveformShape = undefined;
 
 		this.playedSegment = undefined;
@@ -609,7 +609,7 @@ export class WaveformView {
 		}
 	}
 
-	destroy(): void {
+	dispose(): void {
 		this.playheadLayer.dispose();
 
 		if (this.segmentsLayer) {

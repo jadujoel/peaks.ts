@@ -44,6 +44,11 @@ export class HighlightLayer {
 		stage.add(this.layer);
 	}
 
+	dispose(): void {
+		this.removeHighlight();
+		this.layer.destroy();
+	}
+
 	showHighlight(startTime: number, endTime: number): void {
 		if (!this.highlightRect) {
 			this.createHighlightRect(startTime, endTime);

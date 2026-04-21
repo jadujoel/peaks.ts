@@ -405,9 +405,9 @@ export class SegmentShape {
 		}
 	}
 
-	destroy() {
+	dispose(): void {
 		if (this.waveformShape) {
-			this.waveformShape.destroy();
+			this.waveformShape.dispose();
 		}
 
 		if (this.label) {
@@ -415,11 +415,11 @@ export class SegmentShape {
 		}
 
 		if (this.startMarkerInstance) {
-			this.startMarkerInstance.destroy();
+			this.startMarkerInstance.dispose();
 		}
 
 		if (this.endMarkerInstance) {
-			this.endMarkerInstance.destroy();
+			this.endMarkerInstance.dispose();
 		}
 
 		if (this.overlay) {

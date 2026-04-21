@@ -52,9 +52,8 @@ export function validateAdapter(adapter: PlayerAdapter): undefined | never {
 	}
 
 	const disposer = (adapter as unknown as Record<string, unknown>).dispose;
-	const destroyer = (adapter as unknown as Record<string, unknown>).destroy;
 
-	if (typeof disposer !== "function" && typeof destroyer !== "function") {
+	if (typeof disposer !== "function") {
 		throw new TypeError("Peaks.init(): Player method dispose is undefined");
 	}
 }
@@ -69,7 +68,7 @@ export interface PlayerFromOptions {
 }
 
 export class Player {
-	constructor(
+	private constructor(
 		private readonly peaks: PeaksInstance,
 		private readonly adapter: PlayerAdapter,
 		private playingSegment: boolean = false,

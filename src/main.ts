@@ -452,8 +452,8 @@ export class Peaks extends EventEmitter {
 
 			if (audioContext && (audioBuffer || url)) {
 				const clipOptions: ClipNodePlayerFromOptions = audioBuffer
-					? { audioBuffer, audioContext }
-					: { audioContext, url: url as string };
+					? { buffer: audioBuffer, context: audioContext }
+					: { context: audioContext, url: url as string };
 				player = ClipNodePlayer.from(clipOptions);
 			} else {
 				callback(
@@ -707,7 +707,7 @@ export class Peaks extends EventEmitter {
 		return this.waveformData;
 	}
 
-	destroy() {
+	dispose() {
 		if (this.waveformBuilder) {
 			this.waveformBuilder.abort();
 		}
@@ -717,7 +717,7 @@ export class Peaks extends EventEmitter {
 		}
 
 		if (this.views) {
-			this.views.destroy();
+			this.views.dispose();
 		}
 
 		if (this.player) {

@@ -128,25 +128,25 @@ export class Point {
 	[key: string]: unknown;
 
 	private constructor(
-		private readonly peaks: PointPeaksLike,
 		public readonly pid: number,
 		public id: string,
 		public time: number,
 		public labelText: string,
 		public color: string,
 		public editable: boolean,
+		private readonly peaks: PointPeaksLike,
 	) {}
 
 	static from(options: PointFromOptions): Point {
 		const merged = applyPointDefaults(options.options, options.defaults);
 		const instance = new Point(
-			options.peaks,
 			options.pid,
 			merged.id ?? `peaks.point.${options.pid}`,
 			merged.time,
 			merged.labelText ?? "",
 			merged.color ?? "",
 			merged.editable ?? false,
+			options.peaks,
 		);
 		applyUserData(instance, options.options);
 		return instance;
@@ -195,6 +195,10 @@ export class Point {
 
 	setTime(time: number): void {
 		this.time = time;
+	}
+
+	dispose(): void {
+		// No external resources held; included to satisfy the lifecycle contract.
 	}
 }
 

@@ -8,11 +8,9 @@ import type { Segment } from "./segment";
 import type { PeaksInstance, PlayerAdapter, SetSourceOptions } from "./types";
 
 export interface ClipNodePlayerFromOptions {
-	readonly audioContext: AudioContext;
-	readonly audioBuffer?: AudioBuffer;
+	readonly context: AudioContext;
+	readonly buffer?: AudioBuffer;
 	readonly url?: string;
-	/** Override the worklet processor module URL. Defaults to an embedded blob URL. */
-	readonly processorUrl?: string;
 }
 
 export const PLAYING_STATES: ReadonlySet<ClipNodeState> = new Set([
@@ -28,36 +26,20 @@ export const STARTABLE_STATES: ReadonlySet<ClipNodeState> = new Set([
 
 const moduleLoads = new WeakMap<BaseAudioContext, Promise<void>>();
 
-export function ensureWorkletModule(
-	audioContext: BaseAudioContext,
-	processorUrl: string | undefined,
-): Promise<void> {
-	const existing = moduleLoads.get(audioContext);
+export function ensureWorkletModule(context: BaseAudioContext): Promise<void> {
+	const existing = moduleLoads.get(context);
 	if (existing) {
 		return existing;
 	}
-	const url = processorUrl ?? getProcessorBlobUrl();
-	const promise = audioContext.audioWorklet.addModule(url);
-	moduleLoads.set(audioContext, promise);
+	const url = getProcessorBlobUrl();
+	const promise = context.audioWorklet.addModule(url);
+	moduleLoads.set(context, promise);
 	return promise;
 }
 
 export class ClipNodePlayer implements PlayerAdapter {
-	static from(options: ClipNodePlayerFromOptions): ClipNodePlayer {
-		return new ClipNodePlayer(
-			options.audioContext,
-			options.processorUrl,
-			options.audioBuffer,
-			options.url,
-			options.audioBuffer?.duration ?? 0,
-			undefined,
-			undefined,
-		);
-	}
-
 	private constructor(
-		private readonly audioContext: AudioContext,
-		private readonly processorUrl: string | undefined,
+		private readonly context: AudioContext,
 		private audioBuffer: AudioBuffer | undefined,
 		private url: string | undefined,
 		private mediaDuration: number,
@@ -65,9 +47,20 @@ export class ClipNodePlayer implements PlayerAdapter {
 		private node: ClipNode | undefined,
 	) {}
 
+	static from(options: ClipNodePlayerFromOptions): ClipNodePlayer {
+		return new ClipNodePlayer(
+			options.context,
+			options.buffer,
+			options.url,
+			options.buffer?.duration ?? 0,
+			undefined,
+			undefined,
+		);
+	}
+
 	async init(eventEmitter: PeaksInstance): Promise<void> {
 		this.eventEmitter = eventEmitter;
-		await ensureWorkletModule(this.audioContext, this.processorUrl);
+		await ensureWorkletModule(this.context);
 		this.createNode();
 	}
 
@@ -82,7 +75,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 			return Promise.reject(new Error("ClipNodePlayer not initialized"));
 		}
 
-		return this.audioContext.resume().then(() => {
+		return this.context.resume().then(() => {
 			if (node.state === "paused") {
 				node.resume();
 			} else if (STARTABLE_STATES.has(node.state)) {
@@ -137,7 +130,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 			return Promise.reject(new Error("ClipNodePlayer not initialized"));
 		}
 
-		return this.audioContext.resume().then(() => {
+		return this.context.resume().then(() => {
 			if (
 				PLAYING_STATES.has(node.state) ||
 				node.state === "paused" ||
@@ -164,18 +157,18 @@ export class ClipNodePlayer implements PlayerAdapter {
 		this.url = options.mediaUrl;
 		this.mediaDuration = this.audioBuffer?.duration ?? 0;
 
-		await ensureWorkletModule(this.audioContext, this.processorUrl);
+		await ensureWorkletModule(this.context);
 		this.createNode();
 	}
 
 	private createNode(): void {
 		const node = this.isStreamingSource()
 			? this.createStreamingNode()
-			: new ClipNode(this.audioContext);
+			: new ClipNode(this.context);
 
 		this.node = node;
 		this.wireEvents(node);
-		node.connect(this.audioContext.destination);
+		node.connect(this.context.destination);
 
 		if (node instanceof StreamingClipNode) {
 			if (this.url !== undefined) {
@@ -193,9 +186,9 @@ export class ClipNodePlayer implements PlayerAdapter {
 	}
 
 	private createStreamingNode(): StreamingClipNode {
-		return new StreamingClipNode(this.audioContext, undefined, {
+		return new StreamingClipNode(this.context, undefined, {
 			defaultFormat: null,
-			targetSampleRate: this.audioContext.sampleRate,
+			targetSampleRate: this.context.sampleRate,
 		});
 	}
 

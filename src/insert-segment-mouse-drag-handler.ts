@@ -41,7 +41,7 @@ export class InsertSegmentMouseDragHandler {
 		return this.mouseDragHandler?.isDragging() ?? false;
 	}
 
-	destroy(): void {
+	dispose(): void {
 		this.mouseDragHandler?.dispose();
 	}
 

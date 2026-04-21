@@ -27,7 +27,7 @@ describe("SegmentsLayer", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 			p = null;
 		}
 	});
@@ -220,21 +220,21 @@ describe("SegmentsLayer", () => {
 			const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
 			expect(segmentShape).to.be.ok;
 
-			const startMarkerDestroy = sinon.spy(
+			const startMarkerDispose = sinon.spy(
 				segmentShape.startMarkerInstance,
-				"destroy",
+				"dispose",
 			);
-			const endMarkerDestroy = sinon.spy(
+			const endMarkerDispose = sinon.spy(
 				segmentShape.endMarkerInstance,
-				"destroy",
+				"dispose",
 			);
 
 			segment.update({ endTime: 40, startTime: 30 });
 
 			expect(createSegmentShape.callCount).to.equal(1);
 			expect(removeSegment.callCount).to.equal(1);
-			expect(startMarkerDestroy.callCount).to.equal(1);
-			expect(endMarkerDestroy.callCount).to.equal(1);
+			expect(startMarkerDispose.callCount).to.equal(1);
+			expect(endMarkerDispose.callCount).to.equal(1);
 		});
 	});
 });

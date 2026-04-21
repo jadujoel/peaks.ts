@@ -47,7 +47,7 @@ export class ZoomController {
 		this.index = clamped;
 
 		const zoomview = this.peaks.views.getView("zoomview");
-		if (!zoomview) {
+		if (!zoomview?.setZoom) {
 			return err(new Error(ZoomController.ErrorMessages.ZOOMVIEW_NOT_FOUND));
 		}
 

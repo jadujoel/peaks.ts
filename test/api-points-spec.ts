@@ -27,7 +27,7 @@ describe("Peaks.points", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 		}
 	});
 

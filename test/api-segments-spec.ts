@@ -32,7 +32,7 @@ describe("Peaks.segments", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 		}
 	});
 

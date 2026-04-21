@@ -27,7 +27,7 @@ describe("PointsLayer", () => {
 
 	afterEach(() => {
 		if (p) {
-			p.destroy();
+			p.dispose();
 			p = null;
 		}
 	});
@@ -119,13 +119,13 @@ describe("PointsLayer", () => {
 			const pointMarker = zoomview.pointsLayer.getPointMarker(point);
 			expect(pointMarker).to.be.ok;
 
-			const pointMarkerDestroy = sinon.spy(pointMarker, "destroy");
+			const pointMarkerDispose = sinon.spy(pointMarker, "dispose");
 
 			point.update({ time: 30.0 });
 
 			expect(createPointMarker.callCount).to.equal(1);
 			expect(removePoint.callCount).to.equal(1);
-			expect(pointMarkerDestroy.callCount).to.equal(1);
+			expect(pointMarkerDispose.callCount).to.equal(1);
 		});
 
 		it("should update the point marker if it is visible", () => {
@@ -186,13 +186,13 @@ describe("PointsLayer", () => {
 			const pointMarker = zoomview.pointsLayer.getPointMarker(point);
 			expect(pointMarker).to.be.ok;
 
-			const pointMarkerDestroy = sinon.spy(pointMarker, "destroy");
+			const pointMarkerDispose = sinon.spy(pointMarker, "dispose");
 
 			point.update({ labelText: "test", time: 30 });
 
 			expect(createPointMarker.callCount).to.equal(1);
 			expect(removePoint.callCount).to.equal(1);
-			expect(pointMarkerDestroy.callCount).to.equal(1);
+			expect(pointMarkerDispose.callCount).to.equal(1);
 		});
 	});
 });
