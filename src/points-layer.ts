@@ -201,9 +201,12 @@ export class PointsLayer {
 		return pointMarker;
 	}
 
-	private onPointsDrag = (_event: KonvaMouseEvent, point: Point): void => {
-		const pointMarker = this.updatePoint(point);
-		pointMarker.update({ time: point.time });
+	private onPointsDrag = (event: {
+		evt: KonvaMouseEvent["evt"];
+		point: Point;
+	}): void => {
+		const pointMarker = this.updatePoint(event.point);
+		pointMarker.update({ time: event.point.time });
 	};
 
 	private onPointMarkerMouseEnter = (

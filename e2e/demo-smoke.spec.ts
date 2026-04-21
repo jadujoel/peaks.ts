@@ -128,6 +128,66 @@ test("public async init API resolves with an instance", async ({ page }) => {
 	expect(result).toBe(true);
 });
 
+test("public async init API returns working concrete view instances", async ({
+	page,
+}) => {
+	await page.goto("/index.html");
+
+	const result = await page.evaluate(async () => {
+		const loadPeaks = new Function(
+			'return import("/peaks.esm.js")',
+		) as () => Promise<{
+			default: {
+				fromOptionsAsync: (options: Record<string, unknown>) => Promise<{
+					destroy: () => void;
+					views: {
+						getView: (name: string) => {
+							constructor?: { name?: string };
+							getStartTime: () => number;
+							scrollWaveform?: (options: { pixels: number }) => void;
+						};
+					};
+				}>;
+			};
+		}>;
+		const peaksModule = await loadPeaks();
+		const instance = await peaksModule.default.fromOptionsAsync({
+			dataUri: {
+				arraybuffer: "/TOL_6min_720p_download.dat",
+				json: "/TOL_6min_720p_download.json",
+			},
+			mediaElement: document.getElementById("audio"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+			},
+		});
+
+		const overview = instance.views.getView("overview");
+		const zoomview = instance.views.getView("zoomview");
+		const startTimeBefore = zoomview?.getStartTime() ?? 0;
+
+		zoomview?.scrollWaveform?.({ pixels: 64 });
+
+		const startTimeAfter = zoomview?.getStartTime() ?? 0;
+		const evaluation = {
+			overviewName: overview?.constructor?.name,
+			startTimeMoved: startTimeAfter > startTimeBefore,
+			zoomviewName: zoomview?.constructor?.name,
+		};
+
+		instance.destroy();
+
+		return evaluation;
+	});
+
+	expect(result.overviewName).toBe("WaveformOverview");
+	expect(result.zoomviewName).toBe("WaveformZoomView");
+	expect(result.startTimeMoved).toBe(true);
+});
+
 test("Peaks.init callback receives undefined (not null) on success", async ({
 	page,
 }) => {

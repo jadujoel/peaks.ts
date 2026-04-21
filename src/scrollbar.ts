@@ -4,7 +4,7 @@ import type { Layer } from "konva/lib/Layer";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
 import { Rect } from "konva/lib/shapes/Rect";
-import type { PeaksInstance, ScrollbarDisplayOptions, XY } from "./types";
+import type { PeaksInstance, XY } from "./types";
 import { clamp } from "./utils";
 import type { WaveformZoomView } from "./waveform/zoomview";
 
@@ -39,7 +39,6 @@ export class Scrollbar {
 		private readonly scrollboxRect: Rect,
 		private readonly color: string,
 		private readonly minScrollboxWidth: number,
-		private readonly offsetY: number,
 		private width: number,
 		private height: number,
 		private scrollboxX: number = 0,
@@ -91,7 +90,6 @@ export class Scrollbar {
 			scrollboxRect,
 			scrollbarOptions.color,
 			scrollbarOptions.minWidth,
-			0,
 			width,
 			height,
 			0,

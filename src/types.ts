@@ -153,39 +153,69 @@ export interface WebAudioOptions {
 
 // ─── Init Options (user-provided) ──────────────────────────────────
 export interface PeaksInitOptions {
-	readonly mediaElement?: HTMLMediaElement;
-	readonly player?: PlayerAdapter;
-	readonly zoomLevels?: readonly number[];
-	readonly waveformCache?: boolean;
-	readonly mediaUrl?: string;
-	readonly dataUri?: Record<string, string>;
-	readonly withCredentials?: boolean;
-	readonly waveformData?: Record<string, unknown>;
-	readonly webAudio?: WebAudioOptions;
-	readonly audioContext?: AudioContext;
-	readonly nudgeIncrement?: number;
-	readonly pointMarkerColor?: string;
-	readonly createSegmentMarker?: (
+	mediaElement?: HTMLMediaElement;
+	player?: PlayerAdapter;
+	zoomLevels?: readonly number[];
+	waveformCache?: boolean;
+	mediaUrl?: string;
+	dataUri?: Record<string, string>;
+	withCredentials?: boolean;
+	waveformData?: Record<string, unknown>;
+	webAudio?: WebAudioOptions;
+	audioContext?: AudioContext;
+	nudgeIncrement?: number;
+	pointMarkerColor?: string;
+	createSegmentMarker?: (
 		options: CreateSegmentMarkerOptions,
 	) => Marker | undefined;
-	readonly createSegmentLabel?: (
+	createSegmentLabel?: (
 		options: CreateSegmentLabelOptions,
 	) => Shape | undefined;
-	readonly createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
-	readonly logger?: Logger;
-	readonly overview?: Partial<OverviewOptions>;
-	readonly zoomview?: Partial<ZoomviewOptions>;
-	readonly scrollbar?: Partial<ScrollbarDisplayOptions>;
-	readonly segmentOptions?: Partial<SegmentDisplayOptions>;
-	readonly keyboard?: boolean;
-	readonly emitCueEvents?: boolean;
-	readonly segments?: readonly SegmentOptions[];
-	readonly points?: readonly PointOptions[];
-	readonly showPlayheadTime?: boolean;
+	createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
+	logger?: Logger;
+	overview?: Partial<Omit<OverviewOptions, "segmentOptions">> & {
+		segmentOptions?: Partial<SegmentDisplayOptions>;
+	};
+	zoomview?: Partial<Omit<ZoomviewOptions, "segmentOptions">> & {
+		segmentOptions?: Partial<SegmentDisplayOptions>;
+	};
+	scrollbar?: Partial<ScrollbarDisplayOptions>;
+	segmentOptions?: Partial<SegmentDisplayOptions>;
+	keyboard?: boolean;
+	emitCueEvents?: boolean;
+	segments?: readonly SegmentOptions[];
+	points?: readonly PointOptions[];
+	showPlayheadTime?: boolean;
+	axisGridlineColor?: string;
+	axisLabelColor?: string;
+	axisTopMarkerHeight?: number;
+	axisBottomMarkerHeight?: number;
+	fontFamily?: string;
+	fontSize?: number;
+	fontStyle?: string;
+	formatAxisTime?: (time: number) => string;
+	formatPlayheadTime?: (time: number) => string;
+	playheadBackgroundColor?: string;
+	playheadColor?: string;
+	playheadPadding?: number;
+	playheadWidth?: number;
+	playedWaveformColor?: WaveformColor;
+	showAxisLabels?: boolean;
+	timeLabelPrecision?: number;
+	enablePoints?: boolean;
+	enableSegments?: boolean;
+	enableEditing?: boolean;
+	highlightColor?: string;
+	highlightStrokeColor?: string;
+	highlightOpacity?: number;
+	highlightOffset?: number;
+	highlightCornerRadius?: number;
+	waveformColor?: WaveformColor;
 }
 
 // ─── Segment / Point Options ────────────────────────────────────────
 export interface SegmentOptions {
+	[key: string]: unknown;
 	readonly id?: string;
 	readonly startTime: number;
 	readonly endTime: number;
@@ -198,6 +228,7 @@ export interface SegmentOptions {
 }
 
 export interface SegmentUpdateOptions {
+	[key: string]: unknown;
 	readonly id?: string;
 	readonly startTime?: number;
 	readonly endTime?: number;
@@ -208,6 +239,7 @@ export interface SegmentUpdateOptions {
 }
 
 export interface PointOptions {
+	[key: string]: unknown;
 	readonly id?: string;
 	readonly time: number;
 	readonly labelText?: string;
@@ -216,6 +248,7 @@ export interface PointOptions {
 }
 
 export interface PointUpdateOptions {
+	[key: string]: unknown;
 	readonly id?: string;
 	readonly time?: number;
 	readonly labelText?: string;
@@ -356,7 +389,9 @@ export interface SegmentsInstance {
 }
 
 export interface PointsInstance {
-	add(...args: (PointOptions | PointOptions[])[]): Point | Point[];
+	add(
+		...args: readonly PointOptions[] | readonly [readonly PointOptions[]]
+	): Point | Point[];
 	getPoints(): Point[];
 	getPoint(id: string): Point | undefined;
 	find(startTime: number, endTime: number): Point[];

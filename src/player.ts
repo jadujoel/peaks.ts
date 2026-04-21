@@ -17,27 +17,26 @@ export function getAllPropertiesFrom(adapter: PlayerAdapter): string[] {
 	return allProperties;
 }
 
+const PUBLIC_ADAPTER_METHODS = [
+	"init",
+	"play",
+	"pause",
+	"isPlaying",
+	"isSeeking",
+	"getCurrentTime",
+	"getDuration",
+	"seek",
+] as const;
+
 /**
  * Validates that the supplied player adapter exposes the required public API.
  *
  * @throws {TypeError} If a required adapter method is missing or is not a function.
  */
 export function validateAdapter(adapter: PlayerAdapter): undefined | never {
-	const publicAdapterMethods = [
-		"init",
-		"destroy",
-		"play",
-		"pause",
-		"isPlaying",
-		"isSeeking",
-		"getCurrentTime",
-		"getDuration",
-		"seek",
-	];
-
 	const allProperties = getAllPropertiesFrom(adapter);
 
-	for (const method of publicAdapterMethods) {
+	for (const method of PUBLIC_ADAPTER_METHODS) {
 		if (!allProperties.includes(method)) {
 			throw new TypeError(`Peaks.init(): Player method ${method} is undefined`);
 		}
@@ -51,6 +50,13 @@ export function validateAdapter(adapter: PlayerAdapter): undefined | never {
 			);
 		}
 	}
+
+	const disposer = (adapter as unknown as Record<string, unknown>).dispose;
+	const destroyer = (adapter as unknown as Record<string, unknown>).destroy;
+
+	if (typeof disposer !== "function" && typeof destroyer !== "function") {
+		throw new TypeError("Peaks.init(): Player method dispose is undefined");
+	}
 }
 
 /**
@@ -58,13 +64,13 @@ export function validateAdapter(adapter: PlayerAdapter): undefined | never {
  */
 
 export interface PlayerFromOptions {
-	readonly peaks: PeaksInstance | undefined;
+	readonly peaks: PeaksInstance;
 	readonly adapter: PlayerAdapter;
 }
 
 export class Player {
-	private constructor(
-		private readonly peaks: PeaksInstance | undefined,
+	constructor(
+		private readonly peaks: PeaksInstance,
 		private readonly adapter: PlayerAdapter,
 		private playingSegment: boolean = false,
 		private segment: Segment | undefined = undefined,
@@ -82,18 +88,18 @@ export class Player {
 	}
 
 	init(): Promise<void> {
-		return Promise.resolve(this.adapter.init(this.peaks as PeaksInstance));
+		return Promise.resolve(this.adapter.init(this.peaks));
 	}
 
 	/**
 	 * Cleans up the player object.
 	 */
 
-	destroy(): void {
+	dispose(): void {
 		this.playingSegment = false;
 		this.loop = false;
 		this.segment = undefined;
-		this.adapter.dispose();
+		this.adapter.dispose?.();
 	}
 
 	/**

@@ -107,6 +107,27 @@ const defaultScrollbarOptions = {
 	minWidth: 50,
 } as const;
 
+function createDefaultOptions(): PeaksOptions {
+	return {
+		createPointMarker: createPointMarker,
+		createSegmentLabel: createSegmentLabel,
+		createSegmentMarker: createSegmentMarker,
+		dataUri: undefined,
+		logger: (...args: unknown[]) => {
+			console.error(...args);
+		},
+		mediaElement: undefined,
+		mediaUrl: undefined,
+		nudgeIncrement: 1.0,
+		pointMarkerColor: "#39cccc",
+		waveformCache: true,
+		waveformData: undefined,
+		webAudio: undefined,
+		withCredentials: false,
+		zoomLevels: [512, 1024, 2048, 4096],
+	} as unknown as PeaksOptions;
+}
+
 export function getOverviewOptions(options: PeaksInitOptions): OverviewOptions {
 	const overviewOptions: Record<string, unknown> = {};
 
@@ -142,7 +163,7 @@ export function getOverviewOptions(options: PeaksInitOptions): OverviewOptions {
 		"enablePoints",
 		"enableSegments",
 		"enableEditing",
-	];
+	] as const;
 
 	const overviewDefaults = defaultOverviewOptions as Record<string, unknown>;
 	const viewDefaults = defaultViewOptions as Record<string, unknown>;
@@ -333,43 +354,25 @@ export function checkContainerElements(options: PeaksOptions) {
 
 export class Peaks extends EventEmitter {
 	options: PeaksOptions;
-	player!: Player;
-	segments!: WaveformSegments;
-	points!: WaveformPoints;
-	zoom!: ZoomController;
-	views!: ViewController;
-	declare logger: Logger;
+	declare player: Player;
+	declare segments: WaveformSegments;
+	declare points: WaveformPoints;
+	declare zoom: ZoomController;
+	declare views: ViewController;
+	logger: Logger;
 	private keyboardHandler: KeyboardHandler | undefined;
 	private waveformBuilder: WaveformBuilder | undefined;
 	private waveformData: WaveformData | undefined;
 	declare cueEmitter: CueEmitter | undefined;
 
-	constructor() {
+	private constructor(options: PeaksOptions) {
 		super();
-
-		// Set default options - overview/zoomview are populated in setOptions()
-		this.options = {
-			createPointMarker: createPointMarker,
-			createSegmentLabel: createSegmentLabel,
-			createSegmentMarker: createSegmentMarker,
-
-			dataUri: undefined,
-
-			// eslint-disable-next-line no-console
-			logger: console.error.bind(console),
-
-			mediaElement: undefined,
-			mediaUrl: undefined,
-
-			nudgeIncrement: 1.0,
-			pointMarkerColor: "#39cccc",
-			waveformCache: true,
-
-			waveformData: undefined,
-			webAudio: undefined,
-			withCredentials: false,
-			zoomLevels: [512, 1024, 2048, 4096],
-		} as unknown as PeaksOptions;
+		this.options = options;
+		this.logger = options.logger;
+		this.keyboardHandler = undefined;
+		this.waveformBuilder = undefined;
+		this.waveformData = undefined;
+		this.cueEmitter = undefined;
 	}
 
 	/**
@@ -387,7 +390,7 @@ export class Peaks extends EventEmitter {
 			throw new Error("Peaks.init(): Missing callback function");
 		}
 
-		const instance = new Peaks();
+		const instance = new Peaks(createDefaultOptions());
 
 		let err = instance.setOptions(opts);
 
@@ -426,7 +429,7 @@ export class Peaks extends EventEmitter {
 
 		if (opts.keyboard) {
 			instance.keyboardHandler = KeyboardHandler.from({
-				eventEmitter: instance as unknown as PeaksInstance,
+				events: instance as unknown as PeaksInstance,
 			});
 		}
 
@@ -710,7 +713,7 @@ export class Peaks extends EventEmitter {
 		}
 
 		if (this.keyboardHandler) {
-			this.keyboardHandler.destroy();
+			this.keyboardHandler.dispose();
 		}
 
 		if (this.views) {
@@ -718,7 +721,7 @@ export class Peaks extends EventEmitter {
 		}
 
 		if (this.player) {
-			this.player.destroy();
+			this.player.dispose();
 		}
 
 		if (this.cueEmitter) {

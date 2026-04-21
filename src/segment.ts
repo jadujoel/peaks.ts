@@ -230,7 +230,7 @@ export class Segment {
 	[key: string]: unknown;
 
 	private constructor(
-		public readonly peaks: SegmentPeaksLike,
+		private readonly peaks: SegmentPeaksLike,
 		public readonly pid: number,
 		public readonly markers: boolean,
 		public readonly overlay: boolean,

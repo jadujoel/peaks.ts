@@ -30,9 +30,7 @@ export interface SegmentMarkerHandlers {
 
 export type SegmentMarkerDragBoundFunc = (marker: SegmentMarker, pos: XY) => XY;
 
-export interface SegmentMarkerFromOptions extends SegmentMarkerOptions {
-	readonly handlers: SegmentMarkerHandlers;
-}
+export interface SegmentMarkerFromOptions extends SegmentMarkerOptions {}
 
 export class SegmentMarker {
 	private constructor(
@@ -60,7 +58,12 @@ export class SegmentMarker {
 			options.marker,
 			options.editable,
 			options.startMarker,
-			options.handlers,
+			{
+				onClick: options.onClick,
+				onDragEnd: options.onDragEnd,
+				onDragMove: options.onDragMove,
+				onDragStart: options.onDragStart,
+			},
 			group,
 		);
 		instance.bindDefaultEventHandlers();

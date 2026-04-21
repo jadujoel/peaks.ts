@@ -2,7 +2,7 @@ import type WaveformData from "waveform-data";
 import { HighlightLayer } from "../highlight-layer";
 import { SeekMouseDragHandler } from "../seek-mouse-drag-handler";
 import type { OverviewOptions, PeaksInstance } from "../types";
-import { WaveformView } from "./view";
+import { WaveformView, type WaveformViewState } from "./view";
 
 export type SeekMouseDragHandlerViewParam = Parameters<
 	typeof SeekMouseDragHandler.from
@@ -15,23 +15,37 @@ export interface WaveformOverviewFromOptions {
 }
 
 export class WaveformOverview extends WaveformView {
-	declare mouseDragHandler: SeekMouseDragHandler;
-	declare highlightLayer?: HighlightLayer;
+	public mouseDragHandler: SeekMouseDragHandler | undefined;
+	public highlightLayer: HighlightLayer | undefined;
 
 	static from(options: WaveformOverviewFromOptions): WaveformOverview {
-		return new WaveformOverview(
-			options.waveformData,
-			options.container,
-			options.peaks,
+		const instance = new WaveformOverview(
+			WaveformOverview.createState({
+				container: options.container,
+				peaks: options.peaks,
+				viewOptions: options.peaks.options.overview,
+				waveformData: options.waveformData,
+			}),
+			undefined,
+			undefined,
 		);
+		instance.initializeView();
+		instance.initializeOverview();
+		return instance;
 	}
 
 	private constructor(
-		waveformData: WaveformData,
-		container: HTMLDivElement,
-		peaks: PeaksInstance,
+		state: WaveformViewState,
+		mouseDragHandler: SeekMouseDragHandler | undefined,
+		highlightLayer: HighlightLayer | undefined,
 	) {
-		super(waveformData, container, peaks, peaks.options.overview);
+		super(state);
+		this.mouseDragHandler = mouseDragHandler;
+		this.highlightLayer = highlightLayer;
+	}
+
+	private initializeOverview(): void {
+		const peaks = this.peaks;
 
 		// Register event handlers
 		peaks.on("player.timeupdate", this.onTimeUpdate);
@@ -176,7 +190,7 @@ export class WaveformOverview extends WaveformView {
 		this.peaks.off("player.timeupdate", this.onTimeUpdate);
 		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
 
-		this.mouseDragHandler.dispose();
+		this.mouseDragHandler?.dispose();
 
 		super.destroy();
 	}

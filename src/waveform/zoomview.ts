@@ -6,7 +6,7 @@ import type { SegmentsLayer } from "../segments-layer";
 import type { PeaksInstance, ZoomviewOptions } from "../types";
 import { clamp, isValidTime, objectHasProperty } from "../utils";
 
-import { WaveformView } from "./view";
+import { WaveformView, type WaveformViewState } from "./view";
 
 export interface ZoomOptions {
 	readonly scale?: number | "auto";
@@ -19,6 +19,29 @@ export interface WaveformZoomViewFromOptions {
 	readonly peaks: PeaksInstance;
 }
 
+interface WaveformZoomViewState {
+	readonly autoScroll: boolean;
+	readonly autoScrollOffset: number;
+	readonly captureVerticalScroll: boolean;
+	readonly insertSegmentShape: unknown;
+	readonly minSegmentDragWidth: number;
+	readonly mouseDragHandler:
+		| ScrollMouseDragHandler
+		| InsertSegmentMouseDragHandler
+		| undefined;
+	readonly pixelLength: number;
+	readonly playheadClickTolerance: number;
+	readonly scale: number;
+	readonly segmentDragMode: string;
+	readonly segmentDraggingEnabled: boolean;
+	readonly waveformCacheEnabled: boolean;
+	readonly waveformDataCache: Map<number, WaveformData>;
+	readonly waveformScales: number[];
+	readonly wheelMode: string;
+	readonly zoomLevelAuto: boolean;
+	readonly zoomLevelSeconds: number | undefined;
+}
+
 export function isAutoScale(options: ZoomOptions): boolean {
 	return (
 		(objectHasProperty(options, "scale") && options.scale === "auto") ||
@@ -27,41 +50,86 @@ export function isAutoScale(options: ZoomOptions): boolean {
 }
 
 export class WaveformZoomView extends WaveformView {
-	declare autoScroll: boolean;
-	declare autoScrollOffset: number;
-	declare segmentDraggingEnabled: boolean;
-	declare segmentDragMode: string;
-	declare minSegmentDragWidth: number;
-	declare insertSegmentShape: unknown;
-	declare playheadClickTolerance: number;
-	declare zoomLevelAuto: boolean;
-	declare zoomLevelSeconds: number | undefined;
-	declare mouseDragHandler:
+	private autoScroll: boolean;
+	private autoScrollOffset: number;
+	private segmentDraggingEnabled: boolean;
+	private segmentDragMode: string;
+	private minSegmentDragWidth: number;
+	private insertSegmentShape: unknown;
+	private playheadClickTolerance: number;
+	private zoomLevelAuto: boolean;
+	private zoomLevelSeconds: number | undefined;
+	private mouseDragHandler:
 		| ScrollMouseDragHandler
-		| InsertSegmentMouseDragHandler;
-	declare wheelMode: string;
-	declare captureVerticalScroll: boolean;
-	declare waveformCacheEnabled: boolean;
-	declare waveformDataCache: Map<number, WaveformData>;
-	declare waveformScales: number[];
-	declare scale: number;
-	declare pixelLength: number;
+		| InsertSegmentMouseDragHandler
+		| undefined;
+	private wheelMode: string;
+	private captureVerticalScroll: boolean;
+	private waveformCacheEnabled: boolean;
+	private waveformDataCache: Map<number, WaveformData>;
+	private waveformScales: number[];
+	private scale: number;
+	private pixelLength: number;
 
 	static from(options: WaveformZoomViewFromOptions): WaveformZoomView {
-		return new WaveformZoomView(
-			options.waveformData,
-			options.container,
-			options.peaks,
+		const zoomviewOptions = options.peaks.options.zoomview;
+		const instance = new WaveformZoomView(
+			WaveformZoomView.createState({
+				container: options.container,
+				peaks: options.peaks,
+				viewOptions: zoomviewOptions,
+				waveformData: options.waveformData,
+			}),
+			{
+				autoScroll: zoomviewOptions.autoScroll,
+				autoScrollOffset: zoomviewOptions.autoScrollOffset,
+				captureVerticalScroll: false,
+				insertSegmentShape: undefined,
+				minSegmentDragWidth: 0,
+				mouseDragHandler: undefined,
+				pixelLength: options.waveformData.length,
+				playheadClickTolerance: zoomviewOptions.playheadClickTolerance,
+				scale: options.waveformData.scale,
+				segmentDraggingEnabled: false,
+				segmentDragMode: "overlap",
+				waveformCacheEnabled: false,
+				waveformDataCache: new Map<number, WaveformData>(),
+				waveformScales: [],
+				wheelMode: zoomviewOptions.wheelMode,
+				zoomLevelAuto: false,
+				zoomLevelSeconds: undefined,
+			},
 		);
+		instance.initializeView();
+		instance.initializeZoomView();
+		return instance;
 	}
 
 	private constructor(
-		waveformData: WaveformData,
-		container: HTMLDivElement,
-		peaks: PeaksInstance,
+		state: WaveformViewState,
+		zoomState: WaveformZoomViewState,
 	) {
-		super(waveformData, container, peaks, peaks.options.zoomview);
+		super(state);
+		this.autoScroll = zoomState.autoScroll;
+		this.autoScrollOffset = zoomState.autoScrollOffset;
+		this.segmentDraggingEnabled = zoomState.segmentDraggingEnabled;
+		this.segmentDragMode = zoomState.segmentDragMode;
+		this.minSegmentDragWidth = zoomState.minSegmentDragWidth;
+		this.insertSegmentShape = zoomState.insertSegmentShape;
+		this.playheadClickTolerance = zoomState.playheadClickTolerance;
+		this.zoomLevelAuto = zoomState.zoomLevelAuto;
+		this.zoomLevelSeconds = zoomState.zoomLevelSeconds;
+		this.mouseDragHandler = zoomState.mouseDragHandler;
+		this.wheelMode = zoomState.wheelMode;
+		this.captureVerticalScroll = zoomState.captureVerticalScroll;
+		this.waveformCacheEnabled = zoomState.waveformCacheEnabled;
+		this.waveformDataCache = zoomState.waveformDataCache;
+		this.waveformScales = zoomState.waveformScales;
+		this.scale = zoomState.scale;
+		this.pixelLength = zoomState.pixelLength;
+	}
 
+	private initializeZoomView(): void {
 		// Register event handlers
 		this.peaks.on("player.timeupdate", this.onTimeUpdate);
 		this.peaks.on("player.playing", this.onPlaying);
@@ -73,25 +141,12 @@ export class WaveformZoomView extends WaveformView {
 
 		const zoomviewOptions = this.viewOptions as ZoomviewOptions;
 
-		this.autoScroll = zoomviewOptions.autoScroll;
-		this.autoScrollOffset = zoomviewOptions.autoScrollOffset;
-
-		this.segmentDraggingEnabled = false;
-		this.segmentDragMode = "overlap";
-		this.minSegmentDragWidth = 0;
-		this.insertSegmentShape = undefined;
-
-		this.playheadClickTolerance = zoomviewOptions.playheadClickTolerance;
-
-		this.zoomLevelAuto = false;
-		this.zoomLevelSeconds = undefined;
-
 		const time = this.peaks.player.getCurrentTime();
 
 		this.syncPlayhead(time);
 
 		this.mouseDragHandler = ScrollMouseDragHandler.from({
-			peaks,
+			peaks: this.peaks,
 			view: this,
 		});
 
@@ -213,7 +268,7 @@ export class WaveformZoomView extends WaveformView {
 
 	setWaveformDragMode(mode: string): void {
 		if (this.segmentsLayer) {
-			this.mouseDragHandler.destroy();
+			this.mouseDragHandler?.destroy();
 			this.dragSeek(false);
 
 			if (mode === "insert-segment") {
@@ -256,7 +311,7 @@ export class WaveformZoomView extends WaveformView {
 	}
 
 	private onTimeUpdate = (time: number): void => {
-		if (this.mouseDragHandler.isDragging()) {
+		if (this.mouseDragHandler?.isDragging()) {
 			return;
 		}
 
@@ -642,7 +697,7 @@ export class WaveformZoomView extends WaveformView {
 			this.data = undefined as unknown as WaveformData;
 		}
 
-		this.mouseDragHandler.destroy();
+		this.mouseDragHandler?.destroy();
 
 		super.destroy();
 	}

@@ -56,7 +56,7 @@ export interface WaveformBuilderFromOptions {
 
 export class WaveformBuilder {
 	private constructor(
-		public readonly peaks: WaveformBuilderPeaksLike,
+		private readonly peaks: WaveformBuilderPeaksLike,
 		private xhr: XMLHttpRequest | undefined = undefined,
 	) {}
 

@@ -23,13 +23,38 @@ export interface PlayedSegment {
 	endTime: number;
 }
 
+export interface WaveformViewStateFromOptions {
+	readonly waveformData: WaveformData;
+	readonly container: HTMLDivElement;
+	readonly peaks: PeaksInstance;
+	readonly viewOptions: ZoomviewOptions | OverviewOptions;
+}
+
+export interface WaveformViewState {
+	readonly peaks: PeaksInstance;
+	readonly container: HTMLDivElement;
+	readonly peaksOptions: PeaksInstance["options"];
+	readonly viewOptions: ZoomviewOptions | OverviewOptions;
+	readonly originalWaveformData: WaveformData;
+	readonly data: WaveformData;
+	readonly frameOffset: number;
+	readonly width: number;
+	readonly height: number;
+	readonly amplitudeScale: number;
+	readonly waveformColor: WaveformColor;
+	readonly playedWaveformColor: WaveformColor | undefined;
+	readonly timeLabelPrecision: number;
+	readonly formatPlayheadTimeFn?: (time: number) => string;
+	readonly seekEnabled: boolean;
+}
+
 export class WaveformView {
 	public peaks: PeaksInstance;
 	protected container: HTMLDivElement;
 	protected peaksOptions: PeaksInstance["options"];
 	protected viewOptions: ZoomviewOptions | OverviewOptions;
 	protected originalWaveformData: WaveformData;
-	protected data: WaveformData;
+	public data: WaveformData;
 	protected frameOffset: number;
 	protected width: number;
 	public height: number;
@@ -39,53 +64,65 @@ export class WaveformView {
 	protected timeLabelPrecision: number;
 	protected formatPlayheadTimeFn: (time: number) => string;
 	protected seekEnabled: boolean;
-	public stage!: Stage;
-	protected waveformLayer!: Layer;
-	protected waveformShape!: WaveformShape;
-	protected playedWaveformShape!: WaveformShape | undefined;
-	protected playedSegment!: PlayedSegment | undefined;
-	protected unplayedSegment!: PlayedSegment | undefined;
-	public segmentsLayer!: SegmentsLayer | undefined;
-	public pointsLayer!: PointsLayer | undefined;
-	protected axisLayer!: Layer;
-	protected axis!: WaveformAxis;
-	protected playheadLayer!: PlayheadLayer;
+	public declare stage: Stage;
+	protected declare waveformLayer: Layer;
+	protected declare waveformShape: WaveformShape;
+	protected declare playedWaveformShape: WaveformShape | undefined;
+	protected declare playedSegment: PlayedSegment | undefined;
+	protected declare unplayedSegment: PlayedSegment | undefined;
+	public declare segmentsLayer: SegmentsLayer | undefined;
+	public declare pointsLayer: PointsLayer | undefined;
+	protected declare axisLayer: Layer;
+	protected declare axis: WaveformAxis;
+	protected declare playheadLayer: PlayheadLayer;
 
-	constructor(
-		waveformData: WaveformData,
-		container: HTMLDivElement,
-		peaks: PeaksInstance,
-		viewOptions: ZoomviewOptions | OverviewOptions,
-	) {
-		this.container = container;
-		this.peaks = peaks;
-		this.peaksOptions = peaks.options;
-		this.viewOptions = viewOptions;
+	protected constructor(state: WaveformViewState) {
+		this.container = state.container;
+		this.peaks = state.peaks;
+		this.peaksOptions = state.peaksOptions;
+		this.viewOptions = state.viewOptions;
+		this.originalWaveformData = state.originalWaveformData;
+		this.data = state.data;
+		this.frameOffset = state.frameOffset;
+		this.width = state.width;
+		this.height = state.height;
+		this.amplitudeScale = state.amplitudeScale;
+		this.waveformColor = state.waveformColor;
+		this.playedWaveformColor = state.playedWaveformColor;
+		this.timeLabelPrecision = state.timeLabelPrecision;
+		this.formatPlayheadTimeFn =
+			state.formatPlayheadTimeFn ??
+			((time: number) => formatTime(time, this.timeLabelPrecision));
+		this.seekEnabled = state.seekEnabled;
+	}
 
-		this.originalWaveformData = waveformData;
-		this.data = waveformData;
+	protected static createState(
+		options: WaveformViewStateFromOptions,
+	): WaveformViewState {
+		const timeLabelPrecision = options.viewOptions.timeLabelPrecision;
 
-		// The pixel offset of the current frame being displayed
-		this.frameOffset = 0;
-		this.width = container.clientWidth;
-		this.height = container.clientHeight;
+		return {
+			amplitudeScale: 1.0,
+			container: options.container,
+			data: options.waveformData,
+			frameOffset: 0,
+			height: options.container.clientHeight,
+			originalWaveformData: options.waveformData,
+			peaks: options.peaks,
+			peaksOptions: options.peaks.options,
+			playedWaveformColor: options.viewOptions.playedWaveformColor,
+			seekEnabled: true,
+			timeLabelPrecision,
+			viewOptions: options.viewOptions,
+			waveformColor: options.viewOptions.waveformColor,
+			width: options.container.clientWidth,
+			...(options.viewOptions.formatPlayheadTime
+				? { formatPlayheadTimeFn: options.viewOptions.formatPlayheadTime }
+				: {}),
+		};
+	}
 
-		this.amplitudeScale = 1.0;
-
-		this.waveformColor = this.viewOptions.waveformColor;
-		this.playedWaveformColor = this.viewOptions.playedWaveformColor;
-
-		this.timeLabelPrecision = this.viewOptions.timeLabelPrecision;
-
-		if (this.viewOptions.formatPlayheadTime) {
-			this.formatPlayheadTimeFn = this.viewOptions.formatPlayheadTime;
-		} else {
-			this.formatPlayheadTimeFn = (time) =>
-				formatTime(time, this.timeLabelPrecision);
-		}
-
-		this.seekEnabled = true;
-
+	protected initializeView(): void {
 		this.initWaveformData();
 
 		// Disable warning: The stage has 6 layers.
@@ -93,7 +130,7 @@ export class WaveformView {
 		Konva.showWarnings = false;
 
 		this.stage = new Konva.Stage({
-			container: container,
+			container: this.container,
 			height: this.height,
 			width: this.width,
 		});
@@ -103,7 +140,7 @@ export class WaveformView {
 		if (this.viewOptions.enableSegments) {
 			this.segmentsLayer = SegmentsLayer.from({
 				enableEditing: this.viewOptions.enableEditing ?? false,
-				peaks,
+				peaks: this.peaks,
 				view: this as unknown as WaveformViewAPI,
 			});
 			this.segmentsLayer.addToStage(this.stage);
@@ -112,7 +149,7 @@ export class WaveformView {
 		if (this.viewOptions.enablePoints) {
 			this.pointsLayer = PointsLayer.from({
 				enableEditing: this.viewOptions.enableEditing ?? false,
-				peaks,
+				peaks: this.peaks,
 				view: this as unknown as WaveformViewAPI,
 			});
 			this.pointsLayer.addToStage(this.stage);

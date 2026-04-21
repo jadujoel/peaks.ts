@@ -4,7 +4,7 @@ import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
-export const DefaultSegmentMarkerDefaults = {
+export const SegmentMarkerDefaults = {
 	color: "#000",
 	fontFamily: "sans-serif",
 	fontSize: 10,
@@ -23,16 +23,14 @@ export class DefaultSegmentMarker {
 		private readonly label: Text,
 		private readonly handle: Rect,
 		private readonly line: Line,
-		private readonly labelXPosition: number,
+		private readonly labelX: number,
 		private editable: boolean,
 	) {}
-
-	static DefaultSegmentMarkerDefaults = DefaultSegmentMarkerDefaults;
 
 	static from(opts: DefaultSegmentMarkerFromOptions): DefaultSegmentMarker {
 		const { options } = opts;
 		const editable = options.editable ?? false;
-		const handleX = -(DefaultSegmentMarkerDefaults.handleWidth / 2) + 0.5;
+		const handleX = -(SegmentMarkerDefaults.handleWidth / 2) + 0.5;
 		const labelXPosition = options.startMarker ? -24 : 24;
 
 		const time =
@@ -42,9 +40,9 @@ export class DefaultSegmentMarker {
 
 		const label = new Text({
 			fill: "#000",
-			fontFamily: options.fontFamily ?? DefaultSegmentMarkerDefaults.fontFamily,
-			fontSize: options.fontSize ?? DefaultSegmentMarkerDefaults.fontSize,
-			fontStyle: options.fontStyle ?? DefaultSegmentMarkerDefaults.fontStyle,
+			fontFamily: options.fontFamily ?? SegmentMarkerDefaults.fontFamily,
+			fontSize: options.fontSize ?? SegmentMarkerDefaults.fontSize,
+			fontStyle: options.fontStyle ?? SegmentMarkerDefaults.fontStyle,
 			text: options.layer?.formatTime(time) ?? "",
 			textAlign: "center",
 			visible: editable,
@@ -54,18 +52,18 @@ export class DefaultSegmentMarker {
 		label.hide();
 
 		const handle = new Rect({
-			fill: options.color ?? DefaultSegmentMarkerDefaults.color,
-			height: DefaultSegmentMarkerDefaults.handleHeight,
-			stroke: options.color ?? DefaultSegmentMarkerDefaults.color,
+			fill: options.color ?? SegmentMarkerDefaults.color,
+			height: SegmentMarkerDefaults.handleHeight,
+			stroke: options.color ?? SegmentMarkerDefaults.color,
 			strokeWidth: 1,
 			visible: editable,
-			width: DefaultSegmentMarkerDefaults.handleWidth,
+			width: SegmentMarkerDefaults.handleWidth,
 			x: handleX,
 			y: 0,
 		});
 
 		const line = new Line({
-			stroke: options.color ?? DefaultSegmentMarkerDefaults.color,
+			stroke: options.color ?? SegmentMarkerDefaults.color,
 			strokeWidth: 1,
 			visible: editable,
 			x: 0,
@@ -124,7 +122,7 @@ export class DefaultSegmentMarker {
 	private bindEventHandlers(group: Group): void {
 		group.on("dragstart", () => {
 			if (this.options.startMarker) {
-				this.label.x(this.labelXPosition - this.label.getWidth());
+				this.label.x(this.labelX - this.label.getWidth());
 			}
 
 			this.label.show();
@@ -136,7 +134,7 @@ export class DefaultSegmentMarker {
 
 		this.handle.on("mouseover touchstart", () => {
 			if (this.options.startMarker) {
-				this.label.x(this.labelXPosition - this.label.getWidth());
+				this.label.x(this.labelX - this.label.getWidth());
 			}
 
 			this.label.show();

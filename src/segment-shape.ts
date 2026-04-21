@@ -461,18 +461,16 @@ export class SegmentShape {
 
 		if (startMarker) {
 			this.startMarkerInstance = SegmentMarker.from({
-				options: {
-					dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
-					editable: editable,
-					marker: startMarker,
-					onClick: this.onSegmentMarkerClick,
-					onDragEnd: this.onSegmentMarkerDragEnd,
-					onDragMove: this.onSegmentMarkerDragMove,
-					onDragStart: this.onSegmentMarkerDragStart,
-					segment: this.segment,
-					segmentShape: this,
-					startMarker: true,
-				},
+				dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
+				editable: editable,
+				marker: startMarker,
+				onClick: this.onSegmentMarkerClick,
+				onDragEnd: this.onSegmentMarkerDragEnd,
+				onDragMove: this.onSegmentMarkerDragMove,
+				onDragStart: this.onSegmentMarkerDragStart,
+				segment: this.segment,
+				segmentShape: this,
+				startMarker: true,
 			});
 		}
 
@@ -493,18 +491,16 @@ export class SegmentShape {
 
 		if (endMarker) {
 			this.endMarkerInstance = SegmentMarker.from({
-				options: {
-					dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
-					editable: editable,
-					marker: endMarker,
-					onClick: this.onSegmentMarkerClick,
-					onDragEnd: this.onSegmentMarkerDragEnd,
-					onDragMove: this.onSegmentMarkerDragMove,
-					onDragStart: this.onSegmentMarkerDragStart,
-					segment: this.segment,
-					segmentShape: this,
-					startMarker: false,
-				},
+				dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
+				editable: editable,
+				marker: endMarker,
+				onClick: this.onSegmentMarkerClick,
+				onDragEnd: this.onSegmentMarkerDragEnd,
+				onDragMove: this.onSegmentMarkerDragMove,
+				onDragStart: this.onSegmentMarkerDragStart,
+				segment: this.segment,
+				segmentShape: this,
+				startMarker: false,
 			});
 		}
 	}

@@ -128,7 +128,7 @@ export class Point {
 	[key: string]: unknown;
 
 	private constructor(
-		public readonly peaks: PointPeaksLike,
+		private readonly peaks: PointPeaksLike,
 		public readonly pid: number,
 		public id: string,
 		public time: number,
@@ -171,19 +171,16 @@ export class Point {
 			this.id = options.id;
 		}
 
-		if (Object.hasOwn(options, "time") && options.time !== undefined) {
+		if (options.time !== undefined) {
 			this.time = options.time;
 		}
-		if (
-			Object.hasOwn(options, "labelText") &&
-			options.labelText !== undefined
-		) {
+		if (options.labelText !== undefined) {
 			this.labelText = options.labelText;
 		}
-		if (Object.hasOwn(options, "color") && options.color !== undefined) {
+		if (options.color !== undefined) {
 			this.color = options.color;
 		}
-		if (Object.hasOwn(options, "editable") && options.editable !== undefined) {
+		if (options.editable !== undefined) {
 			this.editable = options.editable;
 		}
 
@@ -201,12 +198,13 @@ export class Point {
 	}
 }
 
+// TODO: this is very unsafe and should be refactored out
 function applyUserData(
 	point: Point,
 	options: PointOptions | PointUpdateOptions,
 ): void {
 	for (const key of Object.keys(options)) {
-		if (!pointOptions.includes(key as keyof PointOptions)) {
+		if (!pointOptions.includes(key as (typeof pointOptions)[number])) {
 			point[key] = (options as Record<string, unknown>)[key];
 		}
 	}

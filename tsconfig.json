@@ -38,9 +38,5 @@
 		"types": ["bun", "vitest/globals"],
 		"verbatimModuleSyntax": true
 	},
-	"include": [
-		"src/**/*.ts",
-		"e2e/**/*.ts",
-		"*.ts",
-	]
+	"include": ["src/**/*.ts", "e2e/**/*.ts", "*.ts"]
 }

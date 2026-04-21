@@ -1,28 +1,43 @@
 import type { PeaksInstance } from "./types";
 
-export const nodes = ["OBJECT", "TEXTAREA", "INPUT", "SELECT", "OPTION"];
+export const NODE_TYPES = [
+	"OBJECT",
+	"TEXTAREA",
+	"INPUT",
+	"SELECT",
+	"OPTION",
+] as const;
 
-export const SPACE = 32;
-export const TAB = 9;
-export const LEFT_ARROW = 37;
-export const RIGHT_ARROW = 39;
+export const SPACE = 32 as const;
+export const TAB = 9 as const;
+export const LEFT_ARROW = 37 as const;
+export const RIGHT_ARROW = 39 as const;
+const HANDLED_KEYS: readonly number[] = [SPACE, TAB, LEFT_ARROW, RIGHT_ARROW];
+
+function isExcludedNodeName(
+	nodeName: string,
+): nodeName is (typeof NODE_TYPES)[number] {
+	return NODE_TYPES.includes(nodeName as (typeof NODE_TYPES)[number]);
+}
+
+export type EventEmitter = Pick<PeaksInstance, "emit">;
 
 export interface KeyboardHandlerFromOptions {
-	readonly eventEmitter: PeaksInstance;
+	readonly events: EventEmitter;
 }
 
 export class KeyboardHandler {
-	private constructor(private readonly eventEmitter: PeaksInstance) {}
+	private constructor(private readonly events: EventEmitter) {}
 
 	static from(options: KeyboardHandlerFromOptions): KeyboardHandler {
-		const instance = new KeyboardHandler(options.eventEmitter);
+		const instance = new KeyboardHandler(options.events);
 		document.addEventListener("keydown", instance.handleKeyEvent);
 		document.addEventListener("keypress", instance.handleKeyEvent);
 		document.addEventListener("keyup", instance.handleKeyEvent);
 		return instance;
 	}
 
-	destroy(): void {
+	dispose(): void {
 		document.removeEventListener("keydown", this.handleKeyEvent);
 		document.removeEventListener("keypress", this.handleKeyEvent);
 		document.removeEventListener("keyup", this.handleKeyEvent);
@@ -31,34 +46,34 @@ export class KeyboardHandler {
 	private handleKeyEvent = (event: KeyboardEvent): void => {
 		const target = event.target as HTMLElement;
 
-		if (!nodes.includes(target.nodeName)) {
-			if ([SPACE, TAB, LEFT_ARROW, RIGHT_ARROW].includes(event.keyCode)) {
+		if (!isExcludedNodeName(target.nodeName)) {
+			if (HANDLED_KEYS.includes(event.keyCode)) {
 				event.preventDefault();
 			}
 
 			if (event.type === "keydown" || event.type === "keypress") {
 				switch (event.keyCode) {
 					case SPACE:
-						this.eventEmitter.emit("keyboard.space");
+						this.events.emit("keyboard.space");
 						break;
 					case TAB:
-						this.eventEmitter.emit("keyboard.tab");
+						this.events.emit("keyboard.tab");
 						break;
 				}
 			} else if (event.type === "keyup") {
 				switch (event.keyCode) {
 					case LEFT_ARROW:
 						if (event.shiftKey) {
-							this.eventEmitter.emit("keyboard.shift_left");
+							this.events.emit("keyboard.shift_left");
 						} else {
-							this.eventEmitter.emit("keyboard.left");
+							this.events.emit("keyboard.left");
 						}
 						break;
 					case RIGHT_ARROW:
 						if (event.shiftKey) {
-							this.eventEmitter.emit("keyboard.shift_right");
+							this.events.emit("keyboard.shift_right");
 						} else {
-							this.eventEmitter.emit("keyboard.right");
+							this.events.emit("keyboard.right");
 						}
 						break;
 				}
