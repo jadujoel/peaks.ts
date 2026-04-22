@@ -1,4 +1,5 @@
 import type WaveformData from "waveform-data";
+import type { AudioDriver, AudioSource } from "./driver/audio/types";
 import type {
 	CanvasDriver,
 	DriverLayer,
@@ -17,11 +18,20 @@ import type { WaveformColor } from "./utils";
 // ─── Logger ─────────────────────────────────────────────────────────
 export type Logger = (...args: unknown[]) => void;
 
-// ─── Player Adapter ─────────────────────────────────────────────────
+// ─── Player Adapter (legacy / BYO) ──────────────────────────────────
+//
+// `PlayerAdapter` and `PlayerEventBus` are retained only to type the
+// deprecated `PeaksConfiguration.player` BYO field, which is wrapped by
+// `LegacyAdapterAudioDriver` (see `src/driver/audio/default.ts`). New
+// code should implement `AudioDriver` from `src/driver/audio/types.ts`
+// instead.
+
+/** @deprecated Use `AudioDriverContext` from `src/driver/audio/types.ts`. */
 export interface PlayerEventBus {
 	readonly events: PeaksEvents;
 }
 
+/** @deprecated Implement `AudioDriver` from `src/driver/audio/types.ts`. */
 export interface PlayerAdapter {
 	init(peaks: PlayerEventBus): Promise<void> | void;
 	dispose?(): void;
@@ -32,11 +42,6 @@ export interface PlayerAdapter {
 	getCurrentTime(): number;
 	getDuration(): number;
 	seek(time: number): void;
-	/**
-	 * Optional native segment playback. When implemented, the {@link PlayerInstance}
-	 * delegates segment looping to the adapter (e.g. via sample-accurate
-	 * AudioWorklet loop points) instead of polling boundaries on the main thread.
-	 */
 	playSegment?(segment: Segment, loop: boolean): Promise<void> | void;
 	setSource?(options: SetSourceOptions): Promise<void>;
 }
@@ -145,6 +150,7 @@ export interface PeaksOptions {
 	readonly zoomview: ZoomviewOptions;
 	readonly scrollbar: ScrollbarDisplayOptions;
 	readonly segmentOptions?: SegmentDisplayOptions;
+	readonly audio?: AudioDriver;
 	readonly player?: PlayerAdapter;
 }
 
@@ -161,6 +167,11 @@ export interface WebAudioOptions {
 // some props rule out other props
 export interface PeaksConfiguration {
 	readonly mediaElement?: HTMLMediaElement;
+	readonly audio?: AudioDriver;
+	/**
+	 * @deprecated Use `audio: AudioDriver` (or rely on the implicit
+	 * driver synthesised from `mediaElement` / `webAudio` / `mediaUrl`).
+	 */
 	readonly player?: PlayerAdapter;
 	readonly zoomLevels?: readonly number[];
 	readonly waveformCache?: boolean;
@@ -454,14 +465,15 @@ export interface SetZoomOptions {
 }
 
 // ─── Set Source Options ─────────────────────────────────────────────
-export interface SetSourceOptions {
-	readonly mediaUrl?: string;
-	readonly dataUri?: Record<string, string>;
-	readonly waveformData?: Record<string, unknown>;
-	readonly webAudio?: WebAudioOptions;
-	readonly withCredentials?: boolean;
+//
+// `Peaks.setSource(options)` accepts both the audio-source DTO consumed
+// by every {@link AudioDriver} and a few peaks-level extras (zoom
+// levels). Drivers ignore unknown fields.
+export interface SetSourceOptions extends AudioSource {
 	readonly zoomLevels?: readonly number[];
 }
+
+export type { AudioDriver, AudioSource } from "./driver/audio/types";
 
 // ─── Mouse drag handler interfaces ─────────────────────────────────
 export interface MouseDragHandlers {

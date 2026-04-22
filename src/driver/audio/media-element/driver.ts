@@ -1,13 +1,15 @@
-import type { PeaksEvents } from "./events";
-import type { PlayerEventBus, SetSourceOptions } from "./types";
+import type { PeaksEvents } from "../../../events";
+import { PollingSegmentPlayer } from "../segment-polling";
+import type {
+	AudioDriver,
+	AudioDriverContext,
+	AudioSource,
+	PlaySegmentOptions,
+} from "../types";
 
 /**
- * Implementation of Player adapter based on an <audio> or <video> HTML element.
- */
-
-/**
- * Checks whether the given HTMLMediaElement has either a src attribute
- * or any child <source> nodes.
+ * Implementation of the {@link AudioDriver} interface backed by an
+ * `<audio>` or `<video>` HTML element.
  */
 
 function mediaElementHasSource(mediaElement: HTMLMediaElement): boolean {
@@ -39,7 +41,7 @@ class SetSourceHandler {
 		return new SetSourceHandler(options.events, options.mediaElement);
 	}
 
-	setSource(options: SetSourceOptions): Promise<void> {
+	setSource(source: AudioSource): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.resolve = resolve;
 			this.reject = reject;
@@ -47,7 +49,7 @@ class SetSourceHandler {
 			this.events.addEventListener("player.canplay", this.onPlayerCanPlay);
 			this.events.addEventListener("player.error", this.onPlayerError);
 
-			this.mediaElement.setAttribute("src", options.mediaUrl ?? "");
+			this.mediaElement.setAttribute("src", source.mediaUrl ?? "");
 
 			// Force the media element to load, in case the media element
 			// has preload="none".
@@ -81,43 +83,31 @@ interface MediaListener {
 	callback: EventListener;
 }
 
-/**
- * A wrapper for interfacing with the HTMLMediaElement API.
- * Initializes the player for a given media element.
- *
- * @param mediaElement The HTML <audio> or <video> element to associate
- *   with the Peaks instance.
- */
-
-export interface MediaElementPlayerFromOptions {
+export interface MediaElementAudioDriverFromOptions {
 	readonly mediaElement: HTMLMediaElement;
 }
 
-export class MediaElementPlayer {
+export class MediaElementAudioDriver implements AudioDriver {
 	private constructor(
 		private mediaElement: HTMLMediaElement | undefined,
 		private events: PeaksEvents | undefined = undefined,
 		private listeners: MediaListener[] = [],
+		private segmentPlayer: PollingSegmentPlayer | undefined = undefined,
 	) {}
 
-	static from(options: MediaElementPlayerFromOptions): MediaElementPlayer {
-		return new MediaElementPlayer(options.mediaElement);
+	static from(
+		options: MediaElementAudioDriverFromOptions,
+	): MediaElementAudioDriver {
+		return new MediaElementAudioDriver(options.mediaElement);
 	}
-
-	/**
-	 * Adds an event listener to the media element.
-	 *
-	 * @param type The event type to listen for.
-	 * @param callback An event handler function.
-	 */
 
 	private addMediaListener(type: string, callback: EventListener): void {
 		this.listeners.push({ callback: callback, type: type });
 		this.mediaElement?.addEventListener(type, callback);
 	}
 
-	init(peaks: PlayerEventBus): Promise<void> {
-		this.events = peaks.events;
+	init(ctx: AudioDriverContext): Promise<void> {
+		this.events = ctx.events;
 		this.listeners = [];
 
 		this.addMediaListener("timeupdate", () => {
@@ -159,6 +149,15 @@ export class MediaElementPlayer {
 			}
 		});
 
+		this.segmentPlayer = PollingSegmentPlayer.from({
+			events: this.events,
+			getCurrentTime: () => this.getCurrentTime(),
+			isPlaying: () => this.isPlaying(),
+			pause: () => this.pause(),
+			play: () => this.play(),
+			seek: (time: number) => this.seek(time),
+		});
+
 		if (!this.mediaElement) {
 			return Promise.resolve();
 		}
@@ -169,7 +168,6 @@ export class MediaElementPlayer {
 			this.mediaElement.error &&
 			this.mediaElement.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
 		) {
-			// The media element has a source, but the format is not supported.
 			return Promise.reject(this.mediaElement.error);
 		}
 
@@ -201,10 +199,7 @@ export class MediaElementPlayer {
 				}
 			};
 
-			// If the media element has preload="none", clicking to seek in the
-			// waveform won't work, so here we force the media to load.
 			if (mediaElement.readyState === HTMLMediaElement.HAVE_NOTHING) {
-				// Wait until the media can actually be played and sought reliably.
 				mediaElement.addEventListener("loadedmetadata", eventHandler);
 				mediaElement.addEventListener("canplay", eventHandler);
 				mediaElement.addEventListener("error", eventHandler);
@@ -218,12 +213,10 @@ export class MediaElementPlayer {
 		});
 	}
 
-	/**
-	 * Cleans up the player object, removing all event listeners from the
-	 * associated media element.
-	 */
-
 	dispose(): void {
+		this.segmentPlayer?.stop();
+		this.segmentPlayer = undefined;
+
 		if (!this.mediaElement) {
 			return;
 		}
@@ -275,8 +268,19 @@ export class MediaElementPlayer {
 		}
 	}
 
-	setSource(options: SetSourceOptions): Promise<void> {
-		if (!options.mediaUrl) {
+	playSegment(options: PlaySegmentOptions): Promise<void> {
+		if (!this.segmentPlayer) {
+			return Promise.reject(
+				new Error(
+					"peaks.player.playSegment(): MediaElementAudioDriver not initialized",
+				),
+			);
+		}
+		return this.segmentPlayer.start(options.segment, options.loop);
+	}
+
+	setSource(source: AudioSource): Promise<void> {
+		if (!source.mediaUrl) {
 			return Promise.reject(
 				new Error(
 					"peaks.setSource(): options must contain a mediaUrl when using mediaElement",
@@ -286,7 +290,7 @@ export class MediaElementPlayer {
 
 		if (!this.events || !this.mediaElement) {
 			return Promise.reject(
-				new Error("peaks.setSource(): player not initialized"),
+				new Error("peaks.setSource(): driver not initialized"),
 			);
 		}
 
@@ -295,6 +299,6 @@ export class MediaElementPlayer {
 			mediaElement: this.mediaElement,
 		});
 
-		return setSourceHandler.setSource(options);
+		return setSourceHandler.setSource(source);
 	}
 }

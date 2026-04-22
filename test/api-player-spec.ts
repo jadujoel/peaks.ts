@@ -53,38 +53,33 @@ describe("Player", () => {
 		});
 
 		describe("constructor", () => {
-			it("should throw a type error if an adapter property is missing", () => {
-				const adapter = {
-					init: () => {},
-				};
-
-				expect(() => {
-					Player.from({
-						adapter: adapter as unknown as never,
-						peaks: null as unknown as never,
-					});
-				}).to.throw(TypeError);
-			});
-
-			it("should throw a type error if an adapter property is not a function", () => {
-				const adapter = {
+			it("should construct a Player from an AudioDriver", () => {
+				const driver = {
 					dispose: sinon.spy(),
-					getCurrentTime: sinon.spy(),
-					getDuration: sinon.spy(),
-					init: "wrong: this should be a function",
-					isPlaying: sinon.spy(),
-					isSeeking: sinon.spy(),
+					getCurrentTime: sinon.spy(() => 0),
+					getDuration: sinon.spy(() => 0),
+					init: sinon.spy(() => Promise.resolve()),
+					isPlaying: sinon.spy(() => false),
+					isSeeking: sinon.spy(() => false),
 					pause: sinon.spy(),
-					play: sinon.spy(),
+					play: sinon.spy(() => Promise.resolve()),
+					playSegment: sinon.spy(() => Promise.resolve()),
 					seek: sinon.spy(),
+					setSource: sinon.spy(() => Promise.resolve()),
 				};
 
-				expect(() => {
-					Player.from({
-						adapter: adapter as unknown as never,
-						peaks: null as unknown as never,
-					});
-				}).to.throw(TypeError);
+				const built = Player.from({
+					driver: driver as unknown as never,
+					peaks: {
+						events: {
+							addEventListener: () => {},
+							dispatch: () => {},
+							removeEventListener: () => {},
+						},
+					} as unknown as never,
+				});
+
+				expect(built).to.be.an.instanceOf(Player);
 			});
 		});
 
@@ -204,6 +199,44 @@ describe("Player", () => {
 				const result = p.player.playSegment({ endTime: 20, startTime: 10 });
 
 				expect(result).to.be.an.instanceOf(Promise);
+			});
+
+			it("should call driver.playSegment exactly once when natively supported", async () => {
+				// Build a Player directly with a stub driver that natively supports
+				// playSegment to ensure the polling loop has not crept back in.
+				const events = {
+					addEventListener: sinon.spy(),
+					dispatch: sinon.spy(),
+					removeEventListener: sinon.spy(),
+				};
+				const driver = {
+					dispose: sinon.spy(),
+					getCurrentTime: sinon.spy(() => 0),
+					getDuration: sinon.spy(() => 0),
+					init: sinon.spy(() => Promise.resolve()),
+					isPlaying: sinon.spy(() => false),
+					isSeeking: sinon.spy(() => false),
+					pause: sinon.spy(),
+					play: sinon.spy(() => Promise.resolve()),
+					playSegment: sinon.spy(() => Promise.resolve()),
+					seek: sinon.spy(),
+					setSource: sinon.spy(() => Promise.resolve()),
+				};
+				const player = Player.from({
+					driver: driver as unknown as never,
+					peaks: {
+						events,
+						logger: () => {},
+					} as unknown as never,
+				});
+				await player.playSegment(
+					{ endTime: 4, startTime: 2 } as unknown as never,
+					true,
+				);
+				expect(driver.playSegment.calledOnce).to.equal(true);
+				// And the polling-loop fallback (seek + play loop) must not run
+				expect(driver.seek.notCalled).to.equal(true);
+				expect(driver.play.notCalled).to.equal(true);
 			});
 		});
 	});
@@ -376,7 +409,7 @@ describe("Player", () => {
 			it("should remove all event listeners", () => {
 				p.player.dispose();
 
-				expect(p.player.adapter.listeners).to.be.empty;
+				expect(p.player.driver.listeners).to.be.empty;
 			});
 		});
 	});

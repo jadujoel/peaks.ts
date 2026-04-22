@@ -1,169 +1,54 @@
+import type { AudioDriver, AudioSource } from "./driver/audio/types";
 import type { Segment } from "./segment";
-import type { PeaksInstance, PlayerAdapter, SetSourceOptions } from "./types";
+import type { PeaksInstance } from "./types";
 import { isValidTime } from "./utils";
-
-export function getAllPropertiesFrom(adapter: PlayerAdapter): string[] {
-	const allProperties: string[] = [];
-	let obj = adapter;
-
-	while (obj) {
-		for (const p of Object.getOwnPropertyNames(obj)) {
-			allProperties.push(p);
-		}
-
-		obj = Object.getPrototypeOf(obj);
-	}
-
-	return allProperties;
-}
-
-const PUBLIC_ADAPTER_METHODS = [
-	"init",
-	"play",
-	"pause",
-	"isPlaying",
-	"isSeeking",
-	"getCurrentTime",
-	"getDuration",
-	"seek",
-] as const;
-
-/**
- * Validates that the supplied player adapter exposes the required public API.
- *
- * @throws {TypeError} If a required adapter method is missing or is not a function.
- */
-export function validateAdapter(adapter: PlayerAdapter): undefined | never {
-	const allProperties = getAllPropertiesFrom(adapter);
-
-	for (const method of PUBLIC_ADAPTER_METHODS) {
-		if (!allProperties.includes(method)) {
-			throw new TypeError(`Player method ${method} is undefined`);
-		}
-
-		if (
-			typeof (adapter as unknown as Record<string, unknown>)[method] !==
-			"function"
-		) {
-			throw new TypeError(`Player method ${method} is not a function`);
-		}
-	}
-
-	const disposer = (adapter as unknown as Record<string, unknown>).dispose;
-
-	if (typeof disposer !== "function") {
-		throw new TypeError("Player method dispose is undefined");
-	}
-}
-
-/**
- * A wrapper for interfacing with an external player API.
- */
 
 export interface PlayerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly adapter: PlayerAdapter;
+	readonly driver: AudioDriver;
 }
 
 export class Player {
 	private constructor(
 		private readonly peaks: PeaksInstance,
-		private readonly adapter: PlayerAdapter,
-		private playingSegment: boolean = false,
-		private segment: Segment | undefined = undefined,
-		private loop: boolean = false,
+		readonly driver: AudioDriver,
 	) {}
 
-	/**
-	 * Creates a player wrapper around the supplied adapter.
-	 *
-	 * @throws {TypeError} If the adapter does not implement the required player methods.
-	 */
 	static from(options: PlayerFromOptions): Player {
-		validateAdapter(options.adapter);
-		return new Player(options.peaks, options.adapter);
+		return new Player(options.peaks, options.driver);
 	}
 
-	/**
-	 * Asynchronously initialises the underlying player adapter. This is kept
-	 * separate from {@link Player.from} so that the constructor stays
-	 * synchronous (and can validate the adapter eagerly), while adapter setup
-	 * that depends on the DOM / network can return a `Promise`.
-	 */
 	init(): Promise<void> {
-		return Promise.resolve(this.adapter.init({ events: this.peaks.events }));
+		return this.driver.init({ events: this.peaks.events });
 	}
-
-	/**
-	 * Cleans up the player object.
-	 */
 
 	dispose(): void {
-		this.playingSegment = false;
-		this.loop = false;
-		this.segment = undefined;
-		this.adapter.dispose?.();
+		this.driver.dispose();
 	}
-
-	/**
-	 * Starts playback.
-	 * @returns {Promise}
-	 */
 
 	play(): Promise<void> {
-		return Promise.resolve(this.adapter.play());
+		return this.driver.play();
 	}
-
-	/**
-	 * Pauses playback.
-	 */
 
 	pause(): void {
-		this.adapter.pause();
+		this.driver.pause();
 	}
-
-	/**
-	 * @returns {Boolean} <code>true</code> if playing, <code>false</code>
-	 * otherwise.
-	 */
 
 	isPlaying(): boolean {
-		return this.adapter.isPlaying();
+		return this.driver.isPlaying();
 	}
-
-	/**
-	 * @returns {boolean} <code>true</code> if seeking
-	 */
 
 	isSeeking(): boolean {
-		return this.adapter.isSeeking();
+		return this.driver.isSeeking();
 	}
-
-	/**
-	 * Returns the current playback time position, in seconds.
-	 *
-	 * @returns {Number}
-	 */
 
 	getCurrentTime(): number {
-		return this.adapter.getCurrentTime();
+		return this.driver.getCurrentTime();
 	}
-
-	/**
-	 * Returns the media duration, in seconds.
-	 *
-	 * @returns {Number}
-	 */
 
 	getDuration(): number {
-		return this.adapter.getDuration();
+		return this.driver.getDuration();
 	}
-
-	/**
-	 * Seeks to a given time position within the media.
-	 *
-	 * @param {Number} time The time position, in seconds.
-	 */
 
 	seek(time: number): void {
 		if (!isValidTime(time)) {
@@ -173,17 +58,10 @@ export class Player {
 			return;
 		}
 
-		this.adapter.seek(time);
+		this.driver.seek(time);
 	}
 
-	/**
-	 * Plays the given segment.
-	 *
-	 * @param {Segment} segment The segment denoting the time region to play.
-	 * @param {Boolean} loop If true, playback is looped.
-	 */
-
-	playSegment(segment: Segment, loop: boolean): Promise<void> {
+	playSegment(segment: Segment, loop: boolean = false): Promise<void> {
 		if (
 			!segment ||
 			!isValidTime(segment.startTime) ||
@@ -196,61 +74,10 @@ export class Player {
 			);
 		}
 
-		this.segment = segment;
-		this.loop = loop;
-
-		// Adapters that natively support segment playback (e.g. ClipNodePlayer
-		// using sample-accurate loopStart/loopEnd in an AudioWorklet) handle
-		// boundary detection themselves — no main-thread polling needed.
-		if (this.adapter.playSegment) {
-			return Promise.resolve(this.adapter.playSegment(segment, loop));
-		}
-
-		// Set audio time to segment start time
-		this.seek(segment.startTime);
-
-		this.peaks?.events.addEventListener(
-			"player.playing",
-			() => {
-				if (!this.playingSegment) {
-					this.playingSegment = true;
-
-					// We need to use requestAnimationFrame here as the timeupdate event
-					// doesn't fire often enough.
-					window.requestAnimationFrame(this.playSegmentTimerCallback);
-				}
-			},
-			{ once: true },
-		);
-
-		// Start playing audio
-		return this.play();
+		return this.driver.playSegment({ loop, segment });
 	}
 
-	private playSegmentTimerCallback = (): void => {
-		if (!this.isPlaying()) {
-			this.playingSegment = false;
-			return;
-		} else if (this.segment && this.getCurrentTime() >= this.segment.endTime) {
-			if (this.loop) {
-				this.seek(this.segment.startTime);
-			} else {
-				this.pause();
-				this.peaks?.events.dispatch("player.ended", {});
-				this.playingSegment = false;
-				return;
-			}
-		}
-
-		window.requestAnimationFrame(this.playSegmentTimerCallback);
-	};
-
-	setSource(options: SetSourceOptions): Promise<void> {
-		if (this.adapter.setSource) {
-			return this.adapter.setSource(options);
-		}
-		return Promise.reject(
-			new Error("Player adapter does not support setSource"),
-		);
+	setSource(options: AudioSource): Promise<void> {
+		return this.driver.setSource(options);
 	}
 }

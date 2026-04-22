@@ -4,11 +4,15 @@ import {
 	getProcessorBlobUrl,
 	StreamingClipNode,
 } from "@jadujoel/web-audio-clip-node";
-import type { PeaksEvents } from "./events";
-import type { Segment } from "./segment";
-import type { PlayerAdapter, PlayerEventBus, SetSourceOptions } from "./types";
+import type { PeaksEvents } from "../../../events";
+import type {
+	AudioDriver,
+	AudioDriverContext,
+	AudioSource,
+	PlaySegmentOptions,
+} from "../types";
 
-export interface ClipNodePlayerFromOptions {
+export interface ClipNodeAudioDriverFromOptions {
 	readonly context: AudioContext;
 	readonly buffer?: AudioBuffer;
 	readonly url?: string;
@@ -38,7 +42,7 @@ export function ensureWorkletModule(context: BaseAudioContext): Promise<void> {
 	return promise;
 }
 
-export class ClipNodePlayer implements PlayerAdapter {
+export class ClipNodeAudioDriver implements AudioDriver {
 	private constructor(
 		private readonly context: AudioContext,
 		private audioBuffer: AudioBuffer | undefined,
@@ -48,8 +52,8 @@ export class ClipNodePlayer implements PlayerAdapter {
 		private node: ClipNode | undefined,
 	) {}
 
-	static from(options: ClipNodePlayerFromOptions): ClipNodePlayer {
-		return new ClipNodePlayer(
+	static from(options: ClipNodeAudioDriverFromOptions): ClipNodeAudioDriver {
+		return new ClipNodeAudioDriver(
 			options.context,
 			options.buffer,
 			options.url,
@@ -59,8 +63,8 @@ export class ClipNodePlayer implements PlayerAdapter {
 		);
 	}
 
-	async init(peaks: PlayerEventBus): Promise<void> {
-		this.events = peaks.events;
+	async init(ctx: AudioDriverContext): Promise<void> {
+		this.events = ctx.events;
 		await ensureWorkletModule(this.context);
 		this.createNode();
 	}
@@ -73,7 +77,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 	play(): Promise<void> {
 		const node = this.node;
 		if (!node) {
-			return Promise.reject(new Error("ClipNodePlayer not initialized"));
+			return Promise.reject(new Error("ClipNodeAudioDriver not initialized"));
 		}
 
 		return this.context.resume().then(() => {
@@ -125,11 +129,13 @@ export class ClipNodePlayer implements PlayerAdapter {
 		}
 	}
 
-	playSegment(segment: Segment, loop: boolean): Promise<void> {
+	playSegment(options: PlaySegmentOptions): Promise<void> {
 		const node = this.node;
 		if (!node) {
-			return Promise.reject(new Error("ClipNodePlayer not initialized"));
+			return Promise.reject(new Error("ClipNodeAudioDriver not initialized"));
 		}
+
+		const { segment, loop } = options;
 
 		return this.context.resume().then(() => {
 			if (
@@ -151,11 +157,11 @@ export class ClipNodePlayer implements PlayerAdapter {
 		});
 	}
 
-	async setSource(options: SetSourceOptions): Promise<void> {
+	async setSource(source: AudioSource): Promise<void> {
 		this.disposeNode();
 
-		this.audioBuffer = options.webAudio?.audioBuffer;
-		this.url = options.mediaUrl;
+		this.audioBuffer = source.webAudio?.audioBuffer;
+		this.url = source.mediaUrl;
 		this.mediaDuration = this.audioBuffer?.duration ?? 0;
 
 		await ensureWorkletModule(this.context);

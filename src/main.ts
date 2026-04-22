@@ -1,9 +1,7 @@
 import type WaveformData from "waveform-data";
-import {
-	ClipNodePlayer,
-	type ClipNodePlayerFromOptions,
-} from "./clip-node-player";
 import { CueEmitter } from "./cue-emitter";
+import { buildDefaultAudioDriver } from "./driver/audio/default";
+import type { AudioDriver } from "./driver/audio/types";
 import { KonvaCanvasDriver } from "./driver/konva/driver";
 import { createPeaksEvents, type PeaksEvents } from "./events";
 import { KeyboardHandler } from "./keyboard-handler";
@@ -12,7 +10,6 @@ import {
 	createSegmentLabel,
 	createSegmentMarker,
 } from "./marker-factories";
-import { MediaElementPlayer } from "./mediaelement-player";
 import { PeaksGroup } from "./peaks-group";
 import { PeaksNode } from "./peaks-node";
 import { Player } from "./player";
@@ -22,7 +19,6 @@ import type {
 	PeaksConfiguration,
 	PeaksInstance,
 	PeaksOptions,
-	PlayerAdapter,
 	ScrollbarDisplayOptions,
 	SegmentDisplayOptions,
 	SetSourceOptions,
@@ -115,6 +111,7 @@ const defaultScrollbarOptions = {
 
 function createDefaultOptions(): PeaksOptions {
 	return {
+		audio: undefined,
 		createPointMarker: createPointMarker,
 		createSegmentLabel: createSegmentLabel,
 		createSegmentMarker: createSegmentMarker,
@@ -126,6 +123,7 @@ function createDefaultOptions(): PeaksOptions {
 		mediaElement: undefined,
 		mediaUrl: undefined,
 		nudgeIncrement: 1.0,
+		player: undefined,
 		pointMarkerColor: "#39cccc",
 		waveformCache: true,
 		waveformData: undefined,
@@ -465,40 +463,23 @@ export class Peaks {
 			});
 		}
 
-		let player: PlayerAdapter;
+		let driver: AudioDriver;
 
-		if (opts.player) {
-			player = opts.player;
-		} else if (instance.options.mediaElement) {
-			player = MediaElementPlayer.from({
-				mediaElement: instance.options.mediaElement,
-			});
+		if (opts.audio) {
+			driver = opts.audio;
 		} else {
-			const audioContext =
-				opts.audioContext ?? instance.options.webAudio?.audioContext;
-			const audioBuffer = instance.options.webAudio?.audioBuffer;
-			const url =
-				typeof instance.options.mediaUrl === "string"
-					? instance.options.mediaUrl
-					: undefined;
-
-			if (audioContext && (audioBuffer || url)) {
-				const clipOptions: ClipNodePlayerFromOptions = audioBuffer
-					? { buffer: audioBuffer, context: audioContext }
-					: { context: audioContext, url: url as string };
-				player = ClipNodePlayer.from(clipOptions);
-			} else {
-				callback(
-					new TypeError(
-						"Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
-					),
-				);
+			const built = buildDefaultAudioDriver(
+				instance.options as unknown as PeaksConfiguration,
+			);
+			if (built instanceof TypeError) {
+				callback(built);
 				return;
 			}
+			driver = built;
 		}
 
 		instance.player = Player.from({
-			adapter: player,
+			driver,
 			peaks: instance as unknown as PeaksInstance,
 		});
 		instance.segments = WaveformSegments.from({
@@ -619,7 +600,7 @@ export class Peaks {
 			return new TypeError("The options parameter should be an object");
 		}
 
-		if (!opts.player) {
+		if (!opts.player && !opts.audio) {
 			const webAudio = opts.webAudio as WebAudioOptions | undefined;
 			const hasAudioContextSource =
 				(opts.audioContext ?? webAudio?.audioContext) !== undefined &&

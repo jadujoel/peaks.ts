@@ -65,28 +65,40 @@ test("precomputed waveform demo handles keyboard navigation without errors", asy
 	expect(consoleErrors).toEqual([]);
 });
 
-test("public init API throws a clear error when callback is missing", async ({
+test("public init API returns a Promise when callback is omitted", async ({
 	page,
 }) => {
 	await page.goto("/index.html");
 
-	const errorMessage = await page.evaluate(async () => {
+	const result = await page.evaluate(async () => {
 		const loadPeaks = new Function(
 			'return import("/peaks.esm.js")',
-		) as () => Promise<{ default: { init: (...args: unknown[]) => void } }>;
+		) as () => Promise<{
+			default: { init: (...args: unknown[]) => unknown };
+		}>;
 		const peaksModule = await loadPeaks();
 
+		const returnValue = peaksModule.default.init({
+			mediaElement: document.getElementById("audio"),
+		});
+
+		const isPromise =
+			returnValue !== null &&
+			typeof returnValue === "object" &&
+			typeof (returnValue as { then?: unknown }).then === "function";
+
+		let rejected = false;
 		try {
-			peaksModule.default.init({
-				mediaElement: document.getElementById("audio"),
-			});
-			return null;
-		} catch (error) {
-			return error instanceof Error ? error.message : String(error);
+			await returnValue;
+		} catch {
+			rejected = true;
 		}
+
+		return { isPromise, rejected };
 	});
 
-	expect(errorMessage).toBe("Peaks.init(): Missing callback function");
+	expect(result.isPromise).toBe(true);
+	expect(result.rejected).toBe(true);
 });
 
 test("public async init API resolves with an instance", async ({ page }) => {
