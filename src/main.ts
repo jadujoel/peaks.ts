@@ -594,9 +594,7 @@ export class Peaks {
 
 	private setOptions(opts: PeaksConfiguration) {
 		if (!isObject(opts)) {
-			return new TypeError(
-				"The options parameter should be an object",
-			);
+			return new TypeError("The options parameter should be an object");
 		}
 
 		if (!opts.player) {
@@ -623,9 +621,7 @@ export class Peaks {
 		}
 
 		if (opts.logger && !isFunction(opts.logger)) {
-			return new TypeError(
-				"The logger option should be a function",
-			);
+			return new TypeError("The logger option should be a function");
 		}
 
 		if (opts.segments && !Array.isArray(opts.segments)) {
@@ -635,9 +631,7 @@ export class Peaks {
 		}
 
 		if (opts.points && !Array.isArray(opts.points)) {
-			return new TypeError(
-				"options.points must be an array of point objects",
-			);
+			return new TypeError("options.points must be an array of point objects");
 		}
 
 		extendOptions(
@@ -657,9 +651,7 @@ export class Peaks {
 		addSegmentOptions(writableOptions, opts);
 
 		if (!Array.isArray(this.options.zoomLevels)) {
-			return new TypeError(
-				"The zoomLevels option should be an array",
-			);
+			return new TypeError("The zoomLevels option should be an array");
 		} else if (this.options.zoomLevels.length === 0) {
 			return new Error("The zoomLevels array must not be empty");
 		} else {

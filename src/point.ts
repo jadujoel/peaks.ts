@@ -1,4 +1,4 @@
-import type { PeaksEvents } from './events';
+import type { PeaksEvents } from "./events";
 import type { PeaksInstance, PointOptions, PointUpdateOptions } from "./types";
 import {
 	isBoolean,
