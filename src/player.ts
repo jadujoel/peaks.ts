@@ -84,7 +84,12 @@ export class Player {
 		return new Player(options.peaks, options.adapter);
 	}
 
-	// TODO: why is this called init why do we have a separate init method at all?
+	/**
+	 * Asynchronously initialises the underlying player adapter. This is kept
+	 * separate from {@link Player.from} so that the constructor stays
+	 * synchronous (and can validate the adapter eagerly), while adapter setup
+	 * that depends on the DOM / network can return a `Promise`.
+	 */
 	init(): Promise<void> {
 		return Promise.resolve(this.adapter.init({ events: this.peaks.events }));
 	}

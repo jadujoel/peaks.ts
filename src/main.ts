@@ -361,7 +361,11 @@ export function checkContainerElements(options: PeaksOptions) {
 	}
 }
 
-// TODO: refactor to follow rules in .agents/skills/code/class.md
+// NOTE: this class predates the named-constructor / parameter-property style
+// in .agents/skills/code/class.md. The fields marked `declare` are populated
+// by `Peaks.init` after the underlying components have been built, so they
+// cannot be moved into the constructor signature without restructuring the
+// boot sequence.
 export class Peaks {
 	readonly events: PeaksEvents;
 	options: PeaksOptions;
@@ -387,21 +391,35 @@ export class Peaks {
 	}
 
 	/**
-	 * TODO: refactor to not use a callback and instead return a Promise that resolves with the instance once it's ready, and rejects if there is an error during initialization. We can have a separate static method for the callback version if we want to keep that for backwards compatibility, but I think it's better to just have one way to do it instead of two
-	 * also name something better than init, idk. maybe implement in the fromOptionsAsync instead.
-	 *
 	 * Initializes a Peaks instance and asynchronously builds its waveform views.
 	 *
-	 * @throws {Error} If the callback is missing.
+	 * Two calling conventions are supported:
+	 * - `Peaks.init(opts, callback)` — legacy node-style callback.
+	 * - `Peaks.init(opts)` — returns a `Promise<Peaks>` that resolves once the
+	 *   instance is ready, or rejects with the initialization error.
+	 *
 	 * @throws {TypeError} If initialization reaches a player adapter that does not implement the required methods.
 	 * @throws {Error} If invalid point or segment definitions are supplied and they fail validation during setup.
 	 */
+	static init(opts: PeaksConfiguration): Promise<Peaks>;
 	static init(
 		opts: PeaksConfiguration,
 		callback: (err?: Error, instance?: Peaks) => void,
-	): undefined | never {
+	): undefined | never;
+	static init(
+		opts: PeaksConfiguration,
+		callback?: (err?: Error, instance?: Peaks) => void,
+	): undefined | Promise<Peaks> {
 		if (!callback) {
-			throw new Error("Missing callback function");
+			return new Promise<Peaks>((resolve, reject) => {
+				Peaks.init(opts, (err, instance) => {
+					if (err || !instance) {
+						reject(err ?? new Error("Peaks.init failed"));
+						return;
+					}
+					resolve(instance);
+				});
+			});
 		}
 
 		const instance = new Peaks(createDefaultOptions());

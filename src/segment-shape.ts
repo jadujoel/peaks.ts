@@ -4,6 +4,7 @@ import type {
 	DriverRect,
 	DriverText,
 	PeaksPointerEvent,
+	RectAttrs,
 } from "./driver/types";
 
 import { dispatchSegmentEvent, type PointerInteractionName } from "./events";
@@ -125,8 +126,7 @@ export class SegmentShape {
 			overlayCornerRadius = segmentOptions.overlayCornerRadius;
 		}
 
-		// TODO: use a proper type, not record<string, unknown>
-		const rectConfig: Record<string, unknown> = {
+		const rectConfig: { -readonly [K in keyof RectAttrs]: RectAttrs[K] } = {
 			height: overlayRectHeight,
 			width: segmentEndOffset - segmentStartOffset,
 			x: 0,

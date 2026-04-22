@@ -66,19 +66,26 @@ describe("Peaks", () => {
 	});
 
 	describe("init", () => {
-		it("should throw if called without a callback", () => {
-			expect(() => {
-				(Peaks.init as unknown as (options: unknown) => unknown)({
-					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
-					mediaElement: document.getElementById("media"),
-					overview: {
-						container: document.getElementById("overview-container"),
-					},
-					zoomview: {
-						container: document.getElementById("zoomview-container"),
-					},
-				});
-			}).to.throw(Error, /callback/);
+		it("should return a Promise when called without a callback", async () => {
+			const result = Peaks.init({
+				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+				mediaElement: document.getElementById("media") as HTMLMediaElement,
+				overview: {
+					container: document.getElementById(
+						"overview-container",
+					) as HTMLDivElement,
+				},
+				zoomview: {
+					container: document.getElementById(
+						"zoomview-container",
+					) as HTMLDivElement,
+				},
+			});
+
+			expect(result).to.be.an.instanceof(Promise);
+			const instance = await result;
+			expect(instance).to.be.an.instanceof(Peaks);
+			instance.destroy();
 		});
 
 		describe("with valid options", () => {
