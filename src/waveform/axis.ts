@@ -7,46 +7,50 @@ import { formatTime, roundUpToNearest } from "../utils";
  */
 export interface WaveformAxisFromOptions {
 	readonly view: WaveformViewAPI;
-	readonly options: ViewOptions; // TODO: flatten these into the main options object
+	readonly options: ViewOptions;
+}
+
+export interface ShowAxisLabelsOptions {
+	readonly topMarkerHeight?: number;
+	readonly bottomMarkerHeight?: number;
 }
 
 export class WaveformAxis {
 	private constructor(
-		private readonly formatAxisTimeFn: (time: number) => string,
-		private readonly axisLabelFont: string,
-		private readonly axisShape: DriverShape,
-		private axisGridlineColor: string,
-		private axisLabelColor: string,
-		private showAxisLabelsFlag: boolean,
-		private axisTopMarkerHeight: number,
-		private axisBottomMarkerHeight: number,
-		// TODO: too many repetitions of "axis" in these property names, simplify.
+		private readonly formatTimeFn: (time: number) => string,
+		private readonly labelFont: string,
+		private readonly shape: DriverShape,
+		private gridlineColor: string,
+		private labelColor: string,
+		private showLabels: boolean,
+		private topMarkerHeight: number,
+		private bottomMarkerHeight: number,
 	) {}
 
 	static from(options: WaveformAxisFromOptions): WaveformAxis {
 		const view = options.view;
 		const opts = options.options;
 
-		const formatAxisTimeFn =
+		const formatTimeFn =
 			opts.formatAxisTime ?? ((time: number) => formatTime(time, 0));
 
-		const axisLabelFont = WaveformAxis.buildFontString(
+		const labelFont = WaveformAxis.buildFontString(
 			opts.fontFamily,
 			opts.fontSize,
 			opts.fontStyle,
 		);
 
 		let instance: WaveformAxis;
-		const axisShape = view.getDriver().createShape({
+		const shape = view.getDriver().createShape({
 			sceneFunc: (context: DriverContext) => {
 				instance.drawAxis(context, view);
 			},
 		});
 
 		instance = new WaveformAxis(
-			formatAxisTimeFn,
-			axisLabelFont,
-			axisShape,
+			formatTimeFn,
+			labelFont,
+			shape,
 			opts.axisGridlineColor,
 			opts.axisLabelColor,
 			opts.showAxisLabels,
@@ -57,35 +61,31 @@ export class WaveformAxis {
 	}
 
 	addToLayer(layer: DriverLayer): void {
-		layer.add(this.axisShape);
+		layer.add(this.shape);
 	}
 
-	showAxisLabels(
-		show: boolean,
-		// TODO: export options type as interface
-		options?: { topMarkerHeight?: number; bottomMarkerHeight?: number },
-	): void {
-		this.showAxisLabelsFlag = show;
+	showAxisLabels(show: boolean, options?: ShowAxisLabelsOptions): void {
+		this.showLabels = show;
 
 		if (options === undefined) {
 			return;
 		}
 
 		if (options.topMarkerHeight !== undefined) {
-			this.axisTopMarkerHeight = options.topMarkerHeight;
+			this.topMarkerHeight = options.topMarkerHeight;
 		}
 
 		if (options.bottomMarkerHeight !== undefined) {
-			this.axisBottomMarkerHeight = options.bottomMarkerHeight;
+			this.bottomMarkerHeight = options.bottomMarkerHeight;
 		}
 	}
 
 	setAxisLabelColor(color: string): void {
-		this.axisLabelColor = color;
+		this.labelColor = color;
 	}
 
 	setAxisGridlineColor(color: string): void {
-		this.axisGridlineColor = color;
+		this.gridlineColor = color;
 	}
 
 	private static buildFontString(
@@ -96,7 +96,7 @@ export class WaveformAxis {
 		return `${fontStyle} ${fontSize}px ${fontFamily}`;
 	}
 
-	private getAxisLabelScale(view: WaveformViewAPI): number {
+	private getLabelScale(view: WaveformViewAPI): number {
 		let baseSecs = 1;
 		const steps = [1, 2, 5, 10, 20, 30];
 		const minSpacing = 60;
@@ -124,64 +124,63 @@ export class WaveformAxis {
 	private drawAxis(context: DriverContext, view: WaveformViewAPI): void {
 		const currentFrameStartTime = view.getStartTime();
 
-		const axisLabelIntervalSecs = this.getAxisLabelScale(view);
+		const labelIntervalSecs = this.getLabelScale(view);
 
-		const firstAxisLabelSecs = roundUpToNearest(
+		const firstLabelSecs = roundUpToNearest(
 			currentFrameStartTime,
-			axisLabelIntervalSecs,
+			labelIntervalSecs,
 		);
 
-		const axisLabelOffsetSecs = firstAxisLabelSecs - currentFrameStartTime;
+		const labelOffsetSecs = firstLabelSecs - currentFrameStartTime;
 
-		const axisLabelOffsetPixels = view.timeToPixels(axisLabelOffsetSecs);
+		const labelOffsetPixels = view.timeToPixels(labelOffsetSecs);
 
-		context.setAttr("strokeStyle", this.axisGridlineColor);
+		context.setAttr("strokeStyle", this.gridlineColor);
 		context.setAttr("lineWidth", 1);
 
-		context.setAttr("font", this.axisLabelFont);
-		context.setAttr("fillStyle", this.axisLabelColor);
+		context.setAttr("font", this.labelFont);
+		context.setAttr("fillStyle", this.labelColor);
 		context.setAttr("textAlign", "left");
 		context.setAttr("textBaseline", "bottom");
 
 		const width = view.getWidth();
 		const height = view.getHeight();
 
-		let secs = firstAxisLabelSecs;
+		let secs = firstLabelSecs;
 
 		for (;;) {
-			const x =
-				axisLabelOffsetPixels + view.timeToPixels(secs - firstAxisLabelSecs);
+			const x = labelOffsetPixels + view.timeToPixels(secs - firstLabelSecs);
 
 			if (x >= width) {
 				break;
 			}
 
-			if (this.axisTopMarkerHeight > 0) {
+			if (this.topMarkerHeight > 0) {
 				context.beginPath();
 				context.moveTo(x + 0.5, 0);
-				context.lineTo(x + 0.5, 0 + this.axisTopMarkerHeight);
+				context.lineTo(x + 0.5, 0 + this.topMarkerHeight);
 				context.stroke();
 			}
 
-			if (this.axisBottomMarkerHeight > 0) {
+			if (this.bottomMarkerHeight > 0) {
 				context.beginPath();
 				context.moveTo(x + 0.5, height);
-				context.lineTo(x + 0.5, height - this.axisBottomMarkerHeight);
+				context.lineTo(x + 0.5, height - this.bottomMarkerHeight);
 				context.stroke();
 			}
 
-			if (this.showAxisLabelsFlag) {
-				const label = this.formatAxisTimeFn(secs);
+			if (this.showLabels) {
+				const label = this.formatTimeFn(secs);
 				const labelWidth = context.measureText(label).width;
 				const labelX = x - labelWidth / 2;
-				const labelY = height - 1 - this.axisBottomMarkerHeight;
+				const labelY = height - 1 - this.bottomMarkerHeight;
 
 				if (labelX >= 0) {
 					context.fillText(label, labelX, labelY);
 				}
 			}
 
-			secs += axisLabelIntervalSecs;
+			secs += labelIntervalSecs;
 		}
 	}
 }

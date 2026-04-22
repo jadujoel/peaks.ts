@@ -1,7 +1,6 @@
 import type { CanvasDriver } from "./driver/types";
 import { Scrollbar } from "./scrollbar";
 import type { PeaksInstance } from "./types";
-import { isNullOrUndefined } from "./utils";
 import { WaveformOverview } from "./waveform/overview";
 import { WaveformZoomView } from "./waveform/zoomview";
 
@@ -156,9 +155,14 @@ export class ViewController {
 				return this.overview;
 			case "zoomview":
 				return this.zoomview;
-			default: {
+			case undefined: {
+				if (this.overview !== undefined && this.zoomview !== undefined) {
+					return undefined;
+				}
 				return this.overview ?? this.zoomview;
 			}
+			default:
+				return undefined;
 		}
 	}
 

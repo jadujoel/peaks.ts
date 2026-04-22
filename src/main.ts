@@ -387,6 +387,9 @@ export class Peaks {
 	}
 
 	/**
+	 * TODO: refactor to not use a callback and instead return a Promise that resolves with the instance once it's ready, and rejects if there is an error during initialization. We can have a separate static method for the callback version if we want to keep that for backwards compatibility, but I think it's better to just have one way to do it instead of two
+	 * also name something better than init, idk. maybe implement in the fromOptionsAsync instead.
+	 *
 	 * Initializes a Peaks instance and asynchronously builds its waveform views.
 	 *
 	 * @throws {Error} If the callback is missing.
@@ -593,6 +596,7 @@ export class Peaks {
 	}
 
 	private setOptions(opts: PeaksConfiguration) {
+		// TODO: stop checking for everything that does not conform to the type definitions and just rely on TypeScript to catch these issues. If we want runtime checks we should be validating against a schema or something instead of manually checking each property like this
 		if (!isObject(opts)) {
 			return new TypeError("The options parameter should be an object");
 		}

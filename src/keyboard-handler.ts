@@ -8,11 +8,16 @@ export const NODE_TYPES = [
 	"OPTION",
 ] as const;
 
-export const SPACE = 32 as const;
-export const TAB = 9 as const;
-export const LEFT_ARROW = 37 as const;
-export const RIGHT_ARROW = 39 as const;
-const HANDLED_KEYS: readonly number[] = [SPACE, TAB, LEFT_ARROW, RIGHT_ARROW];
+const SPACE_KEY = " ";
+const TAB_KEY = "Tab";
+const LEFT_ARROW_KEY = "ArrowLeft";
+const RIGHT_ARROW_KEY = "ArrowRight";
+const HANDLED_KEYS: readonly string[] = [
+	SPACE_KEY,
+	TAB_KEY,
+	LEFT_ARROW_KEY,
+	RIGHT_ARROW_KEY,
+];
 
 function isExcludedNodeName(
 	nodeName: string,
@@ -47,31 +52,29 @@ export class KeyboardHandler {
 		const target = event.target as HTMLElement;
 
 		if (!isExcludedNodeName(target.nodeName)) {
-			// TODO: refactor to not use deprecated keyCode property.
-			if (HANDLED_KEYS.includes(event.keyCode)) {
+			if (HANDLED_KEYS.includes(event.key)) {
 				event.preventDefault();
 			}
 
 			if (event.type === "keydown" || event.type === "keypress") {
-				// TODO: refactor to not use deprecated keyCode property.
-				switch (event.keyCode) {
-					case SPACE:
+				switch (event.key) {
+					case SPACE_KEY:
 						this.events.dispatch("keyboard.space", {});
 						break;
-					case TAB:
+					case TAB_KEY:
 						this.events.dispatch("keyboard.tab", {});
 						break;
 				}
 			} else if (event.type === "keyup") {
-				switch (event.keyCode) {
-					case LEFT_ARROW:
+				switch (event.key) {
+					case LEFT_ARROW_KEY:
 						if (event.shiftKey) {
 							this.events.dispatch("keyboard.shift_left", {});
 						} else {
 							this.events.dispatch("keyboard.left", {});
 						}
 						break;
-					case RIGHT_ARROW:
+					case RIGHT_ARROW_KEY:
 						if (event.shiftKey) {
 							this.events.dispatch("keyboard.shift_right", {});
 						} else {

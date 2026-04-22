@@ -142,7 +142,7 @@ describe("WaveformView", () => {
 
 					view.setAxisLabelColor("#ff0000");
 
-					expect(view.axis.axisLabelColor).to.equal("#ff0000");
+					expect(view.axis.labelColor).to.equal("#ff0000");
 				});
 			});
 		});
@@ -156,7 +156,7 @@ describe("WaveformView", () => {
 
 					view.setAxisGridlineColor("#ff0000");
 
-					expect(view.axis.axisGridlineColor).to.equal("#ff0000");
+					expect(view.axis.gridlineColor).to.equal("#ff0000");
 				});
 			});
 		});

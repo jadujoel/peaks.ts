@@ -23,13 +23,6 @@ import type {
 } from "./types";
 import { WaveformShape } from "./waveform/shape";
 
-// TODO: uneccessary function just use the from method directly
-export function createOverlayMarker(
-	options: CreateSegmentMarkerOptions,
-): Marker {
-	return OverlaySegmentMarker.from({ options });
-}
-
 export function getDuration(segment: Segment): number {
 	return segment.endTime - segment.startTime;
 }
@@ -446,7 +439,8 @@ export class SegmentShape {
 		if (this.segment.markers) {
 			createSegmentMarkerFn = this.peaks.options.createSegmentMarker;
 		} else if (this.segment.overlay) {
-			createSegmentMarkerFn = createOverlayMarker;
+			createSegmentMarkerFn = (options: CreateSegmentMarkerOptions) =>
+				OverlaySegmentMarker.from({ options });
 		}
 
 		if (createSegmentMarkerFn) {

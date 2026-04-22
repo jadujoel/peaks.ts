@@ -123,6 +123,7 @@ export class SegmentMarker {
 	}
 
 	dispose(): void {
+		this.unbindDefaultEventHandlers();
 		this.marker.dispose();
 		this.group.destroyChildren();
 		this.group.destroy();
@@ -136,22 +137,33 @@ export class SegmentMarker {
 		this.group.stopDrag();
 	}
 
+	private onClickHandler = (event: PeaksPointerEvent<MouseEvent>): void => {
+		this.handlers.onClick(this, event);
+	};
+
+	private onDragStartHandler = (event: PeaksPointerEvent<MouseEvent>): void => {
+		this.handlers.onDragStart(this, event);
+	};
+
+	private onDragMoveHandler = (event: PeaksPointerEvent<MouseEvent>): void => {
+		this.handlers.onDragMove(this, event);
+	};
+
+	private onDragEndHandler = (event: PeaksPointerEvent<MouseEvent>): void => {
+		this.handlers.onDragEnd(this, event);
+	};
+
 	private bindDefaultEventHandlers(): void {
-		// TODO: unsubscribe these handlers in dispose()
-		this.group.on("click", (event: PeaksPointerEvent<MouseEvent>) => {
-			this.handlers.onClick(this, event);
-		});
+		this.group.on("click", this.onClickHandler);
+		this.group.on("dragstart", this.onDragStartHandler);
+		this.group.on("dragmove", this.onDragMoveHandler);
+		this.group.on("dragend", this.onDragEndHandler);
+	}
 
-		this.group.on("dragstart", (event: PeaksPointerEvent<MouseEvent>) => {
-			this.handlers.onDragStart(this, event);
-		});
-
-		this.group.on("dragmove", (event: PeaksPointerEvent<MouseEvent>) => {
-			this.handlers.onDragMove(this, event);
-		});
-
-		this.group.on("dragend", (event: PeaksPointerEvent<MouseEvent>) => {
-			this.handlers.onDragEnd(this, event);
-		});
+	private unbindDefaultEventHandlers(): void {
+		this.group.off("click", this.onClickHandler);
+		this.group.off("dragstart", this.onDragStartHandler);
+		this.group.off("dragmove", this.onDragMoveHandler);
+		this.group.off("dragend", this.onDragEndHandler);
 	}
 }

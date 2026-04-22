@@ -28,8 +28,8 @@ type InternalPlayheadLayer = {
 };
 
 type InternalAxis = {
-	axisLabelColor: string;
-	axisGridlineColor: string;
+	labelColor: string;
+	gridlineColor: string;
 };
 
 type InternalHighlightLayer = {
@@ -309,10 +309,10 @@ describe("Peaks", () => {
 							expect(zoomview.formatPlayheadTimeFn).to.equal(
 								zoomviewFormatPlayheadTime,
 							);
-							expect(overview.axis.axisLabelColor).to.equal("#0000ff");
-							expect(zoomview.axis.axisLabelColor).to.equal("#ff0000");
-							expect(overview.axis.axisGridlineColor).to.equal("#000000");
-							expect(zoomview.axis.axisGridlineColor).to.equal("#808080");
+							expect(overview.axis.labelColor).to.equal("#0000ff");
+							expect(zoomview.axis.labelColor).to.equal("#ff0000");
+							expect(overview.axis.gridlineColor).to.equal("#000000");
+							expect(zoomview.axis.gridlineColor).to.equal("#808080");
 							expect(overview.highlightLayer.offset).to.equal(2);
 							expect(overview.highlightLayer.color).to.equal("#808080");
 							expect(overview.highlightLayer.strokeColor).to.equal("#404040");
@@ -368,10 +368,10 @@ describe("Peaks", () => {
 							expect(zoomview.playheadLayer.playheadText).to.be.an.instanceOf(
 								Konva.Text,
 							);
-							expect(overview.axis.axisLabelColor).to.equal("#0000ff");
-							expect(zoomview.axis.axisLabelColor).to.equal("#0000ff");
-							expect(overview.axis.axisGridlineColor).to.equal("#000000");
-							expect(zoomview.axis.axisGridlineColor).to.equal("#000000");
+							expect(overview.axis.labelColor).to.equal("#0000ff");
+							expect(zoomview.axis.labelColor).to.equal("#0000ff");
+							expect(overview.axis.gridlineColor).to.equal("#000000");
+							expect(zoomview.axis.gridlineColor).to.equal("#000000");
 							expect(overview.highlightLayer.offset).to.equal(2);
 							expect(overview.highlightLayer.color).to.equal("#808080");
 							expect(overview.highlightLayer.strokeColor).to.equal("#404040");
@@ -415,10 +415,10 @@ describe("Peaks", () => {
 							);
 							expect(overview.playheadLayer.playheadText).to.equal(undefined);
 							expect(overview.playheadLayer.playheadText).to.equal(undefined);
-							expect(overview.axis.axisLabelColor).to.equal("#aaaaaa");
-							expect(zoomview.axis.axisLabelColor).to.equal("#aaaaaa");
-							expect(overview.axis.axisGridlineColor).to.equal("#cccccc");
-							expect(zoomview.axis.axisGridlineColor).to.equal("#cccccc");
+							expect(overview.axis.labelColor).to.equal("#aaaaaa");
+							expect(zoomview.axis.labelColor).to.equal("#aaaaaa");
+							expect(overview.axis.gridlineColor).to.equal("#cccccc");
+							expect(zoomview.axis.gridlineColor).to.equal("#cccccc");
 							expect(overview.highlightLayer.offset).to.equal(11);
 							expect(overview.highlightLayer.color).to.equal("#aaaaaa");
 							expect(overview.highlightLayer.strokeColor).to.equal(

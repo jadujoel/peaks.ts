@@ -113,19 +113,6 @@ export function isNumber(value: unknown): value is number {
 	return typeof value === "number";
 }
 
-// TODO: just use the number built in instead, remove this function
-export function isFinite(value: unknown): value is number {
-	if (typeof value !== "number") {
-		return false;
-	}
-
-	if (value !== value || value === Infinity || value === -Infinity) {
-		return false;
-	}
-
-	return true;
-}
-
 export function isValidTime(value: unknown): value is number {
 	return typeof value === "number" && Number.isFinite(value);
 }
@@ -165,11 +152,6 @@ export function isHTMLElement(value: unknown): value is HTMLElement {
 	return value instanceof HTMLElement;
 }
 
-// TODO: dont use this function, instead use the built in Array.isArray, remove it
-export function isArray(value: unknown): value is unknown[] {
-	return Array.isArray(value);
-}
-
 export function isLinearGradientColor(
 	value: unknown,
 ): value is LinearGradientColor {
@@ -180,7 +162,7 @@ export function isLinearGradientColor(
 		objectHasProperty(value, "linearGradientColorStops") &&
 		isNumber(value.linearGradientStart) &&
 		isNumber(value.linearGradientEnd) &&
-		isArray(value.linearGradientColorStops) &&
+		Array.isArray(value.linearGradientColorStops) &&
 		value.linearGradientColorStops.length === 2
 	);
 }

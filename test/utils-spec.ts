@@ -2,7 +2,6 @@ import {
 	clamp,
 	extend,
 	formatTime,
-	isFinite as isFiniteValue,
 	isFunction,
 	isInAscendingOrder,
 	isLinearGradientColor,
@@ -223,24 +222,6 @@ describe("Utils", () => {
 			expect(isNullOrUndefined({})).to.equal(false);
 			expect(isNullOrUndefined([])).to.equal(false);
 			expect(isNullOrUndefined(function foo() {})).to.equal(false);
-		});
-	});
-
-	describe("isFinite", () => {
-		it("should accept finite numbers", () => {
-			expect(isFiniteValue(1.0)).to.equal(true);
-		});
-
-		it("should reject non-finite numbers", () => {
-			expect(isFiniteValue(Infinity)).to.equal(false);
-			expect(isFiniteValue(-Infinity)).to.equal(false);
-			expect(isFiniteValue(NaN)).to.equal(false);
-		});
-
-		it("should reject non-numbers", () => {
-			expect(isFiniteValue("a")).to.equal(false);
-			expect(isFiniteValue(null)).to.equal(false);
-			expect(isFiniteValue(undefined)).to.equal(false);
 		});
 	});
 

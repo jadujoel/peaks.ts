@@ -2,16 +2,17 @@ import { MouseDragHandler } from "./mouse-drag-handler";
 import type { PeaksGroup } from "./peaks-group";
 import type { Segment } from "./segment";
 import type { PeaksInstance, SegmentShapeAPI } from "./types";
+import type { WaveformZoomView } from "./waveform/zoomview";
 
 export interface InsertSegmentMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: import("./waveform/zoomview").WaveformZoomView; // TODO: no dynamic imports
+	readonly view: WaveformZoomView;
 }
 
 export class InsertSegmentMouseDragHandler {
 	private constructor(
 		private readonly peaks: PeaksInstance,
-		private readonly view: import("./waveform/zoomview").WaveformZoomView,
+		private readonly view: WaveformZoomView,
 		private insertSegment: Segment | undefined = undefined,
 		private insertSegmentShape: SegmentShapeAPI | undefined = undefined,
 		private segmentIsDraggable: boolean = false,

@@ -22,7 +22,7 @@ import type {
 	ZoomviewOptions,
 } from "../types";
 import type { WaveformColor } from "../utils";
-import { formatTime, getMarkerObject, isFinite, isNumber } from "../utils";
+import { formatTime, getMarkerObject, isNumber } from "../utils";
 
 import { WaveformAxis } from "./axis";
 import { WaveformShape } from "./shape";
@@ -437,7 +437,7 @@ export class WaveformView {
 	 */
 
 	setAmplitudeScale(scale: number): undefined | never {
-		if (!isNumber(scale) || !isFinite(scale)) {
+		if (!isNumber(scale) || !Number.isFinite(scale)) {
 			throw new Error("view.setAmplitudeScale(): Scale must be a valid number");
 		}
 

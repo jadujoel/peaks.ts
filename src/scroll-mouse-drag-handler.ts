@@ -2,6 +2,7 @@ import { MouseDragHandler } from "./mouse-drag-handler";
 import type { PeaksGroup } from "./peaks-group";
 import type { PeaksInstance } from "./types";
 import { clamp } from "./utils";
+import type { WaveformZoomView } from "./waveform/zoomview";
 
 /**
  * Creates a handler for mouse events to allow scrolling the zoomable
@@ -10,13 +11,13 @@ import { clamp } from "./utils";
 
 export interface ScrollMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: import("./waveform/zoomview").WaveformZoomView; // todo: no dynamic imports for types
+	readonly view: WaveformZoomView;
 }
 
 export class ScrollMouseDragHandler {
 	private constructor(
 		private readonly peaks: PeaksInstance,
-		private readonly view: import("./waveform/zoomview").WaveformZoomView,
+		private readonly view: WaveformZoomView,
 		private seeking: boolean = false,
 		private firstMove: boolean = false,
 		private segment: PeaksGroup | undefined = undefined,
