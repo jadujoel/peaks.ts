@@ -131,13 +131,19 @@ export class WaveformZoomView extends WaveformView {
 
 	private initializeZoomView(): void {
 		// Register event handlers
-		this.peaks.on("player.timeupdate", this.onTimeUpdate);
-		this.peaks.on("player.playing", this.onPlaying);
-		this.peaks.on("player.pause", this.onPause);
-		this.peaks.on("keyboard.left", this.onKeyboardLeft);
-		this.peaks.on("keyboard.right", this.onKeyboardRight);
-		this.peaks.on("keyboard.shift_left", this.onKeyboardShiftLeft);
-		this.peaks.on("keyboard.shift_right", this.onKeyboardShiftRight);
+		this.peaks.events.addEventListener("player.timeupdate", this.onTimeUpdate);
+		this.peaks.events.addEventListener("player.playing", this.onPlaying);
+		this.peaks.events.addEventListener("player.pause", this.onPause);
+		this.peaks.events.addEventListener("keyboard.left", this.onKeyboardLeft);
+		this.peaks.events.addEventListener("keyboard.right", this.onKeyboardRight);
+		this.peaks.events.addEventListener(
+			"keyboard.shift_left",
+			this.onKeyboardShiftLeft,
+		);
+		this.peaks.events.addEventListener(
+			"keyboard.shift_right",
+			this.onKeyboardShiftRight,
+		);
 
 		const zoomviewOptions = this.viewOptions as ZoomviewOptions;
 
@@ -152,7 +158,7 @@ export class WaveformZoomView extends WaveformView {
 
 		this.setWheelMode(zoomviewOptions.wheelMode);
 
-		this.peaks.emit("zoomview.update", {
+		this.peaks.events.dispatch("zoomview.update", {
 			endTime: this.getEndTime(),
 			startTime: 0,
 		});
@@ -310,20 +316,20 @@ export class WaveformZoomView extends WaveformView {
 		return "zoomview";
 	}
 
-	private onTimeUpdate = (time: number): void => {
+	private onTimeUpdate = (event: { time: number }): void => {
 		if (this.mouseDragHandler?.isDragging()) {
 			return;
 		}
 
-		this.syncPlayhead(time);
+		this.syncPlayhead(event.time);
 	};
 
-	private onPlaying = (time: number): void => {
-		this.playheadLayer.updatePlayheadTime(time);
+	private onPlaying = (event: { time: number }): void => {
+		this.playheadLayer.updatePlayheadTime(event.time);
 	};
 
-	private onPause = (time: number): void => {
-		this.playheadLayer.stop(time);
+	private onPause = (event: { time: number }): void => {
+		this.playheadLayer.stop(event.time);
 	};
 
 	private onKeyboardLeft = (): void => {
@@ -478,7 +484,7 @@ export class WaveformZoomView extends WaveformView {
 		// Update the playhead position after zooming.
 		this.playheadLayer.updatePlayheadTime(currentTime);
 
-		this.peaks.emit("zoom.update", {
+		this.peaks.events.dispatch("zoom.update", {
 			currentZoom: scale,
 			previousZoom: prevScale,
 		});
@@ -622,7 +628,7 @@ export class WaveformZoomView extends WaveformView {
 			this.segmentsLayer.updateSegments(frameStartTime, frameEndTime);
 		}
 
-		this.peaks.emit("zoomview.update", {
+		this.peaks.events.dispatch("zoomview.update", {
 			endTime: frameEndTime,
 			startTime: frameStartTime,
 		});
@@ -683,13 +689,25 @@ export class WaveformZoomView extends WaveformView {
 
 	override dispose(): void {
 		// Unregister event handlers
-		this.peaks.off("player.playing", this.onPlaying);
-		this.peaks.off("player.pause", this.onPause);
-		this.peaks.off("player.timeupdate", this.onTimeUpdate);
-		this.peaks.off("keyboard.left", this.onKeyboardLeft);
-		this.peaks.off("keyboard.right", this.onKeyboardRight);
-		this.peaks.off("keyboard.shift_left", this.onKeyboardShiftLeft);
-		this.peaks.off("keyboard.shift_right", this.onKeyboardShiftRight);
+		this.peaks.events.removeEventListener("player.playing", this.onPlaying);
+		this.peaks.events.removeEventListener("player.pause", this.onPause);
+		this.peaks.events.removeEventListener(
+			"player.timeupdate",
+			this.onTimeUpdate,
+		);
+		this.peaks.events.removeEventListener("keyboard.left", this.onKeyboardLeft);
+		this.peaks.events.removeEventListener(
+			"keyboard.right",
+			this.onKeyboardRight,
+		);
+		this.peaks.events.removeEventListener(
+			"keyboard.shift_left",
+			this.onKeyboardShiftLeft,
+		);
+		this.peaks.events.removeEventListener(
+			"keyboard.shift_right",
+			this.onKeyboardShiftRight,
+		);
 
 		if (this.waveformCacheEnabled) {
 			this.waveformDataCache.clear();

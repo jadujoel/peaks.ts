@@ -77,7 +77,7 @@ export class WaveformPoints {
 			this.addPoint(point);
 		}
 
-		this.peaks.emit("points.add", {
+		this.peaks.events.dispatch("points.add", {
 			points: created,
 		});
 
@@ -132,7 +132,7 @@ export class WaveformPoints {
 		this.points.length = 0;
 		this.byId.clear();
 		this.byPid.clear();
-		this.peaks.emit("points.remove_all");
+		this.peaks.events.dispatch("points.remove_all", {});
 	}
 
 	/**
@@ -234,7 +234,7 @@ export class WaveformPoints {
 	private removePoints(predicate: PointPredicate): Point[] {
 		const indexes = this.findPoint(predicate);
 		const removed = this.removeByIndexes(indexes);
-		this.peaks.emit("points.remove", {
+		this.peaks.events.dispatch("points.remove", {
 			points: removed,
 		});
 		return removed;

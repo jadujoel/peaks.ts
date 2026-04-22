@@ -41,7 +41,7 @@ describe("Segment", () => {
 				startTime: 0,
 			});
 
-			const emit = sinon.spy(p, "emit");
+			const emit = sinon.spy(p.events, "dispatch");
 
 			const segment = p.segments.getSegments()[0];
 
@@ -62,7 +62,8 @@ describe("Segment", () => {
 			expect(segment.labelText).to.equal("new label text");
 
 			expect(emit.callCount).to.equal(1);
-			expect(emit).to.have.been.calledWith("segments.update", segment);
+			expect(emit.firstCall.args[0]).to.equal("segments.update");
+			expect(emit.firstCall.args[1].segment).to.equal(segment);
 		});
 
 		it("should not allow startTime to be greater than endTime", () => {
@@ -125,7 +126,7 @@ describe("Segment", () => {
 				startTime: 0,
 			});
 
-			const emit = sinon.spy(p, "emit");
+			const emit = sinon.spy(p.events, "dispatch");
 
 			const segment = p.segments.getSegments()[0];
 
@@ -221,7 +222,7 @@ describe("Segment", () => {
 		});
 
 		it("should allow a user data attribute to be created", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -242,7 +243,7 @@ describe("Segment", () => {
 		});
 
 		it("should allow a user data attribute to be updated", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -281,7 +282,7 @@ describe("Segment", () => {
 		].forEach((name) => {
 			it(`should not allow an invalid user data attribute name: ${name}`, () => {
 				expect(() => {
-					const peaks = { emit: () => {} };
+					const peaks = { events: { dispatch: () => true } as never };
 					const pid = 0;
 
 					const segment = Segment.from({
@@ -308,7 +309,7 @@ describe("Segment", () => {
 
 	describe("isVisible", () => {
 		it("should return false if segment is before visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -327,7 +328,7 @@ describe("Segment", () => {
 		});
 
 		it("should return false if segment is after visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -346,7 +347,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment is within visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -365,7 +366,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment starts before and ends within visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -384,7 +385,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment starts before and ends at end of visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -403,7 +404,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment starts after and ends after visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -422,7 +423,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment starts after and ends at the end of visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -441,7 +442,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment is same as visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -460,7 +461,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment contains visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({
@@ -479,7 +480,7 @@ describe("Segment", () => {
 		});
 
 		it("should return true if segment starts at time zero and has zero end time", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const segment = Segment.from({

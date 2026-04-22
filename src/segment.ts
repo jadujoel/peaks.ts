@@ -215,7 +215,7 @@ export function validateSegmentOptions(
  */
 
 export type SegmentPeaksLike = {
-	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
+	readonly events: PeaksInstance["events"];
 	readonly segments?: Pick<PeaksInstance["segments"], "updateSegmentId">;
 };
 
@@ -285,7 +285,10 @@ export class Segment {
 		applyOptionOverrides(this, options);
 		applyUserData(this, options);
 
-		this.peaks.emit("segments.update", this, options);
+		this.peaks.events.dispatch("segments.update", {
+			options,
+			segment: this,
+		});
 	}
 
 	/**

@@ -47,7 +47,8 @@ export type WaveformBuilderPeaksLike = {
 		mediaElement?: HTMLMediaElement;
 	};
 	readonly logger?: Logger;
-	readonly once?: (eventName: string, listener: () => void) => void;
+	// TODO: do not use dynamic imports
+	readonly events?: import("../events").PeaksEvents;
 };
 
 export interface WaveformBuilderFromOptions {
@@ -319,14 +320,18 @@ export class WaveformBuilder {
 				callback,
 			);
 		} else {
-			this.peaks.once?.("player.canplay", () => {
-				this.requestAudioAndBuildWaveformData(
-					this.peaks.options.mediaElement?.currentSrc ?? "",
-					webAudioOptions,
-					options.withCredentials ?? false,
-					callback,
-				);
-			});
+			this.peaks.events?.addEventListener(
+				"player.canplay",
+				() => {
+					this.requestAudioAndBuildWaveformData(
+						this.peaks.options.mediaElement?.currentSrc ?? "",
+						webAudioOptions,
+						options.withCredentials ?? false,
+						callback,
+					);
+				},
+				{ once: true },
+			);
 		}
 	}
 

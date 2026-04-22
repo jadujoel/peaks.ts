@@ -475,7 +475,7 @@ function initOptions(
 
 			describe("when clicking on the waveform", () => {
 				it(`should emit a ${test.view}.click event`, () => {
-					const emit = sinon.spy(p, "emit");
+					const emit = sinon.spy(p.events, "dispatch");
 
 					const x = test.view === "overview" ? 40 : 100;
 
@@ -492,7 +492,7 @@ function initOptions(
 				});
 
 				it(`should emit a ${test.view}.dblclick event`, () => {
-					const emit = sinon.spy(p, "emit");
+					const emit = sinon.spy(p.events, "dispatch");
 
 					const x = test.view === "overview" ? 40 : 100;
 
@@ -540,7 +540,7 @@ function initOptions(
 										test.view +
 										".click and a segments.click event",
 									() => {
-										const emit = sinon.spy(p, "emit");
+										const emit = sinon.spy(p.events, "dispatch");
 
 										const x = test.view === "overview" ? 40 : 100;
 
@@ -594,7 +594,7 @@ function initOptions(
 										test.view +
 										".dblclick and a segments.dblclick event",
 									() => {
-										const emit = sinon.spy(p, "emit");
+										const emit = sinon.spy(p.events, "dispatch");
 
 										const x = test.view === "overview" ? 40 : 100;
 
@@ -694,9 +694,9 @@ function initOptions(
 								);
 
 								it(`should allow the user to prevent the ${test.view}.click event`, () => {
-									const emit = sinon.spy(p, "emit");
+									const emit = sinon.spy(p.events, "dispatch");
 
-									p.on("segments.click", (event) => {
+									p.events.addEventListener("segments.click", (event) => {
 										event.preventViewEvent();
 									});
 
@@ -729,9 +729,9 @@ function initOptions(
 								});
 
 								it(`should allow the user to prevent the ${test.view}.dblclick event`, () => {
-									const emit = sinon.spy(p, "emit");
+									const emit = sinon.spy(p.events, "dispatch");
 
-									p.on("segments.dblclick", (event) => {
+									p.events.addEventListener("segments.dblclick", (event) => {
 										event.preventViewEvent();
 									});
 
@@ -805,7 +805,7 @@ function initOptions(
 				});
 
 				it(`should emit both a ${test.view}.click and a points.click event`, () => {
-					const emit = sinon.spy(p, "emit");
+					const emit = sinon.spy(p.events, "dispatch");
 
 					const x = test.view === "overview" ? 30 : 86;
 
@@ -837,7 +837,7 @@ function initOptions(
 				});
 
 				it(`should emit both a ${test.view}.dblclick and a points.dblclick event`, () => {
-					const emit = sinon.spy(p, "emit");
+					const emit = sinon.spy(p.events, "dispatch");
 
 					const x = test.view === "overview" ? 30 : 86;
 
@@ -899,9 +899,9 @@ function initOptions(
 				});
 
 				it(`should allow the user to prevent the ${test.view}.click event`, () => {
-					const emit = sinon.spy(p, "emit");
+					const emit = sinon.spy(p.events, "dispatch");
 
-					p.on("points.click", (event) => {
+					p.events.addEventListener("points.click", (event) => {
 						event.preventViewEvent();
 					});
 
@@ -931,9 +931,9 @@ function initOptions(
 				});
 
 				it(`should allow the user to prevent the ${test.view}.dblclick event`, () => {
-					const emit = sinon.spy(p, "emit");
+					const emit = sinon.spy(p.events, "dispatch");
 
-					p.on("points.dblclick", (event) => {
+					p.events.addEventListener("points.dblclick", (event) => {
 						event.preventViewEvent();
 					});
 

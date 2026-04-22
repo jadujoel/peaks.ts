@@ -161,7 +161,7 @@ export class WaveformSegments {
 			this.appendSegment(segment);
 		}
 
-		this.peaks.emit("segments.add", {
+		this.peaks.events.dispatch("segments.add", {
 			insert: this.inserting,
 			segments: created,
 		});
@@ -236,7 +236,7 @@ export class WaveformSegments {
 
 		const removed = this.removeIndexes(indexes);
 
-		this.peaks.emit("segments.remove", {
+		this.peaks.events.dispatch("segments.remove", {
 			segments: removed,
 		});
 
@@ -277,7 +277,7 @@ export class WaveformSegments {
 		this.segments = [];
 		this.segmentsById.clear();
 		this.segmentsByPid.clear();
-		this.peaks.emit("segments.remove_all");
+		this.peaks.events.dispatch("segments.remove_all", {});
 	}
 
 	setInserting(value: boolean): void {

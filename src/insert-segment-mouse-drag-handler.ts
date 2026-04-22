@@ -104,7 +104,7 @@ export class InsertSegmentMouseDragHandler {
 			this.segment.draggable(true);
 		}
 
-		this.peaks.emit("segments.insert", {
+		this.peaks.events.dispatch("segments.insert", {
 			segment: this.insertSegment,
 		});
 

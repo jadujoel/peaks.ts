@@ -1,4 +1,5 @@
 import { Cue } from "./cue";
+import type { PeaksEvents } from "./events";
 import type { Point } from "./point";
 import type { Segment } from "./segment";
 import type { PeaksInstance } from "./types";
@@ -144,8 +145,8 @@ export class CueEmitter {
 	private constructor(
 		private readonly peaks: Pick<
 			PeaksInstance,
-			"points" | "segments" | "player" | "emit" | "on" | "off"
-		>,
+			"points" | "segments" | "player"
+		> & { readonly events: PeaksEvents },
 		private readonly cues: Cue[] = [],
 		private readonly active: ActiveSegmentsMap = new Map(),
 		private previousTime: number = -1,
@@ -160,11 +161,14 @@ export class CueEmitter {
 
 	public dispose(): void {
 		cancelAnimationFrame(this.rAFHandle);
-		this.peaks.off("player.timeupdate", this.onTimeUpdate);
-		this.peaks.off("player.playing", this.onPlaying);
-		this.peaks.off("player.seeked", this.onSeeked);
+		this.peaks.events.removeEventListener(
+			"player.timeupdate",
+			this.onTimeUpdate,
+		);
+		this.peaks.events.removeEventListener("player.playing", this.onPlaying);
+		this.peaks.events.removeEventListener("player.seeked", this.onSeeked);
 		for (const event of TRACKED_EVENTS) {
-			this.peaks.off(event, this.rebuildCues);
+			this.peaks.events.removeEventListener(event, this.rebuildCues);
 		}
 		this.previousTime = -1;
 	}
@@ -188,7 +192,7 @@ export class CueEmitter {
 			if (!point) {
 				return;
 			}
-			this.peaks.emit(kind, { point, time });
+			this.peaks.events.dispatch(kind, { point, time });
 			return;
 		}
 
@@ -202,7 +206,7 @@ export class CueEmitter {
 		} else {
 			this.active.delete(segment.id);
 		}
-		this.peaks.emit(kind, { segment, time });
+		this.peaks.events.dispatch(kind, { segment, time });
 	}
 
 	private emitCueCrossings(time: number, previousTime: number): void {
@@ -214,16 +218,16 @@ export class CueEmitter {
 
 	// onTimeUpdate and onAnimationFrame cooperate: when the window isn't
 	// visible, rAF is throttled, so we fall back to timeupdate events.
-	private readonly onTimeUpdate = (time: number): void => {
+	private readonly onTimeUpdate = (event: { time: number }): void => {
 		if (isWindowVisible()) {
 			return;
 		}
 
 		if (this.peaks.player.isPlaying() && !this.peaks.player.isSeeking()) {
-			this.emitCueCrossings(time, this.previousTime);
+			this.emitCueCrossings(event.time, this.previousTime);
 		}
 
-		this.previousTime = time;
+		this.previousTime = event.time;
 	};
 
 	private readonly onAnimationFrame = (): void => {
@@ -245,9 +249,9 @@ export class CueEmitter {
 		this.rAFHandle = requestAnimationFrame(this.onAnimationFrame);
 	};
 
-	private readonly onSeeked = (time: number): void => {
-		this.previousTime = time;
-		this.syncActiveSegments(time);
+	private readonly onSeeked = (event: { time: number }): void => {
+		this.previousTime = event.time;
+		this.syncActiveSegments(event.time);
 	};
 
 	/**
@@ -260,7 +264,7 @@ export class CueEmitter {
 
 		for (const [id, segment] of this.active) {
 			if (!currentIds.has(id)) {
-				this.peaks.emit(CUE_EVENT_SEGMENT_EXIT, { segment, time });
+				this.peaks.events.dispatch(CUE_EVENT_SEGMENT_EXIT, { segment, time });
 				this.active.delete(id);
 			}
 		}
@@ -268,18 +272,18 @@ export class CueEmitter {
 		for (const segment of current) {
 			if (!this.active.has(segment.id)) {
 				this.active.set(segment.id, segment);
-				this.peaks.emit(CUE_EVENT_SEGMENT_ENTER, { segment, time });
+				this.peaks.events.dispatch(CUE_EVENT_SEGMENT_ENTER, { segment, time });
 			}
 		}
 	}
 
 	private addEventHandlers(): void {
-		this.peaks.on("player.timeupdate", this.onTimeUpdate);
-		this.peaks.on("player.playing", this.onPlaying);
-		this.peaks.on("player.seeked", this.onSeeked);
+		this.peaks.events.addEventListener("player.timeupdate", this.onTimeUpdate);
+		this.peaks.events.addEventListener("player.playing", this.onPlaying);
+		this.peaks.events.addEventListener("player.seeked", this.onSeeked);
 
 		for (const event of TRACKED_EVENTS) {
-			this.peaks.on(event, this.rebuildCues);
+			this.peaks.events.addEventListener(event, this.rebuildCues);
 		}
 
 		this.rebuildCues();

@@ -39,7 +39,7 @@ describe("Point", () => {
 				time: 10,
 			});
 
-			const emit = sinon.spy(p, "emit");
+			const emit = sinon.spy(p.events, "dispatch");
 
 			const point = p.points.getPoints()[0];
 
@@ -56,7 +56,8 @@ describe("Point", () => {
 			expect(point.labelText).to.equal("new label text");
 
 			expect(emit.callCount).to.equal(1);
-			expect(emit).to.have.been.calledWith("points.update", point);
+			expect(emit.firstCall.args[0]).to.equal("points.update");
+			expect(emit.firstCall.args[1].point).to.equal(point);
 		});
 
 		it("should not allow the point time to be invalid", () => {
@@ -142,7 +143,7 @@ describe("Point", () => {
 				time: 10,
 			});
 
-			const emit = sinon.spy(p, "emit");
+			const emit = sinon.spy(p.events, "dispatch");
 
 			const point = p.points.getPoints()[0];
 
@@ -208,7 +209,7 @@ describe("Point", () => {
 		});
 
 		it("should allow a user data attribute to be created", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const point = Point.from({
@@ -229,7 +230,7 @@ describe("Point", () => {
 		});
 
 		it("should allow a user data attribute to be updated", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const point = Point.from({
@@ -263,7 +264,7 @@ describe("Point", () => {
 		].forEach((name) => {
 			it(`should not allow an invalid user data attribute name: ${name}`, () => {
 				expect(() => {
-					const peaks = { emit: () => {} };
+					const peaks = { events: { dispatch: () => true } as never };
 					const pid = 0;
 
 					const point = Point.from({
@@ -290,7 +291,7 @@ describe("Point", () => {
 
 	describe("isVisible", () => {
 		it("should return false if point is before visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const point = Point.from({
@@ -308,7 +309,7 @@ describe("Point", () => {
 		});
 
 		it("should return false if point is after visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const point = Point.from({
@@ -326,7 +327,7 @@ describe("Point", () => {
 		});
 
 		it("should return true if point is within visible range", () => {
-			const peaks = { emit: () => {} };
+			const peaks = { events: { dispatch: () => true } as never };
 			const pid = 0;
 
 			const point = Point.from({

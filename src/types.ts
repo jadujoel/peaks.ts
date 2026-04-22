@@ -1,4 +1,3 @@
-import type EventEmitter from "eventemitter3";
 import type WaveformData from "waveform-data";
 import type {
 	CanvasDriver,
@@ -6,6 +5,7 @@ import type {
 	PeaksPointerEvent,
 	XY,
 } from "./driver/types";
+import type { PeaksEvents, PointerInteractionName } from "./events";
 import type { PeaksGroup } from "./peaks-group";
 import type { PeaksNode } from "./peaks-node";
 
@@ -18,8 +18,12 @@ import type { WaveformColor } from "./utils";
 export type Logger = (...args: unknown[]) => void;
 
 // ─── Player Adapter ─────────────────────────────────────────────────
+export interface PlayerEventBus {
+	readonly events: PeaksEvents;
+}
+
 export interface PlayerAdapter {
-	init(eventEmitter: PeaksInstance): Promise<void> | void;
+	init(peaks: PlayerEventBus): Promise<void> | void;
 	dispose?(): void;
 	play(): Promise<void> | void;
 	pause(): void;
@@ -352,8 +356,9 @@ export interface WaveformViewAPI {
 }
 
 // ─── Peaks Instance ─────────────────────────────────────────────────
-export interface PeaksInstance extends EventEmitter {
+export interface PeaksInstance {
 	readonly options: PeaksOptions;
+	readonly events: PeaksEvents;
 	readonly player: PlayerInstance;
 	readonly segments: SegmentsInstance;
 	readonly points: PointsInstance;
@@ -365,7 +370,7 @@ export interface PeaksInstance extends EventEmitter {
 
 // Lightweight interface for Player (to avoid circular imports)
 export interface PlayerInstance {
-	init(peaks: PeaksInstance): Promise<void>;
+	init(): Promise<void>;
 	dispose(): void;
 	play(): Promise<void>;
 	pause(): void;
@@ -524,7 +529,10 @@ export interface SegmentShapeAPI {
 	fitToView(): void;
 	addToLayer(layer: DriverLayer): void;
 	dispose(): void;
-	segmentClicked(eventName: string, event: SegmentClickEvent): void;
+	segmentClicked(
+		eventName: PointerInteractionName,
+		event: SegmentClickEvent,
+	): void;
 }
 
 export interface PointMarkerOptions {

@@ -1,10 +1,10 @@
 import type { DriverLayer, DriverStage } from "./driver/types";
+import type { EventFor, PeaksEventMap, PointerInteractionName } from "./events";
 import type { Segment } from "./segment";
 import { SegmentShape } from "./segment-shape";
 import type {
 	PeaksInstance,
 	SegmentClickEvent,
-	SegmentUpdateOptions,
 	WaveformViewAPI,
 } from "./types";
 
@@ -36,11 +36,26 @@ export class SegmentsLayer {
 			new Map<number, SegmentShape>(),
 			options.enableEditing,
 		);
-		instance.peaks.on("segments.update", instance.onSegmentsUpdate);
-		instance.peaks.on("segments.add", instance.onSegmentsAdd);
-		instance.peaks.on("segments.remove", instance.onSegmentsRemove);
-		instance.peaks.on("segments.remove_all", instance.onSegmentsRemoveAll);
-		instance.peaks.on("segments.dragged", instance.onSegmentsDragged);
+		instance.peaks.events.addEventListener(
+			"segments.update",
+			instance.onSegmentsUpdate,
+		);
+		instance.peaks.events.addEventListener(
+			"segments.add",
+			instance.onSegmentsAdd,
+		);
+		instance.peaks.events.addEventListener(
+			"segments.remove",
+			instance.onSegmentsRemove,
+		);
+		instance.peaks.events.addEventListener(
+			"segments.remove_all",
+			instance.onSegmentsRemoveAll,
+		);
+		instance.peaks.events.addEventListener(
+			"segments.dragged",
+			instance.onSegmentsDragged,
+		);
 		return instance;
 	}
 
@@ -98,7 +113,10 @@ export class SegmentsLayer {
 		this.layer.visible(visible);
 	}
 
-	segmentClicked(eventName: string, event: SegmentClickEvent): void {
+	segmentClicked(
+		eventName: PointerInteractionName,
+		event: SegmentClickEvent,
+	): void {
 		const segmentShape = this.segmentShapes.get(event.segment.pid);
 
 		if (segmentShape) {
@@ -107,11 +125,23 @@ export class SegmentsLayer {
 	}
 
 	dispose(): void {
-		this.peaks.off("segments.update", this.onSegmentsUpdate);
-		this.peaks.off("segments.add", this.onSegmentsAdd);
-		this.peaks.off("segments.remove", this.onSegmentsRemove);
-		this.peaks.off("segments.remove_all", this.onSegmentsRemoveAll);
-		this.peaks.off("segments.dragged", this.onSegmentsDragged);
+		this.peaks.events.removeEventListener(
+			"segments.update",
+			this.onSegmentsUpdate,
+		);
+		this.peaks.events.removeEventListener("segments.add", this.onSegmentsAdd);
+		this.peaks.events.removeEventListener(
+			"segments.remove",
+			this.onSegmentsRemove,
+		);
+		this.peaks.events.removeEventListener(
+			"segments.remove_all",
+			this.onSegmentsRemoveAll,
+		);
+		this.peaks.events.removeEventListener(
+			"segments.dragged",
+			this.onSegmentsDragged,
+		);
 	}
 
 	fitToView(): void {
@@ -133,9 +163,9 @@ export class SegmentsLayer {
 	}
 
 	private onSegmentsUpdate = (
-		segment: Segment,
-		options: SegmentUpdateOptions,
+		event: EventFor<PeaksEventMap, "segments.update">,
 	): void => {
+		const { segment, options } = event;
 		const frameStartTime = this.view.getStartTime();
 		const frameEndTime = this.view.getEndTime();
 
@@ -153,10 +183,9 @@ export class SegmentsLayer {
 		}
 	};
 
-	private onSegmentsAdd = (event: {
-		segments: Segment[];
-		insert: boolean;
-	}): void => {
+	private onSegmentsAdd = (
+		event: EventFor<PeaksEventMap, "segments.add">,
+	): void => {
 		const frameStartTime = this.view.getStartTime();
 		const frameEndTime = this.view.getEndTime();
 
@@ -171,7 +200,9 @@ export class SegmentsLayer {
 		this.moveSegmentMarkersToTop();
 	};
 
-	private onSegmentsRemove = (event: { segments: Segment[] }): void => {
+	private onSegmentsRemove = (
+		event: EventFor<PeaksEventMap, "segments.remove">,
+	): void => {
 		for (const segment of event.segments) {
 			this.removeSegment(segment);
 		}
@@ -182,7 +213,9 @@ export class SegmentsLayer {
 		this.segmentShapes.clear();
 	};
 
-	private onSegmentsDragged = (event: { segment: Segment }): void => {
+	private onSegmentsDragged = (
+		event: EventFor<PeaksEventMap, "segments.dragged">,
+	): void => {
 		this.updateSegment(event.segment);
 	};
 

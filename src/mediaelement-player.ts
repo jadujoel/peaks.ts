@@ -1,4 +1,5 @@
-import type { PeaksInstance, SetSourceOptions } from "./types";
+import type { PeaksEvents } from "./events";
+import type { PlayerEventBus, SetSourceOptions } from "./types";
 
 /**
  * Implementation of Player adapter based on an <audio> or <video> HTML element.
@@ -22,20 +23,20 @@ function mediaElementHasSource(mediaElement: HTMLMediaElement): boolean {
 }
 
 interface SetSourceHandlerFromOptions {
-	readonly eventEmitter: PeaksInstance;
+	readonly events: PeaksEvents;
 	readonly mediaElement: HTMLMediaElement;
 }
 
 class SetSourceHandler {
 	private constructor(
-		private readonly eventEmitter: PeaksInstance,
+		private readonly events: PeaksEvents,
 		private readonly mediaElement: HTMLMediaElement,
 		private resolve: (() => void) | undefined = undefined,
 		private reject: ((reason: MediaError) => void) | undefined = undefined,
 	) {}
 
 	static from(options: SetSourceHandlerFromOptions): SetSourceHandler {
-		return new SetSourceHandler(options.eventEmitter, options.mediaElement);
+		return new SetSourceHandler(options.events, options.mediaElement);
 	}
 
 	setSource(options: SetSourceOptions): Promise<void> {
@@ -43,8 +44,8 @@ class SetSourceHandler {
 			this.resolve = resolve;
 			this.reject = reject;
 
-			this.eventEmitter.on("player.canplay", this.onPlayerCanPlay);
-			this.eventEmitter.on("player.error", this.onPlayerError);
+			this.events.addEventListener("player.canplay", this.onPlayerCanPlay);
+			this.events.addEventListener("player.error", this.onPlayerError);
 
 			this.mediaElement.setAttribute("src", options.mediaUrl ?? "");
 
@@ -57,8 +58,8 @@ class SetSourceHandler {
 	}
 
 	private reset(): void {
-		this.eventEmitter.removeListener("player.canplay", this.onPlayerCanPlay);
-		this.eventEmitter.removeListener("player.error", this.onPlayerError);
+		this.events.removeEventListener("player.canplay", this.onPlayerCanPlay);
+		this.events.removeEventListener("player.error", this.onPlayerError);
 	}
 
 	private onPlayerCanPlay = (): void => {
@@ -67,11 +68,11 @@ class SetSourceHandler {
 		this.resolve?.();
 	};
 
-	private onPlayerError = (err: MediaError): void => {
+	private onPlayerError = (event: { readonly error: unknown }): void => {
 		this.reset();
 
 		// Return the MediaError object from the media element
-		this.reject?.(err);
+		this.reject?.(event.error as MediaError);
 	};
 }
 
@@ -95,7 +96,7 @@ export interface MediaElementPlayerFromOptions {
 export class MediaElementPlayer {
 	private constructor(
 		private mediaElement: HTMLMediaElement | undefined,
-		private eventEmitter: PeaksInstance | undefined = undefined,
+		private events: PeaksEvents | undefined = undefined,
 		private listeners: MediaListener[] = [],
 	) {}
 
@@ -115,39 +116,47 @@ export class MediaElementPlayer {
 		this.mediaElement?.addEventListener(type, callback);
 	}
 
-	init(eventEmitter: PeaksInstance): Promise<void> {
-		this.eventEmitter = eventEmitter;
+	init(peaks: PlayerEventBus): Promise<void> {
+		this.events = peaks.events;
 		this.listeners = [];
 
 		this.addMediaListener("timeupdate", () => {
-			this.eventEmitter?.emit("player.timeupdate", this.getCurrentTime());
+			this.events?.dispatch("player.timeupdate", {
+				time: this.getCurrentTime(),
+			});
 		});
 
 		this.addMediaListener("playing", () => {
-			this.eventEmitter?.emit("player.playing", this.getCurrentTime());
+			this.events?.dispatch("player.playing", {
+				time: this.getCurrentTime(),
+			});
 		});
 
 		this.addMediaListener("pause", () => {
-			this.eventEmitter?.emit("player.pause", this.getCurrentTime());
+			this.events?.dispatch("player.pause", {
+				time: this.getCurrentTime(),
+			});
 		});
 
 		this.addMediaListener("ended", () => {
-			this.eventEmitter?.emit("player.ended");
+			this.events?.dispatch("player.ended", {});
 		});
 
 		this.addMediaListener("seeked", () => {
-			this.eventEmitter?.emit("player.seeked", this.getCurrentTime());
+			this.events?.dispatch("player.seeked", {
+				time: this.getCurrentTime(),
+			});
 		});
 
 		this.addMediaListener("canplay", () => {
-			this.eventEmitter?.emit("player.canplay");
+			this.events?.dispatch("player.canplay", {});
 		});
 
 		this.addMediaListener("error", (event: Event) => {
-			this.eventEmitter?.emit(
-				"player.error",
-				(event.target as HTMLMediaElement).error,
-			);
+			const error = (event.target as HTMLMediaElement).error;
+			if (error) {
+				this.events?.dispatch("player.error", { error });
+			}
 		});
 
 		if (!this.mediaElement) {
@@ -275,14 +284,14 @@ export class MediaElementPlayer {
 			);
 		}
 
-		if (!this.eventEmitter || !this.mediaElement) {
+		if (!this.events || !this.mediaElement) {
 			return Promise.reject(
 				new Error("peaks.setSource(): player not initialized"),
 			);
 		}
 
 		const setSourceHandler = SetSourceHandler.from({
-			eventEmitter: this.eventEmitter,
+			events: this.events,
 			mediaElement: this.mediaElement,
 		});
 

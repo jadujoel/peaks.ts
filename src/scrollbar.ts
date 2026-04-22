@@ -105,7 +105,10 @@ export class Scrollbar {
 		scrollbox.on("dragstart", instance.onScrollboxDragStart);
 		scrollbox.on("dragmove", instance.onScrollboxDragMove);
 		scrollbox.on("dragend", instance.onScrollboxDragEnd);
-		options.peaks.on("zoomview.update", instance.onZoomviewUpdate);
+		options.peaks.events.addEventListener(
+			"zoomview.update",
+			instance.onZoomviewUpdate,
+		);
 
 		instance.updateScrollbarWidthAndPosition();
 
@@ -135,7 +138,10 @@ export class Scrollbar {
 	}
 
 	dispose(): void {
-		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
+		this.peaks.events.removeEventListener(
+			"zoomview.update",
+			this.onZoomviewUpdate,
+		);
 		this.layer.destroy();
 		this.stage.destroy();
 	}

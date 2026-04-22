@@ -245,8 +245,8 @@ describe("Player", () => {
 
 		describe("play", () => {
 			it("should trigger mediaelement playing event", (done: DoneCallback) => {
-				p.on("player.playing", (currentTime) => {
-					expect(currentTime).to.be.lessThan(0.05);
+				p.events.addEventListener("player.playing", (event) => {
+					expect(event.time).to.be.lessThan(0.05);
 					done();
 				});
 
@@ -270,10 +270,10 @@ describe("Player", () => {
 			});
 
 			it("should return an updated time if it has been modified through the audio element", (done: DoneCallback) => {
-				p.on("player.seeked", (currentTime) => {
-					expect(currentTime).to.equal(p.player.getCurrentTime());
+				p.events.addEventListener("player.seeked", (event) => {
+					expect(event.time).to.equal(p.player.getCurrentTime());
 
-					const diff = Math.abs(currentTime - newTime);
+					const diff = Math.abs(event.time - newTime);
 					expect(diff).to.be.lessThan(0.2);
 
 					done();
@@ -290,9 +290,13 @@ describe("Player", () => {
 					return;
 				}
 
-				p.once("player.seeked", () => {
-					done();
-				});
+				p.events.addEventListener(
+					"player.seeked",
+					() => {
+						done();
+					},
+					{ once: true },
+				);
 
 				p.player.seek(0.0);
 			});
@@ -300,11 +304,15 @@ describe("Player", () => {
 			it("should change the currentTime value of the audio element", (done: DoneCallback) => {
 				const newTime = 6.0;
 
-				p.once("player.seeked", (currentTime) => {
-					const diff = Math.abs(currentTime - newTime);
-					expect(diff).to.be.lessThan(0.2);
-					done();
-				});
+				p.events.addEventListener(
+					"player.seeked",
+					(event) => {
+						const diff = Math.abs(event.time - newTime);
+						expect(diff).to.be.lessThan(0.2);
+						done();
+					},
+					{ once: true },
+				);
 
 				p.player.seek(newTime);
 			});
@@ -351,12 +359,12 @@ describe("Player", () => {
 						expect(error.name).to.equal("AbortError");
 					});
 
-				p.on("player.playing", (currentTime) => {
-					const diff = Math.abs(currentTime - expectedStart);
+				p.events.addEventListener("player.playing", (event) => {
+					const diff = Math.abs(event.time - expectedStart);
 					expect(diff).to.be.lessThan(0.05);
 				});
 
-				p.on("player.pause", () => {
+				p.events.addEventListener("player.pause", () => {
 					const diff = Math.abs(p.player.getCurrentTime() - expectedEnd);
 					expect(diff).to.be.lessThan(0.05);
 					done();

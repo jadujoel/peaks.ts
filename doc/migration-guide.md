@@ -2,6 +2,40 @@
 
 This document describes any breaking changes in the Peaks.js API and provides advice on how to migrate your code to the updated API.
 
+## Peaks.ts (typed event bus)
+
+Peaks instances no longer extend `EventEmitter`. The `instance.on` /
+`instance.once` / `instance.off` / `instance.emit` methods have been removed.
+Listeners are now registered through a typed event bus exposed on
+`instance.events`, which uses the standard DOM `addEventListener` /
+`removeEventListener` shape.
+
+Each listener now receives a single event object whose `type` field is the
+event name and whose remaining fields contain the typed payload. Events that
+previously delivered a single positional argument (for example
+`player.timeupdate` delivered just the `time` value) now deliver an object
+payload (`{ time }`).
+
+```js
+// Before
+instance.on('player.timeupdate', function(time) {
+  console.log(time);
+});
+instance.once('player.error', function(error) {
+  console.log(error);
+});
+instance.off('player.timeupdate', listener);
+
+// After
+instance.events.addEventListener('player.timeupdate', function(event) {
+  console.log(event.time);
+});
+instance.events.addEventListener('player.error', function(event) {
+  console.log(event.error);
+}, { once: true });
+instance.events.removeEventListener('player.timeupdate', listener);
+```
+
 ## Peaks.js v4.0.0
 
 The `peaks.ready` event has been removed in Peaks.js v4.0.0. Instead of using this event, applications must now pass a callback function to `Peaks.init()`. This enables error handling, which is only possible using the callback function.

@@ -1,3 +1,4 @@
+import type { PeaksEvents } from './events';
 import type { PeaksInstance, PointOptions, PointUpdateOptions } from "./types";
 import {
 	isBoolean,
@@ -12,7 +13,7 @@ import {
  */
 
 export type PointPeaksLike = {
-	emit: (eventName: string | symbol, ...args: unknown[]) => unknown;
+	readonly events: PeaksEvents;
 	readonly points?: Pick<PeaksInstance["points"], "updatePointId">;
 };
 
@@ -188,7 +189,7 @@ export class Point {
 
 		applyUserData(this, options);
 
-		this.peaks.emit("points.update", this, options);
+		this.peaks.events.dispatch("points.update", { options, point: this });
 	}
 
 	isVisible(startTime: number, endTime: number): boolean {

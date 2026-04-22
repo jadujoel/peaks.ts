@@ -4,8 +4,9 @@ import {
 	getProcessorBlobUrl,
 	StreamingClipNode,
 } from "@jadujoel/web-audio-clip-node";
+import type { PeaksEvents } from "./events";
 import type { Segment } from "./segment";
-import type { PeaksInstance, PlayerAdapter, SetSourceOptions } from "./types";
+import type { PlayerAdapter, PlayerEventBus, SetSourceOptions } from "./types";
 
 export interface ClipNodePlayerFromOptions {
 	readonly context: AudioContext;
@@ -43,7 +44,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 		private audioBuffer: AudioBuffer | undefined,
 		private url: string | undefined,
 		private mediaDuration: number,
-		private eventEmitter: PeaksInstance | undefined,
+		private events: PeaksEvents | undefined,
 		private node: ClipNode | undefined,
 	) {}
 
@@ -58,15 +59,15 @@ export class ClipNodePlayer implements PlayerAdapter {
 		);
 	}
 
-	async init(eventEmitter: PeaksInstance): Promise<void> {
-		this.eventEmitter = eventEmitter;
+	async init(peaks: PlayerEventBus): Promise<void> {
+		this.events = peaks.events;
 		await ensureWorkletModule(this.context);
 		this.createNode();
 	}
 
 	dispose(): void {
 		this.disposeNode();
-		this.eventEmitter = undefined;
+		this.events = undefined;
 	}
 
 	play(): Promise<void> {
@@ -177,7 +178,7 @@ export class ClipNodePlayer implements PlayerAdapter {
 		} else if (this.audioBuffer) {
 			node.buffer = this.audioBuffer;
 			this.mediaDuration = this.audioBuffer.duration;
-			this.eventEmitter?.emit("player.canplay");
+			this.events?.dispatch("player.canplay", {});
 		}
 	}
 
@@ -193,31 +194,31 @@ export class ClipNodePlayer implements PlayerAdapter {
 	}
 
 	private wireEvents(node: ClipNode): void {
-		const emitter = this.eventEmitter;
-		if (!emitter) {
+		const events = this.events;
+		if (!events) {
 			return;
 		}
 
 		node.onstarted = () => {
-			emitter.emit("player.playing", this.getCurrentTime());
+			events.dispatch("player.playing", { time: this.getCurrentTime() });
 		};
 		node.onresumed = () => {
-			emitter.emit("player.playing", this.getCurrentTime());
+			events.dispatch("player.playing", { time: this.getCurrentTime() });
 		};
 		node.onpaused = () => {
-			emitter.emit("player.pause", this.getCurrentTime());
+			events.dispatch("player.pause", { time: this.getCurrentTime() });
 		};
 		node.onended = () => {
-			emitter.emit("player.ended");
+			events.dispatch("player.ended", {});
 		};
 		node.onlooped = () => {
-			emitter.emit("player.looped");
+			events.dispatch("player.looped", {});
 		};
 		node.onseeked = () => {
-			emitter.emit("player.seeked", this.getCurrentTime());
+			events.dispatch("player.seeked", { time: this.getCurrentTime() });
 		};
 		node.ontimeupdate = (time: number) => {
-			emitter.emit("player.timeupdate", time);
+			events.dispatch("player.timeupdate", { time });
 		};
 		node.ondurationchange = (duration: number) => {
 			this.mediaDuration = duration;
@@ -225,10 +226,10 @@ export class ClipNodePlayer implements PlayerAdapter {
 
 		if (node instanceof StreamingClipNode) {
 			node.oncanplay = () => {
-				emitter.emit("player.canplay");
+				events.dispatch("player.canplay", {});
 			};
 			node.onerror = (error) => {
-				emitter.emit("player.error", error);
+				events.dispatch("player.error", { error });
 			};
 		}
 	}

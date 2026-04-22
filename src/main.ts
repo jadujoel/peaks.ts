@@ -1,4 +1,3 @@
-import EventEmitter from "eventemitter3";
 import type WaveformData from "waveform-data";
 import {
 	ClipNodePlayer,
@@ -6,6 +5,7 @@ import {
 } from "./clip-node-player";
 import { CueEmitter } from "./cue-emitter";
 import { KonvaCanvasDriver } from "./driver/konva/driver";
+import { createPeaksEvents, type PeaksEvents } from "./events";
 import { KeyboardHandler } from "./keyboard-handler";
 import {
 	createPointMarker,
@@ -338,7 +338,7 @@ export function checkContainerElements(options: PeaksOptions) {
 
 	if (!isHTMLElement(zoomviewContainer) && !isHTMLElement(overviewContainer)) {
 		return new TypeError(
-			"Peaks.init(): The zoomview and/or overview container options must be valid HTML elements",
+			"The zoomview and/or overview container options must be valid HTML elements",
 		);
 	}
 
@@ -347,7 +347,7 @@ export function checkContainerElements(options: PeaksOptions) {
 		(zoomviewContainer.clientWidth <= 0 || zoomviewContainer.clientHeight <= 0)
 	) {
 		return new Error(
-			"Peaks.init(): The zoomview container must be visible and have non-zero width and height",
+			"The zoomview container must be visible and have non-zero width and height",
 		);
 	}
 
@@ -356,13 +356,14 @@ export function checkContainerElements(options: PeaksOptions) {
 		(overviewContainer.clientWidth <= 0 || overviewContainer.clientHeight <= 0)
 	) {
 		return new Error(
-			"Peaks.init(): The overview container must be visible and have non-zero width and height",
+			"The overview container must be visible and have non-zero width and height",
 		);
 	}
 }
 
 // TODO: refactor to follow rules in .agents/skills/code/class.md
-export class Peaks extends EventEmitter {
+export class Peaks {
+	readonly events: PeaksEvents;
 	options: PeaksOptions;
 	declare player: Player;
 	declare segments: WaveformSegments;
@@ -376,7 +377,7 @@ export class Peaks extends EventEmitter {
 	declare cueEmitter: CueEmitter | undefined;
 
 	private constructor(options: PeaksOptions) {
-		super();
+		this.events = createPeaksEvents();
 		this.options = options;
 		this.logger = options.logger;
 		this.keyboardHandler = undefined;
@@ -397,7 +398,7 @@ export class Peaks extends EventEmitter {
 		callback: (err?: Error, instance?: Peaks) => void,
 	): undefined | never {
 		if (!callback) {
-			throw new Error("Peaks.init(): Missing callback function");
+			throw new Error("Missing callback function");
 		}
 
 		const instance = new Peaks(createDefaultOptions());
@@ -421,7 +422,7 @@ export class Peaks extends EventEmitter {
 			if (!isHTMLElement(scrollbarContainer)) {
 				callback(
 					new TypeError(
-						"Peaks.init(): The scrollbar container option must be a valid HTML element",
+						"The scrollbar container option must be a valid HTML element",
 					),
 				);
 				return;
@@ -430,7 +431,7 @@ export class Peaks extends EventEmitter {
 			if (scrollbarContainer.clientWidth <= 0) {
 				callback(
 					new TypeError(
-						"Peaks.init(): The scrollbar container must be visible and have non-zero width",
+						"The scrollbar container must be visible and have non-zero width",
 					),
 				);
 				return;
@@ -439,7 +440,7 @@ export class Peaks extends EventEmitter {
 
 		if (opts.keyboard) {
 			instance.keyboardHandler = KeyboardHandler.from({
-				events: instance as unknown as PeaksInstance,
+				events: instance.events,
 			});
 		}
 
@@ -468,7 +469,7 @@ export class Peaks extends EventEmitter {
 			} else {
 				callback(
 					new TypeError(
-						"Peaks.init(): Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
+						"Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
 					),
 				);
 				return;
@@ -577,7 +578,7 @@ export class Peaks extends EventEmitter {
 					if (!instance) {
 						reject(
 							new Error(
-								"Peaks.init(): Initialization completed without returning an instance",
+								"Initialization completed without returning an instance",
 							),
 						);
 						return;
@@ -594,7 +595,7 @@ export class Peaks extends EventEmitter {
 	private setOptions(opts: PeaksConfiguration) {
 		if (!isObject(opts)) {
 			return new TypeError(
-				"Peaks.init(): The options parameter should be an object",
+				"The options parameter should be an object",
 			);
 		}
 
@@ -607,7 +608,7 @@ export class Peaks extends EventEmitter {
 
 			if (!opts.mediaElement && !hasAudioContextSource) {
 				return new Error(
-					"Peaks.init(): Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
+					"Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
 				);
 			}
 
@@ -616,26 +617,26 @@ export class Peaks extends EventEmitter {
 				!(opts.mediaElement instanceof HTMLMediaElement)
 			) {
 				return new TypeError(
-					"Peaks.init(): The mediaElement option should be an HTMLMediaElement",
+					"The mediaElement option should be an HTMLMediaElement",
 				);
 			}
 		}
 
 		if (opts.logger && !isFunction(opts.logger)) {
 			return new TypeError(
-				"Peaks.init(): The logger option should be a function",
+				"The logger option should be a function",
 			);
 		}
 
 		if (opts.segments && !Array.isArray(opts.segments)) {
 			return new TypeError(
-				"Peaks.init(): options.segments must be an array of segment objects",
+				"options.segments must be an array of segment objects",
 			);
 		}
 
 		if (opts.points && !Array.isArray(opts.points)) {
 			return new TypeError(
-				"Peaks.init(): options.points must be an array of point objects",
+				"options.points must be an array of point objects",
 			);
 		}
 
@@ -657,14 +658,14 @@ export class Peaks extends EventEmitter {
 
 		if (!Array.isArray(this.options.zoomLevels)) {
 			return new TypeError(
-				"Peaks.init(): The zoomLevels option should be an array",
+				"The zoomLevels option should be an array",
 			);
 		} else if (this.options.zoomLevels.length === 0) {
-			return new Error("Peaks.init(): The zoomLevels array must not be empty");
+			return new Error("The zoomLevels array must not be empty");
 		} else {
 			if (!isInAscendingOrder(this.options.zoomLevels)) {
 				return new Error(
-					"Peaks.init(): The zoomLevels array must be sorted in ascending order",
+					"The zoomLevels array must be sorted in ascending order",
 				);
 			}
 		}

@@ -92,8 +92,6 @@ export class ViewController {
 
 	/**
 	 * Creates the scrollbar view.
-	 *
-	 * @throws {Error} If scrollbar options are missing from the Peaks configuration.
 	 */
 	createScrollbar(container: HTMLDivElement): Scrollbar | never {
 		this.scrollbar = Scrollbar.from({
@@ -150,27 +148,16 @@ export class ViewController {
 		}
 	}
 
-	getView(name?: string): WaveformOverview | WaveformZoomView | undefined {
-		if (isNullOrUndefined(name)) {
-			if (this.overview && this.zoomview) {
-				return undefined;
-			} else if (this.overview) {
+	getView(
+		name?: "overview" | "zoomview" | (string & {}),
+	): WaveformOverview | WaveformZoomView | undefined {
+		switch (name) {
+			case "overview":
 				return this.overview;
-			} else if (this.zoomview) {
+			case "zoomview":
 				return this.zoomview;
-			} else {
-				return undefined;
-			}
-		} else {
-			switch (name) {
-				case "overview":
-					return this.overview;
-
-				case "zoomview":
-					return this.zoomview;
-
-				default:
-					return undefined;
+			default: {
+				return this.overview ?? this.zoomview;
 			}
 		}
 	}

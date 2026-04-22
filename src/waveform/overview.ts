@@ -49,10 +49,10 @@ export class WaveformOverview extends WaveformView {
 		const peaks = this.peaks;
 
 		// Register event handlers
-		peaks.on("player.timeupdate", this.onTimeUpdate);
-		peaks.on("player.playing", this.onPlaying);
-		peaks.on("player.pause", this.onPause);
-		peaks.on("zoomview.update", this.onZoomviewUpdate);
+		peaks.events.addEventListener("player.timeupdate", this.onTimeUpdate);
+		peaks.events.addEventListener("player.playing", this.onPlaying);
+		peaks.events.addEventListener("player.pause", this.onPause);
+		peaks.events.addEventListener("zoomview.update", this.onZoomviewUpdate);
 
 		const time = this.peaks.player.getCurrentTime();
 
@@ -96,21 +96,21 @@ export class WaveformOverview extends WaveformView {
 		return "overview";
 	}
 
-	private onTimeUpdate = (time: number): void => {
-		this.playheadLayer.updatePlayheadTime(time);
+	private onTimeUpdate = (event: { time: number }): void => {
+		this.playheadLayer.updatePlayheadTime(event.time);
 	};
 
-	private onPlaying = (time: number): void => {
-		this.playheadLayer.updatePlayheadTime(time);
+	private onPlaying = (event: { time: number }): void => {
+		this.playheadLayer.updatePlayheadTime(event.time);
 	};
 
-	private onPause = (time: number): void => {
-		this.playheadLayer.stop(time);
+	private onPause = (event: { time: number }): void => {
+		this.playheadLayer.stop(event.time);
 	};
 
 	private onZoomviewUpdate = (event: {
-		startTime: number;
-		endTime: number;
+		readonly startTime: number;
+		readonly endTime: number;
 	}): void => {
 		this.showHighlight(event.startTime, event.endTime);
 	};
@@ -186,10 +186,16 @@ export class WaveformOverview extends WaveformView {
 
 	override dispose(): void {
 		// Unregister event handlers
-		this.peaks.off("player.playing", this.onPlaying);
-		this.peaks.off("player.pause", this.onPause);
-		this.peaks.off("player.timeupdate", this.onTimeUpdate);
-		this.peaks.off("zoomview.update", this.onZoomviewUpdate);
+		this.peaks.events.removeEventListener("player.playing", this.onPlaying);
+		this.peaks.events.removeEventListener("player.pause", this.onPause);
+		this.peaks.events.removeEventListener(
+			"player.timeupdate",
+			this.onTimeUpdate,
+		);
+		this.peaks.events.removeEventListener(
+			"zoomview.update",
+			this.onZoomviewUpdate,
+		);
 
 		this.mouseDragHandler?.dispose();
 		this.highlightLayer?.dispose();

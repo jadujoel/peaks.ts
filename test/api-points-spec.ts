@@ -192,7 +192,7 @@ describe("Peaks.points", () => {
 		});
 
 		it("should emit an event with an array containing a single point object", (done: DoneCallback) => {
-			p.on("points.add", (event) => {
+			p.events.addEventListener("points.add", (event) => {
 				expect(event.points).to.have.lengthOf(1);
 				expect(event.points[0]).to.be.an.instanceOf(Point);
 				expect(event.points[0].time).to.equal(0);
@@ -203,7 +203,7 @@ describe("Peaks.points", () => {
 		});
 
 		it("should emit an event with multiple point objects", (done: DoneCallback) => {
-			p.on("points.add", (event) => {
+			p.events.addEventListener("points.add", (event) => {
 				expect(event.points).to.have.lengthOf(2);
 				expect(event.points[0]).to.be.an.instanceOf(Point);
 				expect(event.points[0].time).to.equal(0);
@@ -364,7 +364,7 @@ describe("Peaks.points", () => {
 		});
 
 		it("should emit an event with the removed points", (done: DoneCallback) => {
-			p.on("points.remove", (event) => {
+			p.events.addEventListener("points.remove", (event) => {
 				expect(event.points).to.be.an.instanceOf(Array);
 				expect(event.points).to.have.lengthOf(1);
 				expect(event.points[0]).to.be.an.instanceOf(Point);
@@ -423,7 +423,7 @@ describe("Peaks.points", () => {
 		});
 
 		it("should emit an event with the removed points", (done: DoneCallback) => {
-			p.on("points.remove", (event) => {
+			p.events.addEventListener("points.remove", (event) => {
 				expect(event.points).to.be.an.instanceOf(Array);
 				expect(event.points).to.have.lengthOf(2);
 				expect(event.points[0]).to.be.an.instanceOf(Point);
@@ -465,7 +465,7 @@ describe("Peaks.points", () => {
 		});
 
 		it("should emit an event with the removed points", (done: DoneCallback) => {
-			p.on("points.remove", (event) => {
+			p.events.addEventListener("points.remove", (event) => {
 				expect(event.points).to.be.an.instanceOf(Array);
 				expect(event.points.length).to.equal(1);
 				expect(event.points[0]).to.be.an.instanceOf(Point);
@@ -506,8 +506,8 @@ describe("Peaks.points", () => {
 		});
 
 		it("should emit an event", (done: DoneCallback) => {
-			p.on("points.remove_all", (param) => {
-				expect(param).to.be.undefined;
+			p.events.addEventListener("points.remove_all", (event) => {
+				expect(event.type).to.equal("points.remove_all");
 
 				const remainingPoints = p.points.getPoints();
 

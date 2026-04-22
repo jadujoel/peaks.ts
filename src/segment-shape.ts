@@ -6,6 +6,7 @@ import type {
 	PeaksPointerEvent,
 } from "./driver/types";
 
+import { dispatchSegmentEvent, type PointerInteractionName } from "./events";
 import { OverlaySegmentMarker } from "./overlay-segment-marker";
 import type { PeaksNode } from "./peaks-node";
 import type { Segment } from "./segment";
@@ -327,10 +328,10 @@ export class SegmentShape {
 		return this.dragging;
 	}
 
-	segmentClicked(eventName: string, event: SegmentClickEvent) {
+	segmentClicked(eventName: PointerInteractionName, event: SegmentClickEvent) {
 		this.moveSegmentToTop();
 
-		this.peaks.emit(`segments.${eventName}`, event);
+		dispatchSegmentEvent(this.peaks.events, eventName, event);
 	}
 
 	enableSegmentDragging(enable: boolean) {
@@ -634,15 +635,15 @@ export class SegmentShape {
 			this.segment.setStartTime(this.view.pixelOffsetToTime(startMarkerX));
 		}
 
-		this.peaks.emit("segments.dragged", {
+		this.peaks.events.dispatch("segments.dragged", {
 			evt: event.evt,
 			marker: true,
 			segment: this.segment,
 			startMarker: true,
 		});
 
-		if (previousSegmentUpdated) {
-			this.peaks.emit("segments.dragged", {
+		if (previousSegmentUpdated && this.previousSegment) {
+			this.peaks.events.dispatch("segments.dragged", {
 				evt: event.evt,
 				marker: true,
 				segment: this.previousSegment,
@@ -756,15 +757,15 @@ export class SegmentShape {
 			this.segment.setEndTime(this.view.pixelOffsetToTime(endMarkerX));
 		}
 
-		this.peaks.emit("segments.dragged", {
+		this.peaks.events.dispatch("segments.dragged", {
 			evt: event.evt,
 			marker: true,
 			segment: this.segment,
 			startMarker: false,
 		});
 
-		if (nextSegmentUpdated) {
-			this.peaks.emit("segments.dragged", {
+		if (nextSegmentUpdated && this.nextSegment) {
+			this.peaks.events.dispatch("segments.dragged", {
 				evt: event.evt,
 				marker: true,
 				segment: this.nextSegment,
@@ -787,7 +788,7 @@ export class SegmentShape {
 			this.label.show();
 		}
 
-		this.peaks.emit("segments.mouseenter", {
+		this.peaks.events.dispatch("segments.mouseenter", {
 			evt: event.evt,
 			segment: this.segment,
 		});
@@ -798,21 +799,21 @@ export class SegmentShape {
 			this.label.hide();
 		}
 
-		this.peaks.emit("segments.mouseleave", {
+		this.peaks.events.dispatch("segments.mouseleave", {
 			evt: event.evt,
 			segment: this.segment,
 		});
 	};
 
 	private onMouseDown = (event: PeaksPointerEvent<MouseEvent>) => {
-		this.peaks.emit("segments.mousedown", {
+		this.peaks.events.dispatch("segments.mousedown", {
 			evt: event.evt,
 			segment: this.segment,
 		});
 	};
 
 	private onMouseUp = (event: PeaksPointerEvent<MouseEvent>) => {
-		this.peaks.emit("segments.mouseup", {
+		this.peaks.events.dispatch("segments.mouseup", {
 			evt: event.evt,
 			segment: this.segment,
 		});
@@ -826,7 +827,7 @@ export class SegmentShape {
 		this.dragStartTime = this.segment.startTime;
 		this.dragEndTime = this.segment.endTime;
 
-		this.peaks.emit("segments.dragstart", {
+		this.peaks.events.dispatch("segments.dragstart", {
 			evt: event.evt,
 			marker: false,
 			segment: this.segment,
@@ -938,22 +939,22 @@ export class SegmentShape {
 		this.segment.setStartTime(startTime);
 		this.segment.setEndTime(endTime);
 
-		this.peaks.emit("segments.dragged", {
+		this.peaks.events.dispatch("segments.dragged", {
 			evt: event.evt,
 			marker: false,
 			segment: this.segment,
 			startMarker: false,
 		});
 
-		if (previousSegmentUpdated) {
-			this.peaks.emit("segments.dragged", {
+		if (previousSegmentUpdated && this.previousSegment) {
+			this.peaks.events.dispatch("segments.dragged", {
 				evt: event.evt,
 				marker: false,
 				segment: this.previousSegment,
 				startMarker: false,
 			});
-		} else if (nextSegmentUpdated) {
-			this.peaks.emit("segments.dragged", {
+		} else if (nextSegmentUpdated && this.nextSegment) {
+			this.peaks.events.dispatch("segments.dragged", {
 				evt: event.evt,
 				marker: false,
 				segment: this.nextSegment,
@@ -965,7 +966,7 @@ export class SegmentShape {
 	private onSegmentDragEnd = (event: PeaksPointerEvent<MouseEvent>) => {
 		this.dragging = false;
 
-		this.peaks.emit("segments.dragend", {
+		this.peaks.events.dispatch("segments.dragend", {
 			evt: event.evt,
 			marker: false,
 			segment: this.segment,
@@ -985,7 +986,7 @@ export class SegmentShape {
 
 		this.moveSegmentToTop();
 
-		this.peaks.emit("segments.dragstart", {
+		this.peaks.events.dispatch("segments.dragstart", {
 			evt: event.evt,
 			marker: true,
 			segment: this.segment,
@@ -1015,7 +1016,7 @@ export class SegmentShape {
 
 		const startMarker = segmentMarker.isStartMarker();
 
-		this.peaks.emit("segments.dragend", {
+		this.peaks.events.dispatch("segments.dragend", {
 			evt: event.evt,
 			marker: true,
 			segment: this.segment,

@@ -4,6 +4,13 @@ import type {
 	DriverLayer,
 	PeaksPointerEvent,
 } from "../driver/types";
+import {
+	dispatchPointEvent,
+	dispatchViewEvent,
+	type PointClickEvent,
+	type PointerInteractionName,
+	type ViewName,
+} from "../events";
 import { PlayheadLayer } from "../playhead-layer";
 import { PointsLayer } from "../points-layer";
 import { SegmentsLayer } from "../segments-layer";
@@ -469,7 +476,7 @@ export class WaveformView {
 
 	private clickHandler(
 		event: PeaksPointerEvent<MouseEvent>,
-		eventName: string,
+		eventName: PointerInteractionName,
 	): void {
 		let offsetX = event.evt.offsetX;
 
@@ -487,9 +494,9 @@ export class WaveformView {
 					const point = marker.getAttr?.("point");
 
 					if (point) {
-						this.peaks.emit(`points.${eventName}`, {
+						dispatchPointEvent(this.peaks.events, eventName, {
 							evt: event.evt,
-							point: point,
+							point: point as PointClickEvent["point"],
 							preventViewEvent: () => {
 								emitViewEvent = false;
 							},
@@ -517,9 +524,9 @@ export class WaveformView {
 
 		if (emitViewEvent) {
 			const time = this.pixelOffsetToTime(offsetX);
-			const viewName = this.getName();
+			const viewName = this.getName() as ViewName;
 
-			this.peaks.emit(`${viewName}.${eventName}`, {
+			dispatchViewEvent(this.peaks.events, viewName, eventName, {
 				evt: event.evt,
 				time: time,
 			});

@@ -3,13 +3,10 @@ import type {
 	DriverStage,
 	PeaksPointerEvent,
 } from "./driver/types";
+import type { EventFor, PeaksEventMap } from "./events";
 import type { Point } from "./point";
 import { PointMarker } from "./point-marker";
-import type {
-	PeaksInstance,
-	PointUpdateOptions,
-	WaveformViewAPI,
-} from "./types";
+import type { PeaksInstance, WaveformViewAPI, XY } from "./types";
 import { clamp, objectHasProperty } from "./utils";
 
 /**
@@ -41,13 +38,28 @@ export class PointsLayer {
 			new Map<number, PointMarker>(),
 			undefined,
 		);
-		layers.peaks.on("points.update", layers.onPointsUpdate);
-		layers.peaks.on("points.add", layers.onPointsAdd);
-		layers.peaks.on("points.remove", layers.onPointsRemove);
-		layers.peaks.on("points.remove_all", layers.onPointsRemoveAll);
-		layers.peaks.on("points.dragstart", layers.onPointsDrag);
-		layers.peaks.on("points.dragmove", layers.onPointsDrag);
-		layers.peaks.on("points.dragend", layers.onPointsDrag);
+		layers.peaks.events.addEventListener(
+			"points.update",
+			layers.onPointsUpdate,
+		);
+		layers.peaks.events.addEventListener("points.add", layers.onPointsAdd);
+		layers.peaks.events.addEventListener(
+			"points.remove",
+			layers.onPointsRemove,
+		);
+		layers.peaks.events.addEventListener(
+			"points.remove_all",
+			layers.onPointsRemoveAll,
+		);
+		layers.peaks.events.addEventListener(
+			"points.dragstart",
+			layers.onPointsDrag,
+		);
+		layers.peaks.events.addEventListener(
+			"points.dragmove",
+			layers.onPointsDrag,
+		);
+		layers.peaks.events.addEventListener("points.dragend", layers.onPointsDrag);
 		return layers;
 	}
 
@@ -98,19 +110,25 @@ export class PointsLayer {
 	}
 
 	dispose(): void {
-		this.peaks.off("points.update", this.onPointsUpdate);
-		this.peaks.off("points.add", this.onPointsAdd);
-		this.peaks.off("points.remove", this.onPointsRemove);
-		this.peaks.off("points.remove_all", this.onPointsRemoveAll);
-		this.peaks.off("points.dragstart", this.onPointsDrag);
-		this.peaks.off("points.dragmove", this.onPointsDrag);
-		this.peaks.off("points.dragend", this.onPointsDrag);
+		this.peaks.events.removeEventListener("points.update", this.onPointsUpdate);
+		this.peaks.events.removeEventListener("points.add", this.onPointsAdd);
+		this.peaks.events.removeEventListener("points.remove", this.onPointsRemove);
+		this.peaks.events.removeEventListener(
+			"points.remove_all",
+			this.onPointsRemoveAll,
+		);
+		this.peaks.events.removeEventListener(
+			"points.dragstart",
+			this.onPointsDrag,
+		);
+		this.peaks.events.removeEventListener("points.dragmove", this.onPointsDrag);
+		this.peaks.events.removeEventListener("points.dragend", this.onPointsDrag);
 	}
 
 	private onPointsUpdate = (
-		point: Point,
-		options: PointUpdateOptions,
+		event: EventFor<PeaksEventMap, "points.update">,
 	): void => {
+		const { point, options } = event;
 		const frameStartTime = this.view.getStartTime();
 		const frameEndTime = this.view.getEndTime();
 
@@ -137,7 +155,9 @@ export class PointsLayer {
 		}
 	};
 
-	private onPointsAdd = (event: { points: Point[] }): void => {
+	private onPointsAdd = (
+		event: EventFor<PeaksEventMap, "points.add">,
+	): void => {
 		const frameStartTime = this.view.getStartTime();
 		const frameEndTime = this.view.getEndTime();
 
@@ -148,7 +168,9 @@ export class PointsLayer {
 		}
 	};
 
-	private onPointsRemove = (event: { points: Point[] }): void => {
+	private onPointsRemove = (
+		event: EventFor<PeaksEventMap, "points.remove">,
+	): void => {
 		for (const point of event.points) {
 			this.removePoint(point);
 		}
@@ -207,10 +229,12 @@ export class PointsLayer {
 		return pointMarker;
 	}
 
-	private onPointsDrag = (event: {
-		evt: PeaksPointerEvent<MouseEvent>["evt"];
-		point: Point;
-	}): void => {
+	private onPointsDrag = (
+		event:
+			| EventFor<PeaksEventMap, "points.dragstart">
+			| EventFor<PeaksEventMap, "points.dragmove">
+			| EventFor<PeaksEventMap, "points.dragend">,
+	): void => {
 		const pointMarker = this.updatePoint(event.point);
 		pointMarker.update({ time: event.point.time });
 	};
@@ -219,7 +243,7 @@ export class PointsLayer {
 		event: PeaksPointerEvent<MouseEvent>,
 		point: Point,
 	): void => {
-		this.peaks.emit("points.mouseenter", {
+		this.peaks.events.dispatch("points.mouseenter", {
 			evt: event.evt,
 			point: point,
 		});
@@ -229,7 +253,7 @@ export class PointsLayer {
 		event: PeaksPointerEvent<MouseEvent>,
 		point: Point,
 	): void => {
-		this.peaks.emit("points.mouseleave", {
+		this.peaks.events.dispatch("points.mouseleave", {
 			evt: event.evt,
 			point: point,
 		});
@@ -241,7 +265,7 @@ export class PointsLayer {
 	): void => {
 		this.dragPointMarker = this.getPointMarker(point);
 
-		this.peaks.emit("points.dragstart", {
+		this.peaks.events.dispatch("points.dragstart", {
 			evt: event.evt,
 			point: point,
 		});
@@ -260,7 +284,7 @@ export class PointsLayer {
 		const offset = x + marker.getWidth();
 		point.setTime(this.view.pixelOffsetToTime(offset));
 
-		this.peaks.emit("points.dragmove", {
+		this.peaks.events.dispatch("points.dragmove", {
 			evt: event.evt,
 			point: point,
 		});
@@ -272,19 +296,13 @@ export class PointsLayer {
 	): void => {
 		this.dragPointMarker = undefined;
 
-		this.peaks.emit("points.dragend", {
+		this.peaks.events.dispatch("points.dragend", {
 			evt: event.evt,
 			point: point,
 		});
 	};
 
-	private pointMarkerDragBoundFunc = (pos: {
-		x: number;
-		y: number;
-	}): {
-		x: number;
-		y: number;
-	} => {
+	private pointMarkerDragBoundFunc = (pos: XY): XY => {
 		// Allow the marker to be moved horizontally but not vertically.
 		return {
 			x: clamp(pos.x, 0, this.view.getWidth()),

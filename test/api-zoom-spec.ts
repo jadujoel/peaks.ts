@@ -49,11 +49,14 @@ describe("Peaks.zoom", () => {
 			it("should emit a zoom.update event with the new zoom level", () => {
 				const spy = sinon.spy();
 
-				p.on("zoom.update", spy);
+				p.events.addEventListener("zoom.update", spy);
 				p.zoom.setZoom(1);
 
 				expect(spy.callCount).to.equal(1);
-				expect(spy).calledWith({ currentZoom: 1024, previousZoom: 512 });
+				expect(spy.firstCall.args[0]).to.include({
+					currentZoom: 1024,
+					previousZoom: 512,
+				});
 			});
 
 			it("should limit the zoom level index value to the minimum valid index", () => {
@@ -79,11 +82,11 @@ describe("Peaks.zoom", () => {
 			it("should call setZoom with a bigger zoom level", () => {
 				const spy = sinon.spy();
 
-				p.on("zoom.update", spy);
+				p.events.addEventListener("zoom.update", spy);
 				p.zoom.zoomOut();
 
 				expect(spy.callCount).to.equal(1);
-				expect(spy).to.have.been.calledWith({
+				expect(spy.firstCall.args[0]).to.include({
 					currentZoom: 1024,
 					previousZoom: 512,
 				});
@@ -96,11 +99,14 @@ describe("Peaks.zoom", () => {
 
 				const spy = sinon.spy();
 
-				p.on("zoom.update", spy);
+				p.events.addEventListener("zoom.update", spy);
 				p.zoom.zoomIn();
 
 				expect(spy.callCount).to.equal(1);
-				expect(spy).calledWith({ currentZoom: 512, previousZoom: 1024 });
+				expect(spy.firstCall.args[0]).to.include({
+					currentZoom: 512,
+					previousZoom: 1024,
+				});
 			});
 		});
 	});
@@ -141,7 +147,7 @@ describe("Peaks.zoom", () => {
 			it("should not try to update the zoomview", () => {
 				const spy = sinon.spy();
 
-				p.on("zoom.update", spy);
+				p.events.addEventListener("zoom.update", spy);
 				p.zoom.setZoom(1);
 
 				expect(spy).to.not.have.been.called;

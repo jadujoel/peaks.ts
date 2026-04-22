@@ -1183,11 +1183,11 @@ describe("Peaks", () => {
 				}
 
 				const peaks = getActivePeaks();
-				peaks.on("player.error", onError);
+				peaks.events.addEventListener("player.error", onError);
 
 				peaks.setSource(options, (error) => {
 					expect(error).to.be.an.instanceOf(MediaError);
-					expect(peaks.listeners("player.error").length).to.equal(1);
+					expect(peaks.events.map.get("player.error")?.length ?? 0).to.equal(1);
 					done();
 				});
 			});

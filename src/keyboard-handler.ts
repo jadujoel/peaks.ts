@@ -1,4 +1,4 @@
-import type { PeaksInstance } from "./types";
+import type { PeaksEvents } from "./events";
 
 export const NODE_TYPES = [
 	"OBJECT",
@@ -20,14 +20,14 @@ function isExcludedNodeName(
 	return NODE_TYPES.includes(nodeName as (typeof NODE_TYPES)[number]);
 }
 
-export type EventEmitter = Pick<PeaksInstance, "emit">;
+export type KeyboardEvents = Pick<PeaksEvents, "dispatch">;
 
 export interface KeyboardHandlerFromOptions {
-	readonly events: EventEmitter;
+	readonly events: KeyboardEvents;
 }
 
 export class KeyboardHandler {
-	private constructor(private readonly events: EventEmitter) {}
+	private constructor(private readonly events: KeyboardEvents) {}
 
 	static from(options: KeyboardHandlerFromOptions): KeyboardHandler {
 		const instance = new KeyboardHandler(options.events);
@@ -56,26 +56,26 @@ export class KeyboardHandler {
 				// TODO: refactor to not use deprecated keyCode property.
 				switch (event.keyCode) {
 					case SPACE:
-						this.events.emit("keyboard.space");
+						this.events.dispatch("keyboard.space", {});
 						break;
 					case TAB:
-						this.events.emit("keyboard.tab");
+						this.events.dispatch("keyboard.tab", {});
 						break;
 				}
 			} else if (event.type === "keyup") {
 				switch (event.keyCode) {
 					case LEFT_ARROW:
 						if (event.shiftKey) {
-							this.events.emit("keyboard.shift_left");
+							this.events.dispatch("keyboard.shift_left", {});
 						} else {
-							this.events.emit("keyboard.left");
+							this.events.dispatch("keyboard.left", {});
 						}
 						break;
 					case RIGHT_ARROW:
 						if (event.shiftKey) {
-							this.events.emit("keyboard.shift_right");
+							this.events.dispatch("keyboard.shift_right", {});
 						} else {
-							this.events.emit("keyboard.right");
+							this.events.dispatch("keyboard.right", {});
 						}
 						break;
 				}

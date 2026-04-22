@@ -237,12 +237,12 @@ describe("CueEmitter", () => {
 		// Firefox in headless mode.
 		if (!navigator.userAgent.match(/Firefox/)) {
 			it("should update internal previous time when seeking", () => {
-				p.emit("player.timeupdate", 1.0);
+				p.events.dispatch("player.timeupdate", { time: 1.0 });
 				expect(cueEmitter.previousTime).equals(
 					1.0,
 					"did not move previous time",
 				);
-				p.emit("player.timeupdate", 2.0);
+				p.events.dispatch("player.timeupdate", { time: 2.0 });
 				expect(cueEmitter.previousTime).equals(
 					2.0,
 					"did not move previous time",
@@ -257,7 +257,7 @@ describe("CueEmitter", () => {
 			p.points.add({ id: "p2", time: 1.07 });
 			p.points.add({ id: "p3", time: 1.09 });
 
-			p.on("points.enter", (event) => {
+			p.events.addEventListener("points.enter", (event) => {
 				emitted.push(event.point.id);
 
 				expect(event.time).to.equal(1.1);
@@ -278,7 +278,7 @@ describe("CueEmitter", () => {
 			p.points.add({ id: "p2", time: 1.07 });
 			p.points.add({ id: "p3", time: 1.09 });
 
-			p.on("points.enter", (event) => {
+			p.events.addEventListener("points.enter", (event) => {
 				emitted.push(event.point.id);
 
 				expect(event.time).to.equal(1.0);
@@ -297,13 +297,13 @@ describe("CueEmitter", () => {
 
 			p.segments.add({ endTime: 1.09, id: "seg1", startTime: 1.05 });
 
-			p.on("segments.enter", (event) => {
+			p.events.addEventListener("segments.enter", (event) => {
 				expect(event.segment.id).equals("seg1", "segment id did not match");
 				expect(event.time).to.equal(1.1);
 				emitted.push(1.05);
 			});
 
-			p.on("segments.exit", (event) => {
+			p.events.addEventListener("segments.exit", (event) => {
 				expect(event.segment.id).equals("seg1", "segment id did not match");
 				expect(event.time).to.equal(1.1);
 				emitted.push(1.09);
@@ -319,12 +319,12 @@ describe("CueEmitter", () => {
 
 			p.segments.add({ endTime: 1.09, id: "seg1", startTime: 1.05 });
 
-			p.on("segments.enter", (event) => {
+			p.events.addEventListener("segments.enter", (event) => {
 				expect(event.segment.id).equals("seg1", "segment id did not match");
 				emitted.push(1.09);
 			});
 
-			p.on("segments.exit", (event) => {
+			p.events.addEventListener("segments.exit", (event) => {
 				expect(event.segment.id).equals("seg1", "segment id did not match");
 				emitted.push(1.05);
 				expect(emitted).to.deep.equal([1.09, 1.05]);
@@ -346,8 +346,8 @@ describe("CueEmitter", () => {
 				},
 
 				getDuration: () => 0,
-				init: function (eventEmitter) {
-					this.eventEmitter = eventEmitter;
+				init: function (peaks) {
+					this.eventEmitter = peaks.events;
 					this.currentTime = 0;
 
 					return Promise.resolve();
@@ -363,7 +363,7 @@ describe("CueEmitter", () => {
 
 				seek: function (time) {
 					this.currentTime = time;
-					this.eventEmitter.emit("player.seeked", time);
+					this.eventEmitter.dispatch("player.seeked", { time });
 				},
 			};
 
@@ -392,7 +392,7 @@ describe("CueEmitter", () => {
 				const events = [];
 				const seekTimes = [3, 11]; // Seek to segment.1 then segment.3
 
-				peaks.on("player.seeked", () => {
+				peaks.events.addEventListener("player.seeked", () => {
 					const time = seekTimes.shift();
 
 					if (time) {
@@ -412,11 +412,11 @@ describe("CueEmitter", () => {
 					}
 				});
 
-				peaks.on("segments.enter", (event) => {
+				peaks.events.addEventListener("segments.enter", (event) => {
 					events.push({ event: event, type: "segments.enter" });
 				});
 
-				peaks.on("segments.exit", (event) => {
+				peaks.events.addEventListener("segments.exit", (event) => {
 					events.push({ event: event, type: "segments.exit" });
 				});
 

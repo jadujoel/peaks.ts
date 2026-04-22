@@ -74,9 +74,8 @@ This document describes the Peaks.js API, including configuration options, funct
   - [Point API](#point-api)
     - [point.update()](#pointupdateoptions)
   - [Event Handling](#event-handling)
-    - [instance.on()](#instanceonevent-callback)
-    - [instance.once()](#instanceonceevent-callback)
-    - [instance.off()](#instanceoffevent-callback)
+    - [instance.events.addEventListener()](#instanceeventsaddeventlistenertype-listener-options)
+    - [instance.events.removeEventListener()](#instanceeventsremoveeventlistenertype-listener)
   - [Destruction](#destruction)
     - [instance.destroy()](#instancedestroy)
 - [Events](#events)
@@ -1516,11 +1515,16 @@ point.update({ customAttribute: 'value' });
 
 ## Event Handling
 
-Peaks instances emit events to enable you to extend its behavior according to your needs.
+Peaks instances expose a strongly-typed event bus on `instance.events`. The bus
+is a [`TypedEventTarget`](https://www.npmjs.com/package/@jadujoel/typed-event-target)
+instance that uses the standard DOM `addEventListener` / `removeEventListener`
+shape, so each listener receives a single event object whose `type` field is
+the event name and whose remaining fields are the typed payload.
 
-### `instance.on(event, callback)`
+### `instance.events.addEventListener(type, listener, options?)`
 
 Registers a callback function to handle events emitted by a Peaks instance.
+Pass `{ once: true }` to receive only the next dispatch.
 
 ```js
 function dblClickHandler(event) {
@@ -1528,28 +1532,18 @@ function dblClickHandler(event) {
   console.log(event.evt.ctrlKey); // Access MouseEvent attributes
 }
 
-instance.on('zoomview.dblclick', dblClickHandler);
+instance.events.addEventListener('zoomview.dblclick', dblClickHandler);
+
+// Single-shot listener:
+instance.events.addEventListener('zoomview.dblclick', dblClickHandler, { once: true });
 ```
 
-### `instance.once(event, callback)`
-
-Registers a callback function to handle a single one-time event emitted by a Peaks instance.
-
-```js
-function dblClickHandler(event) {
-  console.log(event.time); // Time position where the user clicked
-  console.log(event.evt.ctrlKey); // Access MouseEvent attributes
-}
-
-instance.once('zoomview.dblclick', dblClickHandler);
-```
-
-### `instance.off(event, callback)`
+### `instance.events.removeEventListener(type, listener)`
 
 Removes the given event handler callback function.
 
 ```js
-instance.off('zoomview.dblclick', dblClickHandler);
+instance.events.removeEventListener('zoomview.dblclick', dblClickHandler);
 ```
 
 ## Destruction
@@ -1573,7 +1567,7 @@ The following sections describe the available events.
 This event is emitted when enough of the audio or video media is available that playback can start. This event is equivalent to the [HTMLMediaElement canplay event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/canplay_event).
 
 ```js
-instance.on('player.canplay', function() {
+instance.events.addEventListener('player.canplay', function() {
   console.log('Playback ready');
 });
 ```
@@ -1583,8 +1577,8 @@ instance.on('player.canplay', function() {
 This event is emitted when the audio or video media resource could not be loaded due to an error, such as a network error or if the media data is not suppported. This event is equivalent to the [HTMLMediaElement error event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error_event).
 
 ```js
-instance.on('player.error', function(error) {
-  console.log('Error loading media', error);
+instance.events.addEventListener('player.error', function(event) {
+  console.log('Error loading media', event.error);
 });
 ```
 
@@ -1595,8 +1589,8 @@ This event is emitted when media playback is paused. This event is equivalent to
 The event handler receives current playback time.
 
 ```js
-instance.on('player.pause', function(time) {
-  console.log(`Paused at ${time} seconds`);
+instance.events.addEventListener('player.pause', function(event) {
+  console.log(`Paused at ${event.time} seconds`);
 });
 ```
 
@@ -1607,8 +1601,8 @@ This event is emitted when media playback is started or restarted after being pa
 The event handler receives current playback time.
 
 ```js
-instance.on('player.playing', function(time) {
-  console.log(`Playing at ${time} seconds`);
+instance.events.addEventListener('player.playing', function(event) {
+  console.log(`Playing at ${event.time} seconds`);
 });
 ```
 
@@ -1619,8 +1613,8 @@ This event is emitted when a seek operation on the audio or video media is compl
 The event handler receives current playback time.
 
 ```js
-instance.on('player.seeked', function(time) {
-  console.log(`Seeked to ${time} seconds`);
+instance.events.addEventListener('player.seeked', function(event) {
+  console.log(`Seeked to ${event.time} seconds`);
 });
 ```
 
@@ -1631,8 +1625,8 @@ This event is emitted when the current playback time is updated. This event is e
 The event handler receives current playback time.
 
 ```js
-instance.on('player.timeupdate', function(time) {
-  console.log(`Current playback time: ${time} seconds`);
+instance.events.addEventListener('player.timeupdate', function(event) {
+  console.log(`Current playback time: ${event.time} seconds`);
 });
 ```
 
@@ -1641,7 +1635,7 @@ instance.on('player.timeupdate', function(time) {
 This event is emitted when playback stops because the end of the media was reached. This event is equivalent to the [HTMLMediaElement ended event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/ended_event).
 
 ```js
-instance.on('player.ended', function() {
+instance.events.addEventListener('player.ended', function() {
   console.log('Playback ended');
 });
 ```
@@ -1658,7 +1652,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('overview.click', function(event) {
+instance.events.addEventListener('overview.click', function(event) {
   console.log(`Overview waveform clicked: ${event.time} seconds`);
 });
 ```
@@ -1673,7 +1667,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('overview.click', function(event) {
+instance.events.addEventListener('overview.click', function(event) {
   console.log(`Overview waveform clicked: ${event.time} seconds`);
 });
 ```
@@ -1690,7 +1684,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('overview.contextmenu', function(event) {
+instance.events.addEventListener('overview.contextmenu', function(event) {
   event.evt.preventDefault(); // Prevent a context menu from appearing
 
   console.log(`Overview waveform clicked: ${event.time} seconds`);
@@ -1707,7 +1701,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('zoomview.click', function(event) {
+instance.events.addEventListener('zoomview.click', function(event) {
   console.log(`Zoomable waveform clicked: ${event.time} seconds`);
 });
 ```
@@ -1722,7 +1716,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('zoomview.click', function(event) {
+instance.events.addEventListener('zoomview.click', function(event) {
   console.log(`Zoomable waveform clicked: ${event.time} seconds`);
 });
 ```
@@ -1739,7 +1733,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('zoomview.contextmenu', function(event) {
+instance.events.addEventListener('zoomview.contextmenu', function(event) {
   event.evt.preventDefault(); // Prevent a context menu from appearing
 
   console.log(`Zoomable waveform clicked: ${event.time} seconds`);
@@ -1758,7 +1752,7 @@ The `event` parameter contains:
 Note that `startTime` may not be exactly the same value you set when calling [`view.setStartTime()`](#viewsetstarttimetime). This is because the time is rounded to a number of pixels at the view's zoom level.
 
 ```js
-instance.on('zoomview.update', function(event) {
+instance.events.addEventListener('zoomview.update', function(event) {
   console.log(`Start time: ${event.startTime}, end time: ${event.endTime}`);
 });
 ```
@@ -1783,7 +1777,7 @@ The `event` parameter contains:
 * `points`: An array of the [Point](#point-api) objects added
 
 ```js
-instance.on('points.add', function(event) {
+instance.events.addEventListener('points.add', function(event) {
   event.points.forEach(function(point)) {
     console.log(`Added point: ${point.id}`);
   });
@@ -1799,7 +1793,7 @@ The `event` parameter contains:
 * `points`: An array of the [Point](#point-api) objects removed
 
 ```js
-instance.on('points.remove', function(event) {
+instance.events.addEventListener('points.remove', function(event) {
   event.points.forEach(function(point)) {
     console.log(`Removed point: ${point.id}`);
   });
@@ -1811,7 +1805,7 @@ instance.on('points.remove', function(event) {
 This event is emitted all points are removed, by calling [`instance.points.removeAll()`](#instancepointsremoveall).
 
 ```js
-instance.on('points.remove_all', function() {
+instance.events.addEventListener('points.remove_all', function() {
   console.log('All points removed');
 });
 ```
@@ -1826,7 +1820,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('points.dragstart', function(event) {
+instance.events.addEventListener('points.dragstart', function(event) {
   console.log(`Start dragging point: ${event.point.id}`);
 });
 ```
@@ -1841,7 +1835,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('points.dragmove', function(event) {
+instance.events.addEventListener('points.dragmove', function(event) {
   console.log(`Point dragged: ${event.point.id}`);
 });
 ```
@@ -1856,7 +1850,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('points.dragend', function(event) {
+instance.events.addEventListener('points.dragend', function(event) {
   console.log(`Point dragged: ${event.point.id}`);
 });
 ```
@@ -1871,7 +1865,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('points.mouseenter', function(event) {
+instance.events.addEventListener('points.mouseenter', function(event) {
   console.log(`Mouse entered point: ${event.point.id}`);
 });
 ```
@@ -1886,7 +1880,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('points.mouseleave', function(event) {
+instance.events.addEventListener('points.mouseleave', function(event) {
   console.log(`Mouse left point: ${event.point.id}`);
 });
 ```
@@ -1903,7 +1897,7 @@ The `event` parameter contains:
 By default, clicking on a point will also emit either a [`zoomview.click`](#zoomviewclick) or [`overview.click`](#overviewclick) event. To prevent this, call `event.preventViewEvent()`.
 
 ```js
-instance.on('points.click', function(event) {
+instance.events.addEventListener('points.click', function(event) {
   console.log(`Point clicked: ${event.point.id}`);
 });
 ```
@@ -1922,7 +1916,7 @@ Note that for a double click, both [`points.click`](#pointsclick) and `points.db
 By default, clicking on a point will also emit either a [`zoomview.dblclick`](#zoomviewdblclick) or [`overview.dblclick`](#overviewdblclick) event. To prevent this, call `event.preventViewEvent()`.
 
 ```js
-instance.on('points.dblclick', function(event) {
+instance.events.addEventListener('points.dblclick', function(event) {
   console.log(`Point clicked: ${event.point.id}`);
 });
 ```
@@ -1941,7 +1935,7 @@ The `event` parameter contains:
 By default, clicking on a point will also emit either a [`zoomview.contextmenu`](#zoomviewcontextmenu) or [`overview.contextmenu`](#overviewcontextmenu) event. To prevent this, call `event.preventViewEvent()`.
 
 ```js
-instance.on('points.contextmenu', function(event) {
+instance.events.addEventListener('points.contextmenu', function(event) {
   event.evt.preventDefault(); // Prevent a context menu from appearing
 
   console.log(`Point clicked: ${event.point.id}`);
@@ -1960,7 +1954,7 @@ The `event` parameter contains:
 This event is not emitted by default. To enable it, call `Peaks.init()` with the `emitCueEvents` option set to `true`.
 
 ```js
-instance.on('points.enter', function(event) {
+instance.events.addEventListener('points.enter', function(event) {
   console.log(`Entered point: ${event.point.id}, currentTime: ${event.time}`);
 });
 ```
@@ -1977,7 +1971,7 @@ The `event` parameter contains:
 * `insert`: A flag which is `true` if the segment was added by the user dragging on the waveform view.
 
 ```js
-instance.on('segments.add', function(event) {
+instance.events.addEventListener('segments.add', function(event) {
   if (event.insert) {
     const segment = event.segments[0];
     segment.update({ id: 'my-segment-id' });
@@ -1998,7 +1992,7 @@ The `event` parameter contains:
 * `segment`: The [Segment](#segment-api) object that was added
 
 ```js
-instance.on('segments.insert', function(event) {
+instance.events.addEventListener('segments.insert', function(event) {
   event.segment.update({ id: 'my-segment-id' });
 });
 ```
@@ -2012,7 +2006,7 @@ The `event` parameter contains:
 * `segments`: An array of the [Segment](#segment-api) objects removed
 
 ```js
-instance.on('segments.remove', function(event) {
+instance.events.addEventListener('segments.remove', function(event) {
   event.segments.forEach(function(segment)) {
     console.log(`Removed segment: ${segment.id}`);
   });
@@ -2024,7 +2018,7 @@ instance.on('segments.remove', function(event) {
 This event is emitted all segments are removed (by calling [`instance.segments.removeAll()`](#instancesegmentsremoveall)).
 
 ```js
-instance.on('segments.remove_all', function() {
+instance.events.addEventListener('segments.remove_all', function() {
   console.log('All segments removed');
 });
 ```
@@ -2041,7 +2035,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('segments.dragstart', function(event) {
+instance.events.addEventListener('segments.dragstart', function(event) {
   console.log(`Start dragging segment: ${event.segment.id}`);
 });
 ```
@@ -2058,7 +2052,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('segments.dragged', function(event) {
+instance.events.addEventListener('segments.dragged', function(event) {
   console.log(`Segment dragged: ${event.segment.id}`);
 });
 ```
@@ -2075,7 +2069,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('segments.dragend', function(event) {
+instance.events.addEventListener('segments.dragend', function(event) {
   console.log(`Segment dragged: ${event.segment.id}`);
 });
 ```
@@ -2090,7 +2084,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('segments.mouseenter', function(event) {
+instance.events.addEventListener('segments.mouseenter', function(event) {
   console.log(`Mouse entered segment: ${event.segment.id}`);
 });
 ```
@@ -2105,7 +2099,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('segments.mouseleave', function(event) {
+instance.events.addEventListener('segments.mouseleave', function(event) {
   console.log(`Mouse left segment: ${event.segment.id}`);
 });
 ```
@@ -2120,7 +2114,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('segments.mousedown', function(event) {
+instance.events.addEventListener('segments.mousedown', function(event) {
   console.log(`Mouse down over segment: ${event.segment.id}`);
 });
 ```
@@ -2135,7 +2129,7 @@ The `event` parameter contains:
 * `evt`: The associated [`MouseEvent`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
 
 ```js
-instance.on('segments.mouseup', function(event) {
+instance.events.addEventListener('segments.mouseup', function(event) {
   console.log(`Mouse up over segment: ${event.segment.id}`);
 });
 ```
@@ -2152,7 +2146,7 @@ The `event` parameter contains:
 By default, clicking on a segment will also emit either a [`zoomview.click`](#zoomviewclick) or [`overview.click`](#overviewclick) event. To prevent this, call `event.preventViewEvent()`.
 
 ```js
-instance.on('segments.click', function(event) {
+instance.events.addEventListener('segments.click', function(event) {
   console.log(`Segment clicked: ${event.segment.id}`);
 });
 ```
@@ -2171,7 +2165,7 @@ Note that for a double click, both [`segments.click`](#segmentsclick) and `segme
 By default, clicking on a segment will also emit either a [`zoomview.dblclick`](#zoomviewdblclick) or [`overview.dblclick`](#overviewdblclick) event. To prevent this, call `event.preventViewEvent()`.
 
 ```js
-instance.on('segments.click', function(event) {
+instance.events.addEventListener('segments.click', function(event) {
   console.log(`Segment clicked: ${event.segment.id}`);
 });
 ```
@@ -2188,7 +2182,7 @@ The `event` parameter contains:
 By default, clicking on a segment will also emit either a [`zoomview.contextmenu`](#zoomviewcontextmenu) or [`overview.contextmenu`](#overviewcontextmenu) event. To prevent this, call `event.preventViewEvent()`.
 
 ```js
-instance.on('segments.contextmenu', function(event) {
+instance.events.addEventListener('segments.contextmenu', function(event) {
   event.evt.preventDefault(); // Prevent a context menu from appearing
 
   console.log(`Segment clicked: ${event.segment.id}`);
@@ -2207,7 +2201,7 @@ The `event` parameter contains:
 This event is not emitted by default. To enable it, call `Peaks.init()` with the `emitCueEvents` option set to `true`.
 
 ```js
-instance.on('segments.enter', function(event) {
+instance.events.addEventListener('segments.enter', function(event) {
   console.log(`Entered segment: ${event.segment.id}, currentTime: ${event.time}`);
 });
 ```
@@ -2224,7 +2218,7 @@ The `event` parameter contains:
 This event is not emitted by default. To enable it, call `Peaks.init()` with the `emitCueEvents` option set to `true`.
 
 ```js
-instance.on('segments.exit', function(event) {
+instance.events.addEventListener('segments.exit', function(event) {
   console.log(`Exited segment: ${event.segment.id}, currentTime: ${event.time}`);
 });
 ```

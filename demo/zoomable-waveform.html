@@ -195,7 +195,7 @@
 
           // Zoomview waveform events
 
-          peaksInstance.on('zoomview.update', (event) => {
+          peaksInstance.events.addEventListener('zoomview.update', (event) => {
             console.log('zoomview.update:', event);
           });
         });

@@ -74,6 +74,8 @@ export function objectHasProperty(object: object, field: PropertyKey): boolean {
 	return Object.hasOwn(object, field);
 }
 
+// TODO: refactor the app to never use this function and remove it
+// maybe just object spreading or something
 export function extend<T extends Record<string, unknown>>(
 	to: T,
 	from: Record<string, unknown>,

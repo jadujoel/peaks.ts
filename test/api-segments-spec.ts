@@ -226,7 +226,7 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should emit an event with an array containing a single segment object", (done: DoneCallback) => {
-			p.on("segments.add", (event) => {
+			p.events.addEventListener("segments.add", (event) => {
 				expect(event.segments).to.have.lengthOf(1);
 				expect(event.segments[0]).to.be.an.instanceOf(Segment);
 				expect(event.segments[0].startTime).to.equal(0);
@@ -238,7 +238,7 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should emit an event with multiple segment objects", (done: DoneCallback) => {
-			p.on("segments.add", (event) => {
+			p.events.addEventListener("segments.add", (event) => {
 				expect(event.segments).to.have.lengthOf(2);
 				expect(event.segments[0]).to.be.an.instanceOf(Segment);
 				expect(event.segments[0].startTime).to.equal(0);
@@ -531,7 +531,7 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should emit an event with the removed segment", (done: DoneCallback) => {
-			p.on("segments.remove", (event) => {
+			p.events.addEventListener("segments.remove", (event) => {
 				expect(event.segments).to.be.an.instanceOf(Array);
 				expect(event.segments).to.have.lengthOf(1);
 				expect(event.segments[0]).to.be.an.instanceOf(Segment);
@@ -598,7 +598,7 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should emit an event containing the removed segments", (done: DoneCallback) => {
-			p.on("segments.remove", (event) => {
+			p.events.addEventListener("segments.remove", (event) => {
 				expect(event.segments).to.be.an.instanceOf(Array);
 				expect(event.segments).to.have.lengthOf(2);
 				expect(event.segments[0]).to.be.an.instanceOf(Segment);
@@ -657,7 +657,7 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should emit an event with the removed segments", (done: DoneCallback) => {
-			p.on("segments.remove", (event) => {
+			p.events.addEventListener("segments.remove", (event) => {
 				expect(event.segments).to.be.an.instanceOf(Array);
 				expect(event.segments.length).to.equal(1);
 				expect(event.segments[0]).to.be.an.instanceOf(Segment);
@@ -700,8 +700,8 @@ describe("Peaks.segments", () => {
 		});
 
 		it("should emit an event", (done: DoneCallback) => {
-			p.on("segments.remove_all", (param) => {
-				expect(param).to.be.undefined;
+			p.events.addEventListener("segments.remove_all", (event) => {
+				expect(event.type).to.equal("segments.remove_all");
 
 				const remainingSegments = p.segments.getSegments();
 

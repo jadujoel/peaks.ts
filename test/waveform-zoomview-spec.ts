@@ -85,7 +85,7 @@ describe("WaveformZoomView", () => {
 			it("should emit a zoomview.update event if the start time has changed", () => {
 				const spy = sinon.spy();
 
-				p.on("zoomview.update", spy);
+				p.events.addEventListener("zoomview.update", spy);
 
 				zoomview.setStartTime(5.0);
 
@@ -98,7 +98,7 @@ describe("WaveformZoomView", () => {
 			it("should not emit a zoomview.update event if the start time has not changed", () => {
 				const spy = sinon.spy();
 
-				p.on("zoomview.update", spy);
+				p.events.addEventListener("zoomview.update", spy);
 
 				zoomview.setStartTime(-1.0);
 
@@ -120,7 +120,7 @@ describe("WaveformZoomView", () => {
 			it("should not emit a zoomview.update event", () => {
 				const spy = sinon.spy();
 
-				p.on("zoomview.update", spy);
+				p.events.addEventListener("zoomview.update", spy);
 
 				zoomview.setStartTime(5.0);
 
@@ -226,7 +226,7 @@ describe("WaveformZoomView", () => {
 
 				it("should emit a segments.dragged event", () => {
 					const view = p.views.getView("zoomview");
-					const emit = sinon.spy(p, "emit");
+					const emit = sinon.spy(p.events, "dispatch");
 
 					const distance = 50;
 
@@ -267,7 +267,7 @@ describe("WaveformZoomView", () => {
 
 					const spy = sinon.spy();
 
-					p.on("zoomview.update", spy);
+					p.events.addEventListener("zoomview.update", spy);
 
 					const distance = 100;
 
@@ -289,7 +289,7 @@ describe("WaveformZoomView", () => {
 				it("should not scroll beyond the start of the waveform", () => {
 					const spy = sinon.spy();
 
-					p.on("zoomview.update", spy);
+					p.events.addEventListener("zoomview.update", spy);
 
 					const distance = 200;
 
@@ -329,7 +329,7 @@ describe("WaveformZoomView", () => {
 				it("should scroll the waveform to the right", () => {
 					const spy = sinon.spy();
 
-					p.on("zoomview.update", spy);
+					p.events.addEventListener("zoomview.update", spy);
 
 					const distance = 100;
 
@@ -353,7 +353,7 @@ describe("WaveformZoomView", () => {
 
 					const spy = sinon.spy();
 
-					p.on("zoomview.update", spy);
+					p.events.addEventListener("zoomview.update", spy);
 
 					const distance = 100;
 
@@ -377,7 +377,7 @@ describe("WaveformZoomView", () => {
 
 					const spy = sinon.spy();
 
-					p.on("zoomview.update", spy);
+					p.events.addEventListener("zoomview.update", spy);
 
 					const distance = 150;
 
@@ -474,7 +474,7 @@ describe("WaveformZoomView", () => {
 					describe("when dragging a segment over the next segment", () => {
 						it("should emit a segments.dragged event", () => {
 							const view = p.views.getView("zoomview");
-							const emit = sinon.spy(p, "emit");
+							const emit = sinon.spy(p.events, "dispatch");
 
 							const distance = 150;
 
@@ -512,7 +512,7 @@ describe("WaveformZoomView", () => {
 					describe("when dragging a segment over the previous segment", () => {
 						it("should emit a segments.dragged event", () => {
 							const view = p.views.getView("zoomview");
-							const emit = sinon.spy(p, "emit");
+							const emit = sinon.spy(p.events, "dispatch");
 
 							const distance = -150;
 
@@ -808,7 +808,7 @@ describe("WaveformZoomView", () => {
 
 					describe("when dragging a segment over the next segment", () => {
 						it("should move the segment adjacent to the next segment", () => {
-							const emit = sinon.spy(p, "emit");
+							const emit = sinon.spy(p.events, "dispatch");
 
 							const distance = 150;
 
@@ -841,7 +841,7 @@ describe("WaveformZoomView", () => {
 
 					describe("when dragging a segment over the previous segment", () => {
 						it("should move the segment adjacent to the previous segment", () => {
-							const emit = sinon.spy(p, "emit");
+							const emit = sinon.spy(p.events, "dispatch");
 
 							const distance = -150;
 
@@ -969,7 +969,7 @@ describe("WaveformZoomView", () => {
 						describe("and does not reach the minimum width of the next segment", () => {
 							it("should move the next segment start time", () => {
 								const view = p.views.getView("zoomview");
-								const emit = sinon.spy(p, "emit");
+								const emit = sinon.spy(p.events, "dispatch");
 
 								const distance = 150;
 
@@ -1001,7 +1001,7 @@ describe("WaveformZoomView", () => {
 						describe("and reaches the minimum width of the next segment", () => {
 							it("should compress the next segment to a minimum width", () => {
 								const view = p.views.getView("zoomview");
-								const emit = sinon.spy(p, "emit");
+								const emit = sinon.spy(p.events, "dispatch");
 
 								const distance = 300;
 
@@ -1035,7 +1035,7 @@ describe("WaveformZoomView", () => {
 						describe("and does not reach the minimum width of the previous segment", () => {
 							it("should move the previous segment end time", () => {
 								const view = p.views.getView("zoomview");
-								const emit = sinon.spy(p, "emit");
+								const emit = sinon.spy(p.events, "dispatch");
 
 								const distance = -150;
 
@@ -1067,7 +1067,7 @@ describe("WaveformZoomView", () => {
 						describe("and reaches the minimum width of the previous segment", () => {
 							it("should compress the previous segment to a minimum width", () => {
 								const view = p.views.getView("zoomview");
-								const emit = sinon.spy(p, "emit");
+								const emit = sinon.spy(p.events, "dispatch");
 
 								const distance = -300;
 
@@ -1275,7 +1275,7 @@ describe("WaveformZoomView", () => {
 					const segments = p.segments.getSegments();
 					expect(segments.length).to.equal(4);
 
-					p.on("segments.add", (event) => {
+					p.events.addEventListener("segments.add", (event) => {
 						const view = p.views.getView("zoomview");
 
 						expect(event.insert).to.equal(true);
@@ -1299,7 +1299,7 @@ describe("WaveformZoomView", () => {
 					const segments = p.segments.getSegments();
 					expect(segments.length).to.equal(4);
 
-					p.on("segments.insert", (event) => {
+					p.events.addEventListener("segments.insert", (event) => {
 						const view = p.views.getView("zoomview");
 
 						expect(event.segment).to.be.an.instanceOf(Segment);
@@ -1447,20 +1447,24 @@ describe("WaveformZoomView", () => {
 					it("should set the playback position", (done: DoneCallback) => {
 						const view = p!.views.getView("zoomview");
 
-						p!.once("player.timeupdate", () => {
-							const x = view!.timeToPixels(2.5);
-							const distance = 100;
+						p!.events.addEventListener(
+							"player.timeupdate",
+							() => {
+								const x = view!.timeToPixels(2.5);
+								const distance = 100;
 
-							inputController?.mouseDown({ x: x, y: 50 });
-							inputController?.mouseMove({ x: x + distance, y: 50 });
-							inputController?.mouseUp({ x: x + distance, y: 50 });
+								inputController?.mouseDown({ x: x, y: 50 });
+								inputController?.mouseMove({ x: x + distance, y: 50 });
+								inputController?.mouseUp({ x: x + distance, y: 50 });
 
-							expect(p!.player.getCurrentTime()).to.be.closeTo(
-								view!.pixelsToTime(x + distance),
-								0.01,
-							);
-							done();
-						});
+								expect(p!.player.getCurrentTime()).to.be.closeTo(
+									view!.pixelsToTime(x + distance),
+									0.01,
+								);
+								done();
+							},
+							{ once: true },
+						);
 
 						p.player.seek(2.5);
 					});
@@ -1470,26 +1474,30 @@ describe("WaveformZoomView", () => {
 					it("should set the playback position and not move the segment", (done: DoneCallback) => {
 						const view = p!.views.getView("zoomview") as WaveformZoomView;
 
-						p!.once("player.timeupdate", () => {
-							const x = view!.timeToPixels(1.5);
-							const distance = 100;
+						p!.events.addEventListener(
+							"player.timeupdate",
+							() => {
+								const x = view!.timeToPixels(1.5);
+								const distance = 100;
 
-							inputController!.mouseDown({ x: x, y: 50 });
-							inputController!.mouseMove({ x: x + distance, y: 50 });
-							inputController!.mouseUp({ x: x + distance, y: 50 });
+								inputController!.mouseDown({ x: x, y: 50 });
+								inputController!.mouseMove({ x: x + distance, y: 50 });
+								inputController!.mouseUp({ x: x + distance, y: 50 });
 
-							expect(p!.player.getCurrentTime()).to.be.closeTo(
-								view.pixelsToTime(x + distance),
-								0.01,
-							);
+								expect(p!.player.getCurrentTime()).to.be.closeTo(
+									view.pixelsToTime(x + distance),
+									0.01,
+								);
 
-							const segment = p!.segments.getSegment("segment1");
+								const segment = p!.segments.getSegment("segment1");
 
-							expect(segment!.startTime).to.equal(1.0);
-							expect(segment!.endTime).to.equal(2.0);
+								expect(segment!.startTime).to.equal(1.0);
+								expect(segment!.endTime).to.equal(2.0);
 
-							done();
-						});
+								done();
+							},
+							{ once: true },
+						);
 
 						p!.player.seek(1.5);
 					});
@@ -1499,26 +1507,30 @@ describe("WaveformZoomView", () => {
 					it("should set the playback position and not move the segment", (done: DoneCallback) => {
 						const view = p!.views.getView("zoomview");
 
-						p!.once("player.timeupdate", () => {
-							const x = view.timeToPixels(3.5);
-							const distance = 100;
+						p!.events.addEventListener(
+							"player.timeupdate",
+							() => {
+								const x = view.timeToPixels(3.5);
+								const distance = 100;
 
-							inputController.mouseDown({ x: x, y: 50 });
-							inputController.mouseMove({ x: x + distance, y: 50 });
-							inputController.mouseUp({ x: x + distance, y: 50 });
+								inputController.mouseDown({ x: x, y: 50 });
+								inputController.mouseMove({ x: x + distance, y: 50 });
+								inputController.mouseUp({ x: x + distance, y: 50 });
 
-							expect(p.player.getCurrentTime()).to.be.closeTo(
-								view.pixelsToTime(x + distance),
-								0.01,
-							);
+								expect(p.player.getCurrentTime()).to.be.closeTo(
+									view.pixelsToTime(x + distance),
+									0.01,
+								);
 
-							const segment = p.segments.getSegment("segment2");
+								const segment = p.segments.getSegment("segment2");
 
-							expect(segment.startTime).to.equal(3.0);
-							expect(segment.endTime).to.equal(4.0);
+								expect(segment.startTime).to.equal(3.0);
+								expect(segment.endTime).to.equal(4.0);
 
-							done();
-						});
+								done();
+							},
+							{ once: true },
+						);
 
 						p.player.seek(3.5);
 					});
@@ -1613,7 +1625,7 @@ describe("WaveformZoomView", () => {
 		});
 
 		it("should emit point drag events", () => {
-			const emit = sinon.spy(p, "emit");
+			const emit = sinon.spy(p.events, "dispatch");
 
 			const view = p.views.getView("zoomview");
 			view.enableSeek(false);

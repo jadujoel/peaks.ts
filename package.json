@@ -12,7 +12,6 @@
 	"dependencies": {
 		"@jadujoel/typed-event-target": "0.0.6",
 		"@jadujoel/web-audio-clip-node": "0.2.8",
-		"eventemitter3": "~5.0.1",
 		"neverthrow": "8.2.0",
 		"option-t": "56.0.0"
 	},

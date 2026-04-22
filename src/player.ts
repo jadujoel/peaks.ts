@@ -84,8 +84,9 @@ export class Player {
 		return new Player(options.peaks, options.adapter);
 	}
 
+	// TODO: why is this called init why do we have a separate init method at all?
 	init(): Promise<void> {
-		return Promise.resolve(this.adapter.init(this.peaks));
+		return Promise.resolve(this.adapter.init({ events: this.peaks.events }));
 	}
 
 	/**
@@ -203,15 +204,19 @@ export class Player {
 		// Set audio time to segment start time
 		this.seek(segment.startTime);
 
-		this.peaks?.once("player.playing", () => {
-			if (!this.playingSegment) {
-				this.playingSegment = true;
+		this.peaks?.events.addEventListener(
+			"player.playing",
+			() => {
+				if (!this.playingSegment) {
+					this.playingSegment = true;
 
-				// We need to use requestAnimationFrame here as the timeupdate event
-				// doesn't fire often enough.
-				window.requestAnimationFrame(this.playSegmentTimerCallback);
-			}
-		});
+					// We need to use requestAnimationFrame here as the timeupdate event
+					// doesn't fire often enough.
+					window.requestAnimationFrame(this.playSegmentTimerCallback);
+				}
+			},
+			{ once: true },
+		);
 
 		// Start playing audio
 		return this.play();
@@ -226,7 +231,7 @@ export class Player {
 				this.seek(this.segment.startTime);
 			} else {
 				this.pause();
-				this.peaks?.emit("player.ended");
+				this.peaks?.events.dispatch("player.ended", {});
 				this.playingSegment = false;
 				return;
 			}

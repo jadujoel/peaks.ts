@@ -369,15 +369,15 @@
             time: 4.3
           });
 
-          peaksInstance.on('points.enter', (event) => {
+          peaksInstance.events.addEventListener('points.enter', (event) => {
             console.log('points.enter', event);
           });
 
-          peaksInstance.on('segments.enter', (event) => {
+          peaksInstance.events.addEventListener('segments.enter', (event) => {
             console.log('segments.enter', event);
           });
 
-          peaksInstance.on('segments.exit', (event) => {
+          peaksInstance.events.addEventListener('segments.exit', (event) => {
             console.log('segments.exit', event);
           });
         });

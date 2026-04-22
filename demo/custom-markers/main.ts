@@ -442,71 +442,71 @@ Peaks.init(options, (err, peaksInstance) => {
 
 	// Point events
 
-	peaksInstance.on("points.mouseenter", (event) => {
+	peaksInstance.events.addEventListener("points.mouseenter", (event) => {
 		console.log("points.mouseenter:", event);
 	});
 
-	peaksInstance.on("points.mouseleave", (event) => {
+	peaksInstance.events.addEventListener("points.mouseleave", (event) => {
 		console.log("points.mouseleave:", event);
 	});
 
-	peaksInstance.on("points.click", (event) => {
+	peaksInstance.events.addEventListener("points.click", (event) => {
 		console.log("points.click:", event);
 	});
 
-	peaksInstance.on("points.dblclick", (event) => {
+	peaksInstance.events.addEventListener("points.dblclick", (event) => {
 		console.log("points.dblclick:", event);
 	});
 
-	peaksInstance.on("points.contextmenu", (event) => {
+	peaksInstance.events.addEventListener("points.contextmenu", (event) => {
 		event.evt.preventDefault();
 
 		console.log("points.contextmenu:", event);
 	});
 
-	peaksInstance.on("points.dragstart", (event) => {
+	peaksInstance.events.addEventListener("points.dragstart", (event) => {
 		console.log("points.dragstart:", event);
 	});
 
-	peaksInstance.on("points.dragmove", (event) => {
+	peaksInstance.events.addEventListener("points.dragmove", (event) => {
 		console.log("points.dragmove:", event);
 	});
 
-	peaksInstance.on("points.dragend", (event) => {
+	peaksInstance.events.addEventListener("points.dragend", (event) => {
 		console.log("points.dragend:", event);
 	});
 
 	// Segment events
 
-	peaksInstance.on("segments.dragstart", (event) => {
+	peaksInstance.events.addEventListener("segments.dragstart", (event) => {
 		console.log("segments.dragstart:", event);
 	});
 
-	peaksInstance.on("segments.dragend", (event) => {
+	peaksInstance.events.addEventListener("segments.dragend", (event) => {
 		console.log("segments.dragend:", event);
 	});
 
-	peaksInstance.on("segments.dragged", (event) => {
+	peaksInstance.events.addEventListener("segments.dragged", (event) => {
 		console.log("segments.dragged:", event);
 	});
 
-	peaksInstance.on("segments.mouseenter", (event) => {
+	peaksInstance.events.addEventListener("segments.mouseenter", (event) => {
 		console.log("segments.mouseenter:", event);
 	});
 
-	peaksInstance.on("segments.mouseleave", (event) => {
+	peaksInstance.events.addEventListener("segments.mouseleave", (event) => {
 		console.log("segments.mouseleave:", event);
 	});
 
-	peaksInstance.on("segments.click", (event) => {
+	peaksInstance.events.addEventListener("segments.click", (event) => {
 		console.log("segments.click:", event);
 	});
 
-	peaksInstance.on("segments.dblclick", (event) => {
+	peaksInstance.events.addEventListener("segments.dblclick", (event) => {
 		console.log("segments.dblclick:", event);
 	});
 
-	peaksInstance.on("segments.contextmenu", (event) => {
+	peaksInstance.events.addEventListener("segments.contextmenu", (event) => {
 		event.evt.preventDefault();
 
 		console.log("segments.contextmenu:", event);
@@ -514,35 +514,35 @@ Peaks.init(options, (err, peaksInstance) => {
 
 	// Zoomview waveform events
 
-	peaksInstance.on("zoomview.click", (event) => {
+	peaksInstance.events.addEventListener("zoomview.click", (event) => {
 		console.log("zoomview.click:", event);
 	});
 
-	peaksInstance.on("zoomview.dblclick", (event) => {
+	peaksInstance.events.addEventListener("zoomview.dblclick", (event) => {
 		console.log("zoomview.dblclick:", event);
 	});
 
-	peaksInstance.on("zoomview.contextmenu", (event) => {
+	peaksInstance.events.addEventListener("zoomview.contextmenu", (event) => {
 		event.evt.preventDefault();
 
 		console.log("zoomview.contextmenu:", event);
 	});
 
-	peaksInstance.on("zoomview.update", (event) => {
+	peaksInstance.events.addEventListener("zoomview.update", (event) => {
 		console.log("zoomview.update:", event);
 	});
 
 	// Overview waveform events
 
-	peaksInstance.on("overview.click", (event) => {
+	peaksInstance.events.addEventListener("overview.click", (event) => {
 		console.log("overview.click:", event);
 	});
 
-	peaksInstance.on("overview.dblclick", (event) => {
+	peaksInstance.events.addEventListener("overview.dblclick", (event) => {
 		console.log("overview.dblclick:", event);
 	});
 
-	peaksInstance.on("overview.contextmenu", (event) => {
+	peaksInstance.events.addEventListener("overview.contextmenu", (event) => {
 		event.evt.preventDefault();
 
 		console.log("overview.contextmenu:", event);
