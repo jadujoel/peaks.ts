@@ -14,24 +14,16 @@ import type {
 	XY,
 } from "./types";
 
+export type SegmentMarkerEventHandler = (
+	marker: SegmentMarkerAPI,
+	event: PeaksPointerEvent<MouseEvent>,
+) => void;
+
 export interface SegmentMarkerHandlers {
-	// TODO: make more DRY
-	readonly onClick: (
-		marker: SegmentMarkerAPI,
-		event: PeaksPointerEvent<MouseEvent>,
-	) => void;
-	readonly onDragStart: (
-		marker: SegmentMarkerAPI,
-		event: PeaksPointerEvent<MouseEvent>,
-	) => void;
-	readonly onDragMove: (
-		marker: SegmentMarkerAPI,
-		event: PeaksPointerEvent<MouseEvent>,
-	) => void;
-	readonly onDragEnd: (
-		marker: SegmentMarkerAPI,
-		event: PeaksPointerEvent<MouseEvent>,
-	) => void;
+	readonly onClick: SegmentMarkerEventHandler;
+	readonly onDragStart: SegmentMarkerEventHandler;
+	readonly onDragMove: SegmentMarkerEventHandler;
+	readonly onDragEnd: SegmentMarkerEventHandler;
 }
 
 export type SegmentMarkerDragBoundFunc = (marker: SegmentMarker, pos: XY) => XY;

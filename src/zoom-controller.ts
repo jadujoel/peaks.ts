@@ -7,7 +7,7 @@ export interface ZoomControllerFromOptions {
 	readonly levels: readonly number[];
 }
 
-// TODO: the class is already called Zoom, so why does every method also have zoom in the name
+// The class is already called Zoom; do not repeat "zoom" in method names.
 export class ZoomController {
 	private constructor(
 		private readonly peaks: PeaksInstance,
@@ -24,20 +24,20 @@ export class ZoomController {
 		ZOOMVIEW_NOT_FOUND: "Zoomview not found",
 	} as const;
 
-	setZoomLevels(levels: readonly number[]): Result<undefined, Error> {
+	setLevels(levels: readonly number[]): Result<undefined, Error> {
 		this.levels = levels;
-		return this.setZoom(0, true);
+		return this.setIndex(0, true);
 	}
 
 	zoomIn(): Result<undefined, Error> {
-		return this.setZoom(this.index - 1);
+		return this.setIndex(this.index - 1);
 	}
 
 	zoomOut(): Result<undefined, Error> {
-		return this.setZoom(this.index + 1);
+		return this.setIndex(this.index + 1);
 	}
 
-	setZoom(
+	setIndex(
 		index: number = this.index,
 		forceUpdate: boolean = false,
 	): Result<undefined, Error> {
@@ -60,11 +60,11 @@ export class ZoomController {
 		return ok(undefined);
 	}
 
-	getZoom(): number {
+	getIndex(): number {
 		return this.index;
 	}
 
-	getZoomLevel(): number {
+	getLevel(): number {
 		return this.levels[this.index] ?? 0;
 	}
 }

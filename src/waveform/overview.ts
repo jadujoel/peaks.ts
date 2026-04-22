@@ -15,7 +15,6 @@ export interface WaveformOverviewFromOptions {
 }
 
 export class WaveformOverview extends WaveformView {
-	// TODO: list these directly in the constructor parameters instead of as public properties, and remove the undefined initialization
 	public mouseDragHandler: SeekMouseDragHandler | undefined;
 	public highlightLayer: HighlightLayer | undefined;
 
@@ -27,22 +26,14 @@ export class WaveformOverview extends WaveformView {
 				viewOptions: options.peaks.options.overview,
 				waveformData: options.waveformData,
 			}),
-			undefined,
-			undefined,
 		);
 		instance.initializeView();
 		instance.initializeOverview();
 		return instance;
 	}
 
-	private constructor(
-		state: WaveformViewState,
-		mouseDragHandler: SeekMouseDragHandler | undefined,
-		highlightLayer: HighlightLayer | undefined,
-	) {
+	private constructor(state: WaveformViewState) {
 		super(state);
-		this.mouseDragHandler = mouseDragHandler;
-		this.highlightLayer = highlightLayer;
 	}
 
 	private initializeOverview(): void {

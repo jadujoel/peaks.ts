@@ -700,7 +700,7 @@ export class Peaks {
 					}
 
 					if (options.zoomLevels) {
-						this.zoom.setZoomLevels(options.zoomLevels);
+						this.zoom.setLevels(options.zoomLevels);
 					}
 
 					callback();

@@ -204,18 +204,16 @@ export class PointsLayer {
 		}
 
 		return PointMarker.from({
+			dragBoundFunc: this.pointMarkerDragBoundFunc,
+			draggable: editable,
 			driver: this.peaks.options.driver,
-			options: {
-				dragBoundFunc: this.pointMarkerDragBoundFunc,
-				draggable: editable,
-				marker: marker,
-				onDragEnd: this.onPointMarkerDragEnd,
-				onDragMove: this.onPointMarkerDragMove,
-				onDragStart: this.onPointMarkerDragStart,
-				onMouseEnter: this.onPointMarkerMouseEnter,
-				onMouseLeave: this.onPointMarkerMouseLeave,
-				point: point,
-			},
+			marker: marker,
+			onDragEnd: this.onPointMarkerDragEnd,
+			onDragMove: this.onPointMarkerDragMove,
+			onDragStart: this.onPointMarkerDragStart,
+			onMouseEnter: this.onPointMarkerMouseEnter,
+			onMouseLeave: this.onPointMarkerMouseLeave,
+			point: point,
 		});
 	}
 
@@ -324,8 +322,10 @@ export class PointsLayer {
 			this.updatePoint(point);
 		}
 
-		// TODO: In the overview all points are visible, so no need to do this.
-		this.removeInvisiblePoints(startTime, endTime);
+		// In the overview all points are always visible, so skip the cull.
+		if (this.view.getName() !== "overview") {
+			this.removeInvisiblePoints(startTime, endTime);
+		}
 	}
 
 	private updatePoint(point: Point): PointMarker {

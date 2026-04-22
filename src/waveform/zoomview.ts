@@ -169,7 +169,7 @@ export class WaveformZoomView extends WaveformView {
 
 		this.initWaveformCache();
 
-		const initialZoomLevel = this.peaks.zoom.getZoomLevel();
+		const initialZoomLevel = this.peaks.zoom.getLevel();
 
 		this.resampleData({ scale: initialZoomLevel });
 	}
@@ -390,9 +390,8 @@ export class WaveformZoomView extends WaveformView {
 
 			const pixelIndex = this.timeToPixels(time);
 
-			// TODO: move this code to animation function?
-			// TODO: don't scroll if user has positioned view manually (e.g., using
-			// the keyboard)
+			// NOTE: long-term, this scroll logic should live in an animation
+			// function and respect manual user positioning (e.g. via keyboard).
 			const endThreshold =
 				this.frameOffset + this.width - this.autoScrollOffset;
 

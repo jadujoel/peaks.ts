@@ -1338,7 +1338,7 @@ describe("Peaks", () => {
 
 				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.undefined;
-					expect(getActivePeaks().zoom.getZoomLevel()).to.equal(128);
+					expect(getActivePeaks().zoom.getLevel()).to.equal(128);
 					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
 				});
@@ -1357,7 +1357,7 @@ describe("Peaks", () => {
 
 				getActivePeaks().setSource(options, (error) => {
 					expect(error).to.be.undefined;
-					expect(getActivePeaks().zoom.getZoomLevel()).to.equal(128);
+					expect(getActivePeaks().zoom.getLevel()).to.equal(128);
 					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
 				});

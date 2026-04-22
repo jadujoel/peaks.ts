@@ -13,9 +13,7 @@ import type {
 	XY,
 } from "./types";
 
-export interface PointMarkerFromOptions {
-	// TODO: Flatten to use PointMarkerOptions directly.
-	readonly options: PointMarkerOptions;
+export interface PointMarkerFromOptions extends PointMarkerOptions {
 	readonly driver: CanvasDriver;
 }
 
@@ -23,7 +21,6 @@ export class PointMarker {
 	private constructor(
 		private readonly point: Point,
 		private readonly marker: Marker,
-		private readonly draggable: boolean, // todo: remove unused properties
 		private readonly onDragStart: (
 			event: PeaksPointerEvent<MouseEvent>,
 			point: Point,
@@ -47,9 +44,8 @@ export class PointMarker {
 		private readonly group: DriverGroup,
 	) {}
 
-	static from(opts: PointMarkerFromOptions): PointMarker {
-		const options = opts.options;
-		const group = opts.driver.createGroup({
+	static from(options: PointMarkerFromOptions): PointMarker {
+		const group = options.driver.createGroup({
 			dragBoundFunc: options.dragBoundFunc,
 			draggable: options.draggable ?? false,
 			name: "point-marker",
@@ -58,7 +54,6 @@ export class PointMarker {
 		const instance = new PointMarker(
 			options.point,
 			options.marker,
-			options.draggable ?? false,
 			options.onDragStart,
 			options.onDragMove,
 			options.onDragEnd,
@@ -67,7 +62,7 @@ export class PointMarker {
 			group,
 		);
 		instance.bindDefaultEventHandlers();
-		options.marker.init(PeaksGroup.fromGroup(group, opts.driver));
+		options.marker.init(PeaksGroup.fromGroup(group, options.driver));
 		return instance;
 	}
 

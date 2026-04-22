@@ -43,7 +43,7 @@ export class WaveformAxis {
 		let instance: WaveformAxis;
 		const shape = view.getDriver().createShape({
 			sceneFunc: (context: DriverContext) => {
-				instance.drawAxis(context, view);
+				instance.draw(context, view);
 			},
 		});
 
@@ -121,7 +121,7 @@ export class WaveformAxis {
 		return secs;
 	}
 
-	private drawAxis(context: DriverContext, view: WaveformViewAPI): void {
+	private draw(context: DriverContext, view: WaveformViewAPI): void {
 		const currentFrameStartTime = view.getStartTime();
 
 		const labelIntervalSecs = this.getLabelScale(view);

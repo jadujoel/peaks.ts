@@ -35,22 +35,22 @@ describe("Peaks.zoom", () => {
 
 		describe("getZoom", () => {
 			it("should return the initial zoom level index", () => {
-				expect(p.zoom.getZoom()).to.equal(0);
+				expect(p.zoom.getIndex()).to.equal(0);
 			});
 		});
 
 		describe("setZoom", () => {
 			it("should update the zoom level index", () => {
-				p.zoom.setZoom(1);
+				p.zoom.setIndex(1);
 
-				expect(p.zoom.getZoom()).to.equal(1);
+				expect(p.zoom.getIndex()).to.equal(1);
 			});
 
 			it("should emit a zoom.update event with the new zoom level", () => {
 				const spy = sinon.spy();
 
 				p.events.addEventListener("zoom.update", spy);
-				p.zoom.setZoom(1);
+				p.zoom.setIndex(1);
 
 				expect(spy.callCount).to.equal(1);
 				expect(spy.firstCall.args[0]).to.include({
@@ -60,20 +60,20 @@ describe("Peaks.zoom", () => {
 			});
 
 			it("should limit the zoom level index value to the minimum valid index", () => {
-				p.zoom.setZoom(-1);
+				p.zoom.setIndex(-1);
 
-				expect(p.zoom.getZoom()).to.equal(0);
+				expect(p.zoom.getIndex()).to.equal(0);
 			});
 
 			it("should limit the zoom level index to the maximum valid index", () => {
-				p.zoom.setZoom(2);
+				p.zoom.setIndex(2);
 
-				expect(p.zoom.getZoom()).to.equal(1);
+				expect(p.zoom.getIndex()).to.equal(1);
 			});
 
 			it("should not throw an exception if an existing zoom level does not have sufficient data", () => {
 				expect(() => {
-					p.zoom.setZoom(3);
+					p.zoom.setIndex(3);
 				}).not.to.throw();
 			});
 		});
@@ -95,7 +95,7 @@ describe("Peaks.zoom", () => {
 
 		describe("zoomIn", () => {
 			it("should call setZoom with a smaller zoom level", () => {
-				p.zoom.setZoom(1);
+				p.zoom.setIndex(1);
 
 				const spy = sinon.spy();
 
@@ -139,16 +139,16 @@ describe("Peaks.zoom", () => {
 
 		describe("setZoom", () => {
 			it("should update the zoom level index", () => {
-				p.zoom.setZoom(1);
+				p.zoom.setIndex(1);
 
-				expect(p.zoom.getZoom()).to.equal(1);
+				expect(p.zoom.getIndex()).to.equal(1);
 			});
 
 			it("should not try to update the zoomview", () => {
 				const spy = sinon.spy();
 
 				p.events.addEventListener("zoom.update", spy);
-				p.zoom.setZoom(1);
+				p.zoom.setIndex(1);
 
 				expect(spy).to.not.have.been.called;
 			});

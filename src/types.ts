@@ -156,71 +156,70 @@ export interface WebAudioOptions {
 }
 
 // ─── Init Options (user-provided) ──────────────────────────────────
-// TODO: use readonly wherever possible
 // Remove unsupported stuff
 // refactor so that its more specific, for exxample multiple of these properties cannot be used together
 // some props rule out other props
 export interface PeaksConfiguration {
-	mediaElement?: HTMLMediaElement;
-	player?: PlayerAdapter;
-	zoomLevels?: readonly number[];
-	waveformCache?: boolean;
-	mediaUrl?: string;
-	dataUri?: Record<string, string>;
-	withCredentials?: boolean;
-	waveformData?: Record<string, unknown>;
-	webAudio?: WebAudioOptions;
-	audioContext?: AudioContext;
-	nudgeIncrement?: number;
-	pointMarkerColor?: string;
-	createSegmentMarker?: (
+	readonly mediaElement?: HTMLMediaElement;
+	readonly player?: PlayerAdapter;
+	readonly zoomLevels?: readonly number[];
+	readonly waveformCache?: boolean;
+	readonly mediaUrl?: string;
+	readonly dataUri?: Record<string, string>;
+	readonly withCredentials?: boolean;
+	readonly waveformData?: Record<string, unknown>;
+	readonly webAudio?: WebAudioOptions;
+	readonly audioContext?: AudioContext;
+	readonly nudgeIncrement?: number;
+	readonly pointMarkerColor?: string;
+	readonly createSegmentMarker?: (
 		options: CreateSegmentMarkerOptions,
 	) => Marker | undefined;
-	createSegmentLabel?: (
+	readonly createSegmentLabel?: (
 		options: CreateSegmentLabelOptions,
 	) => PeaksNode | undefined;
-	createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
-	driver?: CanvasDriver;
-	logger?: Logger;
-	overview?: Partial<Omit<OverviewOptions, "segmentOptions">> & {
+	readonly createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
+	readonly driver?: CanvasDriver;
+	readonly logger?: Logger;
+	readonly overview?: Partial<Omit<OverviewOptions, "segmentOptions">> & {
 		segmentOptions?: Partial<SegmentDisplayOptions>;
 	};
-	zoomview?: Partial<Omit<ZoomviewOptions, "segmentOptions">> & {
+	readonly zoomview?: Partial<Omit<ZoomviewOptions, "segmentOptions">> & {
 		segmentOptions?: Partial<SegmentDisplayOptions>;
 	};
-	scrollbar?: Partial<ScrollbarDisplayOptions>;
-	segmentOptions?: Partial<SegmentDisplayOptions>;
-	keyboard?: boolean;
-	emitCueEvents?: boolean;
-	segments?: readonly SegmentOptions[];
-	points?: readonly PointOptions[];
-	showPlayheadTime?: boolean;
-	axisGridlineColor?: string;
-	axisLabelColor?: string;
-	axisTopMarkerHeight?: number;
-	axisBottomMarkerHeight?: number;
-	fontFamily?: string;
-	fontSize?: number;
-	fontStyle?: string;
-	formatAxisTime?: (time: number) => string;
-	formatPlayheadTime?: (time: number) => string;
-	playheadBackgroundColor?: string;
-	playheadColor?: string;
-	playheadTextColor?: string;
-	playheadPadding?: number;
-	playheadWidth?: number;
-	playedWaveformColor?: WaveformColor;
-	showAxisLabels?: boolean;
-	timeLabelPrecision?: number;
-	enablePoints?: boolean;
-	enableSegments?: boolean;
-	enableEditing?: boolean;
-	highlightColor?: string;
-	highlightStrokeColor?: string;
-	highlightOpacity?: number;
-	highlightOffset?: number;
-	highlightCornerRadius?: number;
-	waveformColor?: WaveformColor;
+	readonly scrollbar?: Partial<ScrollbarDisplayOptions>;
+	readonly segmentOptions?: Partial<SegmentDisplayOptions>;
+	readonly keyboard?: boolean;
+	readonly emitCueEvents?: boolean;
+	readonly segments?: readonly SegmentOptions[];
+	readonly points?: readonly PointOptions[];
+	readonly showPlayheadTime?: boolean;
+	readonly axisGridlineColor?: string;
+	readonly axisLabelColor?: string;
+	readonly axisTopMarkerHeight?: number;
+	readonly axisBottomMarkerHeight?: number;
+	readonly fontFamily?: string;
+	readonly fontSize?: number;
+	readonly fontStyle?: string;
+	readonly formatAxisTime?: (time: number) => string;
+	readonly formatPlayheadTime?: (time: number) => string;
+	readonly playheadBackgroundColor?: string;
+	readonly playheadColor?: string;
+	readonly playheadTextColor?: string;
+	readonly playheadPadding?: number;
+	readonly playheadWidth?: number;
+	readonly playedWaveformColor?: WaveformColor;
+	readonly showAxisLabels?: boolean;
+	readonly timeLabelPrecision?: number;
+	readonly enablePoints?: boolean;
+	readonly enableSegments?: boolean;
+	readonly enableEditing?: boolean;
+	readonly highlightColor?: string;
+	readonly highlightStrokeColor?: string;
+	readonly highlightOpacity?: number;
+	readonly highlightOffset?: number;
+	readonly highlightCornerRadius?: number;
+	readonly waveformColor?: WaveformColor;
 }
 
 // ─── Segment / Point Options ────────────────────────────────────────
@@ -268,7 +267,11 @@ export interface PointUpdateOptions {
 
 // ─── Marker interfaces ─────────────────────────────────────────────
 export interface Marker {
-	init(group: PeaksGroup): void;
+	/**
+	 * Called exactly once by the owning {@link PointMarker} or
+	 * {@link SegmentMarker} after its group has been created. Use this to
+	 * attach shapes to the supplied group.
+	 */ init(group: PeaksGroup): void;
 	fitToView(): void;
 	update(options: MarkerUpdateOptions): void;
 	dispose(): void;
@@ -417,12 +420,12 @@ export interface PointsInstance {
 }
 
 export interface ZoomInstance {
-	setZoomLevels(zoomLevels: readonly number[]): void;
+	setLevels(zoomLevels: readonly number[]): void;
 	zoomIn(): void;
 	zoomOut(): void;
-	setZoom(zoomLevelIndex: number, forceUpdate: boolean): void;
-	getZoom(): number;
-	getZoomLevel(): number;
+	setIndex(zoomLevelIndex: number, forceUpdate: boolean): void;
+	getIndex(): number;
+	getLevel(): number;
 }
 
 export interface ViewControllerInstance {

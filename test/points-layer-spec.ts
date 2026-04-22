@@ -94,7 +94,7 @@ describe("PointsLayer", () => {
 			point.update({ time: 5.0 });
 
 			expect(zoomviewPointMarker.getX()).to.equal(
-				Math.floor((5.0 * 44100) / p.zoom.getZoomLevel()),
+				Math.floor((5.0 * 44100) / p.zoom.getLevel()),
 			);
 			expect(zoomviewPointMarkerUpdate).calledOnceWithExactly({ time: 5.0 });
 

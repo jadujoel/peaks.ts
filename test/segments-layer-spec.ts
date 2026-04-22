@@ -82,7 +82,7 @@ describe("SegmentsLayer", () => {
 
 			expect(segmentShape.startMarkerInstance.getX()).to.equal(0);
 			expect(segmentShape.endMarkerInstance.getX()).to.equal(
-				Math.floor((2.0 * 44100) / p.zoom.getZoomLevel()),
+				Math.floor((2.0 * 44100) / p.zoom.getLevel()),
 			);
 
 			const startMarkerUpdate = sinon.spy(
@@ -97,10 +97,10 @@ describe("SegmentsLayer", () => {
 			segment.update({ startTime: 1.0 });
 
 			expect(segmentShape.startMarkerInstance.getX()).to.equal(
-				Math.floor((1.0 * 44100) / p.zoom.getZoomLevel()),
+				Math.floor((1.0 * 44100) / p.zoom.getLevel()),
 			);
 			expect(segmentShape.endMarkerInstance.getX()).to.equal(
-				Math.floor((2.0 * 44100) / p.zoom.getZoomLevel()),
+				Math.floor((2.0 * 44100) / p.zoom.getLevel()),
 			);
 
 			expect(startMarkerUpdate).calledOnceWithExactly({ startTime: 1.0 });
@@ -134,7 +134,7 @@ describe("SegmentsLayer", () => {
 			segment.update({ endTime: 3.0 });
 
 			expect(segmentShape.endMarkerInstance.getX()).to.equal(
-				Math.floor((3.0 * 44100) / p.zoom.getZoomLevel()),
+				Math.floor((3.0 * 44100) / p.zoom.getLevel()),
 			);
 
 			expect(startMarkerUpdate).calledOnceWithExactly({ endTime: 3.0 });

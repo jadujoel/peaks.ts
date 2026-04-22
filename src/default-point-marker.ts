@@ -41,7 +41,6 @@ export class DefaultPointMarker {
 		);
 	}
 
-	// TODO: i dont like this init pattern. are we adding multiple groups and such call init multiple times? OR why is this not done in a named constructor? like fromGroup or such.
 	init(group: PeaksGroup): void {
 		const handleWidth = 10 as const;
 		const handleHeight = 20 as const;
