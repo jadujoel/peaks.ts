@@ -1,7 +1,10 @@
-import { Line } from "konva/lib/shapes/Line";
-
 interface MarkerGroup {
-	add(node: unknown): void;
+	addLine(attrs: Record<string, unknown>): MarkerNode;
+}
+
+interface MarkerNode {
+	points(values: number[]): void;
+	stroke(value: string): void;
 }
 
 interface MarkerLayer {
@@ -19,21 +22,19 @@ interface MarkerUpdateOptions {
 
 export class SimplePointMarker {
 	private readonly _options: PointMarkerOptions;
-	private _line: Line | null = null;
+	private _line: MarkerNode | null = null;
 
 	constructor(options: PointMarkerOptions) {
 		this._options = options;
 	}
 
 	init(group: MarkerGroup): void {
-		this._line = new Line({
+		this._line = group.addLine({
 			stroke: this._options.color,
 			strokeWidth: 1,
 			x: 0,
 			y: 0,
 		});
-
-		group.add(this._line);
 		this.fitToView();
 	}
 
@@ -50,5 +51,9 @@ export class SimplePointMarker {
 		if (options.color !== undefined) {
 			this._line?.stroke(options.color);
 		}
+	}
+
+	dispose(): void {
+		// Nothing to release in demo marker implementation.
 	}
 }

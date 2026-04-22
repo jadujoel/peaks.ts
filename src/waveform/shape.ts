@@ -1,10 +1,12 @@
-import type { Context } from "konva/lib/Context";
-import Konva from "konva/lib/Core";
-import type { Layer } from "konva/lib/Layer";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type { Shape, ShapeConfig } from "konva/lib/Shape";
 import type WaveformData from "waveform-data";
 import type { WaveformDataChannel } from "waveform-data";
+import type {
+	DriverContext,
+	DriverLayer,
+	DriverShape,
+	PeaksPointerEvent,
+	ShapeAttrs,
+} from "../driver/types";
 import type { WaveformViewAPI } from "../types";
 import type { WaveformColor } from "../utils";
 import { clamp, isLinearGradientColor, isString } from "../utils";
@@ -21,13 +23,13 @@ export interface WaveformShapeFromOptions {
 }
 
 /**
- * Creates a Konva.Shape object that renders a waveform image.
+ * Creates a custom shape that renders a waveform image.
  */
 
 export class WaveformShape {
 	private constructor(
 		private readonly color: WaveformColor,
-		private readonly shape: Shape,
+		private readonly shape: DriverShape,
 		private readonly view: WaveformViewAPI,
 		private segment: TimeRange | undefined,
 	) {}
@@ -38,7 +40,7 @@ export class WaveformShape {
 	 * @throws {TypeError} If the provided color is neither a string nor a valid linear gradient.
 	 */
 	static from(options: WaveformShapeFromOptions): WaveformShape {
-		const shapeOptions: ShapeConfig = {};
+		const shapeOptions: Record<string, unknown> = {};
 
 		if (isString(options.color)) {
 			shapeOptions.fill = options.color;
@@ -60,7 +62,9 @@ export class WaveformShape {
 			throw new TypeError("Unknown type for color property");
 		}
 
-		const shape = new Konva.Shape(shapeOptions);
+		const shape = options.view
+			.getDriver()
+			.createShape(shapeOptions as ShapeAttrs);
 		const instance = new WaveformShape(
 			options.color,
 			shape,
@@ -134,7 +138,7 @@ export class WaveformShape {
 		this.setWaveformColor(this.color);
 	}
 
-	addToLayer(layer: Layer): void {
+	addToLayer(layer: DriverLayer): void {
 		layer.add(this.shape);
 	}
 
@@ -144,19 +148,19 @@ export class WaveformShape {
 
 	on(
 		event: string,
-		handler: (event: KonvaEventObject<MouseEvent>) => void,
+		handler: (event: PeaksPointerEvent<MouseEvent>) => void,
 	): void {
 		this.shape.on(event, handler);
 	}
 
 	off(
 		event: string,
-		handler: (event: KonvaEventObject<MouseEvent>) => void,
+		handler: (event: PeaksPointerEvent<MouseEvent>) => void,
 	): void {
 		this.shape.off(event, handler);
 	}
 
-	private sceneFunc = (context: Context): void => {
+	private sceneFunc = (context: DriverContext): void => {
 		const frameOffset = this.view.getFrameOffset();
 		const width = this.view.getWidth();
 		const height = this.view.getHeight();
@@ -187,7 +191,7 @@ export class WaveformShape {
 	 */
 
 	private drawWaveform(
-		context: Context,
+		context: DriverContext,
 		waveformData: WaveformData,
 		frameOffset: number,
 		startPixels: number,
@@ -238,7 +242,7 @@ export class WaveformShape {
 	 */
 
 	private drawChannel(
-		context: Context,
+		context: DriverContext,
 		channel: WaveformDataChannel,
 		frameOffset: number,
 		startPixels: number,
@@ -277,7 +281,6 @@ export class WaveformShape {
 		}
 
 		context.closePath();
-
 		context.fillShape(this.shape);
 	}
 }

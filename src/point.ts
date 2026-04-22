@@ -48,6 +48,7 @@ function applyPointDefaults(
 }
 
 /**
+ * TODO: Return a result object instead of throwing errors.
  * Validates point options before creation or update.
  *
  * @throws {TypeError} If time is not numeric, labelText is not a string,
@@ -125,6 +126,7 @@ export interface PointFromOptions {
 }
 
 export class Point {
+	// TODO: remove this allowing any key thing. USe a map or something if you really need to store extra properties somewhere
 	[key: string]: unknown;
 
 	private constructor(

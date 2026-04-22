@@ -1,20 +1,18 @@
 import type EventEmitter from "eventemitter3";
-import type { Group } from "konva/lib/Group";
-import type { Layer } from "konva/lib/Layer";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type { Shape } from "konva/lib/Shape";
 import type WaveformData from "waveform-data";
+import type {
+	CanvasDriver,
+	DriverLayer,
+	PeaksPointerEvent,
+	XY,
+} from "./driver/types";
+import type { PeaksGroup } from "./peaks-group";
+import type { PeaksNode } from "./peaks-node";
 
 import type { Point } from "./point";
 import type { ResultCallback } from "./result-callback";
 import type { Segment } from "./segment";
 import type { WaveformColor } from "./utils";
-
-// Re-export Konva types for convenience
-export type { KonvaEventObject };
-export type KonvaMouseEvent = KonvaEventObject<MouseEvent>;
-export type KonvaWheelEvent = KonvaEventObject<WheelEvent>;
-export type KonvaTouchEvent = KonvaEventObject<TouchEvent>;
 
 // ─── Logger ─────────────────────────────────────────────────────────
 export type Logger = (...args: unknown[]) => void;
@@ -41,6 +39,7 @@ export interface PlayerAdapter {
 
 // ─── Peaks Options ─────────────────────────────────────────────────
 export interface ViewOptions {
+	// TODO: make most of these options optional with reasonable defaults
 	readonly container?: HTMLDivElement;
 	readonly playheadColor: string;
 	readonly playheadTextColor: string;
@@ -132,10 +131,11 @@ export interface PeaksOptions {
 	) => Marker | undefined;
 	readonly createSegmentLabel: (
 		options: CreateSegmentLabelOptions,
-	) => Shape | undefined;
+	) => PeaksNode | undefined;
 	readonly createPointMarker: (
 		options: CreatePointMarkerOptions,
 	) => Marker | undefined;
+	readonly driver: CanvasDriver;
 	readonly logger: Logger;
 	readonly overview: OverviewOptions;
 	readonly zoomview: ZoomviewOptions;
@@ -152,7 +152,11 @@ export interface WebAudioOptions {
 }
 
 // ─── Init Options (user-provided) ──────────────────────────────────
-export interface PeaksInitOptions {
+// TODO: use readonly wherever possible
+// Remove unsupported stuff
+// refactor so that its more specific, for exxample multiple of these properties cannot be used together
+// some props rule out other props
+export interface PeaksConfiguration {
 	mediaElement?: HTMLMediaElement;
 	player?: PlayerAdapter;
 	zoomLevels?: readonly number[];
@@ -170,8 +174,9 @@ export interface PeaksInitOptions {
 	) => Marker | undefined;
 	createSegmentLabel?: (
 		options: CreateSegmentLabelOptions,
-	) => Shape | undefined;
+	) => PeaksNode | undefined;
 	createPointMarker?: (options: CreatePointMarkerOptions) => Marker;
+	driver?: CanvasDriver;
 	logger?: Logger;
 	overview?: Partial<Omit<OverviewOptions, "segmentOptions">> & {
 		segmentOptions?: Partial<SegmentDisplayOptions>;
@@ -259,7 +264,7 @@ export interface PointUpdateOptions {
 
 // ─── Marker interfaces ─────────────────────────────────────────────
 export interface Marker {
-	init(group: Group): void;
+	init(group: PeaksGroup): void;
 	fitToView(): void;
 	update(options: MarkerUpdateOptions): void;
 	dispose(): void;
@@ -309,12 +314,14 @@ export interface SegmentsLayerAPI {
 	isEditingEnabled(): boolean;
 	formatTime(time: number): string;
 	getHeight(): number;
+	getDriver(): CanvasDriver;
 	moveSegmentMarkersToTop(): void;
 }
 
 export interface PointsLayerAPI {
 	formatTime(time: number): string;
 	getHeight(): number;
+	getDriver(): CanvasDriver;
 }
 
 // ─── View API ───────────────────────────────────────────────────────
@@ -327,6 +334,7 @@ export interface WaveformViewAPI {
 	getFrameOffset(): number;
 	getAmplitudeScale(): number;
 	getViewOptions(): ZoomviewOptions | OverviewOptions;
+	getDriver(): CanvasDriver;
 	timeToPixels(time: number): number;
 	timeToPixelOffset(time: number): number;
 	pixelsToTime(pixels: number): number;
@@ -449,7 +457,7 @@ export interface SetSourceOptions {
 
 // ─── Mouse drag handler interfaces ─────────────────────────────────
 export interface MouseDragHandlers {
-	readonly onMouseDown: (mousePosX: number, segment?: Group) => void;
+	readonly onMouseDown: (mousePosX: number, segment?: PeaksGroup) => void;
 	readonly onMouseMove: (mousePosX: number) => void;
 	readonly onMouseUp: (mousePosX: number) => void;
 }
@@ -460,10 +468,7 @@ export type WaveformBuilderCallback = ResultCallback<
 	WaveformData
 >;
 
-export interface XY {
-	readonly x: number;
-	readonly y: number;
-}
+export type { XY } from "./driver/types";
 
 // ─── Segment Shape interfaces ──────────────────────────────────────
 export interface SegmentMarkerOptions {
@@ -472,10 +477,22 @@ export interface SegmentMarkerOptions {
 	readonly editable: boolean;
 	readonly startMarker: boolean;
 	readonly marker: Marker;
-	onClick: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
-	onDragStart: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
-	onDragMove: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
-	onDragEnd: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
+	onClick: (
+		marker: SegmentMarkerAPI,
+		event: PeaksPointerEvent<MouseEvent>,
+	) => void;
+	onDragStart: (
+		marker: SegmentMarkerAPI,
+		event: PeaksPointerEvent<MouseEvent>,
+	) => void;
+	onDragMove: (
+		marker: SegmentMarkerAPI,
+		event: PeaksPointerEvent<MouseEvent>,
+	) => void;
+	onDragEnd: (
+		marker: SegmentMarkerAPI,
+		event: PeaksPointerEvent<MouseEvent>,
+	) => void;
 	dragBoundFunc: (marker: SegmentMarkerAPI, pos: XY) => XY;
 }
 
@@ -487,7 +504,7 @@ export interface SegmentMarkerAPI {
 	isStartMarker(): boolean;
 	update(options: Record<string, unknown>): void;
 	fitToView(): void;
-	addToLayer(layer: Layer): void;
+	addToLayer(layer: DriverLayer): void;
 	moveToTop(): void;
 	dispose(): void;
 	startDrag(): void;
@@ -505,21 +522,21 @@ export interface SegmentShapeAPI {
 	enableSegmentDragging(enable: boolean): void;
 	update(options?: Record<string, unknown>): void;
 	fitToView(): void;
-	addToLayer(layer: Layer): void;
+	addToLayer(layer: DriverLayer): void;
 	dispose(): void;
 	segmentClicked(eventName: string, event: SegmentClickEvent): void;
 }
 
 export interface PointMarkerOptions {
 	readonly point: Point;
-	readonly draggable: boolean;
 	readonly marker: Marker;
-	onDragStart: (event: KonvaMouseEvent, point: Point) => void;
-	onDragMove: (event: KonvaMouseEvent, point: Point) => void;
-	onDragEnd: (event: KonvaMouseEvent, point: Point) => void;
+	readonly draggable?: boolean;
+	onDragStart: (event: PeaksPointerEvent<MouseEvent>, point: Point) => void;
+	onDragMove: (event: PeaksPointerEvent<MouseEvent>, point: Point) => void;
+	onDragEnd: (event: PeaksPointerEvent<MouseEvent>, point: Point) => void;
 	dragBoundFunc: (pos: { x: number; y: number }) => { x: number; y: number };
-	onMouseEnter: (event: KonvaMouseEvent, point: Point) => void;
-	onMouseLeave: (event: KonvaMouseEvent, point: Point) => void;
+	onMouseEnter: (event: PeaksPointerEvent<MouseEvent>, point: Point) => void;
+	onMouseLeave: (event: PeaksPointerEvent<MouseEvent>, point: Point) => void;
 }
 
 export interface PointMarkerAPI {
@@ -530,7 +547,7 @@ export interface PointMarkerAPI {
 	getAbsolutePosition(): { x: number; y: number };
 	update(options: Record<string, unknown>): void;
 	fitToView(): void;
-	addToLayer(layer: Layer): void;
+	addToLayer(layer: DriverLayer): void;
 	dispose(): void;
 }
 // ─── Waveform Shape options ─────────────────────────────────────────

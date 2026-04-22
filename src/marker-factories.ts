@@ -1,7 +1,6 @@
-import type { Shape } from "konva/lib/Shape";
-import { Text } from "konva/lib/shapes/Text";
 import { DefaultPointMarker } from "./default-point-marker";
 import { DefaultSegmentMarker } from "./default-segment-marker";
+import { PeaksNode } from "./peaks-node";
 import type {
 	CreatePointMarkerOptions,
 	CreateSegmentLabelOptions,
@@ -11,9 +10,6 @@ import type {
 
 /**
  * Creates a left or right side segment marker handle.
- *
- * @param {CreateSegmentMarkerOptions} options
- * @returns {Marker}
  */
 
 export function createSegmentMarker(
@@ -27,15 +23,14 @@ export function createSegmentMarker(
 }
 
 /**
- * Creates a Konva object that renders information about a segment, such as
+ * Creates a node that renders information about a segment, such as
  * its label text.
- *
- * @param {SegmentLabelOptions} options
- * @returns {Konva.Text}
  */
 
-export function createSegmentLabel(options: CreateSegmentLabelOptions): Shape {
-	return new Text({
+export function createSegmentLabel(
+	options: CreateSegmentLabelOptions,
+): PeaksNode {
+	const node = options.layer.getDriver().createText({
 		fill: "#000",
 		fontFamily: options.fontFamily || "sans-serif",
 		fontSize: options.fontSize || 12,
@@ -45,13 +40,11 @@ export function createSegmentLabel(options: CreateSegmentLabelOptions): Shape {
 		x: 12,
 		y: 12,
 	});
+	return PeaksNode.from(node);
 }
 
 /**
  * Creates a point marker handle.
- *
- * @param {CreatePointMarkerOptions} options
- * @returns {Marker}
  */
 
 export function createPointMarker(options: CreatePointMarkerOptions): Marker {

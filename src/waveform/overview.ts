@@ -15,6 +15,7 @@ export interface WaveformOverviewFromOptions {
 }
 
 export class WaveformOverview extends WaveformView {
+	// TODO: list these directly in the constructor parameters instead of as public properties, and remove the undefined initialization
 	public mouseDragHandler: SeekMouseDragHandler | undefined;
 	public highlightLayer: HighlightLayer | undefined;
 

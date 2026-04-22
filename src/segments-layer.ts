@@ -1,6 +1,4 @@
-import Konva from "konva/lib/Core";
-import type { Layer } from "konva/lib/Layer";
-import type { Stage } from "konva/lib/Stage";
+import type { DriverLayer, DriverStage } from "./driver/types";
 import type { Segment } from "./segment";
 import { SegmentShape } from "./segment-shape";
 import type {
@@ -11,7 +9,7 @@ import type {
 } from "./types";
 
 /**
- * Creates a Konva.Layer that displays segment markers against the audio
+ * Creates a layer that displays segment markers against the audio
  * waveform.
  */
 
@@ -25,7 +23,7 @@ export class SegmentsLayer {
 	private constructor(
 		private readonly peaks: PeaksInstance,
 		private readonly view: WaveformViewAPI,
-		private readonly layer: Layer,
+		private readonly layer: DriverLayer,
 		private readonly segmentShapes: Map<number, SegmentShape>,
 		private editingEnabled: boolean,
 	) {}
@@ -34,7 +32,7 @@ export class SegmentsLayer {
 		const instance = new SegmentsLayer(
 			options.peaks,
 			options.view,
-			new Konva.Layer(),
+			options.view.getDriver().createLayer(),
 			new Map<number, SegmentShape>(),
 			options.enableEditing,
 		);
@@ -46,7 +44,7 @@ export class SegmentsLayer {
 		return instance;
 	}
 
-	addToStage(stage: Stage): void {
+	addToStage(stage: DriverStage): void {
 		stage.add(this.layer);
 	}
 
@@ -128,6 +126,10 @@ export class SegmentsLayer {
 
 	getHeight(): number {
 		return this.layer.getHeight() ?? 0;
+	}
+
+	getDriver() {
+		return this.peaks.options.driver;
 	}
 
 	private onSegmentsUpdate = (

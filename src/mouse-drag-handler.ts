@@ -1,6 +1,9 @@
-import type { Group } from "konva/lib/Group";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type { Stage } from "konva/lib/Stage";
+import type {
+	CanvasDriver,
+	DriverStage,
+	PeaksPointerEvent,
+} from "./driver/types";
+import { PeaksGroup } from "./peaks-group";
 import type { MouseDragHandlers } from "./types";
 import { getMarkerObject } from "./utils";
 
@@ -10,14 +13,16 @@ import { getMarkerObject } from "./utils";
  */
 
 export interface MouseDragHandlerFromOptions {
-	readonly stage: Stage;
+	readonly stage: DriverStage;
 	readonly handlers: MouseDragHandlers;
+	readonly driver: CanvasDriver;
 }
 
 export class MouseDragHandler {
 	private constructor(
-		private readonly stage: Stage,
+		private readonly stage: DriverStage,
 		private readonly handlers: MouseDragHandlers,
+		private readonly driver: CanvasDriver,
 		private dragging: boolean,
 		private lastMouseClientX: number | undefined,
 	) {}
@@ -26,6 +31,7 @@ export class MouseDragHandler {
 		const instance = new MouseDragHandler(
 			options.stage,
 			options.handlers,
+			options.driver,
 			false,
 			undefined,
 		);
@@ -44,9 +50,9 @@ export class MouseDragHandler {
 	}
 
 	private mouseDown = (
-		event: KonvaEventObject<MouseEvent | TouchEvent>,
+		event: PeaksPointerEvent<MouseEvent | TouchEvent>,
 	): void => {
-		let segment: Group | undefined;
+		let segment: PeaksGroup | undefined;
 
 		if (event.type === "mousedown" && (event.evt as MouseEvent).button !== 0) {
 			return;
@@ -56,14 +62,14 @@ export class MouseDragHandler {
 
 		if (marker) {
 			if (
-				marker.attrs.name === "point-marker" ||
-				marker.attrs.name === "segment-marker"
+				marker.attrs?.name === "point-marker" ||
+				marker.attrs?.name === "segment-marker"
 			) {
 				return;
 			}
 
-			if (marker.attrs.name === "segment-overlay") {
-				segment = marker as unknown as Group;
+			if (marker.attrs?.name === "segment-overlay") {
+				segment = PeaksGroup.fromGroup(marker as never, this.driver);
 			}
 		}
 

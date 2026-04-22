@@ -7,6 +7,7 @@ export interface ZoomControllerFromOptions {
 	readonly levels: readonly number[];
 }
 
+// TODO: the class is already called Zoom, so why does every method also have zoom in the name
 export class ZoomController {
 	private constructor(
 		private readonly peaks: PeaksInstance,
@@ -19,8 +20,8 @@ export class ZoomController {
 	}
 
 	static ErrorMessages = {
-		INVALID_ZOOM_LEVEL_INDEX: "ZoomController: Invalid zoom level index",
-		ZOOMVIEW_NOT_FOUND: "ZoomController: Zoomview not found",
+		INVALID_ZOOM_LEVEL_INDEX: "Invalid zoom level index",
+		ZOOMVIEW_NOT_FOUND: "Zoomview not found",
 	} as const;
 
 	setZoomLevels(levels: readonly number[]): Result<undefined, Error> {

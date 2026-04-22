@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
-import type { PeaksInitOptions } from "../src/types";
+import type { PeaksOptions } from "../src/types";
 import { InputController } from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
@@ -23,13 +23,13 @@ type InternalWaveformView = {
 function initOptions(
 	view: string,
 	viewOptions: Record<string, unknown>,
-): PeaksInitOptions {
-	const options: PeaksInitOptions = {
+): PeaksOptions & Record<string, unknown> {
+	const options = {
 		dataUri: {
 			arraybuffer: "base/test/data/sample.dat",
 		},
 		mediaElement: document.getElementById("media"),
-	};
+	} as unknown as PeaksOptions & Record<string, unknown>;
 
 	options[view] = viewOptions;
 

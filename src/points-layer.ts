@@ -1,10 +1,11 @@
-import Konva from "konva/lib/Core";
-import type { Layer } from "konva/lib/Layer";
-import type { Stage } from "konva/lib/Stage";
+import type {
+	DriverLayer,
+	DriverStage,
+	PeaksPointerEvent,
+} from "./driver/types";
 import type { Point } from "./point";
 import { PointMarker } from "./point-marker";
 import type {
-	KonvaMouseEvent,
 	PeaksInstance,
 	PointUpdateOptions,
 	WaveformViewAPI,
@@ -12,7 +13,7 @@ import type {
 import { clamp, objectHasProperty } from "./utils";
 
 /**
- * Creates a Konva.Layer that displays point markers against the audio
+ * Creates a layer that displays point markers against the audio
  * waveform.
  */
 export interface PointsLayerFromOptions {
@@ -26,7 +27,7 @@ export class PointsLayer {
 		private readonly peaks: PeaksInstance,
 		private readonly view: WaveformViewAPI,
 		private editingEnabled: boolean,
-		private readonly layer: Layer,
+		private readonly layer: DriverLayer,
 		private readonly markers: Map<number, PointMarker>,
 		private dragPointMarker: PointMarker | undefined,
 	) {}
@@ -36,7 +37,7 @@ export class PointsLayer {
 			options.peaks,
 			options.view,
 			options.enableEditing ?? false,
-			new Konva.Layer(),
+			options.view.getDriver().createLayer(),
 			new Map<number, PointMarker>(),
 			undefined,
 		);
@@ -58,7 +59,7 @@ export class PointsLayer {
 		return this.editingEnabled;
 	}
 
-	addToStage(stage: Stage): void {
+	addToStage(stage: DriverStage): void {
 		stage.add(this.layer);
 	}
 
@@ -76,6 +77,10 @@ export class PointsLayer {
 
 	getHeight(): number {
 		return this.view.getHeight();
+	}
+
+	getDriver() {
+		return this.peaks.options.driver;
 	}
 
 	setVisible(visible: boolean): void {
@@ -177,6 +182,7 @@ export class PointsLayer {
 		}
 
 		return PointMarker.from({
+			driver: this.peaks.options.driver,
 			options: {
 				dragBoundFunc: this.pointMarkerDragBoundFunc,
 				draggable: editable,
@@ -197,12 +203,12 @@ export class PointsLayer {
 	private addPointMarker(point: Point): PointMarker {
 		const pointMarker = this.createPointMarker(point);
 		this.markers.set(point.pid, pointMarker);
-		pointMarker.addToLayer(this.layer);
+		pointMarker.addToLayer(this.layer as unknown as DriverLayer);
 		return pointMarker;
 	}
 
 	private onPointsDrag = (event: {
-		evt: KonvaMouseEvent["evt"];
+		evt: PeaksPointerEvent<MouseEvent>["evt"];
 		point: Point;
 	}): void => {
 		const pointMarker = this.updatePoint(event.point);
@@ -210,7 +216,7 @@ export class PointsLayer {
 	};
 
 	private onPointMarkerMouseEnter = (
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 		point: Point,
 	): void => {
 		this.peaks.emit("points.mouseenter", {
@@ -220,7 +226,7 @@ export class PointsLayer {
 	};
 
 	private onPointMarkerMouseLeave = (
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 		point: Point,
 	): void => {
 		this.peaks.emit("points.mouseleave", {
@@ -230,7 +236,7 @@ export class PointsLayer {
 	};
 
 	private onPointMarkerDragStart = (
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 		point: Point,
 	): void => {
 		this.dragPointMarker = this.getPointMarker(point);
@@ -242,7 +248,7 @@ export class PointsLayer {
 	};
 
 	private onPointMarkerDragMove = (
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 		point: Point,
 	): void => {
 		const marker = this.markers.get(point.pid);
@@ -261,7 +267,7 @@ export class PointsLayer {
 	};
 
 	private onPointMarkerDragEnd = (
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 		point: Point,
 	): void => {
 		this.dragPointMarker = undefined;

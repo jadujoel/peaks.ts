@@ -1,7 +1,5 @@
-import type { Group } from "konva/lib/Group";
-import { Line } from "konva/lib/shapes/Line";
-import { Rect } from "konva/lib/shapes/Rect";
-import { Text } from "konva/lib/shapes/Text";
+import type { PeaksGroup } from "./peaks-group";
+import type { PeaksNode } from "./peaks-node";
 import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
 export const SegmentMarkerDefaults = {
@@ -20,9 +18,9 @@ export interface DefaultSegmentMarkerFromOptions {
 export class DefaultSegmentMarker {
 	private constructor(
 		private readonly options: CreateSegmentMarkerOptions,
-		private readonly label: Text,
-		private readonly handle: Rect,
-		private readonly line: Line,
+		private label: PeaksNode | undefined,
+		private handle: PeaksNode | undefined,
+		private line: PeaksNode | undefined,
 		private readonly labelX: number,
 		private editable: boolean,
 	) {}
@@ -30,60 +28,56 @@ export class DefaultSegmentMarker {
 	static from(opts: DefaultSegmentMarkerFromOptions): DefaultSegmentMarker {
 		const { options } = opts;
 		const editable = options.editable ?? false;
-		const handleX = -(SegmentMarkerDefaults.handleWidth / 2) + 0.5;
 		const labelXPosition = options.startMarker ? -24 : 24;
-
-		const time =
-			(options.startMarker
-				? options.segment?.startTime
-				: options.segment?.endTime) ?? 0;
-
-		const label = new Text({
-			fill: "#000",
-			fontFamily: options.fontFamily ?? SegmentMarkerDefaults.fontFamily,
-			fontSize: options.fontSize ?? SegmentMarkerDefaults.fontSize,
-			fontStyle: options.fontStyle ?? SegmentMarkerDefaults.fontStyle,
-			text: options.layer?.formatTime(time) ?? "",
-			textAlign: "center",
-			visible: editable,
-			x: labelXPosition,
-			y: 0,
-		});
-		label.hide();
-
-		const handle = new Rect({
-			fill: options.color ?? SegmentMarkerDefaults.color,
-			height: SegmentMarkerDefaults.handleHeight,
-			stroke: options.color ?? SegmentMarkerDefaults.color,
-			strokeWidth: 1,
-			visible: editable,
-			width: SegmentMarkerDefaults.handleWidth,
-			x: handleX,
-			y: 0,
-		});
-
-		const line = new Line({
-			stroke: options.color ?? SegmentMarkerDefaults.color,
-			strokeWidth: 1,
-			visible: editable,
-			x: 0,
-			y: 0,
-		});
 
 		return new DefaultSegmentMarker(
 			options,
-			label,
-			handle,
-			line,
+			undefined,
+			undefined,
+			undefined,
 			labelXPosition,
 			editable,
 		);
 	}
 
-	init(group: Group): void {
-		group.add(this.label);
-		group.add(this.line);
-		group.add(this.handle);
+	init(group: PeaksGroup): void {
+		const handleX = -(SegmentMarkerDefaults.handleWidth / 2) + 0.5;
+		const time =
+			(this.options.startMarker
+				? this.options.segment?.startTime
+				: this.options.segment?.endTime) ?? 0;
+
+		this.label = group.addText({
+			fill: "#000",
+			fontFamily: this.options.fontFamily ?? SegmentMarkerDefaults.fontFamily,
+			fontSize: this.options.fontSize ?? SegmentMarkerDefaults.fontSize,
+			fontStyle: this.options.fontStyle ?? SegmentMarkerDefaults.fontStyle,
+			text: this.options.layer?.formatTime(time) ?? "",
+			textAlign: "center",
+			visible: this.editable,
+			x: this.labelX,
+			y: 0,
+		});
+		this.label.hide();
+
+		this.line = group.addLine({
+			stroke: this.options.color ?? SegmentMarkerDefaults.color,
+			strokeWidth: 1,
+			visible: this.editable,
+			x: 0,
+			y: 0,
+		});
+
+		this.handle = group.addRect({
+			fill: this.options.color ?? SegmentMarkerDefaults.color,
+			height: SegmentMarkerDefaults.handleHeight,
+			stroke: this.options.color ?? SegmentMarkerDefaults.color,
+			strokeWidth: 1,
+			visible: this.editable,
+			width: SegmentMarkerDefaults.handleWidth,
+			x: handleX,
+			y: 0,
+		});
 
 		this.fitToView();
 		this.bindEventHandlers(group);
@@ -91,6 +85,9 @@ export class DefaultSegmentMarker {
 
 	fitToView(): void {
 		const height = this.options.layer?.getHeight() ?? 0;
+		if (!this.label || !this.handle || !this.line) {
+			return;
+		}
 
 		this.label.y(height / 2 - 5);
 		this.handle.y(height / 2 - 10.5);
@@ -98,6 +95,10 @@ export class DefaultSegmentMarker {
 	}
 
 	update(options: SegmentUpdateOptions): void {
+		if (!this.label || !this.handle || !this.line) {
+			return;
+		}
+
 		if (options.startTime !== undefined && this.options.startMarker) {
 			this.label.text(this.options.layer?.formatTime(options.startTime) ?? "");
 		}
@@ -119,29 +120,36 @@ export class DefaultSegmentMarker {
 		// Shapes are destroyed by group.destroyChildren() in SegmentMarker.dispose()
 	}
 
-	private bindEventHandlers(group: Group): void {
+	private bindEventHandlers(group: PeaksGroup): void {
+		if (!this.label || !this.handle) {
+			return;
+		}
+
+		const label = this.label;
+		const handle = this.handle;
+
 		group.on("dragstart", () => {
 			if (this.options.startMarker) {
-				this.label.x(this.labelX - this.label.getWidth());
+				label.x(this.labelX - label.getWidth());
 			}
 
-			this.label.show();
+			label.show();
 		});
 
 		group.on("dragend", () => {
-			this.label.hide();
+			label.hide();
 		});
 
-		this.handle.on("mouseover touchstart", () => {
+		handle.on("mouseover touchstart", () => {
 			if (this.options.startMarker) {
-				this.label.x(this.labelX - this.label.getWidth());
+				label.x(this.labelX - label.getWidth());
 			}
 
-			this.label.show();
+			label.show();
 		});
 
-		this.handle.on("mouseout touchend", () => {
-			this.label.hide();
+		handle.on("mouseout touchend", () => {
+			label.hide();
 		});
 	}
 }

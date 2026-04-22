@@ -1,16 +1,17 @@
-import { Animation } from "konva/lib/Animation";
-import type { Context } from "konva/lib/Context";
-import Konva from "konva/lib/Core";
-import type { Group } from "konva/lib/Group";
-import type { Layer } from "konva/lib/Layer";
-import type { Shape } from "konva/lib/Shape";
-import type { Stage } from "konva/lib/Stage";
-import { Line } from "konva/lib/shapes/Line";
-import { Text } from "konva/lib/shapes/Text";
+import type {
+	DriverAnimation,
+	DriverContext,
+	DriverGroup,
+	DriverLayer,
+	DriverLine,
+	DriverShape,
+	DriverStage,
+	DriverText,
+} from "./driver/types";
 import type { PlayerInstance, ViewOptions, WaveformViewAPI } from "./types";
 
 /**
- * Creates a Konva.Layer that displays a playhead marker.
+ * Creates a layer that displays a playhead marker.
  */
 
 export interface PlayheadLayerFromOptions {
@@ -31,31 +32,32 @@ export class PlayheadLayer {
 		private readonly playheadFontFamily: string,
 		private readonly playheadFontSize: number,
 		private readonly playheadFontStyle: string,
-		private readonly playheadLayer: Layer,
-		private readonly playheadLine: Line,
-		private readonly playheadGroup: Group,
+		private readonly playheadLayer: DriverLayer,
+		private readonly playheadLine: DriverLine,
+		private readonly playheadGroup: DriverGroup,
 		private playheadPixel: number,
-		private playheadLineAnimation: Animation | undefined,
+		private playheadLineAnimation: DriverAnimation | undefined,
 		private playheadVisible: boolean,
-		private playheadText: Text | undefined,
+		private playheadText: DriverText | undefined,
 		private useAnimation: boolean,
 	) {}
 
 	static from(options: PlayheadLayerFromOptions): PlayheadLayer {
 		const opts = options.options;
-		const playheadLine = new Line({
+		const driver = options.view.getDriver();
+		const playheadLine = driver.createLine({
 			stroke: opts.playheadColor,
 			strokeWidth: opts.playheadWidth,
 		});
 
-		const playheadGroup = new Konva.Group({
+		const playheadGroup = driver.createGroup({
 			x: 0,
 			y: 0,
 		});
 
 		playheadGroup.add(playheadLine);
 
-		const playheadLayer = new Konva.Layer({ listening: false });
+		const playheadLayer = driver.createLayer({ listening: false });
 		playheadLayer.add(playheadGroup);
 
 		const instance = new PlayheadLayer(
@@ -89,7 +91,7 @@ export class PlayheadLayer {
 		return instance;
 	}
 
-	addToStage(stage: Stage): void {
+	addToStage(stage: DriverStage): void {
 		stage.add(this.playheadLayer);
 	}
 
@@ -176,28 +178,37 @@ export class PlayheadLayer {
 	private createPlayheadText(): void {
 		const time = this.player.getCurrentTime();
 		const text = this.view.formatTime(time);
+		const driver = this.view.getDriver();
 
-		this.playheadText = new Text({
+		const playheadText = driver.createText({
 			align: "right",
 			fill: this.playheadTextColor,
 			fontFamily: this.playheadFontFamily,
 			fontSize: this.playheadFontSize,
 			fontStyle: this.playheadFontStyle,
 			padding: this.playheadPadding,
-			sceneFunc: (context: Context, shape: Shape) => {
-				const width = shape.width();
-				const height = shape.height() + 2 * this.playheadPadding;
-
-				context.fillStyle = this.playheadBackgroundColor;
-				context.fillRect(0, -this.playheadPadding, width, height);
-				(shape as Text)._sceneFunc(context);
-			},
 			text: text,
 			x: 0,
 			y: 0,
+		}) as DriverText & DriverShape;
+
+		const backgroundColor = this.playheadBackgroundColor;
+		const padding = this.playheadPadding;
+
+		playheadText.sceneFunc((context: DriverContext, shape: DriverShape) => {
+			const width = shape.width();
+			const height = shape.height() + 2 * padding;
+
+			context.fillStyle = backgroundColor;
+			context.fillRect(0, -padding, width, height);
+			const sceneFn = (
+				shape as unknown as { _sceneFunc: (ctx: DriverContext) => void }
+			)._sceneFunc;
+			sceneFn.call(shape, context);
 		});
 
-		this.playheadGroup.add(this.playheadText);
+		this.playheadText = playheadText;
+		this.playheadGroup.add(playheadText);
 	}
 
 	private syncPlayhead(time: number): void {
@@ -257,7 +268,7 @@ export class PlayheadLayer {
 
 		let lastPlayheadPosition: number | undefined;
 
-		this.playheadLineAnimation = new Animation(() => {
+		this.playheadLineAnimation = this.view.getDriver().createAnimation(() => {
 			const time = this.player.getCurrentTime();
 			const playheadPosition = this.view.timeToPixels(time);
 

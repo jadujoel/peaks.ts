@@ -57,6 +57,7 @@ export interface WaveformBuilderFromOptions {
 export class WaveformBuilder {
 	private constructor(
 		private readonly peaks: WaveformBuilderPeaksLike,
+		// Todo: use fetch instead of XHR, and remove the dependency on XMLHttpRequest in this class
 		private xhr: XMLHttpRequest | undefined = undefined,
 	) {}
 
@@ -64,6 +65,7 @@ export class WaveformBuilder {
 		return new WaveformBuilder(options.peaks);
 	}
 
+	// TODO: refactor this into a promise instead of the callback thing
 	init(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
@@ -82,6 +84,7 @@ export class WaveformBuilder {
 			return;
 		}
 
+		// Todo: remove the support totally instead sos remove audioContext from the options then.
 		if (options.audioContext) {
 			this.peaks.logger?.(
 				"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
@@ -112,6 +115,7 @@ export class WaveformBuilder {
 		}
 	}
 
+	// TODO: Refactor this to use fetch instead
 	private getRemoteWaveformData(
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
@@ -126,7 +130,7 @@ export class WaveformBuilder {
 			dataUri = options.dataUri;
 		} else {
 			callback(
-				new TypeError("Peaks.init(): The dataUri option must be an object"),
+				new TypeError("The dataUri option must be an object"),
 				undefined,
 			);
 			return;
@@ -146,7 +150,7 @@ export class WaveformBuilder {
 		if (!url || !requestType) {
 			callback(
 				new Error(
-					"Peaks.init(): Unable to determine a compatible dataUri format for this browser",
+					"Unable to determine a compatible dataUri format for this browser",
 				),
 				undefined,
 			);
@@ -182,15 +186,13 @@ export class WaveformBuilder {
 
 				if (waveformData.channels !== 1 && waveformData.channels !== 2) {
 					callback(
-						new Error(
-							"Peaks.init(): Only mono or stereo waveforms are currently supported",
-						),
+						new Error("Only mono or stereo waveforms are currently supported"),
 						undefined,
 					);
 					return;
 				} else if (waveformData.bits !== 8) {
 					callback(
-						new Error("Peaks.init(): 16-bit waveform data is not supported"),
+						new Error("16-bit waveform data is not supported"),
 						undefined,
 					);
 					return;

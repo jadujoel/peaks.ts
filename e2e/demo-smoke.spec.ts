@@ -283,3 +283,84 @@ test("custom markers demo keeps edited labels after rerender", async ({
 	expect(pageErrors).toEqual([]);
 	expect(consoleErrors).toEqual([]);
 });
+
+test("custom point marker factory receives wrapper marker surface", async ({
+	page,
+}) => {
+	await page.goto("/index.html");
+
+	const result = await page.evaluate(async () => {
+		const loadPeaks = new Function(
+			'return import("/peaks.esm.js")',
+		) as () => Promise<{
+			default: {
+				fromOptionsAsync: (options: Record<string, unknown>) => Promise<{
+					destroy: () => void;
+					points: { add: (point: { time: number; editable: boolean }) => void };
+				}>;
+			};
+		}>;
+		const peaksModule = await loadPeaks();
+
+		const markerSurface = {
+			hasAddLine: false,
+			hasAddRect: false,
+			hasAddText: false,
+		};
+
+		const instance = await peaksModule.default.fromOptionsAsync({
+			createPointMarker: () => {
+				return {
+					dispose: () => {},
+					fitToView: () => {},
+					init: (group: {
+						addLine?: (attrs: Record<string, unknown>) => unknown;
+						addRect?: (attrs: Record<string, unknown>) => unknown;
+						addText?: (attrs: Record<string, unknown>) => unknown;
+					}) => {
+						markerSurface.hasAddRect = typeof group.addRect === "function";
+						markerSurface.hasAddLine = typeof group.addLine === "function";
+						markerSurface.hasAddText = typeof group.addText === "function";
+						group.addRect?.({ height: 6, width: 6, x: -3, y: 8 });
+						group.addLine?.({
+							points: [0, 0, 0, 40],
+							stroke: "#222",
+							strokeWidth: 1,
+						});
+						group.addText?.({
+							fill: "#111",
+							fontSize: 10,
+							text: "T",
+							x: 4,
+							y: 6,
+						});
+					},
+					update: () => {},
+				};
+			},
+			dataUri: {
+				arraybuffer: "/TOL_6min_720p_download.dat",
+				json: "/TOL_6min_720p_download.json",
+			},
+			mediaElement: document.getElementById("audio"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+			},
+		});
+
+		instance.points.add({ editable: true, time: 1 });
+		const surfaceSnapshot = { ...markerSurface };
+		instance.destroy();
+
+		return surfaceSnapshot;
+	});
+
+	expect(result).toEqual({
+		hasAddLine: true,
+		hasAddRect: true,
+		hasAddText: true,
+	});
+});

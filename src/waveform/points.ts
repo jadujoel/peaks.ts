@@ -1,7 +1,5 @@
 import { Point, validatePointOptions } from "../point";
 import type { PeaksInstance, PointOptions } from "../types";
-import type { Writable } from "../utils";
-import { extend, isNullOrUndefined } from "../utils";
 
 /**
  * Handles all functionality related to the adding, removing and manipulation
@@ -11,6 +9,8 @@ import { extend, isNullOrUndefined } from "../utils";
 export interface WaveformPointsFromOptions {
 	readonly peaks: PeaksInstance;
 }
+
+export type PointPredicate = (point: Point) => boolean;
 
 export class WaveformPoints {
 	private constructor(
@@ -167,24 +167,19 @@ export class WaveformPoints {
 	 * @throws {Error} If reserved or internal option names are provided.
 	 */
 	private createPoint(options: PointOptions): Point | never {
-		const pointOptions = {} as Writable<PointOptions>;
-		extend(pointOptions, options as unknown as Record<string, unknown>);
-
-		if (isNullOrUndefined(pointOptions.id)) {
-			pointOptions.id = this.nextPointName();
-		}
-
-		const pid = this.nextPid();
-
-		validatePointOptions(pointOptions, false);
+		const updated = {
+			...options,
+			id: options.id ?? this.nextPointName(),
+		};
+		validatePointOptions(updated, false);
 
 		return Point.from({
 			defaults: {
 				pointMarkerColor: this.peaks.options.pointMarkerColor ?? "",
 			},
-			options: pointOptions,
+			options: updated,
 			peaks: this.peaks,
-			pid,
+			pid: this.nextPid(),
 		});
 	}
 
@@ -195,16 +190,14 @@ export class WaveformPoints {
 	 * @returns An array of indexes into the points array of
 	 *   the matching elements.
 	 */
-	private findPoint(predicate: (point: Point) => boolean): number[] {
-		const indexes: number[] = [];
-		for (let i = 0, length = this.points.length; i < length; i++) {
-			const point = this.points[i];
-			if (point && predicate(point)) {
-				indexes.push(i);
+	private findPoint(predicate: PointPredicate): number[] {
+		const indices: number[] = [];
+		for (const [index, point] of this.points.entries()) {
+			if (predicate(point)) {
+				indices.push(index);
 			}
 		}
-
-		return indexes;
+		return indices;
 	}
 
 	/**
@@ -238,15 +231,12 @@ export class WaveformPoints {
 	 *   points to remove.
 	 * @returns The removed Point objects.
 	 */
-	private removePoints(predicate: (point: Point) => boolean): Point[] {
+	private removePoints(predicate: PointPredicate): Point[] {
 		const indexes = this.findPoint(predicate);
-
 		const removed = this.removeByIndexes(indexes);
-
 		this.peaks.emit("points.remove", {
 			points: removed,
 		});
-
 		return removed;
 	}
 }

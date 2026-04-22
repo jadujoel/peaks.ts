@@ -1,10 +1,12 @@
-import Konva from "konva/lib/Core";
-import type { Group } from "konva/lib/Group";
-import type { Layer } from "konva/lib/Layer";
-import type { KonvaEventObject } from "konva/lib/Node";
+import type {
+	CanvasDriver,
+	DriverGroup,
+	DriverLayer,
+	PeaksPointerEvent,
+} from "./driver/types";
+import { PeaksGroup } from "./peaks-group";
 import type { Point } from "./point";
 import type {
-	KonvaMouseEvent,
 	Marker,
 	MarkerUpdateOptions,
 	PointMarkerOptions,
@@ -12,43 +14,51 @@ import type {
 } from "./types";
 
 export interface PointMarkerFromOptions {
+	// TODO: Flatten to use PointMarkerOptions directly.
 	readonly options: PointMarkerOptions;
+	readonly driver: CanvasDriver;
 }
 
 export class PointMarker {
 	private constructor(
 		private readonly point: Point,
 		private readonly marker: Marker,
-		private readonly draggable: boolean,
+		private readonly draggable: boolean, // todo: remove unused properties
 		private readonly onDragStart: (
-			event: KonvaMouseEvent,
+			event: PeaksPointerEvent<MouseEvent>,
 			point: Point,
 		) => void,
-		private readonly onDragMove: (event: KonvaMouseEvent, point: Point) => void,
-		private readonly onDragEnd: (event: KonvaMouseEvent, point: Point) => void,
+		private readonly onDragMove: (
+			event: PeaksPointerEvent<MouseEvent>,
+			point: Point,
+		) => void,
+		private readonly onDragEnd: (
+			event: PeaksPointerEvent<MouseEvent>,
+			point: Point,
+		) => void,
 		private readonly onMouseEnter: (
-			event: KonvaMouseEvent,
+			event: PeaksPointerEvent<MouseEvent>,
 			point: Point,
 		) => void,
 		private readonly onMouseLeave: (
-			event: KonvaMouseEvent,
+			event: PeaksPointerEvent<MouseEvent>,
 			point: Point,
 		) => void,
-		private readonly group: Group,
+		private readonly group: DriverGroup,
 	) {}
 
 	static from(opts: PointMarkerFromOptions): PointMarker {
 		const options = opts.options;
-		const group = new Konva.Group({
+		const group = opts.driver.createGroup({
 			dragBoundFunc: options.dragBoundFunc,
-			draggable: options.draggable,
+			draggable: options.draggable ?? false,
 			name: "point-marker",
 			point: options.point,
 		});
 		const instance = new PointMarker(
 			options.point,
 			options.marker,
-			options.draggable,
+			options.draggable ?? false,
 			options.onDragStart,
 			options.onDragMove,
 			options.onDragEnd,
@@ -57,11 +67,11 @@ export class PointMarker {
 			group,
 		);
 		instance.bindDefaultEventHandlers();
-		options.marker.init(group);
+		options.marker.init(PeaksGroup.fromGroup(group, opts.driver));
 		return instance;
 	}
 
-	addToLayer(layer: Layer): void {
+	addToLayer(layer: DriverLayer): void {
 		layer.add(this.group);
 	}
 
@@ -103,23 +113,23 @@ export class PointMarker {
 	}
 
 	private bindDefaultEventHandlers(): void {
-		this.group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("dragstart", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.onDragStart(event, this.point);
 		});
 
-		this.group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("dragmove", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.onDragMove(event, this.point);
 		});
 
-		this.group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("dragend", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.onDragEnd(event, this.point);
 		});
 
-		this.group.on("mouseenter", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("mouseenter", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.onMouseEnter(event, this.point);
 		});
 
-		this.group.on("mouseleave", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("mouseleave", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.onMouseLeave(event, this.point);
 		});
 	}

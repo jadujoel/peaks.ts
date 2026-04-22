@@ -1,11 +1,16 @@
-import { Label, Tag } from "konva/lib/shapes/Label";
-import { Line } from "konva/lib/shapes/Line";
-import { Text } from "konva/lib/shapes/Text";
-
 interface MarkerGroup {
-	add(node: unknown): void;
+	addLine(attrs: Record<string, unknown>): MarkerNode;
+	addRect(attrs: Record<string, unknown>): MarkerNode;
+	addText(attrs: Record<string, unknown>): MarkerNode;
 	on(eventName: string, handler: () => void): void;
 	y(value: number): void;
+}
+
+interface MarkerNode {
+	fill?(value: string): void;
+	points?(values: number[]): void;
+	setText?(value: string): void;
+	stroke?(value: string): void;
 }
 
 interface MarkerLayer {
@@ -29,10 +34,9 @@ interface MarkerUpdateOptions {
 export class CustomSegmentMarker {
 	private readonly _options: SegmentMarkerOptions;
 	private _group: MarkerGroup | null = null;
-	private _label: Label | null = null;
-	private _tag: Tag | null = null;
-	private _text: Text | null = null;
-	private _line: Line | null = null;
+	private _rect: MarkerNode | null = null;
+	private _text: MarkerNode | null = null;
+	private _line: MarkerNode | null = null;
 
 	constructor(options: SegmentMarkerOptions) {
 		this._options = options;
@@ -41,29 +45,17 @@ export class CustomSegmentMarker {
 	init(group: MarkerGroup): void {
 		this._group = group;
 
-		this._label = new Label({
-			x: 0.5,
-			y: 0.5,
-		});
-
 		const color = this._options.color;
 
-		this._tag = new Tag({
+		this._rect = group.addRect({
 			fill: color,
-			lineJoin: "round",
-			pointerDirection: "down",
-			pointerHeight: 10,
-			pointerWidth: 10,
-			shadowBlur: 10,
-			shadowColor: "black",
-			shadowOffsetX: 3,
-			shadowOffsetY: 3,
-			shadowOpacity: 0.3,
+			height: 24,
 			stroke: color,
 			strokeWidth: 1,
+			width: 96,
+			x: -48,
+			y: -24,
 		});
-
-		this._label.add(this._tag);
 
 		let labelText = this._options.segment.labelText;
 
@@ -73,25 +65,21 @@ export class CustomSegmentMarker {
 
 		labelText += this._options.startMarker ? "Start" : "End";
 
-		this._text = new Text({
+		this._text = group.addText({
 			fill: "white",
 			fontFamily: "Calibri",
 			fontSize: 14,
-			padding: 5,
 			text: labelText,
+			x: -41,
+			y: -18,
 		});
 
-		this._label.add(this._text);
-
-		this._line = new Line({
+		this._line = group.addLine({
 			stroke: color,
 			strokeWidth: 1,
 			x: 0,
 			y: 0,
 		});
-
-		group.add(this._label);
-		group.add(this._line);
 
 		this.fitToView();
 		this.bindEventHandlers();
@@ -113,12 +101,12 @@ export class CustomSegmentMarker {
 		}
 
 		const height = this._options.layer.getHeight();
-		const labelHeight = this._text.height() + 2 * this._text.padding();
+		const labelHeight = 24;
 		const offsetTop = 14;
 		const offsetBottom = 26;
 
 		this._group.y(offsetTop + labelHeight + 0.5);
-		this._line.points([
+		this._line.points?.([
 			0.5,
 			0,
 			0.5,
@@ -128,13 +116,17 @@ export class CustomSegmentMarker {
 
 	update(options: MarkerUpdateOptions): void {
 		if (options.labelText !== undefined) {
-			this._text?.text(options.labelText);
+			this._text?.setText?.(options.labelText);
 		}
 
 		if (options.color !== undefined) {
-			this._tag?.fill(options.color);
-			this._tag?.stroke(options.color);
-			this._line?.stroke(options.color);
+			this._rect?.fill?.(options.color);
+			this._rect?.stroke?.(options.color);
+			this._line?.stroke?.(options.color);
 		}
+	}
+
+	dispose(): void {
+		// Nothing to release in demo marker implementation.
 	}
 }

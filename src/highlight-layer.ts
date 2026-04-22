@@ -1,6 +1,4 @@
-import { Layer } from "konva/lib/Layer";
-import type { Stage } from "konva/lib/Stage";
-import { Rect } from "konva/lib/shapes/Rect";
+import type { DriverLayer, DriverRect, DriverStage } from "./driver/types";
 
 import type { OverviewOptions, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
@@ -18,8 +16,8 @@ export class HighlightLayer {
 		private readonly strokeColor: string,
 		private readonly opacity: number,
 		private readonly cornerRadius: number,
-		private readonly layer: Layer,
-		private highlightRect: Rect | undefined,
+		private readonly layer: DriverLayer,
+		private highlightRect: DriverRect | undefined,
 		private startTime: number | undefined,
 		private endTime: number | undefined,
 	) {}
@@ -33,14 +31,14 @@ export class HighlightLayer {
 			opts.highlightStrokeColor ?? "#000",
 			opts.highlightOpacity ?? 0.5,
 			opts.highlightCornerRadius ?? 0,
-			new Layer({ listening: false }),
+			options.view.getDriver().createLayer({ listening: false }),
 			undefined,
 			undefined,
 			undefined,
 		);
 	}
 
-	addToStage(stage: Stage): void {
+	addToStage(stage: DriverStage): void {
 		stage.add(this.layer);
 	}
 
@@ -109,7 +107,7 @@ export class HighlightLayer {
 		const startOffset = this.view.timeToPixels(startTime);
 		const endOffset = this.view.timeToPixels(endTime);
 
-		this.highlightRect = new Rect({
+		this.highlightRect = this.view.getDriver().createRect({
 			cornerRadius: this.cornerRadius,
 			fill: this.color,
 			height: 0,

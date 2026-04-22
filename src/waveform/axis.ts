@@ -1,29 +1,26 @@
-import type { Context } from "konva/lib/Context";
-import Konva from "konva/lib/Core";
-import type { Layer } from "konva/lib/Layer";
-import type { Shape } from "konva/lib/Shape";
+import type { DriverContext, DriverLayer, DriverShape } from "../driver/types";
 import type { ViewOptions, WaveformViewAPI } from "../types";
 import { formatTime, roundUpToNearest } from "../utils";
 
 /**
  * Creates the waveform axis shapes and adds them to the given view layer.
  */
-
 export interface WaveformAxisFromOptions {
 	readonly view: WaveformViewAPI;
-	readonly options: ViewOptions;
+	readonly options: ViewOptions; // TODO: flatten these into the main options object
 }
 
 export class WaveformAxis {
 	private constructor(
 		private readonly formatAxisTimeFn: (time: number) => string,
 		private readonly axisLabelFont: string,
-		private readonly axisShape: Shape,
+		private readonly axisShape: DriverShape,
 		private axisGridlineColor: string,
 		private axisLabelColor: string,
 		private showAxisLabelsFlag: boolean,
 		private axisTopMarkerHeight: number,
 		private axisBottomMarkerHeight: number,
+		// TODO: too many repetitions of "axis" in these property names, simplify.
 	) {}
 
 	static from(options: WaveformAxisFromOptions): WaveformAxis {
@@ -40,8 +37,8 @@ export class WaveformAxis {
 		);
 
 		let instance: WaveformAxis;
-		const axisShape = new Konva.Shape({
-			sceneFunc: (context: Context) => {
+		const axisShape = view.getDriver().createShape({
+			sceneFunc: (context: DriverContext) => {
 				instance.drawAxis(context, view);
 			},
 		});
@@ -59,24 +56,27 @@ export class WaveformAxis {
 		return instance;
 	}
 
-	addToLayer(layer: Layer): void {
+	addToLayer(layer: DriverLayer): void {
 		layer.add(this.axisShape);
 	}
 
 	showAxisLabels(
 		show: boolean,
+		// TODO: export options type as interface
 		options?: { topMarkerHeight?: number; bottomMarkerHeight?: number },
 	): void {
 		this.showAxisLabelsFlag = show;
 
-		if (options) {
-			if (options.topMarkerHeight !== undefined) {
-				this.axisTopMarkerHeight = options.topMarkerHeight;
-			}
+		if (options === undefined) {
+			return;
+		}
 
-			if (options.bottomMarkerHeight !== undefined) {
-				this.axisBottomMarkerHeight = options.bottomMarkerHeight;
-			}
+		if (options.topMarkerHeight !== undefined) {
+			this.axisTopMarkerHeight = options.topMarkerHeight;
+		}
+
+		if (options.bottomMarkerHeight !== undefined) {
+			this.axisBottomMarkerHeight = options.bottomMarkerHeight;
 		}
 	}
 
@@ -89,22 +89,10 @@ export class WaveformAxis {
 	}
 
 	private static buildFontString(
-		fontFamily: string,
-		fontSize: number,
-		fontStyle: string,
+		fontFamily: string = "sans-serif",
+		fontSize: number = 11,
+		fontStyle: string = "normal",
 	): string {
-		if (!fontSize) {
-			fontSize = 11;
-		}
-
-		if (!fontFamily) {
-			fontFamily = "sans-serif";
-		}
-
-		if (!fontStyle) {
-			fontStyle = "normal";
-		}
-
 		return `${fontStyle} ${fontSize}px ${fontFamily}`;
 	}
 
@@ -133,7 +121,7 @@ export class WaveformAxis {
 		return secs;
 	}
 
-	private drawAxis(context: Context, view: WaveformViewAPI): void {
+	private drawAxis(context: DriverContext, view: WaveformViewAPI): void {
 		const currentFrameStartTime = view.getStartTime();
 
 		const axisLabelIntervalSecs = this.getAxisLabelScale(view);

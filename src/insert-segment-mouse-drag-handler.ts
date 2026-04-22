@@ -1,11 +1,11 @@
-import type { Group } from "konva/lib/Group";
 import { MouseDragHandler } from "./mouse-drag-handler";
+import type { PeaksGroup } from "./peaks-group";
 import type { Segment } from "./segment";
 import type { PeaksInstance, SegmentShapeAPI } from "./types";
 
 export interface InsertSegmentMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: import("./waveform/zoomview").WaveformZoomView;
+	readonly view: import("./waveform/zoomview").WaveformZoomView; // TODO: no dynamic imports
 }
 
 export class InsertSegmentMouseDragHandler {
@@ -15,7 +15,7 @@ export class InsertSegmentMouseDragHandler {
 		private insertSegment: Segment | undefined = undefined,
 		private insertSegmentShape: SegmentShapeAPI | undefined = undefined,
 		private segmentIsDraggable: boolean = false,
-		private segment: Group | undefined = undefined,
+		private segment: PeaksGroup | undefined = undefined,
 		private mouseDragHandler: MouseDragHandler | undefined = undefined,
 	) {}
 
@@ -27,6 +27,7 @@ export class InsertSegmentMouseDragHandler {
 			options.view,
 		);
 		instance.mouseDragHandler = MouseDragHandler.from({
+			driver: options.peaks.options.driver,
 			handlers: {
 				onMouseDown: instance.onMouseDown,
 				onMouseMove: instance.onMouseMove,
@@ -54,7 +55,7 @@ export class InsertSegmentMouseDragHandler {
 
 	private onMouseDown = (
 		mousePosX: number,
-		segment: Group | undefined,
+		segment: PeaksGroup | undefined,
 	): void => {
 		this.reset();
 		this.segment = segment;

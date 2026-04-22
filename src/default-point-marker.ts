@@ -1,7 +1,5 @@
-import type { Group } from "konva/lib/Group";
-import { Line } from "konva/lib/shapes/Line";
-import { Rect } from "konva/lib/shapes/Rect";
-import { Text } from "konva/lib/shapes/Text";
+import type { PeaksGroup } from "./peaks-group";
+import type { PeaksNode } from "./peaks-node";
 import type { CreatePointMarkerOptions, PointUpdateOptions } from "./types";
 
 export const DefaultOptions = {
@@ -20,10 +18,10 @@ export interface DefaultPointMarkerFromOptions {
 export class DefaultPointMarker {
 	private constructor(
 		private readonly options: CreatePointMarkerOptions,
-		private readonly label: Text,
-		private readonly handle: Rect,
-		private readonly line: Line,
-		private readonly time: Text,
+		private label: PeaksNode | undefined,
+		private handle: PeaksNode | undefined,
+		private line: PeaksNode | undefined,
+		private time: PeaksNode | undefined,
 		private draggable: boolean,
 	) {}
 
@@ -33,85 +31,66 @@ export class DefaultPointMarker {
 			...DefaultOptions,
 			...opts.options,
 		};
+		return new DefaultPointMarker(
+			options,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			options.editable ?? false,
+		);
+	}
+
+	// TODO: i dont like this init pattern. are we adding multiple groups and such call init multiple times? OR why is this not done in a named constructor? like fromGroup or such.
+	init(group: PeaksGroup): void {
 		const handleWidth = 10 as const;
 		const handleHeight = 20 as const;
-		const handleX = -(handleWidth / 2) + 0.5; // Place in the middle of the marker
+		const handleX = -(handleWidth / 2) + 0.5;
 
-		// Label - create with default y, the real value is set in fitToView().
-		const label =
-			options.view === "zoomview"
-				? new Text({
-						fill: "#000",
-						fontFamily: options.fontFamily ?? DefaultOptions.fontFamily,
-						fontSize: options.fontSize ?? DefaultOptions.fontSize,
-						fontStyle: options.fontStyle ?? DefaultOptions.fontStyle,
-						text: options.point?.labelText ?? "",
-						textAlign: "left",
-						x: 2,
-						y: 0,
-					})
-				: new Text({
-						fontSize: 0,
-						text: "",
-					});
-
-		// Handle - create with default y, the real value is set in fitToView().
-		const handle = new Rect({
-			fill: options.color,
+		this.handle = group.addRect({
+			fill: this.options.color ?? DefaultOptions.color,
 			height: handleHeight,
-			visible: options.draggable,
+			visible: this.options.draggable ?? false,
 			width: handleWidth,
 			x: handleX,
 			y: 0,
 		});
 
-		// Line - create with default y and points, the real values
-		// are set in fitToView().
-		const line = new Line({
-			stroke: options.color ?? DefaultOptions.color,
+		this.line = group.addLine({
+			stroke: this.options.color ?? DefaultOptions.color,
 			strokeWidth: 1,
 			x: 0,
 			y: 0,
 		});
 
-		const point = options.point;
-		if (point === undefined) {
-			throw new Error(
-				"Point data is required to initialize DefaultPointMarker",
-			);
-		}
+		this.label =
+			this.options.view === "zoomview"
+				? group.addText({
+						fill: "#000",
+						fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
+						fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
+						fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
+						text: this.options.point?.labelText ?? "",
+						textAlign: "left",
+						x: 2,
+						y: 0,
+					})
+				: group.addText({
+						fontSize: 0,
+						text: "",
+					});
 
-		// Time label - create with default y, the real value is set
-		// in fitToView().
-		const time = new Text({
+		this.time = group.addText({
 			fill: "#000",
-			fontFamily: options.fontFamily ?? DefaultOptions.fontFamily,
-			fontSize: options.fontSize ?? DefaultOptions.fontSize,
-			fontStyle: options.fontStyle ?? DefaultOptions.fontStyle,
-			text: options.layer?.formatTime(point.time) ?? "",
+			fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
+			fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
+			fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
+			text: this.options.layer?.formatTime(this.options.point.time) ?? "",
 			textAlign: "center",
 			x: -24,
 			y: 0,
 		});
-		time.hide();
-
-		return new DefaultPointMarker(
-			options,
-			label,
-			handle,
-			line,
-			time,
-			options.editable ?? false,
-		);
-	}
-
-	init(group: Group): void {
-		group.add(this.handle);
-		group.add(this.line);
-		if (this.label !== undefined) {
-			group.add(this.label);
-		}
-		group.add(this.time);
+		this.time.hide();
 
 		this.fitToView();
 		this.bindEventHandlers(group);
@@ -121,34 +100,41 @@ export class DefaultPointMarker {
 		// Shapes are destroyed by group.destroyChildren() in PointMarker.dispose()
 	}
 
-	bindEventHandlers(group: Group): void {
-		this.handle.on("mouseover touchstart", () => {
+	bindEventHandlers(group: PeaksGroup): void {
+		if (!this.handle || !this.time) {
+			return;
+		}
+
+		const handle = this.handle;
+		const time = this.time;
+
+		handle.on("mouseover touchstart", () => {
 			if (this.draggable) {
 				// Position text to the left of the marker
-				this.time.x(-24 - this.time.getWidth());
-				this.time.show();
+				time.x(-24 - time.getWidth());
+				time.show();
 			}
 		});
 
-		this.handle.on("mouseout touchend", () => {
+		handle.on("mouseout touchend", () => {
 			if (this.draggable) {
-				this.time.hide();
+				time.hide();
 			}
 		});
 
 		group.on("dragstart", () => {
-			this.time.x(-24 - this.time.getWidth());
-			this.time.show();
+			time.x(-24 - time.getWidth());
+			time.show();
 		});
 
 		group.on("dragend", () => {
-			this.time.hide();
+			time.hide();
 		});
 	}
 
 	fitToView(): void {
 		const height = this.options.layer?.getHeight() ?? 0;
-		this.line.points([0.5, 0, 0.5, height]);
+		this.line?.points([0.5, 0, 0.5, height]);
 
 		if (this.label) {
 			this.label.y(12);
@@ -164,10 +150,12 @@ export class DefaultPointMarker {
 	}
 
 	update(options: PointUpdateOptions): void {
+		if (!this.handle || !this.line || !this.time || !this.label) {
+			return;
+		}
+
 		if (options.time !== undefined) {
-			if (this.time) {
-				this.time.setText(this.options.layer?.formatTime(options.time) ?? "");
-			}
+			this.time.setText(this.options.layer?.formatTime(options.time) ?? "");
 		}
 		if (options.labelText !== undefined) {
 			this.label.text(options.labelText);

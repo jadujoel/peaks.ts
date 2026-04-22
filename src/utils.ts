@@ -1,14 +1,12 @@
-import Konva from "konva/lib/Core";
-import type { Node } from "konva/lib/Node";
+import type { DriverEventTarget } from "./driver/types";
 
 export interface LinearGradientColor {
-	linearGradientStart: number;
-	linearGradientEnd: number;
-	linearGradientColorStops: (string | number)[];
+	readonly linearGradientStart: number;
+	readonly linearGradientEnd: number;
+	readonly linearGradientColorStops: (string | number)[];
 }
 
 export type WaveformColor = string | LinearGradientColor;
-
 export type Writable<T> = { -readonly [P in keyof T]: T[P] };
 
 function zeroPad(number: number | string, precision: number): string {
@@ -113,6 +111,7 @@ export function isNumber(value: unknown): value is number {
 	return typeof value === "number";
 }
 
+// TODO: just use the number built in instead, remove this function
 export function isFinite(value: unknown): value is number {
 	if (typeof value !== "number") {
 		return false;
@@ -129,22 +128,27 @@ export function isValidTime(value: unknown): value is number {
 	return typeof value === "number" && Number.isFinite(value);
 }
 
+// TODO: refactor the app to never use this function and remove it
 export function isObject(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+// TODO: refactor the app to never use this function and remove it
 export function isString(value: unknown): value is string {
 	return typeof value === "string";
 }
 
+// TODO: refactor the app to never use this function and remove it
 export function isArrayBuffer(value: unknown): value is ArrayBuffer {
 	return Object.prototype.toString.call(value).includes("ArrayBuffer");
 }
 
+// TODO: remove this function, and never use null. Use undefined instead.
 export function isNullOrUndefined(value: unknown): value is null | undefined {
 	return value === undefined || value === null;
 }
 
+// TODO: refactor the app to never use this function and remove it
 export function isFunction(
 	value: unknown,
 ): value is (...args: unknown[]) => unknown {
@@ -159,6 +163,7 @@ export function isHTMLElement(value: unknown): value is HTMLElement {
 	return value instanceof HTMLElement;
 }
 
+// TODO: dont use this function, instead use the built in Array.isArray, remove it
 export function isArray(value: unknown): value is unknown[] {
 	return Array.isArray(value);
 }
@@ -178,11 +183,14 @@ export function isLinearGradientColor(
 	);
 }
 
-export function getMarkerObject(obj: Node): Node | undefined {
-	let current: Node | undefined = obj;
+export function getMarkerObject(
+	obj: DriverEventTarget,
+): DriverEventTarget | undefined {
+	let current: DriverEventTarget | undefined = obj;
 
 	while (current?.parent !== null && current?.parent !== undefined) {
-		if (current.parent instanceof Konva.Layer) {
+		const name = current.getAttr?.("name");
+		if (typeof name === "string" && name.length > 0) {
 			return current;
 		}
 

@@ -1,6 +1,6 @@
-import CustomPointMarker from "./custom-point-marker";
-import CustomSegmentMarker from "./custom-segment-marker";
-import SimplePointMarker from "./simple-point-marker";
+import { CustomPointMarker } from "./custom-point-marker";
+import { CustomSegmentMarker } from "./custom-segment-marker";
+import { SimplePointMarker } from "./simple-point-marker";
 
 interface MarkerLayer {
 	getHeight(): number;

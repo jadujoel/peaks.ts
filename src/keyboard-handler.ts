@@ -47,11 +47,13 @@ export class KeyboardHandler {
 		const target = event.target as HTMLElement;
 
 		if (!isExcludedNodeName(target.nodeName)) {
+			// TODO: refactor to not use deprecated keyCode property.
 			if (HANDLED_KEYS.includes(event.keyCode)) {
 				event.preventDefault();
 			}
 
 			if (event.type === "keydown" || event.type === "keypress") {
+				// TODO: refactor to not use deprecated keyCode property.
 				switch (event.keyCode) {
 					case SPACE:
 						this.events.emit("keyboard.space");

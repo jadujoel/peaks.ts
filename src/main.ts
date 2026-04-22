@@ -5,6 +5,7 @@ import {
 	type ClipNodePlayerFromOptions,
 } from "./clip-node-player";
 import { CueEmitter } from "./cue-emitter";
+import { KonvaCanvasDriver } from "./driver/konva/driver";
 import { KeyboardHandler } from "./keyboard-handler";
 import {
 	createPointMarker,
@@ -12,11 +13,13 @@ import {
 	createSegmentMarker,
 } from "./marker-factories";
 import { MediaElementPlayer } from "./mediaelement-player";
+import { PeaksGroup } from "./peaks-group";
+import { PeaksNode } from "./peaks-node";
 import { Player } from "./player";
 import type {
 	Logger,
 	OverviewOptions,
-	PeaksInitOptions,
+	PeaksConfiguration,
 	PeaksInstance,
 	PeaksOptions,
 	PlayerAdapter,
@@ -40,6 +43,9 @@ import { WaveformBuilder } from "./waveform/builder";
 import { WaveformPoints } from "./waveform/points";
 import { WaveformSegments } from "./waveform/segments";
 import { ZoomController } from "./zoom-controller";
+
+export { KonvaCanvasDriver } from "./driver/konva/driver";
+export { PeaksGroup, PeaksNode };
 
 export const defaultViewOptions = {
 	axisBottomMarkerHeight: 10,
@@ -113,6 +119,7 @@ function createDefaultOptions(): PeaksOptions {
 		createSegmentLabel: createSegmentLabel,
 		createSegmentMarker: createSegmentMarker,
 		dataUri: undefined,
+		driver: KonvaCanvasDriver.default(),
 		logger: (...args: unknown[]) => {
 			console.error(...args);
 		},
@@ -128,7 +135,9 @@ function createDefaultOptions(): PeaksOptions {
 	} as unknown as PeaksOptions;
 }
 
-export function getOverviewOptions(options: PeaksInitOptions): OverviewOptions {
+export function getOverviewOptions(
+	options: PeaksConfiguration,
+): OverviewOptions {
 	const overviewOptions: Record<string, unknown> = {};
 
 	if (options.overview?.showPlayheadTime) {
@@ -187,7 +196,7 @@ export function getOverviewOptions(options: PeaksInitOptions): OverviewOptions {
 	return overviewOptions as unknown as OverviewOptions;
 }
 
-export function getZoomviewOptions(opts: PeaksInitOptions): ZoomviewOptions {
+export function getZoomviewOptions(opts: PeaksConfiguration): ZoomviewOptions {
 	const zoomviewOptions: Record<string, unknown> = {};
 
 	if (opts.showPlayheadTime) {
@@ -248,7 +257,7 @@ export function getZoomviewOptions(opts: PeaksInitOptions): ZoomviewOptions {
 }
 
 function getScrollbarOptions(
-	opts: PeaksInitOptions,
+	opts: PeaksConfiguration,
 ): ScrollbarDisplayOptions | undefined {
 	const scrollbar = opts.scrollbar;
 
@@ -278,7 +287,7 @@ export function extendOptions(
 
 export function addSegmentOptions(
 	options: Writable<PeaksOptions>,
-	opts: PeaksInitOptions,
+	opts: PeaksConfiguration,
 ) {
 	options.segmentOptions = {} as SegmentDisplayOptions;
 
@@ -352,6 +361,7 @@ export function checkContainerElements(options: PeaksOptions) {
 	}
 }
 
+// TODO: refactor to follow rules in .agents/skills/code/class.md
 export class Peaks extends EventEmitter {
 	options: PeaksOptions;
 	declare player: Player;
@@ -383,7 +393,7 @@ export class Peaks extends EventEmitter {
 	 * @throws {Error} If invalid point or segment definitions are supplied and they fail validation during setup.
 	 */
 	static init(
-		opts: PeaksInitOptions,
+		opts: PeaksConfiguration,
 		callback: (err?: Error, instance?: Peaks) => void,
 	): undefined | never {
 		if (!callback) {
@@ -480,6 +490,7 @@ export class Peaks extends EventEmitter {
 			peaks: instance as unknown as PeaksInstance,
 		});
 		instance.views = ViewController.from({
+			driver: instance.options.driver,
 			peaks: instance as unknown as PeaksInstance,
 		});
 
@@ -554,7 +565,7 @@ export class Peaks extends EventEmitter {
 	/**
 	 * Initializes a Peaks instance and resolves with it once the waveform views are ready.
 	 */
-	static fromOptionsAsync(opts: PeaksInitOptions): Promise<Peaks> {
+	static fromOptionsAsync(opts: PeaksConfiguration): Promise<Peaks> {
 		return new Promise((resolve, reject) => {
 			try {
 				Peaks.init(opts, (err, instance) => {
@@ -580,7 +591,7 @@ export class Peaks extends EventEmitter {
 		});
 	}
 
-	private setOptions(opts: PeaksInitOptions) {
+	private setOptions(opts: PeaksConfiguration) {
 		if (!isObject(opts)) {
 			return new TypeError(
 				"Peaks.init(): The options parameter should be an object",
@@ -728,4 +739,10 @@ export class Peaks extends EventEmitter {
 			this.cueEmitter.dispose();
 		}
 	}
+
+	destroy(): void {
+		this.dispose();
+	}
 }
+
+export default Peaks;

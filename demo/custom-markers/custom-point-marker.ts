@@ -1,11 +1,17 @@
-import { Label, Tag } from "konva/lib/shapes/Label";
-import { Line } from "konva/lib/shapes/Line";
-import { Text } from "konva/lib/shapes/Text";
-
 export interface MarkerGroup {
-	add(node: unknown): void;
+	addLine(attrs: Record<string, unknown>): MarkerNode;
+	addRect(attrs: Record<string, unknown>): MarkerNode;
+	addText(attrs: Record<string, unknown>): MarkerNode;
 	on(eventName: string, handler: () => void): void;
 	y(value: number): void;
+}
+
+export interface MarkerNode {
+	fill?(value: string): void;
+	points?(values: number[]): void;
+	setText?(value: string): void;
+	stroke?(value: string): void;
+	text?(value: string): void;
 }
 
 export interface MarkerLayer {
@@ -28,10 +34,9 @@ export interface MarkerUpdateOptions {
 export class CustomPointMarker {
 	private readonly _options: PointMarkerOptions;
 	private _group: MarkerGroup | null = null;
-	private _label: Label | null = null;
-	private _tag: Tag | null = null;
-	private _text: Text | null = null;
-	private _line: Line | null = null;
+	private _rect: MarkerNode | null = null;
+	private _text: MarkerNode | null = null;
+	private _line: MarkerNode | null = null;
 
 	constructor(options: PointMarkerOptions) {
 		this._options = options;
@@ -40,47 +45,31 @@ export class CustomPointMarker {
 	init(group: MarkerGroup): void {
 		this._group = group;
 
-		this._label = new Label({
-			x: 0.5,
-			y: 0.5,
-		});
-
-		this._tag = new Tag({
+		this._rect = group.addRect({
 			fill: this._options.color,
-			lineJoin: "round",
-			pointerDirection: "down",
-			pointerHeight: 10,
-			pointerWidth: 10,
-			shadowBlur: 10,
-			shadowColor: "black",
-			shadowOffsetX: 3,
-			shadowOffsetY: 3,
-			shadowOpacity: 0.3,
+			height: 24,
 			stroke: this._options.color,
 			strokeWidth: 1,
+			width: 90,
+			x: -45,
+			y: -24,
 		});
 
-		this._label.add(this._tag);
-
-		this._text = new Text({
+		this._text = group.addText({
 			fill: "white",
 			fontFamily: "Calibri",
 			fontSize: 14,
-			padding: 5,
 			text: this._options.point.labelText,
+			x: -38,
+			y: -18,
 		});
 
-		this._label.add(this._text);
-
-		this._line = new Line({
+		this._line = group.addLine({
 			stroke: this._options.color,
 			strokeWidth: 1,
 			x: 0,
 			y: 0,
 		});
-
-		group.add(this._label);
-		group.add(this._line);
 
 		this.fitToView();
 		this.bindEventHandlers();
@@ -102,12 +91,12 @@ export class CustomPointMarker {
 		}
 
 		const height = this._options.layer.getHeight();
-		const labelHeight = this._text.height() + 2 * this._text.padding();
+		const labelHeight = 24;
 		const offsetTop = 14;
 		const offsetBottom = 26;
 
 		this._group.y(offsetTop + labelHeight + 0.5);
-		this._line.points([
+		this._line.points?.([
 			0.5,
 			0,
 			0.5,
@@ -117,13 +106,17 @@ export class CustomPointMarker {
 
 	update(options: MarkerUpdateOptions): void {
 		if (options.labelText !== undefined) {
-			this._text?.text(options.labelText);
+			this._text?.setText?.(options.labelText);
 		}
 
 		if (options.color !== undefined) {
-			this._tag?.fill(options.color);
-			this._tag?.stroke(options.color);
-			this._line?.stroke(options.color);
+			this._rect?.fill?.(options.color);
+			this._rect?.stroke?.(options.color);
+			this._line?.stroke?.(options.color);
 		}
+	}
+
+	dispose(): void {
+		// Nothing to release in demo marker implementation.
 	}
 }

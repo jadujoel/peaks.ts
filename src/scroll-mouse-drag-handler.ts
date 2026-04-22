@@ -1,5 +1,5 @@
-import type { Group } from "konva/lib/Group";
 import { MouseDragHandler } from "./mouse-drag-handler";
+import type { PeaksGroup } from "./peaks-group";
 import type { PeaksInstance } from "./types";
 import { clamp } from "./utils";
 
@@ -10,7 +10,7 @@ import { clamp } from "./utils";
 
 export interface ScrollMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
-	readonly view: import("./waveform/zoomview").WaveformZoomView;
+	readonly view: import("./waveform/zoomview").WaveformZoomView; // todo: no dynamic imports for types
 }
 
 export class ScrollMouseDragHandler {
@@ -19,7 +19,7 @@ export class ScrollMouseDragHandler {
 		private readonly view: import("./waveform/zoomview").WaveformZoomView,
 		private seeking: boolean = false,
 		private firstMove: boolean = false,
-		private segment: Group | undefined = undefined,
+		private segment: PeaksGroup | undefined = undefined,
 		private segmentIsDraggable: boolean = false,
 		private initialFrameOffset: number = 0,
 		private mouseDownX: number = 0,
@@ -31,6 +31,7 @@ export class ScrollMouseDragHandler {
 	): ScrollMouseDragHandler {
 		const instance = new ScrollMouseDragHandler(options.peaks, options.view);
 		instance.mouseDragHandler = MouseDragHandler.from({
+			driver: options.peaks.options.driver,
 			handlers: {
 				onMouseDown: instance.onMouseDown,
 				onMouseMove: instance.onMouseMove,
@@ -51,7 +52,7 @@ export class ScrollMouseDragHandler {
 
 	private onMouseDown = (
 		mousePosX: number,
-		segment: Group | undefined,
+		segment: PeaksGroup | undefined,
 	): void => {
 		this.seeking = false;
 		this.firstMove = true;

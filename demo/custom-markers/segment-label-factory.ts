@@ -1,5 +1,5 @@
-import { Label, Tag } from "konva/lib/shapes/Label";
 import { Text } from "konva/lib/shapes/Text";
+import { PeaksNode } from "../peaks.esm.js";
 
 interface SegmentLabelOptions {
 	view: string;
@@ -8,37 +8,22 @@ interface SegmentLabelOptions {
 	};
 }
 
-export function createSegmentLabel(options: SegmentLabelOptions): Label | null {
+export function createSegmentLabel(
+	options: SegmentLabelOptions,
+): PeaksNode | null {
 	if (options.view === "overview") {
 		return null;
 	}
 
-	const label = new Label({
-		x: 12,
-		y: 16,
-	});
-
-	label.add(
-		new Tag({
-			fill: "black",
-			pointerDirection: "none",
-			shadowBlur: 10,
-			shadowColor: "black",
-			shadowOffsetX: 3,
-			shadowOffsetY: 3,
-			shadowOpacity: 0.3,
-		}),
-	);
-
-	label.add(
+	return PeaksNode.from(
 		new Text({
 			fill: "white",
 			fontFamily: "Calibri",
 			fontSize: 14,
 			padding: 8,
 			text: options.segment.labelText,
-		}),
+			x: 12,
+			y: 16,
+		}) as unknown as Record<string, unknown>,
 	);
-
-	return label;
 }

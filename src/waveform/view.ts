@@ -1,14 +1,16 @@
-import Konva from "konva/lib/Core";
-import type { Layer } from "konva/lib/Layer";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type { Stage } from "konva/lib/Stage";
 import type WaveformData from "waveform-data";
+import type {
+	CanvasDriver,
+	DriverLayer,
+	PeaksPointerEvent,
+} from "../driver/types";
 import { PlayheadLayer } from "../playhead-layer";
 import { PointsLayer } from "../points-layer";
 import { SegmentsLayer } from "../segments-layer";
 import type {
 	OverviewOptions,
 	PeaksInstance,
+	SegmentClickEvent,
 	WaveformViewAPI,
 	ZoomviewOptions,
 } from "../types";
@@ -46,6 +48,7 @@ export interface WaveformViewState {
 	readonly timeLabelPrecision: number;
 	readonly formatPlayheadTimeFn?: (time: number) => string;
 	readonly seekEnabled: boolean;
+	readonly driver: CanvasDriver;
 }
 
 export class WaveformView {
@@ -64,15 +67,16 @@ export class WaveformView {
 	protected timeLabelPrecision: number;
 	protected formatPlayheadTimeFn: (time: number) => string;
 	protected seekEnabled: boolean;
-	public declare stage: Stage;
-	protected declare waveformLayer: Layer;
+	protected driver: CanvasDriver;
+	public declare stage: ReturnType<CanvasDriver["createStage"]>;
+	protected declare waveformLayer: DriverLayer;
 	protected declare waveformShape: WaveformShape;
 	protected declare playedWaveformShape: WaveformShape | undefined;
 	protected declare playedSegment: PlayedSegment | undefined;
 	protected declare unplayedSegment: PlayedSegment | undefined;
 	public declare segmentsLayer: SegmentsLayer | undefined;
 	public declare pointsLayer: PointsLayer | undefined;
-	protected declare axisLayer: Layer;
+	protected declare axisLayer: DriverLayer;
 	protected declare axis: WaveformAxis;
 	protected declare playheadLayer: PlayheadLayer;
 
@@ -94,6 +98,7 @@ export class WaveformView {
 			state.formatPlayheadTimeFn ??
 			((time: number) => formatTime(time, this.timeLabelPrecision));
 		this.seekEnabled = state.seekEnabled;
+		this.driver = state.driver;
 	}
 
 	protected static createState(
@@ -105,6 +110,7 @@ export class WaveformView {
 			amplitudeScale: 1.0,
 			container: options.container,
 			data: options.waveformData,
+			driver: options.peaks.options.driver,
 			frameOffset: 0,
 			height: options.container.clientHeight,
 			originalWaveformData: options.waveformData,
@@ -125,11 +131,7 @@ export class WaveformView {
 	protected initializeView(): void {
 		this.initWaveformData();
 
-		// Disable warning: The stage has 6 layers.
-		// Recommended maximum number of layers is 3-5.
-		Konva.showWarnings = false;
-
-		this.stage = new Konva.Stage({
+		this.stage = this.driver.createStage({
 			container: this.container,
 			height: this.height,
 			width: this.width,
@@ -204,6 +206,10 @@ export class WaveformView {
 
 	getViewOptions(): ZoomviewOptions | OverviewOptions {
 		return this.viewOptions;
+	}
+
+	getDriver(): CanvasDriver {
+		return this.driver;
 	}
 
 	/**
@@ -301,7 +307,7 @@ export class WaveformView {
 	}
 
 	private createWaveform(): void {
-		this.waveformLayer = new Konva.Layer({ listening: false });
+		this.waveformLayer = this.driver.createLayer({ listening: false });
 
 		this.createWaveformShapes();
 
@@ -375,7 +381,7 @@ export class WaveformView {
 	}
 
 	private createAxisLabels(): void {
-		this.axisLayer = new Konva.Layer({ listening: false });
+		this.axisLayer = this.driver.createLayer({ listening: false });
 		this.axis = WaveformAxis.from({
 			options: this.viewOptions,
 			view: this as unknown as WaveformViewAPI,
@@ -449,20 +455,20 @@ export class WaveformView {
 		return this.seekEnabled;
 	}
 
-	private onClick = (event: KonvaEventObject<MouseEvent>): void => {
+	private onClick = (event: PeaksPointerEvent<MouseEvent>): void => {
 		this.clickHandler(event, "click");
 	};
 
-	private onDblClick = (event: KonvaEventObject<MouseEvent>): void => {
+	private onDblClick = (event: PeaksPointerEvent<MouseEvent>): void => {
 		this.clickHandler(event, "dblclick");
 	};
 
-	private onContextMenu = (event: KonvaEventObject<MouseEvent>): void => {
+	private onContextMenu = (event: PeaksPointerEvent<MouseEvent>): void => {
 		this.clickHandler(event, "contextmenu");
 	};
 
 	private clickHandler(
-		event: KonvaEventObject<MouseEvent>,
+		event: PeaksPointerEvent<MouseEvent>,
 		eventName: string,
 	): void {
 		let offsetX = event.evt.offsetX;
@@ -473,12 +479,12 @@ export class WaveformView {
 
 		let emitViewEvent = true;
 
-		if (event.target !== this.stage) {
+		if (event.target !== (this.stage as unknown as typeof event.target)) {
 			const marker = getMarkerObject(event.target);
 
 			if (marker) {
-				if (marker.attrs.name === "point-marker") {
-					const point = marker.getAttr("point");
+				if (marker.attrs?.name === "point-marker") {
+					const point = marker.getAttr?.("point");
 
 					if (point) {
 						this.peaks.emit(`points.${eventName}`, {
@@ -489,16 +495,16 @@ export class WaveformView {
 							},
 						});
 					}
-				} else if (marker.attrs.name === "segment-overlay") {
-					const segment = marker.getAttr("segment");
+				} else if (marker.attrs?.name === "segment-overlay") {
+					const segment = marker.getAttr?.("segment");
 
 					if (segment) {
-						const clickEvent = {
+						const clickEvent: SegmentClickEvent = {
 							evt: event.evt,
 							preventViewEvent: () => {
 								emitViewEvent = false;
 							},
-							segment: segment,
+							segment: segment as SegmentClickEvent["segment"],
 						};
 
 						if (this.segmentsLayer) {

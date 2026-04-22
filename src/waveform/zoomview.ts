@@ -1,5 +1,5 @@
-import type { Stage } from "konva/lib/Stage";
 import type WaveformData from "waveform-data";
+import type { DriverStage } from "../driver/types";
 import { InsertSegmentMouseDragHandler } from "../insert-segment-mouse-drag-handler";
 import { ScrollMouseDragHandler } from "../scroll-mouse-drag-handler";
 import type { SegmentsLayer } from "../segments-layer";
@@ -673,7 +673,7 @@ export class WaveformZoomView extends WaveformView {
 		// Nothing
 	}
 
-	getStage(): Stage {
+	getStage(): DriverStage {
 		return this.stage;
 	}
 

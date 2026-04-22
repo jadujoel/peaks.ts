@@ -32,7 +32,7 @@ export interface BuildCuesInput {
 	readonly segments: readonly Segment[];
 }
 
-export type TrackedEventTypes = (typeof TRACKED_EVENTS)[number];
+export type TrackedEventNames = (typeof TRACKED_EVENTS)[number];
 
 export interface CueEmitterFromOptions {
 	readonly peaks: PeaksInstance;

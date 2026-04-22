@@ -1,6 +1,5 @@
-import type { Group } from "konva/lib/Group";
-import { Rect } from "konva/lib/shapes/Rect";
-import { Text } from "konva/lib/shapes/Text";
+import type { PeaksGroup } from "./peaks-group";
+import type { PeaksNode } from "./peaks-node";
 import type { CreateSegmentMarkerOptions, SegmentUpdateOptions } from "./types";
 
 export interface OverlaySegmentMarkerFromOptions {
@@ -10,84 +9,92 @@ export interface OverlaySegmentMarkerFromOptions {
 export class OverlaySegmentMarker {
 	private constructor(
 		private readonly options: CreateSegmentMarkerOptions,
-		private readonly label: Text,
-		private readonly handle: Rect,
+		private label: PeaksNode | undefined,
+		private handle: PeaksNode | undefined,
 	) {}
 
 	static from(opts: OverlaySegmentMarkerFromOptions): OverlaySegmentMarker {
 		const options = opts.options;
+		return new OverlaySegmentMarker(options, undefined, undefined);
+	}
+
+	init(group: PeaksGroup): void {
 		const handleWidth = 10;
 		const handleHeight = 20;
 		const handleX = -(handleWidth / 2) + 0.5;
-		const xPosition = options.startMarker ? -24 : 24;
-		const time = options.startMarker
-			? options.segment.startTime
-			: options.segment.endTime;
+		const xPosition = this.options.startMarker ? -24 : 24;
+		const time = this.options.startMarker
+			? this.options.segment.startTime
+			: this.options.segment.endTime;
 
-		const label = new Text({
+		this.label = group.addText({
 			fill: "#000",
-			fontFamily: options.fontFamily,
-			fontSize: options.fontSize,
-			fontStyle: options.fontStyle,
-			text: options.layer.formatTime(time),
+			fontFamily: this.options.fontFamily,
+			fontSize: this.options.fontSize,
+			fontStyle: this.options.fontStyle,
+			text: this.options.layer.formatTime(time),
 			textAlign: "center",
 			visible: false,
 			x: xPosition,
 			y: 0,
 		});
 
-		const handle = new Rect({
+		this.handle = group.addRect({
 			height: handleHeight,
 			width: handleWidth,
 			x: handleX,
 			y: 0,
 		});
 
-		return new OverlaySegmentMarker(options, label, handle);
-	}
-
-	init(group: Group): void {
-		group.add(this.label);
-		group.add(this.handle);
-
 		this.fitToView();
 
 		this.bindEventHandlers(group);
 	}
 
-	bindEventHandlers(group: Group): void {
+	bindEventHandlers(group: PeaksGroup): void {
+		if (!this.handle || !this.label) {
+			return;
+		}
+
+		const label = this.label;
+		const handle = this.handle;
+
 		const xPosition = this.options.startMarker ? -24 : 24;
 
 		group.on("dragstart", () => {
 			if (this.options.startMarker) {
-				this.label.x(xPosition - this.label.getWidth());
+				label.x(xPosition - label.getWidth());
 			}
 
-			this.label.show();
+			label.show();
 		});
 
 		group.on("dragend", () => {
-			this.label.hide();
+			label.hide();
 		});
 
-		this.handle.on("mouseover touchstart", () => {
+		handle.on("mouseover touchstart", () => {
 			if (this.options.startMarker) {
-				this.label.x(xPosition - this.label.getWidth());
+				label.x(xPosition - label.getWidth());
 			}
 
-			this.label.show();
+			label.show();
 
 			document.body.style.cursor = "ew-resize";
 		});
 
-		this.handle.on("mouseout touchend", () => {
-			this.label.hide();
+		handle.on("mouseout touchend", () => {
+			label.hide();
 
 			document.body.style.cursor = "default";
 		});
 	}
 
 	fitToView(): void {
+		if (!this.label || !this.handle) {
+			return;
+		}
+
 		const viewHeight = this.options.layer.getHeight();
 
 		const overlayOffset = this.options.segmentOptions.overlayOffset;
@@ -99,6 +106,10 @@ export class OverlaySegmentMarker {
 	}
 
 	update(options: SegmentUpdateOptions): void {
+		if (!this.label) {
+			return;
+		}
+
 		if (options.startTime !== undefined && this.options.startMarker) {
 			this.label.text(this.options.layer.formatTime(options.startTime));
 		}

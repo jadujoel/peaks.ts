@@ -10,6 +10,7 @@
 		"Chris Needham (https://github.com/chrisn)"
 	],
 	"dependencies": {
+		"@jadujoel/typed-event-target": "0.0.6",
 		"@jadujoel/web-audio-clip-node": "0.2.8",
 		"eventemitter3": "~5.0.1",
 		"neverthrow": "8.2.0",
@@ -68,10 +69,11 @@
 	},
 	"scripts": {
 		"build": "bun scripts/build.ts",
+		"check:no-konva-leak": "bun scripts/check-no-konva-leak.ts",
 		"copy-demo-files": "copyfiles --up 1 test/data/sample.mp3 test/data/07023003.mp3 test/data/07023003-2channel.dat demo",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
-		"prebuild": "bun run lint && bun run typecheck",
+		"prebuild": "bun run check:no-konva-leak && bun run lint && bun run typecheck",
 		"prestart": "bun run build && bun run copy-demo-files",
 		"preview": "serve --listen 8080 --no-clipboard --no-request-logging demo",
 		"start": "serve --listen 8080 --no-clipboard --no-request-logging demo",

@@ -227,6 +227,7 @@ export interface SegmentFromOptions {
 }
 
 export class Segment {
+	// TODO: refactor to not use [key: string]: unknown] for user data, instead have a specific property for user data that is typed as Record<string, unknown>
 	[key: string]: unknown;
 
 	private constructor(

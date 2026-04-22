@@ -38,23 +38,21 @@ export function validateAdapter(adapter: PlayerAdapter): undefined | never {
 
 	for (const method of PUBLIC_ADAPTER_METHODS) {
 		if (!allProperties.includes(method)) {
-			throw new TypeError(`Peaks.init(): Player method ${method} is undefined`);
+			throw new TypeError(`Player method ${method} is undefined`);
 		}
 
 		if (
 			typeof (adapter as unknown as Record<string, unknown>)[method] !==
 			"function"
 		) {
-			throw new TypeError(
-				`Peaks.init(): Player method ${method} is not a function`,
-			);
+			throw new TypeError(`Player method ${method} is not a function`);
 		}
 	}
 
 	const disposer = (adapter as unknown as Record<string, unknown>).dispose;
 
 	if (typeof disposer !== "function") {
-		throw new TypeError("Peaks.init(): Player method dispose is undefined");
+		throw new TypeError("Player method dispose is undefined");
 	}
 }
 

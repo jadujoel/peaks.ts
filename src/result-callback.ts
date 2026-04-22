@@ -1,3 +1,5 @@
+// TODO: We should not be using resul callbacks, instead we should use neverthrow results directly.
+
 export type OkCallbackParameters<_TError = Error, TData = unknown> = [
 	error: undefined,
 	data: TData,

@@ -1,9 +1,11 @@
-import Konva from "konva/lib/Core";
-import type { Group } from "konva/lib/Group";
-import type { Layer } from "konva/lib/Layer";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type { Stage } from "konva/lib/Stage";
-import { Rect } from "konva/lib/shapes/Rect";
+import type {
+	CanvasDriver,
+	DriverGroup,
+	DriverLayer,
+	DriverRect,
+	DriverStage,
+	PeaksPointerEvent,
+} from "./driver/types";
 import type { PeaksInstance, XY } from "./types";
 import { clamp } from "./utils";
 import type { WaveformZoomView } from "./waveform/zoomview";
@@ -11,6 +13,7 @@ import type { WaveformZoomView } from "./waveform/zoomview";
 export interface ScrollbarFromOptions {
 	readonly container: HTMLDivElement;
 	readonly peaks: PeaksInstance;
+	readonly driver: CanvasDriver;
 }
 
 function scrollboxDragBoundFunc(pos: XY): XY {
@@ -33,10 +36,10 @@ export class Scrollbar {
 			"clientWidth" | "clientHeight"
 		>,
 		private readonly peaks: PeaksInstance,
-		private readonly stage: Stage,
-		private readonly layer: Layer,
-		private readonly scrollbox: Group,
-		private readonly scrollboxRect: Rect,
+		private readonly stage: DriverStage,
+		private readonly layer: DriverLayer,
+		private readonly scrollbox: DriverGroup,
+		private readonly scrollboxRect: DriverRect,
 		private readonly color: string,
 		private readonly minScrollboxWidth: number,
 		private width: number,
@@ -51,22 +54,23 @@ export class Scrollbar {
 		const scrollbarOptions = options.peaks.options.scrollbar;
 		const width = options.container.clientWidth;
 		const height = options.container.clientHeight;
+		const driver = options.driver;
 
-		const stage = new Konva.Stage({
+		const stage = driver.createStage({
 			container: options.container,
 			height,
 			width,
 		});
 
-		const layer = new Konva.Layer();
+		const layer = driver.createLayer();
 		stage.add(layer);
 
-		const scrollbox = new Konva.Group({
+		const scrollbox = driver.createGroup({
 			dragBoundFunc: scrollboxDragBoundFunc,
 			draggable: true,
 		});
 
-		const scrollboxRect = new Rect({
+		const scrollboxRect = driver.createRect({
 			fill: scrollbarOptions.color,
 			height,
 			width: 0,
@@ -209,7 +213,7 @@ export class Scrollbar {
 		}
 	}
 
-	private onScrollbarClick = (event: KonvaEventObject<MouseEvent>): void => {
+	private onScrollbarClick = (event: PeaksPointerEvent<MouseEvent>): void => {
 		// Handle clicks on the scrollbar outside the scrollbox.
 		if (event.target === this.stage) {
 			if (this.zoomview) {

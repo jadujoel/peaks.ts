@@ -1,17 +1,17 @@
-import Konva from "konva/lib/Core";
-import type { Group } from "konva/lib/Group";
-import type { Layer } from "konva/lib/Layer";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type { Shape } from "konva/lib/Shape";
-import { Rect } from "konva/lib/shapes/Rect";
-import { Text } from "konva/lib/shapes/Text";
+import type {
+	DriverGroup,
+	DriverLayer,
+	DriverRect,
+	DriverText,
+	PeaksPointerEvent,
+} from "./driver/types";
 
 import { OverlaySegmentMarker } from "./overlay-segment-marker";
+import type { PeaksNode } from "./peaks-node";
 import type { Segment } from "./segment";
 import { SegmentMarker } from "./segment-marker";
 import type {
 	CreateSegmentMarkerOptions,
-	KonvaMouseEvent,
 	Marker,
 	PeaksInstance,
 	SegmentClickEvent,
@@ -22,6 +22,7 @@ import type {
 } from "./types";
 import { WaveformShape } from "./waveform/shape";
 
+// TODO: uneccessary function just use the from method directly
 export function createOverlayMarker(
 	options: CreateSegmentMarkerOptions,
 ): Marker {
@@ -39,6 +40,7 @@ export interface SegmentShapeFromOptions {
 	readonly view: WaveformViewAPI;
 }
 
+// TODO: this class has too many properties and methods, we should split it into smaller components (e.g. separate out the overlay into its own class).
 export class SegmentShape {
 	private constructor(
 		private readonly segment: Segment,
@@ -47,10 +49,10 @@ export class SegmentShape {
 		private readonly view: WaveformViewAPI,
 		private readonly overlayOffset: number,
 		private readonly waveformShape: WaveformShape | undefined,
-		private readonly overlay: Group,
-		private readonly overlayRect: Rect,
-		private readonly overlayText: Text | undefined,
-		private readonly label: Shape | undefined,
+		private readonly overlay: DriverGroup,
+		private readonly overlayRect: DriverRect,
+		private readonly overlayText: DriverText | undefined,
+		private readonly label: PeaksNode | undefined,
 		private color: string | undefined,
 		private borderColor: string | undefined,
 		private draggable: boolean,
@@ -98,7 +100,8 @@ export class SegmentShape {
 		const overlayRectHeight = Math.max(0, view.getHeight() - 2 * overlayOffset);
 
 		let instance: SegmentShape;
-		const overlay = new Konva.Group({
+		const driver = view.getDriver();
+		const overlay = driver.createGroup({
 			clipHeight: overlayRectHeight,
 			clipWidth: segmentEndOffset - segmentStartOffset,
 			clipX: 0,
@@ -128,6 +131,7 @@ export class SegmentShape {
 			overlayCornerRadius = segmentOptions.overlayCornerRadius;
 		}
 
+		// TODO: use a proper type, not record<string, unknown>
 		const rectConfig: Record<string, unknown> = {
 			height: overlayRectHeight,
 			width: segmentEndOffset - segmentStartOffset,
@@ -151,12 +155,12 @@ export class SegmentShape {
 			rectConfig.cornerRadius = overlayCornerRadius;
 		}
 
-		const overlayRect = new Rect(rectConfig);
+		const overlayRect = driver.createRect(rectConfig);
 		overlay.add(overlayRect);
 
-		let overlayText: Text | undefined;
+		let overlayText: DriverText | undefined;
 		if (segment.overlay) {
-			overlayText = new Text({
+			overlayText = driver.createText({
 				align: segmentOptions.overlayLabelAlign,
 				fill: segmentOptions.overlayLabelColor,
 				fontFamily: segmentOptions.overlayFontFamily,
@@ -241,8 +245,8 @@ export class SegmentShape {
 		this.color = this.segment.color;
 		this.borderColor = this.segment.borderColor;
 
-		if (this.label && "text" in this.label) {
-			(this.label as Text).text(this.segment.labelText);
+		if (this.label) {
+			this.label.text(this.segment.labelText);
 		}
 
 		if (this.overlayText) {
@@ -297,13 +301,13 @@ export class SegmentShape {
 		return this.endMarkerInstance;
 	}
 
-	addToLayer(layer: Layer) {
+	addToLayer(layer: DriverLayer) {
 		if (this.waveformShape) {
 			this.waveformShape.addToLayer(layer);
 		}
 
 		if (this.label) {
-			layer.add(this.label);
+			layer.add(this.label.rawNode);
 		}
 
 		if (this.overlay) {
@@ -462,6 +466,7 @@ export class SegmentShape {
 		if (startMarker) {
 			this.startMarkerInstance = SegmentMarker.from({
 				dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
+				driver: this.peaks.options.driver,
 				editable: editable,
 				marker: startMarker,
 				onClick: this.onSegmentMarkerClick,
@@ -492,6 +497,7 @@ export class SegmentShape {
 		if (endMarker) {
 			this.endMarkerInstance = SegmentMarker.from({
 				dragBoundFunc: this.onSegmentMarkerDragBoundFunc,
+				driver: this.peaks.options.driver,
 				editable: editable,
 				marker: endMarker,
 				onClick: this.onSegmentMarkerClick,
@@ -525,7 +531,7 @@ export class SegmentShape {
 
 	private segmentStartMarkerDragMove(
 		segmentMarker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) {
 		if (!this.startMarkerInstance || !this.endMarkerInstance) {
 			return;
@@ -647,7 +653,7 @@ export class SegmentShape {
 
 	private segmentEndMarkerDragMove(
 		segmentMarker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) {
 		if (!this.startMarkerInstance || !this.endMarkerInstance) {
 			return;
@@ -775,7 +781,7 @@ export class SegmentShape {
 		};
 	};
 
-	private onMouseEnter = (event: KonvaEventObject<MouseEvent>) => {
+	private onMouseEnter = (event: PeaksPointerEvent<MouseEvent>) => {
 		if (this.label) {
 			this.label.moveToTop();
 			this.label.show();
@@ -787,7 +793,7 @@ export class SegmentShape {
 		});
 	};
 
-	private onMouseLeave = (event: KonvaEventObject<MouseEvent>) => {
+	private onMouseLeave = (event: PeaksPointerEvent<MouseEvent>) => {
 		if (this.label) {
 			this.label.hide();
 		}
@@ -798,21 +804,21 @@ export class SegmentShape {
 		});
 	};
 
-	private onMouseDown = (event: KonvaEventObject<MouseEvent>) => {
+	private onMouseDown = (event: PeaksPointerEvent<MouseEvent>) => {
 		this.peaks.emit("segments.mousedown", {
 			evt: event.evt,
 			segment: this.segment,
 		});
 	};
 
-	private onMouseUp = (event: KonvaEventObject<MouseEvent>) => {
+	private onMouseUp = (event: PeaksPointerEvent<MouseEvent>) => {
 		this.peaks.emit("segments.mouseup", {
 			evt: event.evt,
 			segment: this.segment,
 		});
 	};
 
-	private onSegmentDragStart = (event: KonvaEventObject<MouseEvent>) => {
+	private onSegmentDragStart = (event: PeaksPointerEvent<MouseEvent>) => {
 		this.setPreviousAndNextSegments();
 
 		this.dragging = true;
@@ -828,7 +834,7 @@ export class SegmentShape {
 		});
 	};
 
-	private onSegmentDragMove = (event: KonvaEventObject<MouseEvent>) => {
+	private onSegmentDragMove = (event: PeaksPointerEvent<MouseEvent>) => {
 		const x = this.overlay?.x();
 		const offsetX = x - this.dragStartX;
 		const timeOffset = this.view.pixelsToTime(offsetX);
@@ -956,7 +962,7 @@ export class SegmentShape {
 		}
 	};
 
-	private onSegmentDragEnd = (event: KonvaEventObject<MouseEvent>) => {
+	private onSegmentDragEnd = (event: PeaksPointerEvent<MouseEvent>) => {
 		this.dragging = false;
 
 		this.peaks.emit("segments.dragend", {
@@ -969,7 +975,7 @@ export class SegmentShape {
 
 	private onSegmentMarkerDragStart = (
 		segmentMarker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) => {
 		if (!this.startMarkerInstance || !this.endMarkerInstance) {
 			return;
@@ -989,7 +995,7 @@ export class SegmentShape {
 
 	private onSegmentMarkerDragMove = (
 		segmentMarker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) => {
 		if (segmentMarker.isStartMarker()) {
 			this.segmentStartMarkerDragMove(segmentMarker, event);
@@ -1002,7 +1008,7 @@ export class SegmentShape {
 
 	private onSegmentMarkerDragEnd = (
 		segmentMarker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) => {
 		this.nextSegment = undefined;
 		this.previousSegment = undefined;

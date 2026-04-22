@@ -1,10 +1,12 @@
-import Konva from "konva/lib/Core";
-import type { Group } from "konva/lib/Group";
-import type { Layer } from "konva/lib/Layer";
-import type { KonvaEventObject } from "konva/lib/Node";
+import type {
+	CanvasDriver,
+	DriverGroup,
+	DriverLayer,
+	PeaksPointerEvent,
+} from "./driver/types";
+import { PeaksGroup } from "./peaks-group";
 import type { Segment } from "./segment";
 import type {
-	KonvaMouseEvent,
 	Marker,
 	MarkerUpdateOptions,
 	SegmentMarkerAPI,
@@ -13,38 +15,43 @@ import type {
 } from "./types";
 
 export interface SegmentMarkerHandlers {
-	readonly onClick: (marker: SegmentMarkerAPI, event: KonvaMouseEvent) => void;
+	// TODO: make more DRY
+	readonly onClick: (
+		marker: SegmentMarkerAPI,
+		event: PeaksPointerEvent<MouseEvent>,
+	) => void;
 	readonly onDragStart: (
 		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) => void;
 	readonly onDragMove: (
 		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) => void;
 	readonly onDragEnd: (
 		marker: SegmentMarkerAPI,
-		event: KonvaMouseEvent,
+		event: PeaksPointerEvent<MouseEvent>,
 	) => void;
 }
 
 export type SegmentMarkerDragBoundFunc = (marker: SegmentMarker, pos: XY) => XY;
 
-export interface SegmentMarkerFromOptions extends SegmentMarkerOptions {}
+export interface SegmentMarkerFromOptions extends SegmentMarkerOptions {
+	readonly driver: CanvasDriver;
+}
 
 export class SegmentMarker {
 	private constructor(
 		private readonly segment: Segment,
 		private readonly marker: Marker,
-		private readonly editable: boolean,
 		private readonly startMarker: boolean,
 		private readonly handlers: SegmentMarkerHandlers,
-		private readonly group: Group,
+		private readonly group: DriverGroup,
 	) {}
 
 	static from(options: SegmentMarkerFromOptions): SegmentMarker {
 		let instance: SegmentMarker;
-		const group = new Konva.Group({
+		const group = options.driver.createGroup({
 			dragBoundFunc: (pos: XY) => {
 				return options.dragBoundFunc(instance, pos);
 			},
@@ -56,7 +63,6 @@ export class SegmentMarker {
 		instance = new SegmentMarker(
 			options.segment,
 			options.marker,
-			options.editable,
 			options.startMarker,
 			{
 				onClick: options.onClick,
@@ -67,11 +73,11 @@ export class SegmentMarker {
 			group,
 		);
 		instance.bindDefaultEventHandlers();
-		options.marker.init(group);
+		options.marker.init(PeaksGroup.fromGroup(group, options.driver));
 		return instance;
 	}
 
-	addToLayer(layer: Layer): void {
+	addToLayer(layer: DriverLayer): void {
 		layer.add(this.group);
 	}
 
@@ -99,7 +105,7 @@ export class SegmentMarker {
 		return this.group.width();
 	}
 
-	getAbsolutePosition(): { x: number; y: number } {
+	getAbsolutePosition(): XY {
 		return this.group.getAbsolutePosition();
 	}
 
@@ -109,20 +115,15 @@ export class SegmentMarker {
 
 	update(options: MarkerUpdateOptions): void {
 		if (options.editable !== undefined) {
-			this.group.visible(options.editable as boolean);
-			this.group.draggable(options.editable as boolean);
+			this.group.visible(options.editable);
+			this.group.draggable(options.editable);
 		}
 
-		if (this.marker.update) {
-			this.marker.update(options);
-		}
+		this.marker.update(options);
 	}
 
 	dispose(): void {
-		if (this.marker.dispose) {
-			this.marker.dispose();
-		}
-
+		this.marker.dispose();
 		this.group.destroyChildren();
 		this.group.destroy();
 	}
@@ -136,19 +137,20 @@ export class SegmentMarker {
 	}
 
 	private bindDefaultEventHandlers(): void {
-		this.group.on("click", (event: KonvaEventObject<MouseEvent>) => {
+		// TODO: unsubscribe these handlers in dispose()
+		this.group.on("click", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.handlers.onClick(this, event);
 		});
 
-		this.group.on("dragstart", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("dragstart", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.handlers.onDragStart(this, event);
 		});
 
-		this.group.on("dragmove", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("dragmove", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.handlers.onDragMove(this, event);
 		});
 
-		this.group.on("dragend", (event: KonvaEventObject<MouseEvent>) => {
+		this.group.on("dragend", (event: PeaksPointerEvent<MouseEvent>) => {
 			this.handlers.onDragEnd(this, event);
 		});
 	}

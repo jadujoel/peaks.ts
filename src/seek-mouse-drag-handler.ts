@@ -1,4 +1,4 @@
-import type { Stage } from "konva/lib/Stage";
+import type { DriverStage } from "./driver/types";
 import { MouseDragHandler } from "./mouse-drag-handler";
 import type { PeaksInstance, WaveformViewAPI } from "./types";
 import { clamp } from "./utils";
@@ -9,7 +9,7 @@ export interface SeekMouseDragHandlerFromOptions {
 }
 
 export interface SeekMouseDragHandlerViewApi extends WaveformViewAPI {
-	readonly stage: Stage;
+	readonly stage: DriverStage;
 	dragSeek(dragging: boolean): void;
 }
 
@@ -24,6 +24,7 @@ export class SeekMouseDragHandler {
 	static from(options: SeekMouseDragHandlerFromOptions): SeekMouseDragHandler {
 		const instance = new SeekMouseDragHandler(options.peaks, options.view);
 		instance.handler = MouseDragHandler.from({
+			driver: options.peaks.options.driver,
 			handlers: {
 				onMouseDown: instance.onMouseDown,
 				onMouseMove: instance.onMouseMove,

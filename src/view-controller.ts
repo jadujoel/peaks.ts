@@ -1,3 +1,4 @@
+import type { CanvasDriver } from "./driver/types";
 import { Scrollbar } from "./scrollbar";
 import type { PeaksInstance } from "./types";
 import { isNullOrUndefined } from "./utils";
@@ -6,18 +7,26 @@ import { WaveformZoomView } from "./waveform/zoomview";
 
 export interface ViewControllerFromOptions {
 	readonly peaks: PeaksInstance;
+	readonly driver: CanvasDriver;
 }
 
 export class ViewController {
 	private constructor(
 		private readonly peaks: PeaksInstance,
+		private readonly driver: CanvasDriver,
 		private overview: WaveformOverview | undefined,
 		private zoomview: WaveformZoomView | undefined,
 		private scrollbar: Scrollbar | undefined,
 	) {}
 
 	static from(options: ViewControllerFromOptions): ViewController {
-		return new ViewController(options.peaks, undefined, undefined, undefined);
+		return new ViewController(
+			options.peaks,
+			options.driver,
+			undefined,
+			undefined,
+			undefined,
+		);
 	}
 
 	/**
@@ -87,7 +96,11 @@ export class ViewController {
 	 * @throws {Error} If scrollbar options are missing from the Peaks configuration.
 	 */
 	createScrollbar(container: HTMLDivElement): Scrollbar | never {
-		this.scrollbar = Scrollbar.from({ container, peaks: this.peaks });
+		this.scrollbar = Scrollbar.from({
+			container,
+			driver: this.driver,
+			peaks: this.peaks,
+		});
 
 		return this.scrollbar;
 	}

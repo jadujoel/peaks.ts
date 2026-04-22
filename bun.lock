@@ -5,6 +5,7 @@
     "": {
       "name": "@jadujoel/peaks.ts",
       "dependencies": {
+        "@jadujoel/typed-event-target": "0.0.6",
         "@jadujoel/web-audio-clip-node": "0.2.8",
         "eventemitter3": "~5.0.1",
         "neverthrow": "8.2.0",
@@ -63,6 +64,8 @@
     "@emnapi/runtime": ["@emnapi/runtime@1.9.2", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-3U4+MIWHImeyu1wnmVygh5WlgfYDtyf0k8AbLhMFxOipihf6nrWC4syIm/SwEeec0mNSafiiNnMJwbza/Is6Lw=="],
 
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w=="],
+
+    "@jadujoel/typed-event-target": ["@jadujoel/typed-event-target@0.0.6", "", { "peerDependencies": { "typescript": "^6" } }, "sha512-sPIrxAcgHPUnMyB+FeLazQbkZqfOfGyk6Jhl3BhzwLAkJsrcPjgiWKJO+m2XC+4HLOXPpJAf05DOdRLIGkDGnA=="],
 
     "@jadujoel/web-audio-clip-node": ["@jadujoel/web-audio-clip-node@0.2.8", "", { "peerDependencies": { "react": ">=18", "react-dom": ">=18", "zustand": ">=4" }, "optionalPeers": ["react", "react-dom", "zustand"] }, "sha512-mwv+swlVe9k8Vn+kvq0e7Q1lllKfviIr5zd7zTsG0FTqonJ7pZmii7ZshPNSrNIyDbokts0CVIF+X4CLEac7Bw=="],
 
