@@ -7,7 +7,7 @@ import type {
 	RectAttrs,
 } from "./driver/types";
 
-import { dispatchSegmentEvent, type PointerInteractionName } from "./events";
+import type { PointerInteractionName } from "./events";
 import { OverlaySegmentMarker } from "./overlay-segment-marker";
 import type { PeaksNode } from "./peaks-node";
 import type { Segment } from "./segment";
@@ -324,7 +324,7 @@ export class SegmentShape {
 	segmentClicked(eventName: PointerInteractionName, event: SegmentClickEvent) {
 		this.moveSegmentToTop();
 
-		dispatchSegmentEvent(this.peaks.events, eventName, event);
+		this.peaks.events.dispatch(`segments.${eventName}`, event);
 	}
 
 	enableSegmentDragging(enable: boolean) {

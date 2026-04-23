@@ -23,7 +23,10 @@ export function buildDefaultAudioDriver(
 	if (audioContext && (audioBuffer ?? url)) {
 		return audioBuffer
 			? ClipNodeAudioDriver.from({ buffer: audioBuffer, context: audioContext })
-			: ClipNodeAudioDriver.from({ context: audioContext, url: url as string });
+			: ClipNodeAudioDriver.from({
+					context: audioContext,
+					url: url as string,
+				});
 	}
 
 	return new TypeError(

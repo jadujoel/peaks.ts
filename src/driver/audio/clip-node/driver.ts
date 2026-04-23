@@ -12,24 +12,42 @@ import type {
 	PlaySegmentOptions,
 } from "../types";
 
-export interface ClipNodeAudioDriverFromOptions {
+export interface ClipNodeAudioDriverFromUrlOptions<
+	TURL extends string = string,
+> {
 	readonly context: AudioContext;
-	readonly buffer?: AudioBuffer;
-	readonly url?: string;
+	readonly url: TURL;
+	readonly duration?: number;
 }
+
+export interface ClipNodeAudioDriverFromBufferOptions {
+	readonly context: AudioContext;
+	readonly buffer: AudioBuffer;
+	readonly duration?: number;
+}
+
+export type ClipNodeAudioDriverFromOptions =
+	| ClipNodeAudioDriverFromUrlOptions
+	| ClipNodeAudioDriverFromBufferOptions;
 
 export const PLAYING_STATES: ReadonlySet<ClipNodeState> = new Set([
 	"started",
 	"resumed",
 ]);
 
-export const STARTABLE_STATES: ReadonlySet<ClipNodeState> = new Set([
-	"initial",
-	"stopped",
-	"ended",
-]);
-
 const moduleLoads = new WeakMap<BaseAudioContext, Promise<void>>();
+
+export function isUrlOptions<TURL extends string>(
+	options: ClipNodeAudioDriverFromOptions,
+): options is ClipNodeAudioDriverFromUrlOptions<TURL> {
+	return "url" in options;
+}
+
+export function isBufferOptions(
+	options: ClipNodeAudioDriverFromOptions,
+): options is ClipNodeAudioDriverFromBufferOptions {
+	return "buffer" in options;
+}
 
 export function ensureWorkletModule(context: BaseAudioContext): Promise<void> {
 	const existing = moduleLoads.get(context);
@@ -45,20 +63,30 @@ export function ensureWorkletModule(context: BaseAudioContext): Promise<void> {
 export class ClipNodeAudioDriver implements AudioDriver {
 	private constructor(
 		private readonly context: AudioContext,
-		private audioBuffer: AudioBuffer | undefined,
-		private url: string | undefined,
-		private mediaDuration: number,
 		private events: PeaksEvents | undefined,
+		private buffer: AudioBuffer | undefined,
+		private url: string | undefined,
+		private duration: number,
 		private node: ClipNode | undefined,
 	) {}
 
 	static from(options: ClipNodeAudioDriverFromOptions): ClipNodeAudioDriver {
+		if (isUrlOptions(options)) {
+			return new ClipNodeAudioDriver(
+				options.context,
+				undefined,
+				undefined,
+				options.url,
+				options.duration ?? 0,
+				undefined,
+			);
+		}
 		return new ClipNodeAudioDriver(
 			options.context,
-			options.buffer,
-			options.url,
-			options.buffer?.duration ?? 0,
 			undefined,
+			options.buffer,
+			undefined,
+			options.duration ?? options.buffer?.duration ?? 0,
 			undefined,
 		);
 	}
@@ -71,7 +99,6 @@ export class ClipNodeAudioDriver implements AudioDriver {
 
 	dispose(): void {
 		this.disposeNode();
-		this.events = undefined;
 	}
 
 	play(): Promise<void> {
@@ -83,9 +110,9 @@ export class ClipNodeAudioDriver implements AudioDriver {
 		return this.context.resume().then(() => {
 			if (node.state === "paused") {
 				node.resume();
-			} else if (STARTABLE_STATES.has(node.state)) {
-				node.start();
+				return;
 			}
+			node.start();
 		});
 	}
 
@@ -94,9 +121,7 @@ export class ClipNodeAudioDriver implements AudioDriver {
 		if (!node) {
 			return;
 		}
-		if (PLAYING_STATES.has(node.state)) {
-			node.pause();
-		}
+		node.pause();
 	}
 
 	isPlaying(): boolean {
@@ -116,11 +141,7 @@ export class ClipNodeAudioDriver implements AudioDriver {
 	}
 
 	getDuration(): number {
-		const nodeDuration = this.node?.duration;
-		if (typeof nodeDuration === "number" && nodeDuration > 0) {
-			return nodeDuration;
-		}
-		return this.mediaDuration;
+		return this.node?.duration ?? this.duration;
 	}
 
 	seek(time: number): void {
@@ -138,13 +159,7 @@ export class ClipNodeAudioDriver implements AudioDriver {
 		const { segment, loop } = options;
 
 		return this.context.resume().then(() => {
-			if (
-				PLAYING_STATES.has(node.state) ||
-				node.state === "paused" ||
-				node.state === "scheduled"
-			) {
-				node.stop();
-			}
+			node.stop();
 			node.loop = loop;
 			node.loopStart = segment.startTime;
 			node.loopEnd = segment.endTime;
@@ -159,16 +174,17 @@ export class ClipNodeAudioDriver implements AudioDriver {
 
 	async setSource(source: AudioSource): Promise<void> {
 		this.disposeNode();
-
-		this.audioBuffer = source.webAudio?.buffer;
+		this.buffer = source.webAudio?.buffer;
 		this.url = source.mediaUrl;
-		this.mediaDuration = this.audioBuffer?.duration ?? 0;
-
+		this.duration = this.buffer?.duration ?? 0;
 		await ensureWorkletModule(this.context);
 		this.createNode();
 	}
 
 	private createNode(): void {
+		if (this.node) {
+			return;
+		}
 		const node = this.isStreamingSource()
 			? this.createStreamingNode()
 			: new ClipNode(this.context);
@@ -181,15 +197,15 @@ export class ClipNodeAudioDriver implements AudioDriver {
 			if (this.url !== undefined) {
 				node.url = this.url;
 			}
-		} else if (this.audioBuffer) {
-			node.buffer = this.audioBuffer;
-			this.mediaDuration = this.audioBuffer.duration;
+		} else if (this.buffer) {
+			node.buffer = this.buffer;
+			this.duration = this.buffer.duration;
 			this.events?.dispatch("player.canplay", {});
 		}
 	}
 
 	private isStreamingSource(): boolean {
-		return this.url !== undefined && this.audioBuffer === undefined;
+		return this.url !== undefined && this.buffer === undefined;
 	}
 
 	private createStreamingNode(): StreamingClipNode {
@@ -227,7 +243,7 @@ export class ClipNodeAudioDriver implements AudioDriver {
 			events.dispatch("player.timeupdate", { time });
 		};
 		node.ondurationchange = (duration: number) => {
-			this.mediaDuration = duration;
+			this.duration = duration;
 		};
 
 		if (node instanceof StreamingClipNode) {

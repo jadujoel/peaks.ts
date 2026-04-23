@@ -4,7 +4,6 @@ import type {
 	DriverGroup,
 	DriverLayer,
 	DriverLine,
-	DriverShape,
 	DriverStage,
 	DriverText,
 } from "./driver/types";
@@ -190,22 +189,21 @@ export class PlayheadLayer {
 			text: text,
 			x: 0,
 			y: 0,
-		}) as DriverText & DriverShape;
+		});
 
 		const backgroundColor = this.playheadBackgroundColor;
 		const padding = this.playheadPadding;
 
-		playheadText.sceneFunc((context: DriverContext, shape: DriverShape) => {
-			const width = shape.width();
-			const height = shape.height() + 2 * padding;
+		playheadText.sceneFunc(
+			(context: DriverContext, drawDefault: () => void) => {
+				const width = playheadText.width();
+				const height = playheadText.height() + 2 * padding;
 
-			context.fillStyle = backgroundColor;
-			context.fillRect(0, -padding, width, height);
-			const sceneFn = (
-				shape as unknown as { _sceneFunc: (ctx: DriverContext) => void }
-			)._sceneFunc;
-			sceneFn.call(shape, context);
-		});
+				context.fillStyle = backgroundColor;
+				context.fillRect(0, -padding, width, height);
+				drawDefault();
+			},
+		);
 
 		this.playheadText = playheadText;
 		this.playheadGroup.add(playheadText);

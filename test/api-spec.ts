@@ -1,4 +1,3 @@
-import Konva from "konva";
 import sinon, { type SinonSpy } from "sinon";
 import { Peaks } from "../src/main";
 import { Scrollbar } from "../src/scrollbar";
@@ -269,8 +268,8 @@ describe("Peaks", () => {
 							expect(zoomview.playheadLayer.playheadTextColor).to.equal(
 								"#0000ff",
 							);
-							expect(overview.playheadLayer.playheadText).to.be.an.instanceOf(
-								Konva.Text,
+							expect(overview.playheadLayer.playheadText).to.not.equal(
+								undefined,
 							);
 							expect(zoomview.playheadLayer.playheadText).to.equal(undefined);
 							expect(overview.formatPlayheadTimeFn).to.equal(
@@ -335,8 +334,8 @@ describe("Peaks", () => {
 								"#00ff00",
 							);
 							expect(overview.playheadLayer.playheadText).to.equal(undefined);
-							expect(zoomview.playheadLayer.playheadText).to.be.an.instanceOf(
-								Konva.Text,
+							expect(zoomview.playheadLayer.playheadText).to.not.equal(
+								undefined,
 							);
 							expect(overview.axis.labelColor).to.equal("#0000ff");
 							expect(zoomview.axis.labelColor).to.equal("#0000ff");

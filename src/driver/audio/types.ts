@@ -44,6 +44,12 @@ export interface PlaySegmentOptions {
  * `./segment-polling`.
  */
 export interface AudioDriver {
+	/**
+	 * Asynchronously initializes the driver with runtime context (e.g. the
+	 * peaks events bus). Called once by {@link Player.init} before any
+	 * playback method. Implementations may load worklet modules, attach
+	 * media element listeners, etc.
+	 */
 	init(ctx: AudioDriverContext): Promise<void>;
 	dispose(): void;
 	play(): Promise<void>;

@@ -4,12 +4,10 @@ import type {
 	DriverLayer,
 	PeaksPointerEvent,
 } from "../driver/types";
-import {
-	dispatchPointEvent,
-	dispatchViewEvent,
-	type PointClickEvent,
-	type PointerInteractionName,
-	type ViewName,
+import type {
+	PointClickEvent,
+	PointerInteractionName,
+	ViewName,
 } from "../events";
 import { PlayheadLayer } from "../playhead-layer";
 import { PointsLayer } from "../points-layer";
@@ -476,7 +474,7 @@ export class WaveformView {
 					const point = marker.getAttr?.("point");
 
 					if (point) {
-						dispatchPointEvent(this.peaks.events, eventName, {
+						this.peaks.events.dispatch(`points.${eventName}`, {
 							evt: event.evt,
 							point: point as PointClickEvent["point"],
 							preventViewEvent: () => {
@@ -508,7 +506,7 @@ export class WaveformView {
 			const time = this.pixelOffsetToTime(offsetX);
 			const viewName = this.getName() as ViewName;
 
-			dispatchViewEvent(this.peaks.events, viewName, eventName, {
+			this.peaks.events.dispatch(`${viewName}.${eventName}`, {
 				evt: event.evt,
 				time: time,
 			});
@@ -554,13 +552,8 @@ export class WaveformView {
 	 */
 
 	dragSeek(dragging: boolean): void {
-		if (this.segmentsLayer) {
-			this.segmentsLayer.setListening(!dragging);
-		}
-
-		if (this.pointsLayer) {
-			this.pointsLayer.setListening(!dragging);
-		}
+		this.segmentsLayer?.setListening(!dragging);
+		this.pointsLayer?.setListening(!dragging);
 	}
 
 	fitToContainer(): void {

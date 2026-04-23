@@ -45,6 +45,9 @@ export interface DriverNode extends DriverEventTarget {
 	getAbsolutePosition(): XY;
 	moveToTop(): void;
 	getWidth(): number;
+	// Test-friendly aliases that mirror Konva's auto-generated getters.
+	getX(): number;
+	getY(): number;
 }
 
 export interface DriverGroup extends DriverNode {
@@ -59,6 +62,12 @@ export interface DriverGroup extends DriverNode {
 export interface DriverRect extends DriverNode {
 	fill(value?: string | null): string | null;
 	stroke(value?: string | null): string | null;
+	// Test-friendly aliases that mirror Konva's auto-generated getters.
+	getFill(): string | null;
+	getStroke(): string | null;
+	getStrokeWidth(): number;
+	getOpacity(): number;
+	getCornerRadius(): number | number[];
 }
 
 export interface DriverLine extends DriverNode {
@@ -70,6 +79,12 @@ export interface DriverText extends DriverNode {
 	text(value?: string): string;
 	setText(value: string): void;
 	fill(value?: string): string;
+	// Test-friendly aliases that mirror Konva's auto-generated getters.
+	getText(): string;
+	// Override the default text rendering. The supplied callback receives
+	// the canvas context and a `drawDefault` thunk that draws the text using
+	// the underlying renderer's default behaviour.
+	sceneFunc(fn: (ctx: DriverContext, drawDefault: () => void) => void): void;
 }
 
 // `DriverContext` exposes the subset of CanvasRenderingContext2D-like

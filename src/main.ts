@@ -41,6 +41,7 @@ import { WaveformPoints } from "./waveform/points";
 import { WaveformSegments } from "./waveform/segments";
 import { ZoomController } from "./zoom-controller";
 
+export { ClipNodeAudioDriver } from "./driver/audio/clip-node/driver";
 export { KonvaCanvasDriver } from "./driver/konva/driver";
 export { PeaksGroup, PeaksNode };
 
