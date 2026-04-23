@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { Peaks } from "../src/main";
+import { initPeaks } from "./helpers/init-peaks";
 import { InputController } from "./helpers/input-controller";
 
 describe("Scrollbar", () => {
@@ -22,7 +22,7 @@ describe("Scrollbar", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				if (err) {
 					done(err);
 					return;
@@ -125,7 +125,7 @@ describe("Scrollbar", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				if (err) {
 					done(err);
 					return;

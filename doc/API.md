@@ -10,7 +10,7 @@ This document describes the Peaks.js API, including configuration options, funct
   - [Time label customization](#time-label-customization)
 - [Methods](#methods)
   - [Initialization](#initialization)
-    - [Peaks.init()](#peaksinitoptions-callback)
+    - [Peaks.init()](#peaksinitoptions)
     - [instance.setSource()](#instancesetsourceoptions-callback)
     - [instance.getWaveformData()](#instancegetwaveformdata)
   - [Player API](#player-api)
@@ -602,21 +602,32 @@ time axis and next to the playhead, using the `formatPlayheadTime` and
 
 The top level `Peaks` object exposes a factory function to create new `Peaks` instances.
 
-### `Peaks.init(options, callback)`
+### `Peaks.init(options)`
 
-Creates a new `Peaks` instance with the given [options](#Configuration). The callback is invoked after the instance has been created and initialized, or if any errors occur during initialization. You can create and manage several `Peaks` instances within a single page, each with its own configuration.
+Creates a new `Peaks` instance with the given [options](#Configuration). Returns a [`ResultAsync`](https://github.com/supermacro/neverthrow) (from the `neverthrow` library) that resolves to a `Result<Peaks, Error>`. You can create and manage several `Peaks` instances within a single page, each with its own configuration.
 
 ```js
 const options = { ... };
 
-Peaks.init(options, function(err, peaks) {
-  if (err) {
-    console.error('Failed to initialize Peaks instance: ' + err.message);
+Peaks.init(options).then((result) => {
+  if (result.isErr()) {
+    console.error('Failed to initialize Peaks instance: ' + result.error.message);
     return;
   }
 
+  const peaks = result.value;
   console.log(peaks.player.getCurrentTime());
 });
+```
+
+Because `ResultAsync` is a thenable, it composes naturally with `await` and with `neverthrow`'s `andThen` / `map` combinators:
+
+```js
+const result = await Peaks.init(options);
+
+if (result.isOk()) {
+  console.log(result.value.player.getCurrentTime());
+}
 ```
 
 ### `instance.setSource(options, callback)`
@@ -643,7 +654,7 @@ The `options` parameter is an object with the following keys. Only one of `dataU
   * `audioBuffer`: (optional) A Web Audio `AudioBuffer` instance, containing the decoded audio samples. If present, this audio data is used and the `mediaUrl` is not fetched.
   * `multiChannel`: (optional) If `true`, the waveform will show all available channels. If `false` (the default), the audio is shown as a single channel waveform.
 * `withCredentials`: (optional) If `true`, Peaks.js will send credentials when requesting the waveform data from a server
-* `zoomLevels`: (optional) Array of zoom levels in samples per pixel. If not present, the values passed to [Peaks.init()](#peaksinitoptions-callback) will be used
+* `zoomLevels`: (optional) Array of zoom levels in samples per pixel. If not present, the values passed to [Peaks.init()](#peaksinitoptions) will be used
 
 For example, to change the media URL and request pre-computed waveform data from the server:
 
@@ -1204,8 +1215,9 @@ Zooms in the waveform zoom view by one level.
 Peaks.init({
   // ...
   zoomLevels: [512, 1024, 2048, 4096]
-},
-function(err, peaks) {
+}).then((result) => {
+  if (result.isErr()) return;
+  const peaks = result.value;
   // Initial zoom level is 512
   peaks.zoom.zoomOut(); // zoom level is now 1024
 });
@@ -1219,8 +1231,9 @@ Zooms in the waveform zoom view by one level.
 Peaks.init({
   // ...
   zoomLevels: [512, 1024, 2048, 4096]
-},
-function(err, peaks) {
+}).then((result) => {
+  if (result.isErr()) return;
+  const peaks = result.value;
   // Initial zoom level is 512
   peaks.zoom.zoomIn(); // zoom level is still 512
 
@@ -1238,8 +1251,9 @@ Changes the zoom level of the zoomable waveform view to the element in the
 Peaks.init({
   // ...
   zoomLevels: [512, 1024, 2048, 4096]
-},
-function(err, peaks) {
+}).then((result) => {
+  if (result.isErr()) return;
+  const peaks = result.value;
   peaks.zoom.setZoom(3); // zoom level is now 4096
 });
 ```
@@ -1255,8 +1269,9 @@ Returns the current zoom level, as an index into the `options.zoomLevels` array.
 Peaks.init({
   // ...
   zoomLevels: [512, 1024, 2048, 4096]
-},
-function(err, peaks) {
+}).then((result) => {
+  if (result.isErr()) return;
+  const peaks = result.value;
   peaks.zoom.zoomOut();
   console.log(peaks.zoom.getZoom()); // -> 1
 });

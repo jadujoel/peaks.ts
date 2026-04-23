@@ -155,8 +155,8 @@ export interface PeaksOptions {
 }
 
 export interface WebAudioOptions {
-	readonly audioContext?: AudioContext;
-	readonly audioBuffer?: AudioBuffer;
+	readonly context?: AudioContext;
+	readonly buffer?: AudioBuffer;
 	readonly multiChannel?: boolean;
 	readonly scale?: number;
 }

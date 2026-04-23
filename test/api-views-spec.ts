@@ -1,7 +1,7 @@
 import sinon from "sinon";
-import { Peaks } from "../src/main";
 import { WaveformOverview } from "../src/waveform/overview";
 import { WaveformZoomView } from "../src/waveform/zoomview";
+import { initPeaks } from "./helpers/init-peaks";
 
 describe("Peaks.views", () => {
 	let p = null;
@@ -25,7 +25,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -55,7 +55,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -89,7 +89,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -119,7 +119,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -156,7 +156,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -196,7 +196,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -236,7 +236,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -281,7 +281,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -311,7 +311,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -339,7 +339,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -370,7 +370,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -400,7 +400,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();
@@ -428,7 +428,7 @@ describe("Peaks.views", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 					p = instance;
 					done();

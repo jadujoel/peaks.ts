@@ -92,7 +92,7 @@ export class WaveformBuilder {
 			);
 
 			(options as Writable<WaveformBuilderOptions>).webAudio = {
-				audioContext: options.audioContext,
+				context: options.audioContext,
 			};
 		}
 
@@ -101,7 +101,7 @@ export class WaveformBuilder {
 		} else if (options.waveformData) {
 			this.buildWaveformFromLocalData(options, callback);
 		} else if (options.webAudio) {
-			if (options.webAudio.audioBuffer) {
+			if (options.webAudio.buffer) {
 				this.buildWaveformDataFromAudioBuffer(options, callback);
 			} else {
 				this.buildWaveformDataUsingWebAudio(options, callback);
@@ -277,7 +277,7 @@ export class WaveformBuilder {
 		options: WaveformBuilderOptions,
 		callback: WaveformBuilderCallback,
 	): void {
-		if (!(options.webAudio?.audioContext instanceof AudioContext)) {
+		if (!(options.webAudio?.context instanceof AudioContext)) {
 			callback(
 				new TypeError(
 					"Peaks.init(): The webAudio.audioContext option must be a valid AudioContext",
@@ -357,7 +357,7 @@ export class WaveformBuilder {
 			(webAudioOptions as Writable<WebAudioOptions>).scale = firstZoomLevel;
 		}
 
-		if (!webAudioOptions.audioBuffer) {
+		if (!webAudioOptions.buffer) {
 			callback(
 				new TypeError("Peaks.init(): Missing webAudio.audioBuffer"),
 				undefined,
@@ -371,7 +371,7 @@ export class WaveformBuilder {
 			scale?: number;
 			disable_worker: boolean;
 		} = {
-			audio_buffer: webAudioOptions.audioBuffer,
+			audio_buffer: webAudioOptions.buffer,
 			disable_worker: true,
 			split_channels: webAudioOptions.multiChannel ?? false,
 		};
@@ -430,7 +430,7 @@ export class WaveformBuilder {
 
 				self.xhr = undefined;
 
-				if (!webAudio.audioContext) {
+				if (!webAudio.context) {
 					callback(new Error("Missing audioContext"), undefined);
 					return;
 				}
@@ -442,7 +442,7 @@ export class WaveformBuilder {
 					scale?: number;
 				} = {
 					array_buffer: this.response as ArrayBuffer,
-					audio_context: webAudio.audioContext,
+					audio_context: webAudio.context,
 					split_channels: webAudio.multiChannel ?? false,
 				};
 

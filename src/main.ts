@@ -1,3 +1,4 @@
+import { errAsync, ResultAsync } from "neverthrow";
 import type WaveformData from "waveform-data";
 import { CueEmitter } from "./cue-emitter";
 import { buildDefaultAudioDriver } from "./driver/audio/default";
@@ -391,46 +392,22 @@ export class Peaks {
 	/**
 	 * Initializes a Peaks instance and asynchronously builds its waveform views.
 	 *
-	 * Two calling conventions are supported:
-	 * - `Peaks.init(opts, callback)` — legacy node-style callback.
-	 * - `Peaks.init(opts)` — returns a `Promise<Peaks>` that resolves once the
-	 *   instance is ready, or rejects with the initialization error.
-	 *
-	 * @throws {TypeError} If initialization reaches a player adapter that does not implement the required methods.
-	 * @throws {Error} If invalid point or segment definitions are supplied and they fail validation during setup.
+	 * Returns a `ResultAsync<Peaks, Error>` (which is also a `Promise`) that
+	 * resolves to a `Result` describing either the ready instance or the
+	 * initialization error. Callers should `await` it and inspect the
+	 * `Result` rather than relying on promise rejection for failures.
 	 */
-	static init(opts: PeaksConfiguration): Promise<Peaks>;
-	static init(
-		opts: PeaksConfiguration,
-		callback: (err?: Error, instance?: Peaks) => void,
-	): undefined | never;
-	static init(
-		opts: PeaksConfiguration,
-		callback?: (err?: Error, instance?: Peaks) => void,
-	): undefined | Promise<Peaks> {
-		if (!callback) {
-			return new Promise<Peaks>((resolve, reject) => {
-				Peaks.init(opts, (err, instance) => {
-					if (err || !instance) {
-						reject(err ?? new Error("Peaks.init failed"));
-						return;
-					}
-					resolve(instance);
-				});
-			});
-		}
-
+	static init(opts: PeaksConfiguration): ResultAsync<Peaks, Error> {
 		const instance = new Peaks(createDefaultOptions());
 
-		let err = instance.setOptions(opts);
-
-		if (!err) {
-			err = checkContainerElements(instance.options);
+		const optionsErr = instance.setOptions(opts);
+		if (optionsErr) {
+			return errAsync(optionsErr);
 		}
 
-		if (err) {
-			callback(err);
-			return;
+		const containerErr = checkContainerElements(instance.options);
+		if (containerErr) {
+			return errAsync(containerErr);
 		}
 
 		let scrollbarContainer: HTMLDivElement | undefined;
@@ -439,21 +416,19 @@ export class Peaks {
 			scrollbarContainer = instance.options.scrollbar.container;
 
 			if (!isHTMLElement(scrollbarContainer)) {
-				callback(
+				return errAsync(
 					new TypeError(
 						"The scrollbar container option must be a valid HTML element",
 					),
 				);
-				return;
 			}
 
 			if (scrollbarContainer.clientWidth <= 0) {
-				callback(
+				return errAsync(
 					new TypeError(
 						"The scrollbar container must be visible and have non-zero width",
 					),
 				);
-				return;
 			}
 		}
 
@@ -472,8 +447,7 @@ export class Peaks {
 				instance.options as unknown as PeaksConfiguration,
 			);
 			if (built instanceof TypeError) {
-				callback(built);
-				return;
+				return errAsync(built);
 			}
 			driver = built;
 		}
@@ -497,101 +471,78 @@ export class Peaks {
 			peaks: instance as unknown as PeaksInstance,
 		});
 
-		// Setup the UI components
 		instance.waveformBuilder = WaveformBuilder.from({
 			peaks: instance as unknown as PeaksInstance,
 		});
 
-		instance.player
-			.init()
-			.then(() => {
-				instance.waveformBuilder?.init(
-					instance.options,
-					(err, waveformData) => {
-						if (err) {
-							callback(err);
-							return;
-						}
+		const playerInit = ResultAsync.fromPromise(
+			instance.player.init(),
+			(error) => error as Error,
+		);
 
-						const containerErr = checkContainerElements(instance.options);
+		return playerInit.andThen(() =>
+			ResultAsync.fromPromise(
+				new Promise<Peaks>((resolve, reject) => {
+					instance.waveformBuilder?.init(
+						instance.options,
+						(buildErr, waveformData) => {
+							if (buildErr) {
+								reject(buildErr);
+								return;
+							}
 
-						if (containerErr) {
-							callback(containerErr);
-							return;
-						}
-
-						instance.waveformBuilder = undefined;
-						instance.waveformData = waveformData;
-
-						const zoomviewContainer = instance.options.zoomview.container;
-						const overviewContainer = instance.options.overview.container;
-
-						if (zoomviewContainer) {
-							instance.views.createZoomview(
-								zoomviewContainer as HTMLDivElement,
+							const postBuildContainerErr = checkContainerElements(
+								instance.options,
 							);
-						}
 
-						if (overviewContainer) {
-							instance.views.createOverview(
-								overviewContainer as HTMLDivElement,
-							);
-						}
+							if (postBuildContainerErr) {
+								reject(postBuildContainerErr);
+								return;
+							}
 
-						if (scrollbarContainer) {
-							instance.views.createScrollbar(scrollbarContainer);
-						}
+							instance.waveformBuilder = undefined;
+							instance.waveformData = waveformData;
 
-						if (opts.segments) {
-							instance.segments.add(opts.segments);
-						}
+							const zoomviewContainer = instance.options.zoomview.container;
+							const overviewContainer = instance.options.overview.container;
 
-						if (opts.points) {
-							instance.points.add(opts.points);
-						}
+							if (zoomviewContainer) {
+								instance.views.createZoomview(
+									zoomviewContainer as HTMLDivElement,
+								);
+							}
 
-						if (opts.emitCueEvents) {
-							instance.cueEmitter = CueEmitter.from({
-								peaks: instance as unknown as PeaksInstance,
-							});
-						}
+							if (overviewContainer) {
+								instance.views.createOverview(
+									overviewContainer as HTMLDivElement,
+								);
+							}
 
-						callback(undefined, instance);
-					},
-				);
-			})
-			.catch((err: Error) => {
-				callback(err);
-			});
-	}
+							if (scrollbarContainer) {
+								instance.views.createScrollbar(scrollbarContainer);
+							}
 
-	/**
-	 * Initializes a Peaks instance and resolves with it once the waveform views are ready.
-	 */
-	static fromOptionsAsync(opts: PeaksConfiguration): Promise<Peaks> {
-		return new Promise((resolve, reject) => {
-			try {
-				Peaks.init(opts, (err, instance) => {
-					if (err) {
-						reject(err);
-						return;
-					}
+							if (opts.segments) {
+								instance.segments.add(opts.segments);
+							}
 
-					if (!instance) {
-						reject(
-							new Error(
-								"Initialization completed without returning an instance",
-							),
-						);
-						return;
-					}
+							if (opts.points) {
+								instance.points.add(opts.points);
+							}
 
-					resolve(instance);
-				});
-			} catch (error: unknown) {
-				reject(error instanceof Error ? error : new Error(String(error)));
-			}
-		});
+							if (opts.emitCueEvents) {
+								instance.cueEmitter = CueEmitter.from({
+									peaks: instance as unknown as PeaksInstance,
+								});
+							}
+
+							resolve(instance);
+						},
+					);
+				}),
+				(error) => error as Error,
+			),
+		);
 	}
 
 	private setOptions(opts: PeaksConfiguration) {
@@ -603,9 +554,8 @@ export class Peaks {
 		if (!opts.player && !opts.audio) {
 			const webAudio = opts.webAudio as WebAudioOptions | undefined;
 			const hasAudioContextSource =
-				(opts.audioContext ?? webAudio?.audioContext) !== undefined &&
-				(webAudio?.audioBuffer !== undefined ||
-					typeof opts.mediaUrl === "string");
+				(opts.audioContext ?? webAudio?.context) !== undefined &&
+				(webAudio?.buffer !== undefined || typeof opts.mediaUrl === "string");
 
 			if (!opts.mediaElement && !hasAudioContextSource) {
 				return new Error(

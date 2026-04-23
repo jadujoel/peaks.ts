@@ -101,8 +101,8 @@ export function buildDefaultAudioDriver(
 			mediaElement: config.mediaElement,
 		});
 	}
-	const audioContext = config.audioContext ?? config.webAudio?.audioContext;
-	const audioBuffer = config.webAudio?.audioBuffer;
+	const audioContext = config.audioContext ?? config.webAudio?.context;
+	const audioBuffer = config.webAudio?.buffer;
 	const url = typeof config.mediaUrl === "string" ? config.mediaUrl : undefined;
 
 	if (audioContext && (audioBuffer ?? url)) {

@@ -1,6 +1,6 @@
 import sinon from "sinon";
-import { Peaks } from "../src/main";
 import { Player } from "../src/player";
+import { initPeaks } from "./helpers/init-peaks";
 
 describe("Player", () => {
 	describe("with stub player", () => {
@@ -38,7 +38,7 @@ describe("Player", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				expect(err).to.equal(undefined);
 				p = instance;
 				done();
@@ -262,7 +262,7 @@ describe("Player", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				expect(err).to.equal(undefined);
 				p = instance;
 				done();
@@ -425,7 +425,7 @@ describe("Player", () => {
 		});
 
 		describe("init", () => {
-			it("should cause Peaks.init() to return an error", (done: DoneCallback) => {
+			it("should cause initPeaks() to return an error", (done: DoneCallback) => {
 				const player = {
 					dispose: sinon.spy(),
 					getCurrentTime: sinon.spy(() => 111),
@@ -452,7 +452,7 @@ describe("Player", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.be.an.instanceOf(Error);
 					expect(err.message).to.equal("failed");
 					p = instance;

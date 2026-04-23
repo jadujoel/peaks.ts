@@ -1,5 +1,14 @@
 # Peaks.js
 
+## Unreleased (Peaks.ts)
+
+* `Peaks.init()` no longer accepts a callback. It now returns a
+  `ResultAsync<Peaks, Error>` from the
+  [`neverthrow`](https://github.com/supermacro/neverthrow) library, which is
+  thenable (so it composes with `await`/`.then()`) and supports the standard
+  `neverthrow` combinators. See
+  [doc/migration-guide.md](doc/migration-guide.md) for details.
+
 ## 4.0.0-beta.2 (2025/05/13)
 
 * (#562) Fixed TypeScript declarations for `Point.update()` and

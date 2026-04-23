@@ -1,12 +1,21 @@
 import type WaveformData from "waveform-data";
-import type { DriverStage } from "../driver/types";
+import type { CanvasDriver, DriverLayer, DriverStage } from "../driver/types";
 import { InsertSegmentMouseDragHandler } from "../insert-segment-mouse-drag-handler";
+import type { PlayheadLayer } from "../playhead-layer";
+import type { PointsLayer } from "../points-layer";
 import { ScrollMouseDragHandler } from "../scroll-mouse-drag-handler";
 import type { SegmentsLayer } from "../segments-layer";
-import type { PeaksInstance, ZoomviewOptions } from "../types";
+import type {
+	OverviewOptions,
+	PeaksInstance,
+	WaveformViewAPI,
+	ZoomviewOptions,
+} from "../types";
+import type { WaveformColor } from "../utils";
 import { clamp, isValidTime, objectHasProperty } from "../utils";
-
-import { WaveformView, type WaveformViewState } from "./view";
+import type { WaveformAxis } from "./axis";
+import type { WaveformShape } from "./shape";
+import { WaveformView, type WaveformViewHooks } from "./view";
 
 export interface ZoomOptions {
 	readonly scale?: number | "auto";
@@ -19,29 +28,6 @@ export interface WaveformZoomViewFromOptions {
 	readonly peaks: PeaksInstance;
 }
 
-interface WaveformZoomViewState {
-	readonly autoScroll: boolean;
-	readonly autoScrollOffset: number;
-	readonly captureVerticalScroll: boolean;
-	readonly insertSegmentShape: unknown;
-	readonly minSegmentDragWidth: number;
-	readonly mouseDragHandler:
-		| ScrollMouseDragHandler
-		| InsertSegmentMouseDragHandler
-		| undefined;
-	readonly pixelLength: number;
-	readonly playheadClickTolerance: number;
-	readonly scale: number;
-	readonly segmentDragMode: string;
-	readonly segmentDraggingEnabled: boolean;
-	readonly waveformCacheEnabled: boolean;
-	readonly waveformDataCache: Map<number, WaveformData>;
-	readonly waveformScales: number[];
-	readonly wheelMode: string;
-	readonly zoomLevelAuto: boolean;
-	readonly zoomLevelSeconds: number | undefined;
-}
-
 export function isAutoScale(options: ZoomOptions): boolean {
 	return (
 		(objectHasProperty(options, "scale") && options.scale === "auto") ||
@@ -49,84 +35,53 @@ export function isAutoScale(options: ZoomOptions): boolean {
 	);
 }
 
-export class WaveformZoomView extends WaveformView {
+export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 	private autoScroll: boolean;
 	private autoScrollOffset: number;
-	private segmentDraggingEnabled: boolean;
-	private segmentDragMode: string;
-	private minSegmentDragWidth: number;
-	private insertSegmentShape: unknown;
+	private segmentDraggingEnabled = false;
+	private segmentDragMode = "overlap";
+	private minSegmentDragWidth = 0;
+	private insertSegmentShape: unknown = undefined;
 	private playheadClickTolerance: number;
-	private zoomLevelAuto: boolean;
-	private zoomLevelSeconds: number | undefined;
+	private zoomLevelAuto = false;
+	private zoomLevelSeconds: number | undefined = undefined;
 	private mouseDragHandler:
 		| ScrollMouseDragHandler
 		| InsertSegmentMouseDragHandler
 		| undefined;
 	private wheelMode: string;
-	private captureVerticalScroll: boolean;
-	private waveformCacheEnabled: boolean;
-	private waveformDataCache: Map<number, WaveformData>;
-	private waveformScales: number[];
+	private captureVerticalScroll = false;
+	private waveformCacheEnabled = false;
+	private waveformDataCache: Map<number, WaveformData> = new Map<
+		number,
+		WaveformData
+	>();
+	private waveformScales: number[] = [];
 	private scale: number;
 	private pixelLength: number;
 
-	static from(options: WaveformZoomViewFromOptions): WaveformZoomView {
-		const zoomviewOptions = options.peaks.options.zoomview;
-		const instance = new WaveformZoomView(
-			WaveformZoomView.createState({
-				container: options.container,
-				peaks: options.peaks,
-				viewOptions: zoomviewOptions,
-				waveformData: options.waveformData,
-			}),
-			{
-				autoScroll: zoomviewOptions.autoScroll,
-				autoScrollOffset: zoomviewOptions.autoScrollOffset,
-				captureVerticalScroll: false,
-				insertSegmentShape: undefined,
-				minSegmentDragWidth: 0,
-				mouseDragHandler: undefined,
-				pixelLength: options.waveformData.length,
-				playheadClickTolerance: zoomviewOptions.playheadClickTolerance,
-				scale: options.waveformData.scale,
-				segmentDraggingEnabled: false,
-				segmentDragMode: "overlap",
-				waveformCacheEnabled: false,
-				waveformDataCache: new Map<number, WaveformData>(),
-				waveformScales: [],
-				wheelMode: zoomviewOptions.wheelMode,
-				zoomLevelAuto: false,
-				zoomLevelSeconds: undefined,
-			},
-		);
-		instance.initializeView();
-		instance.initializeZoomView();
-		return instance;
+	private constructor(public readonly view: WaveformView) {
+		const opts = view.viewOptions as ZoomviewOptions;
+		this.autoScroll = opts.autoScroll;
+		this.autoScrollOffset = opts.autoScrollOffset;
+		this.playheadClickTolerance = opts.playheadClickTolerance;
+		this.wheelMode = opts.wheelMode;
+		this.scale = view.originalWaveformData.scale;
+		this.pixelLength = view.originalWaveformData.length;
 	}
 
-	private constructor(
-		state: WaveformViewState,
-		zoomState: WaveformZoomViewState,
-	) {
-		super(state);
-		this.autoScroll = zoomState.autoScroll;
-		this.autoScrollOffset = zoomState.autoScrollOffset;
-		this.segmentDraggingEnabled = zoomState.segmentDraggingEnabled;
-		this.segmentDragMode = zoomState.segmentDragMode;
-		this.minSegmentDragWidth = zoomState.minSegmentDragWidth;
-		this.insertSegmentShape = zoomState.insertSegmentShape;
-		this.playheadClickTolerance = zoomState.playheadClickTolerance;
-		this.zoomLevelAuto = zoomState.zoomLevelAuto;
-		this.zoomLevelSeconds = zoomState.zoomLevelSeconds;
-		this.mouseDragHandler = zoomState.mouseDragHandler;
-		this.wheelMode = zoomState.wheelMode;
-		this.captureVerticalScroll = zoomState.captureVerticalScroll;
-		this.waveformCacheEnabled = zoomState.waveformCacheEnabled;
-		this.waveformDataCache = zoomState.waveformDataCache;
-		this.waveformScales = zoomState.waveformScales;
-		this.scale = zoomState.scale;
-		this.pixelLength = zoomState.pixelLength;
+	static from(options: WaveformZoomViewFromOptions): WaveformZoomView {
+		const view = WaveformView.from({
+			container: options.container,
+			peaks: options.peaks,
+			viewOptions: options.peaks.options.zoomview,
+			waveformData: options.waveformData,
+		});
+
+		const instance = new WaveformZoomView(view);
+		view.initialize(instance, instance);
+		instance.initializeZoomView();
+		return instance;
 	}
 
 	private initializeZoomView(): void {
@@ -164,7 +119,25 @@ export class WaveformZoomView extends WaveformView {
 		});
 	}
 
-	override initWaveformData(): void {
+	// ─── WaveformViewHooks ────────────────────────────────────────────
+
+	getName(): string {
+		return "zoomview";
+	}
+
+	isSegmentDraggingEnabled(): boolean {
+		return this.segmentDraggingEnabled;
+	}
+
+	getMinSegmentDragWidth(): number {
+		return this.insertSegmentShape ? 0 : this.minSegmentDragWidth;
+	}
+
+	getSegmentDragMode(): string {
+		return this.segmentDragMode;
+	}
+
+	initWaveformData(): void {
 		this.waveformCacheEnabled = this.peaksOptions.waveformCache;
 
 		this.initWaveformCache();
@@ -172,6 +145,82 @@ export class WaveformZoomView extends WaveformView {
 		const initialZoomLevel = this.peaks.zoom.getLevel();
 
 		this.resampleData({ scale: initialZoomLevel });
+	}
+
+	initHighlightLayer(): void {}
+
+	containerWidthChange(): boolean {
+		let resample = false;
+		let resampleOptions: { scale: number } | { width: number } | undefined;
+
+		if (this.zoomLevelAuto) {
+			resample = true;
+			resampleOptions = { width: this.width };
+		} else if (this.zoomLevelSeconds !== undefined) {
+			resample = true;
+			resampleOptions = {
+				scale: this.getScaleForDuration(this.zoomLevelSeconds),
+			};
+		}
+
+		if (resample && resampleOptions) {
+			try {
+				this.resampleData(resampleOptions);
+			} catch {
+				// Ignore, and leave this.data as it was
+			}
+		}
+
+		return true;
+	}
+
+	containerHeightChange(): void {
+		// Nothing
+	}
+
+	updateWaveform(frameOffset = 0, forceUpdate = false): void {
+		let upperLimit: number;
+
+		if (this.pixelLength < this.width) {
+			// Total waveform is shorter than viewport, so reset the offset to 0.
+			frameOffset = 0;
+			upperLimit = this.width;
+		} else {
+			// Calculate the very last possible position.
+			upperLimit = this.pixelLength - this.width;
+		}
+
+		frameOffset = clamp(frameOffset, 0, upperLimit);
+
+		if (!forceUpdate && frameOffset === this.frameOffset) {
+			return;
+		}
+
+		this.frameOffset = frameOffset;
+
+		// Display playhead if it is within the zoom frame width.
+		const playheadPixel = this.playheadLayer.getPlayheadPixel();
+
+		this.playheadLayer.updatePlayheadTime(this.pixelsToTime(playheadPixel));
+
+		this.drawWaveformLayer();
+		this.axisLayer.draw();
+
+		const frameStartTime = this.getStartTime();
+		const frameEndTime = this.getEndTime();
+
+		if (this.pointsLayer) {
+			this.pointsLayer.updatePoints(frameStartTime, frameEndTime);
+		}
+
+		if (this.segmentsLayer) {
+			this.segmentsLayer.updateSegments(frameStartTime, frameEndTime);
+		}
+
+		this.peaks.events.dispatch("zoomview.update", {
+			endTime: frameEndTime,
+			startTime: frameStartTime,
+		});
 	}
 
 	private initWaveformCache(): void {
@@ -184,8 +233,6 @@ export class WaveformZoomView extends WaveformView {
 			this.waveformScales = [this.originalWaveformData.scale];
 		}
 	}
-
-	override initHighlightLayer(): void {}
 
 	setWheelMode(
 		mode: string,
@@ -300,20 +347,8 @@ export class WaveformZoomView extends WaveformView {
 		}
 	}
 
-	override isSegmentDraggingEnabled(): boolean {
-		return this.segmentDraggingEnabled;
-	}
-
 	setSegmentDragMode(mode: string): void {
 		this.segmentDragMode = mode;
-	}
-
-	getSegmentDragMode(): string {
-		return this.segmentDragMode;
-	}
-
-	override getName(): string {
-		return "zoomview";
 	}
 
 	private onTimeUpdate = (event: { time: number }): void => {
@@ -361,8 +396,8 @@ export class WaveformZoomView extends WaveformView {
 		this.scrollWaveform({ pixels: increment });
 	}
 
-	override setWaveformData(waveformData: WaveformData): void {
-		this.originalWaveformData = waveformData;
+	setWaveformData(waveformData: WaveformData): void {
+		this.view.originalWaveformData = waveformData;
 		// Clear cached waveforms
 		this.initWaveformCache();
 
@@ -584,55 +619,6 @@ export class WaveformZoomView extends WaveformView {
 		this.updateWaveform(this.frameOffset + scrollAmount, false);
 	}
 
-	/**
-	 * Updates the region of waveform shown in the view.
-	 */
-
-	override updateWaveform(frameOffset: number, forceUpdate = false): void {
-		let upperLimit: number;
-
-		if (this.pixelLength < this.width) {
-			// Total waveform is shorter than viewport, so reset the offset to 0.
-			frameOffset = 0;
-			upperLimit = this.width;
-		} else {
-			// Calculate the very last possible position.
-			upperLimit = this.pixelLength - this.width;
-		}
-
-		frameOffset = clamp(frameOffset, 0, upperLimit);
-
-		if (!forceUpdate && frameOffset === this.frameOffset) {
-			return;
-		}
-
-		this.frameOffset = frameOffset;
-
-		// Display playhead if it is within the zoom frame width.
-		const playheadPixel = this.playheadLayer.getPlayheadPixel();
-
-		this.playheadLayer.updatePlayheadTime(this.pixelsToTime(playheadPixel));
-
-		this.drawWaveformLayer();
-		this.axisLayer.draw();
-
-		const frameStartTime = this.getStartTime();
-		const frameEndTime = this.getEndTime();
-
-		if (this.pointsLayer) {
-			this.pointsLayer.updatePoints(frameStartTime, frameEndTime);
-		}
-
-		if (this.segmentsLayer) {
-			this.segmentsLayer.updateSegments(frameStartTime, frameEndTime);
-		}
-
-		this.peaks.events.dispatch("zoomview.update", {
-			endTime: frameEndTime,
-			startTime: frameStartTime,
-		});
-	}
-
 	enableAutoScroll(enable: boolean, options?: { offset?: number }): void {
 		this.autoScroll = enable;
 
@@ -641,41 +627,8 @@ export class WaveformZoomView extends WaveformView {
 		}
 	}
 
-	getMinSegmentDragWidth(): number {
-		return this.insertSegmentShape ? 0 : this.minSegmentDragWidth;
-	}
-
 	setMinSegmentDragWidth(width: number): void {
 		this.minSegmentDragWidth = width;
-	}
-
-	override containerWidthChange(): boolean {
-		let resample = false;
-		let resampleOptions: { scale: number } | { width: number } | undefined;
-
-		if (this.zoomLevelAuto) {
-			resample = true;
-			resampleOptions = { width: this.width };
-		} else if (this.zoomLevelSeconds !== undefined) {
-			resample = true;
-			resampleOptions = {
-				scale: this.getScaleForDuration(this.zoomLevelSeconds),
-			};
-		}
-
-		if (resample && resampleOptions) {
-			try {
-				this.resampleData(resampleOptions);
-			} catch {
-				// Ignore, and leave this.data as it was
-			}
-		}
-
-		return true;
-	}
-
-	override containerHeightChange(): void {
-		// Nothing
 	}
 
 	getStage(): DriverStage {
@@ -686,7 +639,7 @@ export class WaveformZoomView extends WaveformView {
 		return this.segmentsLayer;
 	}
 
-	override dispose(): void {
+	dispose(): void {
 		// Unregister event handlers
 		this.peaks.events.removeEventListener("player.playing", this.onPlaying);
 		this.peaks.events.removeEventListener("player.pause", this.onPause);
@@ -711,11 +664,182 @@ export class WaveformZoomView extends WaveformView {
 		if (this.waveformCacheEnabled) {
 			this.waveformDataCache.clear();
 		} else {
-			this.data = undefined as unknown as WaveformData;
+			this.view.data = undefined as unknown as WaveformData;
 		}
 
 		this.mouseDragHandler?.dispose();
 
-		super.dispose();
+		this.view.dispose();
+	}
+
+	// ─── Field delegation getters/setters ─────────────────────────────
+
+	get peaks(): PeaksInstance {
+		return this.view.peaks;
+	}
+	get peaksOptions(): PeaksInstance["options"] {
+		return this.view.peaksOptions;
+	}
+	get viewOptions(): ZoomviewOptions | OverviewOptions {
+		return this.view.viewOptions;
+	}
+	get container(): HTMLDivElement {
+		return this.view.container;
+	}
+	get originalWaveformData(): WaveformData {
+		return this.view.originalWaveformData;
+	}
+	set originalWaveformData(v: WaveformData) {
+		this.view.originalWaveformData = v;
+	}
+	get data(): WaveformData {
+		return this.view.data;
+	}
+	set data(v: WaveformData) {
+		this.view.data = v;
+	}
+	get frameOffset(): number {
+		return this.view.frameOffset;
+	}
+	set frameOffset(v: number) {
+		this.view.frameOffset = v;
+	}
+	get width(): number {
+		return this.view.width;
+	}
+	get height(): number {
+		return this.view.height;
+	}
+	get stage() {
+		return this.view.stage;
+	}
+	get waveformLayer(): DriverLayer {
+		return this.view.waveformLayer;
+	}
+	get axisLayer(): DriverLayer {
+		return this.view.axisLayer;
+	}
+	get playheadLayer(): PlayheadLayer {
+		return this.view.playheadLayer;
+	}
+	get segmentsLayer(): SegmentsLayer | undefined {
+		return this.view.segmentsLayer;
+	}
+	get pointsLayer(): PointsLayer | undefined {
+		return this.view.pointsLayer;
+	}
+	get waveformShape(): WaveformShape {
+		return this.view.waveformShape;
+	}
+	get playedWaveformShape(): WaveformShape | undefined {
+		return this.view.playedWaveformShape;
+	}
+	get axis(): WaveformAxis {
+		return this.view.axis;
+	}
+	get amplitudeScale(): number {
+		return this.view.amplitudeScale;
+	}
+	get formatPlayheadTimeFn(): (time: number) => string {
+		return this.view.formatPlayheadTimeFn;
+	}
+
+	// ─── Method delegation ────────────────────────────────────────────
+
+	getWidth(): number {
+		return this.view.getWidth();
+	}
+	getHeight(): number {
+		return this.view.getHeight();
+	}
+	getStartTime(): number {
+		return this.view.getStartTime();
+	}
+	getEndTime(): number {
+		return this.view.getEndTime();
+	}
+	getFrameOffset(): number {
+		return this.view.getFrameOffset();
+	}
+	getDuration(): number {
+		return this.view.getDuration();
+	}
+	getAmplitudeScale(): number {
+		return this.view.getAmplitudeScale();
+	}
+	getViewOptions(): ZoomviewOptions | OverviewOptions {
+		return this.view.getViewOptions();
+	}
+	getDriver(): CanvasDriver {
+		return this.view.getDriver();
+	}
+	getWaveformData(): WaveformData {
+		return this.view.getWaveformData();
+	}
+	timeToPixels(time: number): number {
+		return this.view.timeToPixels(time);
+	}
+	timeToPixelOffset(time: number): number {
+		return this.view.timeToPixelOffset(time);
+	}
+	pixelsToTime(pixels: number): number {
+		return this.view.pixelsToTime(pixels);
+	}
+	pixelOffsetToTime(offset: number): number {
+		return this.view.pixelOffsetToTime(offset);
+	}
+	formatTime(time: number): string {
+		return this.view.formatTime(time);
+	}
+	setWaveformColor(color: WaveformColor): void {
+		this.view.setWaveformColor(color);
+	}
+	setPlayedWaveformColor(color: WaveformColor | undefined): void {
+		this.view.setPlayedWaveformColor(color);
+	}
+	showAxisLabels(
+		show: boolean,
+		options?: { topMarkerHeight?: number; bottomMarkerHeight?: number },
+	): void {
+		this.view.showAxisLabels(show, options);
+	}
+	setAxisLabelColor(color: string): void {
+		this.view.setAxisLabelColor(color);
+	}
+	setAxisGridlineColor(color: string): void {
+		this.view.setAxisGridlineColor(color);
+	}
+	showPlayheadTime(show: boolean): void {
+		this.view.showPlayheadTime(show);
+	}
+	setTimeLabelPrecision(precision: number): void {
+		this.view.setTimeLabelPrecision(precision);
+	}
+	setAmplitudeScale(scale: number): undefined | never {
+		return this.view.setAmplitudeScale(scale);
+	}
+	enableSeek(enable: boolean): void {
+		this.view.enableSeek(enable);
+	}
+	isSeekEnabled(): boolean {
+		return this.view.isSeekEnabled();
+	}
+	dragSeek(dragging: boolean): void {
+		this.view.dragSeek(dragging);
+	}
+	drawWaveformLayer(): void {
+		this.view.drawWaveformLayer();
+	}
+	updatePlayheadTime(time: number): void {
+		this.view.updatePlayheadTime(time);
+	}
+	playheadPosChanged(time: number): void {
+		this.view.playheadPosChanged(time);
+	}
+	enableMarkerEditing(enable: boolean): void {
+		this.view.enableMarkerEditing(enable);
+	}
+	fitToContainer(): void {
+		this.view.fitToContainer();
 	}
 }

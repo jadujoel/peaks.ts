@@ -32,111 +32,103 @@ export interface PlayedSegment {
 	endTime: number;
 }
 
-export interface WaveformViewStateFromOptions {
+/**
+ * Hooks injected by a host view (e.g. `WaveformZoomView`,
+ * `WaveformOverview`) to provide view-specific behaviour without
+ * inheritance.
+ */
+export interface WaveformViewHooks {
+	getName(): string;
+	isSegmentDraggingEnabled(): boolean;
+	getMinSegmentDragWidth(): number;
+	getSegmentDragMode(): string;
+	initWaveformData(): void;
+	initHighlightLayer(): void;
+	containerWidthChange(): boolean;
+	containerHeightChange(): void;
+	updateWaveform(frameOffset?: number, force?: boolean): void;
+}
+
+export interface WaveformViewFromOptions {
 	readonly waveformData: WaveformData;
 	readonly container: HTMLDivElement;
 	readonly peaks: PeaksInstance;
 	readonly viewOptions: ZoomviewOptions | OverviewOptions;
 }
 
-export interface WaveformViewState {
-	readonly peaks: PeaksInstance;
-	readonly container: HTMLDivElement;
-	readonly peaksOptions: PeaksInstance["options"];
-	readonly viewOptions: ZoomviewOptions | OverviewOptions;
-	readonly originalWaveformData: WaveformData;
-	readonly data: WaveformData;
-	readonly frameOffset: number;
-	readonly width: number;
-	readonly height: number;
-	readonly amplitudeScale: number;
-	readonly waveformColor: WaveformColor;
-	readonly playedWaveformColor: WaveformColor | undefined;
-	readonly timeLabelPrecision: number;
-	readonly formatPlayheadTimeFn?: (time: number) => string;
-	readonly seekEnabled: boolean;
-	readonly driver: CanvasDriver;
-}
-
 export class WaveformView {
-	public peaks: PeaksInstance;
-	protected container: HTMLDivElement;
-	protected peaksOptions: PeaksInstance["options"];
-	protected viewOptions: ZoomviewOptions | OverviewOptions;
-	protected originalWaveformData: WaveformData;
-	public data: WaveformData;
-	protected frameOffset: number;
-	protected width: number;
-	public height: number;
-	protected amplitudeScale: number;
-	protected waveformColor: WaveformColor;
-	protected playedWaveformColor: WaveformColor | undefined;
-	protected timeLabelPrecision: number;
-	protected formatPlayheadTimeFn: (time: number) => string;
-	protected seekEnabled: boolean;
-	protected driver: CanvasDriver;
-	public declare stage: ReturnType<CanvasDriver["createStage"]>;
-	protected declare waveformLayer: DriverLayer;
-	protected declare waveformShape: WaveformShape;
-	protected declare playedWaveformShape: WaveformShape | undefined;
-	protected declare playedSegment: PlayedSegment | undefined;
-	protected declare unplayedSegment: PlayedSegment | undefined;
-	public declare segmentsLayer: SegmentsLayer | undefined;
-	public declare pointsLayer: PointsLayer | undefined;
-	protected declare axisLayer: DriverLayer;
-	protected declare axis: WaveformAxis;
-	protected declare playheadLayer: PlayheadLayer;
+	public hooks!: WaveformViewHooks;
+	public host!: WaveformViewAPI;
+	public stage!: ReturnType<CanvasDriver["createStage"]>;
+	public waveformLayer!: DriverLayer;
+	public waveformShape!: WaveformShape;
+	public playedWaveformShape: WaveformShape | undefined;
+	public playedSegment: PlayedSegment | undefined;
+	public unplayedSegment: PlayedSegment | undefined;
+	public segmentsLayer: SegmentsLayer | undefined;
+	public pointsLayer: PointsLayer | undefined;
+	public axisLayer!: DriverLayer;
+	public axis!: WaveformAxis;
+	public playheadLayer!: PlayheadLayer;
+	public formatPlayheadTimeFn: (time: number) => string;
 
-	protected constructor(state: WaveformViewState) {
-		this.container = state.container;
-		this.peaks = state.peaks;
-		this.peaksOptions = state.peaksOptions;
-		this.viewOptions = state.viewOptions;
-		this.originalWaveformData = state.originalWaveformData;
-		this.data = state.data;
-		this.frameOffset = state.frameOffset;
-		this.width = state.width;
-		this.height = state.height;
-		this.amplitudeScale = state.amplitudeScale;
-		this.waveformColor = state.waveformColor;
-		this.playedWaveformColor = state.playedWaveformColor;
-		this.timeLabelPrecision = state.timeLabelPrecision;
+	private constructor(
+		public readonly peaks: PeaksInstance,
+		public readonly container: HTMLDivElement,
+		public readonly peaksOptions: PeaksInstance["options"],
+		public readonly viewOptions: ZoomviewOptions | OverviewOptions,
+		public originalWaveformData: WaveformData,
+		public data: WaveformData,
+		public frameOffset: number,
+		public width: number,
+		public height: number,
+		public amplitudeScale: number,
+		public waveformColor: WaveformColor,
+		public playedWaveformColor: WaveformColor | undefined,
+		public timeLabelPrecision: number,
+		public seekEnabled: boolean,
+		public readonly driver: CanvasDriver,
+		formatPlayheadTimeFn: ((time: number) => string) | undefined,
+	) {
 		this.formatPlayheadTimeFn =
-			state.formatPlayheadTimeFn ??
+			formatPlayheadTimeFn ??
 			((time: number) => formatTime(time, this.timeLabelPrecision));
-		this.seekEnabled = state.seekEnabled;
-		this.driver = state.driver;
 	}
 
-	protected static createState(
-		options: WaveformViewStateFromOptions,
-	): WaveformViewState {
-		const timeLabelPrecision = options.viewOptions.timeLabelPrecision;
+	static from(options: WaveformViewFromOptions): WaveformView {
+		const peaks = options.peaks;
+		const viewOptions = options.viewOptions;
 
-		return {
-			amplitudeScale: 1.0,
-			container: options.container,
-			data: options.waveformData,
-			driver: options.peaks.options.driver,
-			frameOffset: 0,
-			height: options.container.clientHeight,
-			originalWaveformData: options.waveformData,
-			peaks: options.peaks,
-			peaksOptions: options.peaks.options,
-			playedWaveformColor: options.viewOptions.playedWaveformColor,
-			seekEnabled: true,
-			timeLabelPrecision,
-			viewOptions: options.viewOptions,
-			waveformColor: options.viewOptions.waveformColor,
-			width: options.container.clientWidth,
-			...(options.viewOptions.formatPlayheadTime
-				? { formatPlayheadTimeFn: options.viewOptions.formatPlayheadTime }
-				: {}),
-		};
+		return new WaveformView(
+			peaks,
+			options.container,
+			peaks.options,
+			viewOptions,
+			options.waveformData,
+			options.waveformData,
+			0,
+			options.container.clientWidth,
+			options.container.clientHeight,
+			1.0,
+			viewOptions.waveformColor,
+			viewOptions.playedWaveformColor,
+			viewOptions.timeLabelPrecision,
+			true,
+			peaks.options.driver,
+			viewOptions.formatPlayheadTime,
+		);
 	}
 
-	protected initializeView(): void {
-		this.initWaveformData();
+	/**
+	 * Wires up hooks and constructs all Konva layers. Must be called once
+	 * by the composing view after its own state is fully initialised so
+	 * that the hook callbacks can safely access composite state.
+	 */
+	initialize(hooks: WaveformViewHooks, host: WaveformViewAPI): void {
+		this.hooks = hooks;
+		this.host = host;
+
+		this.hooks.initWaveformData();
 
 		this.stage = this.driver.createStage({
 			container: this.container,
@@ -150,7 +142,7 @@ export class WaveformView {
 			this.segmentsLayer = SegmentsLayer.from({
 				enableEditing: this.viewOptions.enableEditing ?? false,
 				peaks: this.peaks,
-				view: this as unknown as WaveformViewAPI,
+				view: this.host,
 			});
 			this.segmentsLayer.addToStage(this.stage);
 		}
@@ -159,19 +151,19 @@ export class WaveformView {
 			this.pointsLayer = PointsLayer.from({
 				enableEditing: this.viewOptions.enableEditing ?? false,
 				peaks: this.peaks,
-				view: this as unknown as WaveformViewAPI,
+				view: this.host,
 			});
 			this.pointsLayer.addToStage(this.stage);
 		}
 
-		this.initHighlightLayer();
+		this.hooks.initHighlightLayer();
 
 		this.createAxisLabels();
 
 		this.playheadLayer = PlayheadLayer.from({
 			options: this.viewOptions,
 			player: this.peaks.player,
-			view: this as unknown as WaveformViewAPI,
+			view: this.host,
 		});
 
 		this.playheadLayer.addToStage(this.stage);
@@ -181,35 +173,25 @@ export class WaveformView {
 		this.stage.on("contextmenu", this.onContextMenu);
 	}
 
-	// Methods to be overridden by subclasses
-
-	initWaveformData(): void {}
-
-	initHighlightLayer(): void {}
-
-	containerWidthChange(): boolean {
-		return false;
-	}
-
-	containerHeightChange(): void {}
-
 	getName(): string {
-		return "";
+		return this.hooks.getName();
 	}
 
 	isSegmentDraggingEnabled(): boolean {
-		return false;
+		return this.hooks.isSegmentDraggingEnabled();
 	}
 
 	getMinSegmentDragWidth(): number {
-		return 0;
+		return this.hooks.getMinSegmentDragWidth();
 	}
 
 	getSegmentDragMode(): string {
-		return "overlap";
+		return this.hooks.getSegmentDragMode();
 	}
 
-	updateWaveform(_frameOffset?: number, _forceUpdate?: boolean): void {}
+	updateWaveform(frameOffset?: number, forceUpdate?: boolean): void {
+		this.hooks.updateWaveform(frameOffset, forceUpdate);
+	}
 
 	getViewOptions(): ZoomviewOptions | OverviewOptions {
 		return this.viewOptions;
@@ -321,11 +303,11 @@ export class WaveformView {
 		this.stage.add(this.waveformLayer);
 	}
 
-	private createWaveformShapes(): void {
+	createWaveformShapes(): void {
 		if (!this.waveformShape) {
 			this.waveformShape = WaveformShape.from({
 				color: this.waveformColor,
-				view: this as unknown as WaveformViewAPI,
+				view: this.host,
 			});
 
 			this.waveformShape.addToLayer(this.waveformLayer);
@@ -349,7 +331,7 @@ export class WaveformView {
 			this.playedWaveformShape = WaveformShape.from({
 				color: this.playedWaveformColor,
 				segment: this.playedSegment,
-				view: this as unknown as WaveformViewAPI,
+				view: this.host,
 			});
 
 			this.playedWaveformShape.addToLayer(this.waveformLayer);
@@ -391,7 +373,7 @@ export class WaveformView {
 		this.axisLayer = this.driver.createLayer({ listening: false });
 		this.axis = WaveformAxis.from({
 			options: this.viewOptions,
-			view: this as unknown as WaveformViewAPI,
+			view: this.host,
 		});
 
 		this.axis.addToLayer(this.axisLayer);
@@ -592,7 +574,7 @@ export class WaveformView {
 			this.width = this.container.clientWidth;
 			this.stage.width(this.width);
 
-			updateWaveform = this.containerWidthChange();
+			updateWaveform = this.hooks.containerWidthChange();
 		}
 
 		let heightChanged = false;
@@ -604,7 +586,7 @@ export class WaveformView {
 			this.waveformShape.fitToView();
 			this.playheadLayer.fitToView();
 
-			this.containerHeightChange();
+			this.hooks.containerHeightChange();
 
 			heightChanged = true;
 		}

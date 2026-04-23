@@ -129,11 +129,12 @@
           }
         };
 
-        Peaks.init(options, (err, peaksInstance) => {
-          if (err) {
-            console.log(err.message);
+        Peaks.init(options).then((errOrInstance) => {
+          if (errOrInstance.isErr()) {
+            console.log(errOrInstance.error.message);
             return;
           }
+          const peaksInstance = errOrInstance.value;
 
           console.log('Peaks instance ready');
 

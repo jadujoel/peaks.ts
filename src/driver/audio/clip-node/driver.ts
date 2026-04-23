@@ -160,7 +160,7 @@ export class ClipNodeAudioDriver implements AudioDriver {
 	async setSource(source: AudioSource): Promise<void> {
 		this.disposeNode();
 
-		this.audioBuffer = source.webAudio?.audioBuffer;
+		this.audioBuffer = source.webAudio?.buffer;
 		this.url = source.mediaUrl;
 		this.mediaDuration = this.audioBuffer?.duration ?? 0;
 

@@ -1,5 +1,5 @@
-import { Peaks } from "../src/main";
 import { Point } from "../src/point";
+import { initPeaks } from "./helpers/init-peaks";
 
 describe("Peaks.points", () => {
 	let p = null;
@@ -18,7 +18,7 @@ describe("Peaks.points", () => {
 			},
 		};
 
-		Peaks.init(options, (err, instance) => {
+		initPeaks(options, (err, instance) => {
 			expect(err).to.equal(undefined);
 			p = instance;
 			done();

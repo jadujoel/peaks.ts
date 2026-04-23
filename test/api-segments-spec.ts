@@ -1,6 +1,6 @@
 import sinon from "sinon";
-import { Peaks } from "../src/main";
 import { Segment } from "../src/segment";
+import { initPeaks } from "./helpers/init-peaks";
 
 describe("Peaks.segments", () => {
 	let p = null;
@@ -23,7 +23,7 @@ describe("Peaks.segments", () => {
 			},
 		};
 
-		Peaks.init(options, (err, instance) => {
+		initPeaks(options, (err, instance) => {
 			expect(err).to.equal(undefined);
 			p = instance;
 			done();

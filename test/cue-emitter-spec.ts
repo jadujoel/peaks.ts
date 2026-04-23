@@ -1,6 +1,7 @@
 import { Cue } from "../src/cue";
 import { CueEmitter } from "../src/cue-emitter";
 import { Peaks } from "../src/main";
+import { initPeaks } from "./helpers/init-peaks";
 
 type CueEmitterWithCues = {
 	cues: Array<{ time: number; type: string }>;
@@ -25,7 +26,7 @@ describe("CueEmitter", () => {
 			},
 		};
 
-		Peaks.init(options, (err, instance) => {
+		initPeaks(options, (err, instance) => {
 			expect(err).to.equal(undefined);
 
 			p = instance;
@@ -67,7 +68,7 @@ describe("CueEmitter", () => {
 			},
 		};
 
-		Peaks.init(options, (err, peaks) => {
+		initPeaks(options, (err, peaks) => {
 			expect(err).to.equal(undefined);
 			expect(peaks).to.be.an.instanceOf(Peaks);
 			expect(peaks.cueEmitter).to.be.an.instanceOf(CueEmitter);
@@ -93,7 +94,7 @@ describe("CueEmitter", () => {
 			},
 		};
 
-		Peaks.init(options, (err, peaks) => {
+		initPeaks(options, (err, peaks) => {
 			expect(err).to.equal(undefined);
 			expect(peaks).to.be.an.instanceOf(Peaks);
 			expect(peaks.cueEmitter).to.be.an.instanceOf(CueEmitter);
@@ -381,7 +382,7 @@ describe("CueEmitter", () => {
 				},
 			};
 
-			Peaks.init(options, (err, peaks) => {
+			initPeaks(options, (err, peaks) => {
 				expect(err).to.equal(undefined);
 				expect(peaks).to.be.an.instanceOf(Peaks);
 

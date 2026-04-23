@@ -77,7 +77,9 @@ const options = {
   createSegmentMarker: createSegmentMarker
 };
 
-Peaks.init(options, function(err, peaks) {
+Peaks.init(options).then((result) => {
+  if (result.isErr()) return;
+  const peaks = result.value;
   // Use the Peaks.js instance here
 });
 ```
@@ -417,7 +419,9 @@ const options = {
   createSegmentLabel: createSegmentLabel,
 };
 
-Peaks.init(options, function(err, instance) {
+Peaks.init(options).then((result) => {
+  if (result.isErr()) return;
+  const instance = result.value;
   // Use the Peaks.js instance here
 });
 ```
@@ -466,7 +470,9 @@ const options = {
   player: player
 };
 
-Peaks.init(options, function(err, instance) {
+Peaks.init(options).then((result) => {
+  if (result.isErr()) return;
+  const instance = result.value;
   // Use the Peaks.js instance here
 });
 ```
@@ -726,7 +732,9 @@ const options = {
   formatAxisTime: formatAxisTime
 };
 
-Peaks.init(options, function(err, peaks) {
+Peaks.init(options).then((result) => {
+  if (result.isErr()) return;
+  const peaks = result.value;
   // Use the Peaks.js instance here
 });
 ```

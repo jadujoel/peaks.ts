@@ -8,41 +8,45 @@ test("typed events bus delivers payloads to listeners", async ({ page }) => {
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
 			default: {
-				fromOptionsAsync: (options: Record<string, unknown>) => Promise<{
-					destroy: () => void;
-					events: {
-						addEventListener: (
-							type: string,
-							listener: (event: Record<string, unknown>) => void,
-							options?: { once?: boolean },
-						) => void;
-						removeEventListener: (
-							type: string,
-							listener: (event: Record<string, unknown>) => void,
-						) => void;
-					};
-					segments: {
-						add: (segment: Record<string, unknown>) => void;
-						removeAll: () => void;
+				init: (options: Record<string, unknown>) => Promise<{
+					_unsafeUnwrap: () => {
+						destroy: () => void;
+						events: {
+							addEventListener: (
+								type: string,
+								listener: (event: Record<string, unknown>) => void,
+								options?: { once?: boolean },
+							) => void;
+							removeEventListener: (
+								type: string,
+								listener: (event: Record<string, unknown>) => void,
+							) => void;
+						};
+						segments: {
+							add: (segment: Record<string, unknown>) => void;
+							removeAll: () => void;
+						};
 					};
 				}>;
 			};
 		}>;
 
 		const peaksModule = await loadPeaks();
-		const instance = await peaksModule.default.fromOptionsAsync({
-			dataUri: {
-				arraybuffer: "/TOL_6min_720p_download.dat",
-				json: "/TOL_6min_720p_download.json",
-			},
-			mediaElement: document.getElementById("audio"),
-			overview: {
-				container: document.getElementById("overview-container"),
-			},
-			zoomview: {
-				container: document.getElementById("zoomview-container"),
-			},
-		});
+		const instance = (
+			await peaksModule.default.init({
+				dataUri: {
+					arraybuffer: "/TOL_6min_720p_download.dat",
+					json: "/TOL_6min_720p_download.json",
+				},
+				mediaElement: document.getElementById("audio"),
+				overview: {
+					container: document.getElementById("overview-container"),
+				},
+				zoomview: {
+					container: document.getElementById("zoomview-container"),
+				},
+			})
+		)._unsafeUnwrap();
 
 		const addEvents: Array<{
 			type: string;

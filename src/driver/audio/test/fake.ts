@@ -106,7 +106,7 @@ export class FakeAudioDriver implements AudioDriver {
 
 	setSource(source: AudioSource): Promise<void> {
 		this.currentTime = 0;
-		this.duration = source.webAudio?.audioBuffer?.duration ?? this.duration;
+		this.duration = source.webAudio?.buffer?.duration ?? this.duration;
 		this.dispatch("player.canplay", {});
 		return Promise.resolve();
 	}

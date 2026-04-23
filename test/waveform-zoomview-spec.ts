@@ -1,8 +1,9 @@
 import sinon from "sinon";
-import { Peaks } from "../src/main";
+import type { Peaks } from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
 import type { WaveformZoomView } from "../src/waveform/zoomview";
+import { initPeaks } from "./helpers/init-peaks";
 import { InputController } from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
@@ -25,7 +26,7 @@ describe("WaveformZoomView", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				expect(err).to.equal(undefined);
 				p = instance;
 				zoomview =
@@ -154,7 +155,7 @@ describe("WaveformZoomView", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				expect(err).to.equal(undefined);
 
 				p = instance;
@@ -442,7 +443,7 @@ describe("WaveformZoomView", () => {
 						},
 					};
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						p = instance;
@@ -1221,7 +1222,7 @@ describe("WaveformZoomView", () => {
 					},
 				};
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					expect(err).to.equal(undefined);
 
 					p = instance;
@@ -1398,7 +1399,7 @@ describe("WaveformZoomView", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				if (err) {
 					done(err);
 					return;
@@ -1583,7 +1584,7 @@ describe("WaveformZoomView", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				expect(err).to.equal(undefined);
 
 				p = instance;

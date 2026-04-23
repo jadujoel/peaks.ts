@@ -1,9 +1,9 @@
 import Konva from "konva";
 import sinon from "sinon";
-import { Peaks } from "../src/main";
 import { Point } from "../src/point";
 import { Segment } from "../src/segment";
 import type { PeaksOptions } from "../src/types";
+import { initPeaks } from "./helpers/init-peaks";
 import { InputController } from "./helpers/input-controller";
 import { getEmitCalls } from "./helpers/utils";
 
@@ -58,7 +58,7 @@ function initOptions(
 						waveformColor: "#f00",
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -83,7 +83,7 @@ function initOptions(
 						waveformColor: "#f00",
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -109,7 +109,7 @@ function initOptions(
 						waveformColor: "#f00",
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -135,7 +135,7 @@ function initOptions(
 						container: document.getElementById(test.container),
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -157,7 +157,7 @@ function initOptions(
 
 					options.showPlayheadTime = true;
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -187,7 +187,7 @@ function initOptions(
 
 					options.showPlayheadTime = false;
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -209,7 +209,7 @@ function initOptions(
 						showPlayheadTime: true,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -234,7 +234,7 @@ function initOptions(
 						showPlayheadTime: false,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -258,7 +258,7 @@ function initOptions(
 						showPlayheadTime: false,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -285,7 +285,7 @@ function initOptions(
 						showPlayheadTime: false,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -311,7 +311,7 @@ function initOptions(
 						showPlayheadTime: true,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -337,7 +337,7 @@ function initOptions(
 						timeLabelPrecision: 0,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -361,7 +361,7 @@ function initOptions(
 						timeLabelPrecision: 3,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -388,7 +388,7 @@ function initOptions(
 						showPlayheadTime: true,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -413,7 +413,7 @@ function initOptions(
 						showPlayheadTime: true,
 					});
 
-					Peaks.init(options, (err, instance) => {
+					initPeaks(options, (err, instance) => {
 						expect(err).to.equal(undefined);
 
 						const view = instance.views.getView(
@@ -452,7 +452,7 @@ function initOptions(
 					container: document.getElementById(test.container),
 				});
 
-				Peaks.init(options, (err, instance) => {
+				initPeaks(options, (err, instance) => {
 					if (err) {
 						done(err);
 						return;

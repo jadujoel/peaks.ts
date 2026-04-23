@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { Peaks } from "../src/main";
+import { initPeaks } from "./helpers/init-peaks";
 
 describe("SegmentsLayer", () => {
 	let p = null;
@@ -18,7 +18,7 @@ describe("SegmentsLayer", () => {
 			},
 		};
 
-		Peaks.init(options, (err, instance) => {
+		initPeaks(options, (err, instance) => {
 			expect(err).to.equal(undefined);
 			p = instance;
 			done();

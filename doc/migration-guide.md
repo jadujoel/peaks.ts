@@ -2,6 +2,45 @@
 
 This document describes any breaking changes in the Peaks.js API and provides advice on how to migrate your code to the updated API.
 
+## Peaks.ts (`Peaks.init` returns a `ResultAsync`)
+
+`Peaks.init()` no longer accepts a callback. It now takes a single `options`
+argument and returns a [`ResultAsync<Peaks, Error>`](https://github.com/supermacro/neverthrow)
+from the `neverthrow` library. The returned value is a thenable, so it can be
+awaited or chained with `.then()`, and it can also be composed with
+`neverthrow`'s `andThen` / `map` combinators.
+
+```js
+// Before
+Peaks.init(options, function(err, peaks) {
+  if (err) {
+    console.error(err.message);
+    return;
+  }
+
+  // use peaks
+});
+
+// After (promise / then style)
+Peaks.init(options).then((result) => {
+  if (result.isErr()) {
+    console.error(result.error.message);
+    return;
+  }
+
+  const peaks = result.value;
+  // use peaks
+});
+
+// After (async / await style)
+const result = await Peaks.init(options);
+
+if (result.isOk()) {
+  const peaks = result.value;
+  // use peaks
+}
+```
+
 ## Peaks.ts (typed event bus)
 
 Peaks instances no longer extend `EventEmitter`. The `instance.on` /

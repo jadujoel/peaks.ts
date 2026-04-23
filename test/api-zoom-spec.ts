@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { Peaks } from "../src/main";
+import { initPeaks } from "./helpers/init-peaks";
 
 describe("Peaks.zoom", () => {
 	let p = null;
@@ -20,7 +20,7 @@ describe("Peaks.zoom", () => {
 				},
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				expect(err).to.equal(undefined);
 				p = instance;
 				done();
@@ -124,7 +124,7 @@ describe("Peaks.zoom", () => {
 				zoomLevels: [512, 1024],
 			};
 
-			Peaks.init(options, (err, instance) => {
+			initPeaks(options, (err, instance) => {
 				expect(err).to.equal(undefined);
 				p = instance;
 				done();

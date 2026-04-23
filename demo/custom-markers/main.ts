@@ -239,12 +239,12 @@ const options = {
 	},
 };
 
-Peaks.init(options, (err, peaksInstance) => {
-	if (err) {
-		console.error(err.message);
+Peaks.init(options).then((errOrInstance) => {
+	if (errOrInstance.isErr()) {
+		console.error(errOrInstance.error.message);
 		return;
 	}
-
+	const peaksInstance = errOrInstance.value;
 	console.log("Peaks instance ready");
 
 	document
