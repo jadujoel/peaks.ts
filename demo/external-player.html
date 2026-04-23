@@ -102,7 +102,7 @@
             // method, to update the player.
             peaksInstance.setSource({
               webAudio: {
-                audioBuffer: audioBuffer,
+                buffer: audioBuffer,
                 multiChannel: false,
                 scale: 128
               }
@@ -119,9 +119,9 @@
 
         fetchAndDecode(audioContext, "/TOL_6min_720p_download.mp3")
           .then((audioBuffer) => {
-            const player = {
+            const audioDriver = {
 
-              destroy: function() {
+              dispose: function() {
                 Tone.context.dispose();
 
                 this.externalPlayer = null;
@@ -136,15 +136,15 @@
                 return this.externalPlayer.buffer.duration;
               },
 
-              init: function(eventEmitter) {
-                this.eventEmitter = eventEmitter;
+              init: function(ctx) {
+                this.eventEmitter = ctx.events;
 
                 this.externalPlayer.sync();
                 this.externalPlayer.start();
 
                 Tone.Transport.scheduleRepeat(() => {
                   const time = this.getCurrentTime();
-                  eventEmitter.emit('player.timeupdate', time);
+                  this.eventEmitter.dispatch('player.timeupdate', time);
 
                   if (time >= this.getDuration()) {
                     Tone.Transport.stop();
@@ -161,22 +161,27 @@
               pause: function() {
                 Tone.Transport.pause();
 
-                this.eventEmitter.emit('player.pause', this.getCurrentTime());
+                this.eventEmitter.dispatch('player.pause', this.getCurrentTime());
               },
 
               play: function() {
                 return Tone.start().then(() => {
                   Tone.Transport.start();
 
-                  this.eventEmitter.emit('player.playing', this.getCurrentTime());
+                  this.eventEmitter.dispatch('player.playing', this.getCurrentTime());
                 });
+              },
+
+              playSegment: function(opts) {
+                this.seek(opts.segment.startTime);
+                return this.play();
               },
 
               seek: function(time) {
                 Tone.Transport.seconds = time;
 
-                this.eventEmitter.emit('player.seeked', this.getCurrentTime());
-                this.eventEmitter.emit('player.timeupdate', this.getCurrentTime());
+                this.eventEmitter.dispatch('player.seeked', this.getCurrentTime());
+                this.eventEmitter.dispatch('player.timeupdate', this.getCurrentTime());
               },
 
               setSource: function(opts) {
@@ -185,21 +190,21 @@
                 }
 
                 // Update the Tone.js Player object with the new AudioBuffer
-                this.externalPlayer.buffer.set(opts.webAudio.audioBuffer);
+                this.externalPlayer.buffer.set(opts.webAudio.buffer);
 
                 return Promise.resolve();
               }
             };
 
             const options = {
+              audio: audioDriver,
               keyboard: true,
               overview: {
                 container: document.getElementById('overview-container')
               },
-              player: player,
               showPlayheadTime: true,
               webAudio: {
-                audioBuffer: audioBuffer,
+                buffer: audioBuffer,
                 multiChannel: false,
                 scale: 128
               },

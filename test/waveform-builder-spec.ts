@@ -334,7 +334,7 @@ describe("WaveformBuilder", () => {
 				options: {
 					mediaElement: document.getElementById("media"),
 					webAudio: {
-						audioContext: new TestAudioContext(),
+						context: new TestAudioContext(),
 						scale: 512,
 					},
 					zoomLevels: [512, 1024, 2048, 4096],
@@ -379,7 +379,7 @@ describe("WaveformBuilder", () => {
 				options: {
 					mediaElement: document.getElementById("media"),
 					webAudio: {
-						audioContext: new TestAudioContext(),
+						context: new TestAudioContext(),
 						scale: 512,
 					},
 					zoomLevels: [512, 1024, 2048, 4096],

@@ -20,10 +20,13 @@ describe("Player", () => {
 				isSeeking: sinon.spy(() => false),
 				pause: sinon.spy(),
 				play: sinon.spy(() => Promise.resolve()),
+				playSegment: sinon.spy(() => Promise.resolve()),
 				seek: sinon.spy(),
+				setSource: sinon.spy(() => Promise.resolve()),
 			};
 
 			const options = {
+				audio: player,
 				dataUri: {
 					json: "base/test/data/sample.json",
 				},
@@ -32,7 +35,6 @@ describe("Player", () => {
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
-				player: player,
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
 				},
@@ -180,17 +182,17 @@ describe("Player", () => {
 				});
 			});
 
-			it("should call the player's seek() and play() methods", (done: DoneCallback) => {
+			it("should delegate to the driver's playSegment() method", (done: DoneCallback) => {
 				const segment = { editable: true, endTime: 20, startTime: 10 };
 
 				p.player.playSegment(segment).then(() => {
 					expect(logger.notCalled).to.equal(true);
 
-					expect(player.seek.calledOnce).to.equal(true);
-					expect(player.seek).to.have.been.calledWith(segment.startTime);
-
-					expect(player.play.calledOnce).to.equal(true);
-					expect(player.pause.notCalled).to.equal(true);
+					expect(player.playSegment.calledOnce).to.equal(true);
+					const callArgs = player.playSegment.firstCall.args[0];
+					expect(callArgs.segment.startTime).to.equal(segment.startTime);
+					expect(callArgs.segment.endTime).to.equal(segment.endTime);
+					expect(callArgs.loop).to.equal(false);
 					done();
 				});
 			});
@@ -435,10 +437,13 @@ describe("Player", () => {
 					isSeeking: sinon.spy(() => false),
 					pause: sinon.spy(),
 					play: sinon.spy(() => Promise.resolve()),
+					playSegment: sinon.spy(() => Promise.resolve()),
 					seek: sinon.spy(),
+					setSource: sinon.spy(() => Promise.resolve()),
 				};
 
 				const options = {
+					audio: player,
 					dataUri: {
 						json: "base/test/data/sample.json",
 					},
@@ -446,7 +451,6 @@ describe("Player", () => {
 					overview: {
 						container: document.getElementById("overview-container"),
 					},
-					player: player,
 					zoomview: {
 						container: document.getElementById("zoomview-container"),
 					},

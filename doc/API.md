@@ -527,7 +527,6 @@ var options = {
   createSegmentMarker: null,
   createSegmentLabel: null,
   createPointMarker: null,
-  player: null,
 
   //
   // Point and segment initialization

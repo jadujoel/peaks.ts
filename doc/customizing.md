@@ -428,46 +428,39 @@ Peaks.init(options).then((result) => {
 
 ## Media Playback
 
-Peaks.js default media player is based on the
+Peaks.js' default media player is based on the
 [HTMLMediaElement](https://html.spec.whatwg.org/multipage/media.html#media-elements).
-Peaks.js allows you to interface with external media player libraries. This is
-most useful for Web Audio based media players such as
-[Tone.js](https://tonejs.github.io/) or [Howler.js](https://howlerjs.com/).
-Players based on the `HTMLMediaElement` should work as-is without requiring you
-to customize Peaks.js.
-
-An external media player can be used by implementing the player interface described
-below.
+Peaks.js allows you to interface with external media player libraries (such as
+[Tone.js](https://tonejs.github.io/) or [Howler.js](https://howlerjs.com/)) by
+implementing the `AudioDriver` interface and passing it as the `audio` option.
 
 You can find a complete example [here](demo/external-player.html) that shows how
-to implement such a player, using [Tone.js](https://tonejs.github.io/).
+to implement an `AudioDriver` using [Tone.js](https://tonejs.github.io/).
 
-### Player Interface
+### AudioDriver Interface
 
-The `player` configuration option allows you to pass an object that will be
-invoked, either directly by the Peaks.js [Player API](README.md#player-api),
-or indirectly by interacting with the waveform view (e.g., seeking via mouse
-click or keyboard). You do not need to pass a `mediaElement` configuration
-option if you are using `player`.
+```typescript
+interface AudioDriver {
+  init(ctx: { events: PeaksEvents }): Promise<void>;
+  dispose(): void;
+  play(): Promise<void>;
+  pause(): void;
+  isPlaying(): boolean;
+  isSeeking(): boolean;
+  getCurrentTime(): number;
+  getDuration(): number;
+  seek(time: number): void;
+  playSegment(options: { segment: Segment; loop: boolean }): Promise<void>;
+  setSource(source: AudioSource): Promise<void>;
+}
+```
 
-The structure of the `player` interface is given below:
+Pass an instance via the `audio` option:
 
 ```javascript
-const player = {
-  init:           function(eventEmitter) { ... },
-  destroy:        function() { ... },
-  play:           function() { ... },
-  pause:          function() { ... },
-  seek:           function(time) { ... },
-  isPlaying:      function() { ..., return boolean; },
-  isSeeking:      function() { ..., return boolean; },
-  getCurrentTime: function() { ..., return number; },
-  getDuration:    function() { ..., return number; },
-};
-
 const options = {
   // Add other options, as needed.
-  player: player
+  audio: myAudioDriver
 };
 
 Peaks.init(options).then((result) => {
@@ -477,234 +470,9 @@ Peaks.init(options).then((result) => {
 });
 ```
 
-#### player.init(eventEmitter)
-
-Initializes the external media player. This method is called during Peaks.js
-initialization.
-
-The player implementation should store the `eventEmitter` for later use.
-See the [Events](#events) section for more details for how your custom player
-should use the `eventEmitter` to communicate with the `Peaks` instance.
-
-To allow for initialization that may involve asynchronous operations, the
-player implementation should return a `Promise` that resolves when the
-external media player has been initialized.
-
-```javascript
-init(eventEmitter) {
-  this.eventEmitter = eventEmitter;
-  this.state = 'paused';
-  this.interval = null;
-
-  // Initialize the external player
-  this.externalPlayer = new MediaPlayer();
-
-  return Promise.resolve();
-}
-```
-
-#### player.destroy()
-
-Releases resources used by the player.
-
-```javascript
-destroy() {
-  if (this.interval !== null) {
-    clearTimeout(this.interval);
-    this.interval = null;
-  }
-
-  // Release the external player
-  this.externalPlayer.destroy();
-  this.externalPlayer = null;
-}
-```
-
-#### player.setSource(options)
-
-Changes the audio or video media source associated with the Peaks instance.
-
-The `options` are the same as those passed to [`peaks.setSource()`](README.md#instancesetsourceoptions-callback).
-
-This function should return a Promise that resolves when the external media player has been updated.
-
-```javascript
-setSource(options) {
-  // Use the given options to update the external player
-
-  return Promise.resolve();
-}
-```
-
-#### player.play()
-
-Starts playback from the current playback position.
-
-This function may return a `Promise` which resolves when playback actually
-starts.
-
-A [`player.playing`](#playerplaying-event) event should be emitted when playback starts.
-
-```javascript
-play() {
-  return this.externalPlayer.play().then(() => {
-    this.state = 'playing';
-    this.eventEmitter.emit('player.playing', this.getCurrentTime());
-  });
-}
-```
-
-#### player.pause()
-
-Pauses media playback.
-
-A [`player.pause`](#playerpause-event) event should be emitted when playback becomes
-paused.
-
-```javascript
-pause() {
-  this.externalPlayer.pause().then(() => {
-    this.state = 'paused';
-    this.eventEmitter.emit('player.pause', this.getCurrentTime());
-  });
-}
-```
-
-#### player.seek(time)
-
-Seeks to the given time in seconds.
-
-```javascript
-seek(time) {
-  this.previousState = this.state; // 'paused' or 'playing'
-  this.state = 'seeking';
-
-  this.externalPlayer.seek(time).then(() => {
-    this.state = this.previousState;
-    this.eventEmitter.emit('player.seeked', this.getCurrentTime());
-    this.eventEmitter.emit('player.timeupdate', this.getCurrentTime());
-  });
-}
-```
-
-#### player.isPlaying()
-
-Returns `true` if the player is currently playing, or `false` otherwise.
-
-```javascript
-pause() {
-  return this.state === 'playing';
-}
-```
-
-#### player.isSeeking()
-
-Returns `true` if the player is currently seeking, or `false` otherwise.
-
-```javascript
-pause() {
-  return this.state === 'seeking';
-}
-```
-
-#### player.getCurrentTime()
-
-Returns the current media playback position, in seconds.
-
-```javascript
-getCurrentTime() {
-  return this.externalPlayer.currentTime;
-}
-```
-
-#### player.getDuration()
-
-Returns the total media duration, in seconds.
-
-```javascript
-getDuration() {
-  return this.externalPlayer.duration;
-}
-```
-
-### Events
-
-Communication between the custom player and Peaks.js is done via events.
-Peaks.js uses these events to update its internal state, such as the
-location of the playhead position on screen. Your custom player should
-emit events to inform Peaks.js of state changes within the player.
-
-These player events are based on the
-[`HTMLMediaElement` events](https://html.spec.whatwg.org/multipage/media.html#mediaevents).
-
-To enable Peaks.js to correctly update its internal state and visually
-reflect player state changes, events should only be emitted after the
-corresponding player actions have been started.
-
-The following sections describe the events that custom players are
-expected to emit.
-
-#### `player.canplay` event
-
-Notifies Peaks.js that media is ready to play.
-
-```javascript
-this.eventEmitter.emit('player.canplay');
-```
-
-#### `player.error` event
-
-Notifies Peaks.js that an internal player error occurred, such as a failure to
-fetch the media data.
-
-The event data should be an `Error` object.
-
-```javascript
-this.eventEmitter.emit('player.error', new Error("Failed to start playback"));
-```
-
-#### `player.playing` event
-
-Notifies Peaks.js that media playback has started.
-
-The event data should be the current playback position, in seconds.
-
-```javascript
-this.eventEmitter.emit('player.playing', this.getCurrentTime());
-```
-
-#### `player.pause` event
-
-Notifies Peaks.js that media playback has stopped or paused.
-
-The event data should be the current playback position, in seconds.
-
-```javascript
-this.eventEmitter.emit('player.pause', this.getCurrentTime());
-```
-
-#### `player.seeked` event
-
-Notifies Peaks.js that a seek operation has completed.
-
-The event data should be the current playback position, in seconds.
-
-```javascript
-this.eventEmitter.emit('player.seeked', this.getCurrentTime());
-```
-
-#### `player.timeupdate` event
-
-Notifies Peaks.js that the current playback position has changed. To mimic
-`HTMLMediaElement` behavior, this event should be emitted approximately every
-250 milliseconds during media playback. It should also be emitted after a
-successful seek operation.
-
-The event data should be the current playback position, in seconds.
-
-```javascript
-this.eventEmitter.emit('player.timeupdate', this.getCurrentTime());
-```
+The driver is responsible for dispatching `player.*` events on the
+`PeaksEvents` bus exposed via the `init` context. See the [Events](API.md#events)
+section for details.
 
 ## Time Labels
 

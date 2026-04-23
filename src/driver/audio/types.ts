@@ -9,9 +9,7 @@ import type { WebAudioOptions } from "../../types";
 
 /**
  * Context passed to {@link AudioDriver.init}. Exposes the events bus a
- * driver dispatches `player.*` events on. Direct reference (no
- * `PlayerEventBus` indirection) — the indirection existed only to dodge
- * a circular import that no longer applies.
+ * driver dispatches `player.*` events on.
  */
 export interface AudioDriverContext {
 	readonly events: PeaksEvents;
@@ -40,10 +38,9 @@ export interface PlaySegmentOptions {
 }
 
 /**
- * Unified audio playback driver. Replaces the legacy `PlayerAdapter`
- * interface. Every method is required — no optional `playSegment`,
- * `setSource`, or `dispose`. Drivers that cannot natively implement
- * a segment loop compose with `PollingSegmentPlayer` from
+ * Unified audio playback driver. Every method is required — no optional
+ * `playSegment`, `setSource`, or `dispose`. Drivers that cannot natively
+ * implement a segment loop compose with `PollingSegmentPlayer` from
  * `./segment-polling`.
  */
 export interface AudioDriver {

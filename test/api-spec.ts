@@ -19,7 +19,9 @@ const externalPlayer = {
 	isSeeking: () => false,
 	pause: () => {},
 	play: () => Promise.resolve(),
+	playSegment: () => Promise.resolve(),
 	seek: () => {},
+	setSource: () => Promise.resolve(),
 };
 
 type InternalPlayheadLayer = {
@@ -581,15 +583,15 @@ describe("Peaks", () => {
 				});
 			});
 
-			describe("with external player", () => {
-				it("should ignore mediaUrl if using an external player", (done: DoneCallback) => {
+			describe("with external audio driver", () => {
+				it("should ignore mediaUrl if using an external audio driver", (done: DoneCallback) => {
 					initPeaks(
 						{
+							audio: externalPlayer,
 							mediaUrl: "invalid",
 							overview: {
 								container: document.getElementById("overview-container"),
 							},
-							player: externalPlayer,
 							waveformData: {
 								json: sampleJsonData,
 							},
@@ -677,7 +679,7 @@ describe("Peaks", () => {
 						const error = expectPresent(err);
 						expect(error).to.be.an.instanceOf(Error);
 						expect(error.message).to.match(
-							/Provide one of: mediaElement, player, or audioContext/,
+							/Provide one of: mediaElement, audio driver, or audioContext/,
 						);
 						expect(instance).to.equal(undefined);
 						done();
@@ -1216,7 +1218,7 @@ describe("Peaks", () => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
 					webAudio: {
-						audioContext: new TestAudioContext(),
+						context: new TestAudioContext(),
 					},
 				};
 
@@ -1239,7 +1241,7 @@ describe("Peaks", () => {
 						const options = {
 							mediaUrl: "/base/test/data/sample.mp3",
 							webAudio: {
-								audioBuffer: audioBuffer,
+								buffer: audioBuffer,
 								multiChannel: true,
 							},
 						};
@@ -1299,7 +1301,7 @@ describe("Peaks", () => {
 				const options = {
 					mediaUrl: "/base/test/data/sample.mp3",
 					webAudio: {
-						audioContext: new TestAudioContext(),
+						context: new TestAudioContext(),
 					},
 					zoomLevels: [128, 256],
 				};
@@ -1336,7 +1338,7 @@ describe("Peaks", () => {
 			it("should return an error", (done: DoneCallback) => {
 				const options = {
 					webAudio: {
-						audioContext: new TestAudioContext(),
+						context: new TestAudioContext(),
 					},
 				};
 

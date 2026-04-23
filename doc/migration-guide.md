@@ -344,34 +344,19 @@ We recommend that you use a [ResizeObserver](https://developer.mozilla.org/en-US
 
 ## Peaks.js v2.0.0
 
-Peaks.js v2.0.0 changes how [custom player objects](customizing.md#media-playback) should be initialized. To allow for initialization that may involve asynchronous operations, your custom player object's `init` function must now return a `Promise` that resolves when the player has been initialized.
-
-If your application does not use a custom player object, i.e., the `player` option when calling `Peaks.init()`, then updating to v2.0.0 does not require you to make any changes.
+The historical `player` configuration option for plugging in a custom media
+player has been removed. Implement the [`AudioDriver`](customizing.md#audiodriver-interface)
+interface and pass it via the `audio` option instead:
 
 ```js
-class CustomPlayer {
-  init(eventEmitter) {
-    this.eventEmitter = eventEmitter;
-    this.state = 'paused';
-    this.interval = null;
-
-    // Initialize the external player
-    this.externalPlayer = new MediaPlayer();
-
-    // Returning a promise is now required
-    return Promise.resolve();
-  },
-
-  // ... other player methods, as shown in customizing.md
-};
-
 const options = {
   // Add other options, as needed.
-  player: player
+  audio: myAudioDriver
 };
 
-Peaks.init(options, function(err, instance) {
-  // Use the Peaks.js instance here
+Peaks.init(options).then((result) => {
+  if (result.isErr()) return;
+  // Use the Peaks.js instance
 });
 ```
 

@@ -336,7 +336,7 @@ describe("CueEmitter", () => {
 		});
 
 		it("should emit events on seeking", (done: DoneCallback) => {
-			// This test uses a custom player object as sometimes
+			// This test uses a custom audio driver because sometimes
 			// the test would timeout waiting for the media element to seek.
 			const player = {
 				destroy: () => {},
@@ -360,15 +360,20 @@ describe("CueEmitter", () => {
 
 				pause: () => {},
 
-				play: () => {},
+				play: () => Promise.resolve(),
+
+				playSegment: () => Promise.resolve(),
 
 				seek: function (time) {
 					this.currentTime = time;
 					this.eventEmitter.dispatch("player.seeked", { time });
 				},
+
+				setSource: () => Promise.resolve(),
 			};
 
 			const options = {
+				audio: player,
 				dataUri: {
 					arraybuffer: "base/test/data/sample.dat",
 				},
@@ -376,7 +381,6 @@ describe("CueEmitter", () => {
 				overview: {
 					container: document.getElementById("overview-container"),
 				},
-				player: player,
 				zoomview: {
 					container: document.getElementById("zoomview-container"),
 				},

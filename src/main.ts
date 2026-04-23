@@ -124,7 +124,6 @@ function createDefaultOptions(): PeaksOptions {
 		mediaElement: undefined,
 		mediaUrl: undefined,
 		nudgeIncrement: 1.0,
-		player: undefined,
 		pointMarkerColor: "#39cccc",
 		waveformCache: true,
 		waveformData: undefined,
@@ -551,7 +550,7 @@ export class Peaks {
 			return new TypeError("The options parameter should be an object");
 		}
 
-		if (!opts.player && !opts.audio) {
+		if (!opts.audio) {
 			const webAudio = opts.webAudio as WebAudioOptions | undefined;
 			const hasAudioContextSource =
 				(opts.audioContext ?? webAudio?.context) !== undefined &&
@@ -559,7 +558,7 @@ export class Peaks {
 
 			if (!opts.mediaElement && !hasAudioContextSource) {
 				return new Error(
-					"Provide one of: mediaElement, player, or audioContext with audioBuffer/mediaUrl",
+					"Provide one of: mediaElement, audio driver, or audioContext with audioBuffer/mediaUrl",
 				);
 			}
 

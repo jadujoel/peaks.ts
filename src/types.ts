@@ -18,34 +18,6 @@ import type { WaveformColor } from "./utils";
 // ─── Logger ─────────────────────────────────────────────────────────
 export type Logger = (...args: unknown[]) => void;
 
-// ─── Player Adapter (legacy / BYO) ──────────────────────────────────
-//
-// `PlayerAdapter` and `PlayerEventBus` are retained only to type the
-// deprecated `PeaksConfiguration.player` BYO field, which is wrapped by
-// `LegacyAdapterAudioDriver` (see `src/driver/audio/default.ts`). New
-// code should implement `AudioDriver` from `src/driver/audio/types.ts`
-// instead.
-
-/** @deprecated Use `AudioDriverContext` from `src/driver/audio/types.ts`. */
-export interface PlayerEventBus {
-	readonly events: PeaksEvents;
-}
-
-/** @deprecated Implement `AudioDriver` from `src/driver/audio/types.ts`. */
-export interface PlayerAdapter {
-	init(peaks: PlayerEventBus): Promise<void> | void;
-	dispose?(): void;
-	play(): Promise<void> | void;
-	pause(): void;
-	isPlaying(): boolean;
-	isSeeking(): boolean;
-	getCurrentTime(): number;
-	getDuration(): number;
-	seek(time: number): void;
-	playSegment?(segment: Segment, loop: boolean): Promise<void> | void;
-	setSource?(options: SetSourceOptions): Promise<void>;
-}
-
 // ─── Peaks Options ─────────────────────────────────────────────────
 export interface ViewOptions {
 	// TODO: make most of these options optional with reasonable defaults
@@ -151,7 +123,6 @@ export interface PeaksOptions {
 	readonly scrollbar: ScrollbarDisplayOptions;
 	readonly segmentOptions?: SegmentDisplayOptions;
 	readonly audio?: AudioDriver;
-	readonly player?: PlayerAdapter;
 }
 
 export interface WebAudioOptions {
@@ -168,11 +139,6 @@ export interface WebAudioOptions {
 export interface PeaksConfiguration {
 	readonly mediaElement?: HTMLMediaElement;
 	readonly audio?: AudioDriver;
-	/**
-	 * @deprecated Use `audio: AudioDriver` (or rely on the implicit
-	 * driver synthesised from `mediaElement` / `webAudio` / `mediaUrl`).
-	 */
-	readonly player?: PlayerAdapter;
 	readonly zoomLevels?: readonly number[];
 	readonly waveformCache?: boolean;
 	readonly mediaUrl?: string;
