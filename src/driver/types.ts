@@ -231,7 +231,7 @@ export interface CanvasDriver {
 		readonly container: HTMLDivElement;
 		readonly width: number;
 		readonly height: number;
-	}): DriverStage;
+	}): DriverStage | Promise<DriverStage>;
 	createLayer(opts?: LayerAttrs): DriverLayer;
 	createGroup(opts?: GroupAttrs): DriverGroup;
 	createRect(opts?: RectAttrs): DriverRect;

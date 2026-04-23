@@ -50,13 +50,13 @@ export class Scrollbar {
 		private dragging: boolean = false,
 	) {}
 
-	static from(options: ScrollbarFromOptions): Scrollbar {
+	static async from(options: ScrollbarFromOptions): Promise<Scrollbar> {
 		const scrollbarOptions = options.peaks.options.scrollbar;
 		const width = options.container.clientWidth;
 		const height = options.container.clientHeight;
 		const driver = options.driver;
 
-		const stage = driver.createStage({
+		const stage = await driver.createStage({
 			container: options.container,
 			height,
 			width,

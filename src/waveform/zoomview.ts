@@ -70,7 +70,9 @@ export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 		this.pixelLength = view.originalWaveformData.length;
 	}
 
-	static from(options: WaveformZoomViewFromOptions): WaveformZoomView {
+	static async from(
+		options: WaveformZoomViewFromOptions,
+	): Promise<WaveformZoomView> {
 		const view = WaveformView.from({
 			container: options.container,
 			peaks: options.peaks,
@@ -79,7 +81,7 @@ export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 		});
 
 		const instance = new WaveformZoomView(view);
-		view.initialize(instance, instance);
+		await view.initialize(instance, instance);
 		instance.initializeZoomView();
 		return instance;
 	}

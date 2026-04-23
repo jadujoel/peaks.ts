@@ -2,6 +2,7 @@ import type WaveformData from "waveform-data";
 import type {
 	CanvasDriver,
 	DriverLayer,
+	DriverStage,
 	PeaksPointerEvent,
 } from "../driver/types";
 import type {
@@ -57,7 +58,7 @@ export interface WaveformViewFromOptions {
 export class WaveformView {
 	public hooks!: WaveformViewHooks;
 	public host!: WaveformViewAPI;
-	public stage!: ReturnType<CanvasDriver["createStage"]>;
+	public stage!: DriverStage;
 	public waveformLayer!: DriverLayer;
 	public waveformShape!: WaveformShape;
 	public playedWaveformShape: WaveformShape | undefined;
@@ -122,13 +123,16 @@ export class WaveformView {
 	 * by the composing view after its own state is fully initialised so
 	 * that the hook callbacks can safely access composite state.
 	 */
-	initialize(hooks: WaveformViewHooks, host: WaveformViewAPI): void {
+	async initialize(
+		hooks: WaveformViewHooks,
+		host: WaveformViewAPI,
+	): Promise<void> {
 		this.hooks = hooks;
 		this.host = host;
 
 		this.hooks.initWaveformData();
 
-		this.stage = this.driver.createStage({
+		this.stage = await this.driver.createStage({
 			container: this.container,
 			height: this.height,
 			width: this.width,

@@ -15,7 +15,11 @@
 			"!test-results",
 			"!demo/custom-markers/custom-markers.js",
 			"!demo/peaks*.js",
-			"!demo/peaks*.map"
+			"!demo/peaks*.map",
+			"!demo/chunk-*.js",
+			"!demo/chunk-*.map",
+			"!demo/pixi*.mjs",
+			"!demo/pixi*.map"
 		]
 	},
 	"linter": {

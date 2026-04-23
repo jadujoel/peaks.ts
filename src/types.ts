@@ -406,9 +406,9 @@ export interface ZoomInstance {
 }
 
 export interface ViewControllerInstance {
-	createOverview(container: HTMLDivElement): unknown;
-	createZoomview(container: HTMLDivElement): unknown;
-	createScrollbar(container: HTMLDivElement): unknown;
+	createOverview(container: HTMLDivElement): Promise<unknown>;
+	createZoomview(container: HTMLDivElement): Promise<unknown>;
+	createScrollbar(container: HTMLDivElement): Promise<unknown>;
 	destroyOverview(): void;
 	destroyZoomview(): void;
 	dispose(): void;

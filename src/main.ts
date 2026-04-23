@@ -43,6 +43,7 @@ import { ZoomController } from "./zoom-controller";
 
 export { ClipNodeAudioDriver } from "./driver/audio/clip-node/driver";
 export { KonvaCanvasDriver } from "./driver/konva/driver";
+export { PixiCanvasDriver } from "./driver/pixi/loader";
 export { PeaksGroup, PeaksNode };
 
 export const defaultViewOptions = {
@@ -485,7 +486,7 @@ export class Peaks {
 				new Promise<Peaks>((resolve, reject) => {
 					instance.waveformBuilder?.init(
 						instance.options,
-						(buildErr, waveformData) => {
+						async (buildErr, waveformData) => {
 							if (buildErr) {
 								reject(buildErr);
 								return;
@@ -506,20 +507,25 @@ export class Peaks {
 							const zoomviewContainer = instance.options.zoomview.container;
 							const overviewContainer = instance.options.overview.container;
 
-							if (zoomviewContainer) {
-								instance.views.createZoomview(
-									zoomviewContainer as HTMLDivElement,
-								);
-							}
+							try {
+								if (zoomviewContainer) {
+									await instance.views.createZoomview(
+										zoomviewContainer as HTMLDivElement,
+									);
+								}
 
-							if (overviewContainer) {
-								instance.views.createOverview(
-									overviewContainer as HTMLDivElement,
-								);
-							}
+								if (overviewContainer) {
+									await instance.views.createOverview(
+										overviewContainer as HTMLDivElement,
+									);
+								}
 
-							if (scrollbarContainer) {
-								instance.views.createScrollbar(scrollbarContainer);
+								if (scrollbarContainer) {
+									await instance.views.createScrollbar(scrollbarContainer);
+								}
+							} catch (err) {
+								reject(err as Error);
+								return;
 							}
 
 							if (opts.segments) {

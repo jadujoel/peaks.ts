@@ -33,7 +33,7 @@ export class ViewController {
 	 *
 	 * @throws {Error} If waveform data has not been initialized yet.
 	 */
-	createOverview(container: HTMLDivElement): WaveformOverview | never {
+	async createOverview(container: HTMLDivElement): Promise<WaveformOverview> {
 		if (this.overview) {
 			return this.overview;
 		}
@@ -44,7 +44,7 @@ export class ViewController {
 			throw new Error("No waveform data available");
 		}
 
-		this.overview = WaveformOverview.from({
+		this.overview = await WaveformOverview.from({
 			container,
 			peaks: this.peaks,
 			waveformData,
@@ -65,7 +65,7 @@ export class ViewController {
 	 *
 	 * @throws {Error} If waveform data has not been initialized yet.
 	 */
-	createZoomview(container: HTMLDivElement): WaveformZoomView | never {
+	async createZoomview(container: HTMLDivElement): Promise<WaveformZoomView> {
 		if (this.zoomview) {
 			return this.zoomview;
 		}
@@ -76,7 +76,7 @@ export class ViewController {
 			throw new Error("No waveform data available");
 		}
 
-		this.zoomview = WaveformZoomView.from({
+		this.zoomview = await WaveformZoomView.from({
 			container,
 			peaks: this.peaks,
 			waveformData,
@@ -92,8 +92,8 @@ export class ViewController {
 	/**
 	 * Creates the scrollbar view.
 	 */
-	createScrollbar(container: HTMLDivElement): Scrollbar | never {
-		this.scrollbar = Scrollbar.from({
+	async createScrollbar(container: HTMLDivElement): Promise<Scrollbar> {
+		this.scrollbar = await Scrollbar.from({
 			container,
 			driver: this.driver,
 			peaks: this.peaks,

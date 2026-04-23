@@ -152,9 +152,9 @@ describe("Scrollbar", () => {
 		});
 
 		describe("when a zoomview is created", () => {
-			it("should update the scrollbar state", () => {
+			it("should update the scrollbar state", async () => {
 				const container = document.getElementById("zoomview-container");
-				p.views.createZoomview(container);
+				await p.views.createZoomview(container);
 
 				const scrollbar = p.views.scrollbar;
 

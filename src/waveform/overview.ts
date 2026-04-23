@@ -32,7 +32,9 @@ export class WaveformOverview implements WaveformViewAPI, WaveformViewHooks {
 
 	private constructor(public readonly view: WaveformView) {}
 
-	static from(options: WaveformOverviewFromOptions): WaveformOverview {
+	static async from(
+		options: WaveformOverviewFromOptions,
+	): Promise<WaveformOverview> {
 		const view = WaveformView.from({
 			container: options.container,
 			peaks: options.peaks,
@@ -41,7 +43,7 @@ export class WaveformOverview implements WaveformViewAPI, WaveformViewHooks {
 		});
 
 		const instance = new WaveformOverview(view);
-		view.initialize(instance, instance);
+		await view.initialize(instance, instance);
 		instance.initializeOverview();
 		return instance;
 	}

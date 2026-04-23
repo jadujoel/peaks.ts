@@ -32,14 +32,14 @@ describe("Peaks.views", () => {
 				});
 			});
 
-			it("should return the existing zoomview instance", () => {
+			it("should return the existing zoomview instance", async () => {
 				const view = p.views.getView("zoomview");
 
 				expect(view).to.be.an.instanceOf(WaveformZoomView);
 
 				const zoomviewContainer = document.getElementById("zoomview-container");
 
-				expect(p.views.createZoomview(zoomviewContainer)).to.equal(view);
+				expect(await p.views.createZoomview(zoomviewContainer)).to.equal(view);
 			});
 		});
 
@@ -62,12 +62,12 @@ describe("Peaks.views", () => {
 				});
 			});
 
-			it("should return a new zoomview instance", () => {
+			it("should return a new zoomview instance", async () => {
 				expect(p.views.getView("zoomview")).to.equal(undefined);
 
 				const zoomviewContainer = document.getElementById("zoomview-container");
 
-				const view = p.views.createZoomview(zoomviewContainer);
+				const view = await p.views.createZoomview(zoomviewContainer);
 
 				expect(view).to.be.an.instanceOf(WaveformZoomView);
 
@@ -96,14 +96,14 @@ describe("Peaks.views", () => {
 				});
 			});
 
-			it("should return the existing overview instance", () => {
+			it("should return the existing overview instance", async () => {
 				const view = p.views.getView("overview");
 
 				expect(view).to.be.an.instanceOf(WaveformOverview);
 
 				const overviewContainer = document.getElementById("overview-container");
 
-				expect(p.views.createOverview(overviewContainer)).to.equal(view);
+				expect(await p.views.createOverview(overviewContainer)).to.equal(view);
 			});
 		});
 
@@ -126,12 +126,12 @@ describe("Peaks.views", () => {
 				});
 			});
 
-			it("should return a new overview instance", () => {
+			it("should return a new overview instance", async () => {
 				expect(p.views.getView("overview")).to.equal(undefined);
 
 				const overviewContainer = document.getElementById("overview-container");
 
-				const view = p.views.createOverview(overviewContainer);
+				const view = await p.views.createOverview(overviewContainer);
 
 				expect(view).to.be.an.instanceOf(WaveformOverview);
 
