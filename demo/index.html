@@ -3,147 +3,215 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Peaks.js Demo Page</title>
+    <meta name="color-scheme" content="light dark">
+    <title>Peaks.js · Demo</title>
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
-    <div id="titles">
-      <h1>Peaks.js</h1>
-      <p>
-        Peaks.js is a JavaScript library that allows you to display and
-        interact with audio waveforms in the browser.
-      </p>
+    <main class="page">
+      <header class="hero">
+        <div class="hero__brand">
+          <span class="hero__logo" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Peaks.js logo">
+              <title>Peaks.js logo</title>
+              <path d="M2 16 L6 16 L8 8 L12 24 L16 4 L20 28 L24 10 L26 16 L30 16"/>
+            </svg>
+          </span>
+          <div>
+            <h1>Peaks.js</h1>
+            <p class="hero__tagline">
+              A JavaScript library for displaying and interacting with audio waveforms in the browser.
+            </p>
+          </div>
+        </div>
 
-      <h2>Demo pages</h2>
-      <p>
-        The following pages demonstrate various configuration options:
-      </p>
-      <p>
-        Precomputed Waveform Data |
-        <a href="/webaudio.html">Web Audio API</a> |
-        <a href="/zoomable-waveform.html">Single Zoomable Waveform</a> |
-        <a href="/overview-waveform.html">Single Fixed Waveform</a> |
-        <a href="/cue-events.html">Cue Events</a> |
-        <a href="/set-source.html">Changing the Media URL</a> |
-        <a href="/multi-channel.html">Multi-Channel Waveform</a> |
-        <a href="/custom-markers">Custom Point and Segment Markers</a> |
-        <a href="/overlay-segments.html">Overlay Segments</a> |
-        <a href="/external-player.html">External Audio Player</a> |
-        <a href="/scrollbar.html">Scrollbar</a> |
-        <a href="/clip-node-loop.html">ClipNode Segment Loop</a> |
-        <a href="/pixi-driver.html">Pixi Driver (experimental)</a>
-      </p>
-      <h2>Demo: Precomputed Waveform Data</h2>
-      <p>
-        This demo shows how to use waveform data precomputed using
-        <a href="https://github.com/bbc/audiowaveform">audiowaveform</a>.
-        The data is requested from the web server in binary or JSON format.
-      </p>
-    </div>
+        <nav class="hero__nav" aria-label="Demo pages">
+          <span class="hero__nav-label">Demos</span>
+          <ul>
+            <li><a class="chip chip--active" aria-current="page" href="/">Precomputed Data</a></li>
+            <li><a class="chip" href="/webaudio.html">Web Audio API</a></li>
+            <li><a class="chip" href="/zoomable-waveform.html">Zoomable Waveform</a></li>
+            <li><a class="chip" href="/overview-waveform.html">Fixed Waveform</a></li>
+            <li><a class="chip" href="/cue-events.html">Cue Events</a></li>
+            <li><a class="chip" href="/set-source.html">Change Media URL</a></li>
+            <li><a class="chip" href="/multi-channel.html">Multi-Channel</a></li>
+            <li><a class="chip" href="/custom-markers/">Custom Markers</a></li>
+            <li><a class="chip" href="/overlay-segments.html">Overlay Segments</a></li>
+            <li><a class="chip" href="/external-player.html">External Player</a></li>
+            <li><a class="chip" href="/scrollbar.html">Scrollbar</a></li>
+            <li><a class="chip" href="/clip-node-loop.html">ClipNode Loop</a></li>
+            <li><a class="chip chip--beta" href="/pixi-driver.html">Pixi Driver<span class="badge">beta</span></a></li>
+          </ul>
+        </nav>
+      </header>
 
-    <div class="waveform-container">
-      <div id="zoomview-container"></div>
-    </div>
-    <div class="waveform-container">
-      <div id="overview-container"></div>
-    </div>
+      <section class="intro">
+        <h2>Precomputed Waveform Data</h2>
+        <p>
+          Demonstrates rendering waveforms using data precomputed with
+          <a href="https://github.com/bbc/audiowaveform">audiowaveform</a>.
+          The data is fetched from the server as a binary or JSON payload.
+        </p>
+      </section>
 
-    <div id="demo-controls">
-      <audio id="audio" controls="controls">
-        <source src="/TOL_6min_720p_download.mp3" type="audio/mpeg">
-        <source src="/TOL_6min_720p_download.ogg" type='audio/ogg; codecs="vorbis"'>
-        Your browser does not support the audio element.
-      </audio>
+      <section class="waveforms" aria-label="Waveform views">
+        <div class="waveform-card waveform-card--zoom">
+          <div class="waveform-card__label">Zoomable</div>
+          <div class="waveform-container">
+            <div id="zoomview-container"></div>
+          </div>
+        </div>
+        <div class="waveform-card waveform-card--overview">
+          <div class="waveform-card__label">Overview</div>
+          <div class="waveform-container">
+            <div id="overview-container"></div>
+          </div>
+        </div>
+      </section>
 
-      <div id="controls">
-        <div>
-          <button data-action="zoom-in">Zoom in</button>
-          <button data-action="zoom-out">Zoom out</button>
-          <input type="text" id="seek-time" value="0.0">
-          <button data-action="seek">Seek</button>
-          <label for="amplitude-scale">Amplitude scale</label>
-          <input type="range" id="amplitude-scale" min="0" max="10" step="1">
+      <section class="panel" aria-label="Player and controls">
+        <div class="panel__player">
+          <h3 class="panel__heading">Player</h3>
+          <audio id="audio" controls="controls">
+            <source src="/TOL_6min_720p_download.mp3" type="audio/mpeg">
+            <source src="/TOL_6min_720p_download.ogg" type='audio/ogg; codecs="vorbis"'>
+            Your browser does not support the audio element.
+          </audio>
         </div>
-        <div>
-          <label for="mousewheel-mode">Mousewheel mode:</label>
-          <select id="mousewheel-mode">
-            <option value="none">None</option>
-            <option value="scroll">Scroll</option>
-          </select>
-          <input type="checkbox" id="auto-scroll" checked>
-          <label for="auto-scroll">Auto-scroll</label>
-          <input type="checkbox" id="playhead-time" checked>
-          <label for="playhead-time">Show playhead time</label>
-        </div>
-        <div>
-          <button data-action="add-segment">Add Segment</button>
-          <button data-action="add-point">Add Point</button>
-          <button data-action="log-data">Log segments/points</button>
-        </div>
-        <div>
-          <input type="checkbox" id="enable-seek" checked>
-          <label for="enable-seek">Enable click to seek</label>
-          <label for="waveform-drag-mode">Waveform drag mode:</label>
-          <select id="waveform-drag-mode">
-            <option value="scroll">Scroll</option>
-            <option value="insert-segment">Insert segment</option>
-          </select>
-        </div>
-        <div>
-          <input type="checkbox" id="enable-segment-dragging">
-          <label for="enable-segment-dragging">Enable segment dragging</label>
-          <label for="segment-drag-mode">Segment drag mode:</label>
-          <select id="segment-drag-mode">
-            <option value="overlap">Overlap</option>
-            <option value="no-overlap">No overlap</option>
-            <option value="compress">Compress</option>
-          </select>
-        </div>
-        <div>
-          <button data-action="resize-width">Resize width</button>
-          <button data-action="resize-height">Resize height</button>
-        </div>
-        <div>
-          <button data-action="toggle-zoomview">Show/hide zoomable waveform</button>
-          <button data-action="toggle-overview">Show/hide overview waveform</button>
-          <button data-action="destroy">Destroy</button>
-        </div>
-      </div>
-    </div>
 
-    <div class="log">
-      <div id="segments" class="hide">
+        <div class="panel__controls" id="controls">
+          <fieldset class="control-group">
+            <legend>Navigation</legend>
+            <div class="control-row">
+              <button class="btn" data-action="zoom-in">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>
+                Zoom in
+              </button>
+              <button class="btn" data-action="zoom-out">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6"/></svg>
+                Zoom out
+              </button>
+              <div class="field field--inline">
+                <label for="seek-time">Seek</label>
+                <input class="input input--num" type="text" id="seek-time" value="0.0">
+                <button class="btn btn--primary" data-action="seek">Go</button>
+              </div>
+            </div>
+            <div class="control-row">
+              <div class="field field--grow">
+                <label for="amplitude-scale">Amplitude</label>
+                <input type="range" id="amplitude-scale" min="0" max="10" step="1">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="control-group">
+            <legend>Behavior</legend>
+            <div class="control-row">
+              <div class="field">
+                <label for="mousewheel-mode">Mousewheel</label>
+                <select class="select" id="mousewheel-mode">
+                  <option value="none">None</option>
+                  <option value="scroll">Scroll</option>
+                </select>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="auto-scroll" checked>
+                <span>Auto-scroll</span>
+              </label>
+              <label class="toggle">
+                <input type="checkbox" id="playhead-time" checked>
+                <span>Show playhead time</span>
+              </label>
+              <label class="toggle">
+                <input type="checkbox" id="enable-seek" checked>
+                <span>Click to seek</span>
+              </label>
+            </div>
+            <div class="control-row">
+              <div class="field">
+                <label for="waveform-drag-mode">Waveform drag</label>
+                <select class="select" id="waveform-drag-mode">
+                  <option value="scroll">Scroll</option>
+                  <option value="insert-segment">Insert segment</option>
+                </select>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="enable-segment-dragging">
+                <span>Drag segments</span>
+              </label>
+              <div class="field">
+                <label for="segment-drag-mode">Segment drag</label>
+                <select class="select" id="segment-drag-mode">
+                  <option value="overlap">Overlap</option>
+                  <option value="no-overlap">No overlap</option>
+                  <option value="compress">Compress</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="control-group">
+            <legend>Markers</legend>
+            <div class="control-row">
+              <button class="btn btn--primary" data-action="add-segment">+ Segment</button>
+              <button class="btn btn--primary" data-action="add-point">+ Point</button>
+              <button class="btn" data-action="log-data">Log segments / points</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="control-group">
+            <legend>View</legend>
+            <div class="control-row">
+              <button class="btn" data-action="resize-width">Resize width</button>
+              <button class="btn" data-action="resize-height">Resize height</button>
+              <button class="btn" data-action="toggle-zoomview">Toggle zoomable</button>
+              <button class="btn" data-action="toggle-overview">Toggle overview</button>
+              <button class="btn btn--danger" data-action="destroy">Destroy</button>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+    <section class="log" aria-label="Markers data">
+      <div id="segments" class="data-card hide">
         <h2>Segments</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Label</th>
-              <th>Start time</th>
-              <th>End time</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
+        <div class="data-card__body">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Label</th>
+                <th>Start</th>
+                <th>End</th>
+                <th colspan="3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div id="points" class="hide">
+      <div id="points" class="data-card hide">
         <h2>Points</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Label</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
+        <div class="data-card__body">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Label</th>
+                <th>Time</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
+  </main>
 
     <script type="module">
       import { Peaks } from "/peaks.esm.js";

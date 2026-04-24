@@ -1,17 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { PixiCanvasDriver } from "../src/driver/pixi/driver";
+import type { DriverStage } from "../src/driver/types";
 
 async function makeStage(): Promise<{
 	readonly driver: PixiCanvasDriver;
 	readonly container: HTMLDivElement;
-	readonly stage: ReturnType<PixiCanvasDriver["createStage"]>;
+	readonly stage: DriverStage;
 }> {
 	const driver = await PixiCanvasDriver.create();
 	const container = document.createElement("div");
 	container.style.width = "200px";
 	container.style.height = "100px";
 	document.body.appendChild(container);
-	const stage = driver.createStage({ container, height: 100, width: 200 });
+	const stage = await driver.createStage({
+		container,
+		height: 100,
+		width: 200,
+	});
 	return { container, driver, stage };
 }
 

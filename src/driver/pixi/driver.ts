@@ -74,6 +74,7 @@ class PixiStageHost {
 	readonly canvas: HTMLCanvasElement;
 	readonly ready: Promise<void>;
 	readyResolved = false;
+	destroyed = false;
 	private pendingDraw = false;
 	readonly drag: DragController;
 	readonly stageContainer: Container;
@@ -103,6 +104,10 @@ class PixiStageHost {
 				canvas: this.canvas,
 				height,
 				preference: "webgl",
+				// Preserve the WebGL back-buffer so callers (and tests) can
+				// `drawImage` / read pixels from the canvas at any time
+				// without it appearing blank after the next composition.
+				preserveDrawingBuffer: true,
 				resolution: window.devicePixelRatio || 1,
 				width,
 			})
@@ -119,6 +124,9 @@ class PixiStageHost {
 	}
 
 	render(): void {
+		if (this.destroyed) {
+			return;
+		}
 		if (!this.readyResolved) {
 			this.pendingDraw = true;
 			return;
@@ -139,6 +147,7 @@ class PixiStageHost {
 	}
 
 	destroy(): void {
+		this.destroyed = true;
 		this.drag.unbind();
 		const finalize = (): void => {
 			try {
@@ -750,6 +759,17 @@ export class PixiDriverLayer extends PixiDriverNode implements DriverLayer {
 	private drawScheduled = false;
 
 	private scheduleDraw(): void {
+		this.requestDraw();
+	}
+
+	/**
+	 * Request a coalesced redraw of this layer. Public so that descendant
+	 * shapes (e.g. `PixiDriverShape`) whose state mutates outside of
+	 * setAttrs (`fill`, gradient stops) can ask their parent layer to
+	 * re-run all sceneFuncs and present the result. Mirrors Konva's
+	 * implicit `_requestDraw` after attribute mutations.
+	 */
+	requestDraw(): void {
 		if (this.drawScheduled) {
 			return;
 		}
@@ -1170,6 +1190,7 @@ export class PixiDriverShape extends PixiDriverNode implements DriverShape {
 			return this.fill_;
 		}
 		this.fill_ = value;
+		this.requestLayerRedraw();
 		return this.fill_;
 	}
 
@@ -1180,6 +1201,7 @@ export class PixiDriverShape extends PixiDriverNode implements DriverShape {
 		this.gradientStartY = value;
 		this.gradient?.destroy();
 		this.gradient = undefined;
+		this.requestLayerRedraw();
 		return this.gradientStartY;
 	}
 
@@ -1190,6 +1212,7 @@ export class PixiDriverShape extends PixiDriverNode implements DriverShape {
 		this.gradientEndY = value;
 		this.gradient?.destroy();
 		this.gradient = undefined;
+		this.requestLayerRedraw();
 		return this.gradientEndY;
 	}
 
@@ -1202,7 +1225,22 @@ export class PixiDriverShape extends PixiDriverNode implements DriverShape {
 		this.gradientStops = value;
 		this.gradient?.destroy();
 		this.gradient = undefined;
+		this.requestLayerRedraw();
 		return this.gradientStops;
+	}
+
+	private requestLayerRedraw(): void {
+		// Find the parent layer wrapper (the shape's container is added to
+		// the layer's container) and ask it to coalesce a redraw. This
+		// mirrors Konva's auto-redraw on attribute mutation.
+		const parent = this.container.parent;
+		if (!parent) {
+			return;
+		}
+		const wrapper = WRAPPERS.get(parent);
+		if (wrapper instanceof PixiDriverLayer) {
+			wrapper.requestDraw();
+		}
 	}
 
 	sceneFunc(fn: SceneFunc): void {
@@ -1253,6 +1291,10 @@ export class PixiDriverStage implements DriverStage {
 
 	static fromOpts(opts: PixiDriverStageFromOpts): PixiDriverStage {
 		return new PixiDriverStage(opts);
+	}
+
+	get ready(): Promise<void> {
+		return this.host.ready;
 	}
 
 	add(layer: DriverLayer): void {
@@ -1536,8 +1578,13 @@ export class PixiCanvasDriver implements CanvasDriver {
 		return new PixiCanvasDriver();
 	}
 
-	createStage = (opts: PixiDriverStageFromOpts): DriverStage => {
-		return PixiDriverStage.fromOpts(opts);
+	createStage = async (opts: PixiDriverStageFromOpts): Promise<DriverStage> => {
+		const stage = PixiDriverStage.fromOpts(opts);
+		// Await Pixi's async renderer init so callers can issue synchronous
+		// draws (`layer.draw()`) immediately after `await createStage(...)`
+		// without the first frame being silently dropped via `pendingDraw`.
+		await stage.ready;
+		return stage;
 	};
 
 	createLayer = (opts?: LayerAttrs): DriverLayer => {

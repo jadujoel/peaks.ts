@@ -6,6 +6,22 @@ import sampleJsonData from "./data/sample.json";
 
 const TestAudioContext = window.AudioContext;
 
+// `createXHR` is `private` in the production type but is spied on in tests
+// to assert request URL/credentials behaviour. Cast through this shape so
+// `sinon.spy(builder, "createXHR")` keeps a precise return type.
+type WaveformBuilderWithXHR = WaveformBuilder & {
+	createXHR: (
+		url: string,
+		requestType: string,
+		withCredentials: boolean,
+		onLoad: (this: XMLHttpRequest, event: ProgressEvent<EventTarget>) => void,
+		onError: () => void,
+		onAbort: () => void,
+	) => XMLHttpRequest;
+};
+const exposeXHR = (builder: WaveformBuilder): WaveformBuilderWithXHR =>
+	builder as WaveformBuilderWithXHR;
+
 describe("WaveformBuilder", () => {
 	describe("init", () => {
 		it("should not accept a string as dataUri", (done: DoneCallback) => {
@@ -78,7 +94,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "createXHR");
+			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
@@ -104,7 +120,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "createXHR");
+			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
@@ -130,13 +146,13 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "createXHR");
+			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
-				const xhr = createXHR.getCall(0).returnValue;
+				const xhr = createXHR.getCall(0).returnValue as XMLHttpRequest;
 
 				expect(xhr.withCredentials).to.equal(false);
 
@@ -157,13 +173,13 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "createXHR");
+			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
 				expect(waveformData).to.be.an.instanceOf(WaveformData);
 
-				const xhr = createXHR.getCall(0).returnValue;
+				const xhr = createXHR.getCall(0).returnValue as XMLHttpRequest;
 
 				expect(xhr.withCredentials).to.equal(true);
 
@@ -184,7 +200,7 @@ describe("WaveformBuilder", () => {
 
 				const waveformBuilder = WaveformBuilder.from({ peaks });
 
-				const createXHR = sinon.spy(waveformBuilder, "createXHR");
+				const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
 
 				waveformBuilder.init(peaks.options, (err, waveformData) => {
 					expect(err).to.equal(undefined);
@@ -291,7 +307,7 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(waveformBuilder, "createXHR");
+			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
 
 			waveformBuilder.init(peaks.options, (err, waveformData) => {
 				expect(err).to.equal(undefined);
