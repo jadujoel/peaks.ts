@@ -727,17 +727,40 @@ export class PixiDriverLayer extends PixiDriverNode implements DriverLayer {
 				wrapper.bindHost(this.host);
 			}
 		}
+		// Konva's `Layer.add(child)` schedules an automatic redraw via
+		// `_requestDraw`. Mirror that so callers (e.g. SegmentsLayer's
+		// `addSegmentShape`) don't need to invoke `draw()` explicitly to make
+		// newly added shapes appear.
+		this.scheduleDraw();
 	}
 
 	removeChildren(): void {
 		while (this.container.children.length > 0) {
 			this.container.removeChildAt(0);
 		}
+		this.scheduleDraw();
 	}
 
 	draw(): void {
+		this.drawScheduled = false;
 		runShapesIn(this.container);
 		this.host?.render();
+	}
+
+	private drawScheduled = false;
+
+	private scheduleDraw(): void {
+		if (this.drawScheduled) {
+			return;
+		}
+		this.drawScheduled = true;
+		// Use a microtask so multiple synchronous mutations (e.g. adding
+		// several shapes in a row) coalesce into a single render.
+		queueMicrotask(() => {
+			if (this.drawScheduled) {
+				this.draw();
+			}
+		});
 	}
 
 	getHeight(): number {
@@ -1379,6 +1402,7 @@ export class PixiDriverAnimation implements DriverAnimation {
 class GraphicsDriverContext implements DriverContext {
 	private path: { x: number; y: number }[] = [];
 	private currentFillStyle: string | FillGradient | null = "#000000";
+	private hasCurrentPoint = false;
 
 	constructor(
 		private readonly graphics: Graphics,
@@ -1397,6 +1421,7 @@ class GraphicsDriverContext implements DriverContext {
 
 	beginPath(): void {
 		this.path = [];
+		this.hasCurrentPoint = false;
 	}
 
 	closePath(): void {
@@ -1406,10 +1431,20 @@ class GraphicsDriverContext implements DriverContext {
 	moveTo(x: number, y: number): void {
 		this.path = [{ x, y }];
 		this.graphics.moveTo(x, y);
+		this.hasCurrentPoint = true;
 	}
 
 	lineTo(x: number, y: number): void {
 		this.path.push({ x, y });
+		// Canvas 2D / Konva treat the first `lineTo` after `beginPath` as an
+		// implicit `moveTo`. Pixi's Graphics, in contrast, would draw a line
+		// from (0, 0). Promote the first call to a `moveTo` so callers that
+		// rely on the canvas semantics (e.g. WaveformShape) render correctly.
+		if (!this.hasCurrentPoint) {
+			this.graphics.moveTo(x, y);
+			this.hasCurrentPoint = true;
+			return;
+		}
 		this.graphics.lineTo(x, y);
 	}
 

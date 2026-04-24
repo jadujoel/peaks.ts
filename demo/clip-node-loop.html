@@ -188,6 +188,7 @@
           return;
         }
         const peaksInstance = errOrInstance.value;
+        window.peaksInstance = peaksInstance;
         console.log('Peaks instance ready');
 
         const state = { loopingSegmentId: null };
