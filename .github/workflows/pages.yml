@@ -30,6 +30,9 @@ jobs:
       - name: Build library
         run: bun run build
 
+      - name: Refresh workspace links after dist build
+        run: bun install --force
+
       - name: Build main example
         run: bun run example:build
 

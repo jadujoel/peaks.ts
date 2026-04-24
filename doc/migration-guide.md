@@ -2,13 +2,15 @@
 
 This document describes any breaking changes in the Peaks.js API and provides advice on how to migrate your code to the updated API.
 
-## Peaks.ts (`Peaks.init` returns a `ResultAsync`)
+## Peaks.ts (`Peaks.from` is Promise-based; `Peaks.tryFrom` returns a `ResultAsync`)
 
-`Peaks.from()` no longer accepts a callback. It now takes a single `options`
-argument and returns a [`ResultAsync<Peaks, Error>`](https://github.com/supermacro/neverthrow)
-from the `neverthrow` library. The returned value is a thenable, so it can be
-awaited or chained with `.then()`, and it can also be composed with
-`neverthrow`'s `andThen` / `map` combinators.
+`Peaks.from()` no longer accepts a callback. It takes a single `options`
+argument and returns `Promise<Peaks>`, rejecting on initialisation failure.
+
+For callers that prefer an explicit `Result` value, `Peaks.tryFrom()` returns
+a [`ResultAsync<Peaks, Error>`](https://github.com/supermacro/neverthrow) from
+the `neverthrow` library. The returned value is a thenable, so it can be
+awaited or composed with `andThen` / `map`.
 
 ```js
 // Before
@@ -21,25 +23,71 @@ Peaks.from(options, function(err, peaks) {
   // use peaks
 });
 
-// After (promise / then style)
-Peaks.from(options).then((result) => {
-  if (result.isErr()) {
-    console.error(result.error.message);
-    return;
-  }
-
-  const peaks = result.value;
+// After (Promise style)
+try {
+  const peaks = await Peaks.from(options);
   // use peaks
+} catch (error) {
+  console.error(error.message);
+}
+
+// After (Result style)
+const result = await Peaks.tryFrom(options);
+if (result.isErr()) {
+  console.error(result.error.message);
+  return;
+}
+const peaks = result.value;
+```
+
+## Peaks.ts (`peaks.setSource` returns a `Promise`)
+
+`peaks.setSource(options)` no longer accepts a callback. It returns
+`Promise<void>`, rejecting on failure.
+
+```js
+// Before
+peaks.setSource(options, function(err) {
+  if (err) {
+    console.error(err.message);
+  }
 });
 
-// After (async / await style)
-const result = await Peaks.from(options);
-
-if (result.isOk()) {
-  const peaks = result.value;
-  // use peaks
-}
+// After
+await peaks.setSource(options);
 ```
+
+## Peaks.ts (pluggable canvas and audio drivers)
+
+The rendering backend and the audio backend are now both pluggable. Pass them
+as `driver` and `audio` on the configuration object:
+
+```js
+import {
+  ClipNodeAudioDriver,
+  KonvaCanvasDriver,
+  Peaks,
+} from "@jadujoel/peaks.ts";
+
+const peaks = await Peaks.from({
+  audio: ClipNodeAudioDriver.from({ buffer, context }),
+  driver: KonvaCanvasDriver.default(),
+  // ...rest of the options
+});
+```
+
+A `PixiCanvasDriver` is also available; it is loaded lazily via dynamic
+`import("pixi.js")` so the Pixi runtime is only fetched when you actually use
+it:
+
+```js
+import { PixiCanvasDriver } from "@jadujoel/peaks.ts";
+
+const driver = await PixiCanvasDriver.create();
+```
+
+If `driver` is omitted, the Konva driver is used. If `audio` is omitted, an
+audio driver is derived from the legacy `mediaElement` / `webAudio` options.
 
 ## Peaks.ts (typed event bus)
 
