@@ -86,10 +86,6 @@ export class SegmentShape {
 			view: view.getName(),
 		});
 
-		if (label) {
-			label.hide();
-		}
-
 		const segmentStartOffset = view.timeToPixelOffset(segment.startTime);
 		const segmentEndOffset = view.timeToPixelOffset(segment.endTime);
 		const overlayRectHeight = Math.max(0, view.getHeight() - 2 * overlayOffset);
@@ -779,7 +775,6 @@ export class SegmentShape {
 	private onMouseEnter = (event: PeaksPointerEvent<MouseEvent>) => {
 		if (this.label) {
 			this.label.moveToTop();
-			this.label.show();
 		}
 
 		this.peaks.events.dispatch("segments.mouseenter", {
@@ -789,10 +784,6 @@ export class SegmentShape {
 	};
 
 	private onMouseLeave = (event: PeaksPointerEvent<MouseEvent>) => {
-		if (this.label) {
-			this.label.hide();
-		}
-
 		this.peaks.events.dispatch("segments.mouseleave", {
 			evt: event.evt,
 			segment: this.segment,

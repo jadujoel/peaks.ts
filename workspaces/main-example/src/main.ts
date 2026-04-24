@@ -117,6 +117,7 @@ async function initPeaks(
 		zoomview: {
 			container: div("zoomview-container"),
 			showPlayheadTime: true,
+			waveformColor: "rgba(95, 168, 211, 0.5)",
 		},
 	});
 

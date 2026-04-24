@@ -62,22 +62,16 @@ export class DefaultPointMarker {
 			y: 0,
 		});
 
-		this.label =
-			this.options.view === "zoomview"
-				? group.addText({
-						fill: "#000",
-						fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
-						fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
-						fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
-						text: this.options.point?.labelText ?? "",
-						textAlign: "left",
-						x: 2,
-						y: 0,
-					})
-				: group.addText({
-						fontSize: 0,
-						text: "",
-					});
+		this.label = group.addText({
+			fill: "#000",
+			fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
+			fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
+			fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
+			text: this.options.point?.labelText ?? "",
+			textAlign: "left",
+			x: 2,
+			y: 0,
+		});
 
 		this.time = group.addText({
 			fill: "#000",

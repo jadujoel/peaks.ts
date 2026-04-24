@@ -46,12 +46,8 @@ export class Controls {
 		return controls;
 	}
 
-	private zoomView(): WaveformZoomviewAPI {
-		const view = this.peaks.views.getZoomview();
-		if (!view) {
-			throw new Error("zoomview not available");
-		}
-		return view;
+	private zoomView(): WaveformZoomviewAPI | undefined {
+		return this.peaks.views.getZoomview();
 	}
 
 	private overviewView(): WaveformOverviewAPI | undefined {
@@ -226,7 +222,7 @@ export class Controls {
 	private wireDisplay = (): void => {
 		const autoScroll = input("auto-scroll");
 		autoScroll.addEventListener("change", () => {
-			this.zoomView().enableAutoScroll(autoScroll.checked);
+			this.zoomView()?.enableAutoScroll(autoScroll.checked);
 		});
 
 		const showScrollbar = input("show-scrollbar");
@@ -251,14 +247,28 @@ export class Controls {
 			}
 		});
 
+		const showZoomview = input("show-zoomview");
+		showZoomview.addEventListener("change", () => {
+			const container = div("zoomview-container");
+			if (showZoomview.checked) {
+				container.classList.remove("hide");
+				this.peaks.views.createZoomview(container).catch((error: unknown) => {
+					console.warn("createZoomview failed", error);
+				});
+			} else {
+				this.peaks.views.destroyZoomview();
+				container.classList.add("hide");
+			}
+		});
+
 		const dragMode = select("waveform-drag-mode");
 		dragMode.addEventListener("change", () => {
-			this.zoomView().setWaveformDragMode(dragMode.value);
+			this.zoomView()?.setWaveformDragMode(dragMode.value);
 		});
 
 		const segmentDrag = select("segment-drag-mode");
 		segmentDrag.addEventListener("change", () => {
-			this.zoomView().setSegmentDragMode(segmentDrag.value);
+			this.zoomView()?.setSegmentDragMode(segmentDrag.value);
 		});
 	};
 
@@ -271,19 +281,19 @@ export class Controls {
 			const overview = this.overviewView();
 			switch (key) {
 				case "waveform":
-					zoom.setWaveformColor(color);
+					zoom?.setWaveformColor(color);
 					overview?.setWaveformColor(color);
 					return;
 				case "played":
-					zoom.setPlayedWaveformColor(color);
+					zoom?.setPlayedWaveformColor(color);
 					overview?.setPlayedWaveformColor(color);
 					return;
 				case "label":
-					zoom.setAxisLabelColor(color);
+					zoom?.setAxisLabelColor(color);
 					overview?.setAxisLabelColor(color);
 					return;
 				case "grid":
-					zoom.setAxisGridlineColor(color);
+					zoom?.setAxisGridlineColor(color);
 					overview?.setAxisGridlineColor(color);
 					return;
 			}
@@ -300,7 +310,7 @@ export class Controls {
 
 		const playhead = input("playhead-color");
 		playhead.addEventListener("input", () => {
-			this.zoomView().setPlayheadColor(playhead.value);
+			this.zoomView()?.setPlayheadColor(playhead.value);
 			this.overviewView()?.setPlayheadColor(playhead.value);
 		});
 
@@ -316,13 +326,13 @@ export class Controls {
 
 		const startMarker = input("segment-start-marker-color");
 		startMarker.addEventListener("input", () => {
-			this.zoomView().setSegmentStartMarkerColor(startMarker.value);
+			this.zoomView()?.setSegmentStartMarkerColor(startMarker.value);
 			this.overviewView()?.setSegmentStartMarkerColor(startMarker.value);
 		});
 
 		const endMarker = input("segment-end-marker-color");
 		endMarker.addEventListener("input", () => {
-			this.zoomView().setSegmentEndMarkerColor(endMarker.value);
+			this.zoomView()?.setSegmentEndMarkerColor(endMarker.value);
 			this.overviewView()?.setSegmentEndMarkerColor(endMarker.value);
 		});
 
@@ -341,7 +351,7 @@ export class Controls {
 			const scale = Number(slider.value);
 			value.value = scale.toFixed(1);
 			try {
-				this.zoomView().setAmplitudeScale(scale);
+				this.zoomView()?.setAmplitudeScale(scale);
 				this.overviewView()?.setAmplitudeScale(scale);
 			} catch (error) {
 				console.warn("setAmplitudeScale failed", error);
