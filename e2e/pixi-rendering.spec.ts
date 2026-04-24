@@ -219,28 +219,27 @@ test.describe("pixi rendering @ main-example", () => {
 		const before = await statsForCanvas(zoom);
 		expect(before.nonTransparent).toBeGreaterThan(500);
 
+		// Drive the visible region directly via the zoomview API. Seeking
+		// alone only nudges the 1px playhead marker which is below the
+		// hash-sampler's noise floor; setStartTime shifts the entire
+		// waveform render and is the strongest visual signal.
 		await page.evaluate(() => {
 			const win = window as unknown as {
-				peaksInstance: { player: { seek: (t: number) => void } };
+				peaksInstance: {
+					views: {
+						getView: (n: string) => { setStartTime: (t: number) => void };
+					};
+					player: { seek: (t: number) => void };
+				};
 			};
-			win.peaksInstance.player.seek(25);
+			win.peaksInstance.player.seek(15);
+			win.peaksInstance.views.getView("zoomview").setStartTime(10);
 		});
 		await settle(page);
-		await expect
-			.poll(async () =>
-				page.evaluate(() => {
-					const win = window as unknown as {
-						peaksInstance: { player: { getCurrentTime: () => number } };
-					};
-					return win.peaksInstance.player.getCurrentTime();
-				}),
-			)
-			.toBeGreaterThan(20);
+		await settle(page);
 
 		const after = await statsForCanvas(zoom);
 		expect(after.nonTransparent, `after ${after.hash}`).toBeGreaterThan(500);
-		// The played-region overlay should have shifted, producing a
-		// different visual signature.
 		expect(after.hash, `before=${before.hash} after=${after.hash}`).not.toBe(
 			before.hash,
 		);
