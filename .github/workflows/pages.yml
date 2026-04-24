@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Build library
+        run: bun run build
+
       - name: Build main example
         run: bun run example:build
 
