@@ -84,9 +84,6 @@ Peaks.from(options).then((result) => {
 });
 ```
 
-There is a complete example demo available [here](demo/custom-markers) that
-shows how to use these functions to draw custom point and segment markers.
-
 Customizing markers does not work with the Peaks.js UMD bundle. You must build
 Peaks.js into your own bundle with Konva as a peer dependency, using a module
 bundler such as [Webpack](https://webpack.js.org/),
@@ -433,9 +430,6 @@ Peaks.js' default media player is based on the
 Peaks.js allows you to interface with external media player libraries (such as
 [Tone.js](https://tonejs.github.io/) or [Howler.js](https://howlerjs.com/)) by
 implementing the `AudioDriver` interface and passing it as the `audio` option.
-
-You can find a complete example [here](demo/external-player.html) that shows how
-to implement an `AudioDriver` using [Tone.js](https://tonejs.github.io/).
 
 ### AudioDriver Interface
 

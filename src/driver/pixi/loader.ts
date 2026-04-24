@@ -2,8 +2,8 @@
 //
 // The real implementation in `./driver` has a static `import "pixi.js"` at
 // module top, so importing it eagerly would force every bundle that
-// re-exports it (such as the demo bundle that ships across all demo pages)
-// to also resolve `pixi.js` — even on pages that don't use Pixi at all.
+// re-exports it to also resolve `pixi.js` — even on pages that don't use
+// Pixi at all.
 //
 // This loader keeps the public `PixiCanvasDriver.create()` API unchanged
 // while deferring the real Pixi import to first use via dynamic import.

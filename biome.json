@@ -13,13 +13,6 @@
 			"!dist",
 			"!playwright-report",
 			"!test-results",
-			"!demo/custom-markers/custom-markers.js",
-			"!demo/peaks*.js",
-			"!demo/peaks*.map",
-			"!demo/chunk-*.js",
-			"!demo/chunk-*.map",
-			"!demo/pixi*.mjs",
-			"!demo/pixi*.map",
 			"!workspaces/**/dist",
 			"!workspaces/**/public"
 		]
@@ -31,33 +24,6 @@
 		}
 	},
 	"overrides": [
-		{
-			"includes": ["demo/**/*.html"],
-			"linter": {
-				"rules": {
-					"a11y": {
-						"useButtonType": "off",
-						"useMediaCaption": "off"
-					},
-					"correctness": {
-						"noInnerDeclarations": "off"
-					},
-					"suspicious": {
-						"noRedeclare": "off"
-					}
-				}
-			}
-		},
-		{
-			"includes": ["demo/**/*.js"],
-			"linter": {
-				"rules": {
-					"correctness": {
-						"noInnerDeclarations": "off"
-					}
-				}
-			}
-		},
 		{
 			"includes": ["test/**/*.js", "test/**/*.ts"],
 			"linter": {

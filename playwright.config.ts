@@ -18,15 +18,10 @@ export default defineConfig({
 	reporter: [["html", { open: "never" }]],
 	testDir: "./e2e",
 	use: {
-		baseURL: "http://127.0.0.1:8080",
+		baseURL: "http://127.0.0.1:8090",
 		trace: "retain-on-failure",
 	},
 	webServer: [
-		{
-			command: "bun run start",
-			reuseExistingServer: !process.env.CI,
-			url: "http://127.0.0.1:8080",
-		},
 		{
 			command: "bun --filter @peaks/main-example dev",
 			env: { PORT: "8090" },

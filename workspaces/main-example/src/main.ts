@@ -8,7 +8,7 @@ import { Controls } from "./controls";
 import { byId, div, select } from "./dom";
 import { LoopController } from "./loop-controller";
 
-const AUDIO_URL = "/sample.mp3";
+const AUDIO_URL = "./sample.mp3";
 const ZOOM_LEVELS: readonly number[] = [128, 256, 512, 1024, 2048, 4096];
 const DRIVER_STORAGE_KEY = "peaks-example-driver";
 
