@@ -9,26 +9,35 @@ Most commonly, this happens with Python's `http.server` module, which does not s
 
 ## Custom markers don't work, they cannot be dragged
 
-This problem is most often caused by having more than one copy of the Konva.js dependency in your JavaScript bundle.
+When using the Konva canvas driver, this problem is most often caused by
+having more than one copy of the `konva` dependency in your JavaScript
+bundle. Make sure your bundler de-duplicates `konva` and that the same
+instance is shared between Peaks.ts and your custom marker code.
 
-You should use the `peaks.esm.js` or `peaks.ext.js` builds (or their minified equivalents), which excludes external dependencies, rather than `peaks.js` which is fully self-contained.
+The published `dist/peaks.esm.js` declares `konva`, `pixi.js`, and
+`waveform-data` as external — they are loaded from your application's
+`node_modules`, so there is only ever one copy.
 
 ## How do I test a pre-release build?
 
-The best way to test a pre-release build in your own project is to clone the repo, check out the branch you want to use, and build locally:
+The best way to test a pre-release build in your own project is to clone the
+repo, check out the branch you want to use, and build locally:
 
 ```
-git clone git@github.com:bbc/peaks.js
-cd peaks.js
-npm install
-npm run build
+git clone git@github.com:jadujoel/peaks.ts
+cd peaks.ts
+bun install
+bun run build
 ```
 
-Then, in your own project, install Peaks.js then copy the files you just built into your project's `node_modules/peaks.js` folder:
+Then link or copy the built `dist/` folder into your project. With Bun /
+npm / pnpm you can use the workspace's `package.json` directly via a local
+path dependency:
 
-```
-npm install peaks.js
-cp ../peaks.js/peaks.js.d.ts node_modules/peaks.js
-cp ../peaks.js/dist/*.js node_modules/peaks.js/dist
-cp ../peaks.js/dist/*.map node_modules/peaks.js/dist
+```jsonc
+{
+  "dependencies": {
+    "@jadujoel/peaks.ts": "file:../peaks.ts"
+  }
+}
 ```

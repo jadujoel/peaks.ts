@@ -1,8 +1,13 @@
 # `@peaks/main-example`
 
 Comprehensive showcase for [`@jadujoel/peaks.ts`](../../) that exercises the
-**Pixi canvas driver** + **ClipNode audio driver** and exposes UI controls for
-every "bells and whistles" feature Peaks supports.
+**Konva** and **Pixi** canvas drivers (selectable at runtime) together with
+the **ClipNode audio driver**, and exposes UI controls for every "bells and
+whistles" feature Peaks supports.
+
+The active canvas driver can be chosen via the on-page selector or via the
+`?driver=konva|pixi` URL parameter (the choice is persisted in
+`localStorage`).
 
 ## Run
 

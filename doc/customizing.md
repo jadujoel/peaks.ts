@@ -48,8 +48,18 @@ This document describes how to customize various aspects of the waveform renderi
 **Note:** The APIs described in this document are not yet stable, and so may
 change at any time.
 
-Peaks.js makes use of the [Konva.js](https://konvajs.org/) graphics library,
-and so we recommend becoming familiar with Konva. You may find the following tutorials helpful:
+Peaks.ts renders waveforms through a pluggable `CanvasDriver`. Two drivers
+ship with the library:
+
+* `KonvaCanvasDriver` (default) — uses [Konva.js](https://konvajs.org/).
+* `PixiCanvasDriver` (experimental) — uses [Pixi.js](https://pixijs.com/) and
+  is loaded lazily via dynamic `import("pixi.js")`.
+
+Custom point and segment markers are written against the driver-agnostic
+`PeaksGroup` / `PeaksNode` abstractions exposed by Peaks.ts (see
+`src/peaks-group.ts` and `src/peaks-node.ts`). When using the Konva driver
+these map directly to `Konva.Group` and `Konva.Shape`, so the following
+Konva references remain useful background reading:
 
 * [Konva Polygon Tutorial](https://konvajs.github.io/docs/shapes/Line_-_Polygon.html)
 * [Konva Text Tutorial](https://konvajs.github.io/docs/shapes/Text.html)
