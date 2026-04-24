@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light dark">
+    <meta name="color-scheme" content="dark">
     <title>Peaks.js · Demo</title>
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
@@ -376,7 +376,7 @@
           pointMarkerColor: '#006eb0',
           showPlayheadTime: true,
           waveformCache: true,
-          zoomLevels: [512, 1024, 2048, 4096], 
+          zoomLevels: [512, 1024, 2048, 4096],
           zoomview: {
             container: document.getElementById('zoomview-container'),
             playheadClickTolerance: 3
@@ -403,7 +403,7 @@
 
           document.querySelector('button[data-action="add-segment"]').addEventListener('click', () => {
             peaksInstance.segments.add({
-              editable: true, 
+              editable: true,
               endTime: peaksInstance.player.getCurrentTime() + 2,
               labelText: `Test segment ${segmentCounter++}`,
               startTime: peaksInstance.player.getCurrentTime()
@@ -412,7 +412,7 @@
 
           document.querySelector('button[data-action="add-point"]').addEventListener('click', () => {
             peaksInstance.points.add({
-              editable: true, 
+              editable: true,
               labelText: 'Test point',
               time: peaksInstance.player.getCurrentTime()
             });
