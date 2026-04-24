@@ -30,6 +30,7 @@ import { ZoomController } from "./zoom-controller";
 export { ClipNodeAudioDriver } from "./driver/audio/clip-node/driver";
 export { KonvaCanvasDriver } from "./driver/konva/driver";
 export { PixiCanvasDriver } from "./driver/pixi/loader";
+export type { PeaksEvents } from "./events";
 export {
 	addSegmentOptions,
 	checkContainerElements,
@@ -41,6 +42,16 @@ export {
 	resolvePeaksOptions,
 	validateScrollbarContainer,
 } from "./peaks-options";
+export { Point } from "./point";
+export { Segment } from "./segment";
+export type {
+	PeaksConfiguration,
+	PeaksOptions,
+	PointOptions,
+	SegmentOptions,
+	SetSourceOptions,
+	WaveformViewLike,
+} from "./types";
 export { PeaksGroup, PeaksNode };
 
 export interface WaveformDataSlot {

@@ -25,6 +25,8 @@ jobs:
         run: bunx playwright install --with-deps ${{ matrix.project }}
       - name: Build
         run: bun run build
+      - name: Build main example
+        run: bun run example:build
       - name: Run E2E tests (${{ matrix.project }})
         run: bunx playwright test --project=${{ matrix.project }}
       - name: Upload test report

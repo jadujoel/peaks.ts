@@ -1,0 +1,21 @@
+{
+	"dependencies": {
+		"@jadujoel/peaks.ts": "file:../..",
+		"konva": "^9.3.18",
+		"pixi.js": "8.18.1",
+		"waveform-data": "^4.5.1"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"name": "@peaks/main-example",
+	"private": true,
+	"scripts": {
+		"build": "bun run build.ts",
+		"dev": "bun run serve.ts",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit -p tsconfig.json"
+	},
+	"type": "module",
+	"version": "0.0.0"
+}

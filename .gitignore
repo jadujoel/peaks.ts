@@ -31,3 +31,6 @@ test-results
 CLAUDE.md
 research
 demo
+workspaces/**/dist
+workspaces/**/public
+workspaces/**/node_modules

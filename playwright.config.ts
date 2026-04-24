@@ -21,9 +21,17 @@ export default defineConfig({
 		baseURL: "http://127.0.0.1:8080",
 		trace: "retain-on-failure",
 	},
-	webServer: {
-		command: "bun run start",
-		reuseExistingServer: !process.env.CI,
-		url: "http://127.0.0.1:8080",
-	},
+	webServer: [
+		{
+			command: "bun run start",
+			reuseExistingServer: !process.env.CI,
+			url: "http://127.0.0.1:8080",
+		},
+		{
+			command: "bun --filter @peaks/main-example dev",
+			env: { PORT: "8090" },
+			reuseExistingServer: !process.env.CI,
+			url: "http://127.0.0.1:8090",
+		},
+	],
 });

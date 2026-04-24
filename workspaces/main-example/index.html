@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Peaks.ts — Main Example</title>
+	<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+	<header>
+		<h1>Peaks.ts — Main Example</h1>
+		<p>
+			Comprehensive showcase using the Pixi canvas driver and the
+			<code>ClipNode</code> audio driver.
+		</p>
+		<p id="status">Initialising…</p>
+		<pre id="error" class="hide"></pre>
+	</header>
+
+	<section class="waveform-area">
+		<div id="zoomview-container" class="waveform-container"></div>
+		<div id="overview-container" class="waveform-container overview"></div>
+		<div id="scrollbar-container" class="scrollbar-container"></div>
+	</section>
+
+	<section class="controls">
+		<fieldset>
+			<legend>Playback</legend>
+			<button data-action="play" type="button">Play</button>
+			<button data-action="pause" type="button">Pause</button>
+			<button data-action="stop" type="button">Stop</button>
+			<span>Time: <output id="playhead-time">0.00</output>s</span>
+		</fieldset>
+
+		<fieldset>
+			<legend>Loops</legend>
+			<button data-action="loop-file" type="button">Loop file</button>
+			<button data-action="stop-loop" type="button">Stop loop</button>
+			<span>Looping: <output id="loop-status">(none)</output></span>
+		</fieldset>
+
+		<fieldset>
+			<legend>Zoom</legend>
+			<button data-action="zoom-in" type="button">Zoom in</button>
+			<button data-action="zoom-out" type="button">Zoom out</button>
+			<label>Level
+				<select id="zoom-level"></select>
+			</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Display</legend>
+			<label><input type="checkbox" id="auto-scroll" checked /> Auto-scroll</label>
+			<label><input type="checkbox" id="show-scrollbar" checked /> Scrollbar</label>
+			<label><input type="checkbox" id="show-overview" checked /> Overview</label>
+			<label>Drag mode
+				<select id="waveform-drag-mode">
+					<option value="scroll">scroll</option>
+					<option value="insert-segment">insert-segment</option>
+				</select>
+			</label>
+			<label>Segment drag
+				<select id="segment-drag-mode">
+					<option value="overlap">overlap</option>
+					<option value="no-overlap">no-overlap</option>
+					<option value="compress">compress</option>
+				</select>
+			</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Colors</legend>
+			<label>Waveform <input type="color" id="waveform-color" value="#00e180" /></label>
+			<label>Played <input type="color" id="played-color" value="#aa0044" /></label>
+			<label>Axis label <input type="color" id="axis-label-color" value="#aaaaaa" /></label>
+			<label>Axis grid <input type="color" id="axis-grid-color" value="#cccccc" /></label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Amplitude</legend>
+			<label>
+				Scale
+				<input type="range" id="amplitude-scale" min="0.1" max="4" step="0.1" value="1" />
+				<output id="amplitude-scale-value">1.0</output>
+			</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Channels</legend>
+			<label>
+				<select id="channel-mode">
+					<option value="mono">Mono</option>
+					<option value="stereo">Multi-channel</option>
+				</select>
+			</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Size</legend>
+			<label>
+				Width
+				<input type="range" id="width" min="400" max="1600" step="20" value="1000" />
+				<output id="width-value">1000</output>px
+			</label>
+			<label>
+				Height
+				<input type="range" id="height" min="100" max="400" step="10" value="200" />
+				<output id="height-value">200</output>px
+			</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Segments</legend>
+			<button data-action="add-segment" type="button">Add at playhead</button>
+			<table id="segments-table">
+				<thead>
+					<tr><th>ID</th><th>Label</th><th>Start</th><th>End</th><th></th><th></th></tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</fieldset>
+
+		<fieldset>
+			<legend>Points</legend>
+			<button data-action="add-point" type="button">Add at playhead</button>
+			<table id="points-table">
+				<thead>
+					<tr><th>ID</th><th>Time</th><th></th><th></th></tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</fieldset>
+	</section>
+
+	<script type="importmap">
+		{ "imports": { "pixi.js": "/pixi.min.mjs" } }
+	</script>
+	<script type="module" src="/dist/main.js"></script>
+</body>
+</html>

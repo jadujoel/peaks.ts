@@ -25,6 +25,7 @@
 		"pixi.js": "8.18.1",
 		"playwright": "^1.54.2",
 		"serve": "~14.2.3",
+		"vite": "8.0.10",
 		"vitest": "^4.0.7"
 	},
 	"engines": {
@@ -81,6 +82,9 @@
 		"check:no-konva-leak": "bun scripts/check-no-konva-leak.ts",
 		"check:no-pixi-leak": "bun scripts/check-no-pixi-leak.ts",
 		"copy-demo-files": "copyfiles --up 1 test/data/sample.mp3 test/data/07023003.mp3 test/data/07023003-2channel.dat demo",
+		"example": "bun --filter @peaks/main-example dev",
+		"example:build": "bun --filter @peaks/main-example build",
+		"example:typecheck": "bun --filter @peaks/main-example typecheck",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
 		"prebuild": "bun run check:no-konva-leak && bun run check:no-pixi-leak && bun run lint && bun run typecheck",
@@ -95,5 +99,8 @@
 	},
 	"type": "module",
 	"types": "./dist/esm/main.d.ts",
-	"version": "5.0.0"
+	"version": "5.0.0",
+	"workspaces": [
+		"workspaces/*"
+	]
 }

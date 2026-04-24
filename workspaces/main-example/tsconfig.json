@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"noEmit": true,
+		"outDir": "./dist",
+		"rootDir": ".",
+		"types": ["bun"]
+	},
+	"extends": "../../tsconfig.json",
+	"include": ["src/**/*.ts", "build.ts", "serve.ts"]
+}

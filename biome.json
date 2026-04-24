@@ -19,7 +19,9 @@
 			"!demo/chunk-*.js",
 			"!demo/chunk-*.map",
 			"!demo/pixi*.mjs",
-			"!demo/pixi*.map"
+			"!demo/pixi*.map",
+			"!workspaces/**/dist",
+			"!workspaces/**/public"
 		]
 	},
 	"linter": {
