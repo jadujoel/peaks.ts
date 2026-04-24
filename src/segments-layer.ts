@@ -154,6 +154,28 @@ export class SegmentsLayer {
 		this.layer.draw();
 	}
 
+	/**
+	 * Tears down all existing segment shapes and rebuilds them. Useful when
+	 * view-level segment options (e.g. start/end marker colors) change after
+	 * initialisation.
+	 */
+	rebuild(): void {
+		const segments: Segment[] = [];
+		for (const [, segmentShape] of this.segmentShapes) {
+			const segment = segmentShape.getSegment();
+			if (segment) segments.push(segment);
+			segmentShape.dispose();
+		}
+		this.segmentShapes.clear();
+		this.layer.removeChildren();
+		for (const segment of segments) {
+			const shape = this.addSegmentShape(segment);
+			shape.update();
+		}
+		this.moveSegmentMarkersToTop();
+		this.layer.draw();
+	}
+
 	getHeight(): number {
 		return this.layer.getHeight() ?? 0;
 	}

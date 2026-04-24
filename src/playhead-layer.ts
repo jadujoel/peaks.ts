@@ -23,8 +23,8 @@ export class PlayheadLayer {
 	private constructor(
 		private readonly player: PlayerInstance,
 		private readonly view: WaveformViewAPI,
-		private readonly playheadColor: string,
-		private readonly playheadTextColor: string,
+		private playheadColor: string,
+		private playheadTextColor: string,
 		private readonly playheadBackgroundColor: string,
 		private readonly playheadPadding: number,
 		private readonly playheadWidth: number,
@@ -92,6 +92,20 @@ export class PlayheadLayer {
 
 	addToStage(stage: DriverStage): void {
 		stage.add(this.playheadLayer);
+	}
+
+	setPlayheadColor(color: string): void {
+		this.playheadColor = color;
+		this.playheadLine.stroke(color);
+		this.playheadLayer.draw();
+	}
+
+	setPlayheadTextColor(color: string): void {
+		this.playheadTextColor = color;
+		if (this.playheadText) {
+			this.playheadText.fill(color);
+			this.playheadLayer.draw();
+		}
 	}
 
 	zoomLevelChanged(): void {

@@ -12,8 +12,8 @@ export class HighlightLayer {
 	private constructor(
 		private readonly view: WaveformViewAPI,
 		private readonly offset: number,
-		private readonly color: string,
-		private readonly strokeColor: string,
+		private color: string,
+		private strokeColor: string,
 		private readonly opacity: number,
 		private readonly cornerRadius: number,
 		private readonly layer: DriverLayer,
@@ -83,6 +83,18 @@ export class HighlightLayer {
 			height: height - offset * 2,
 			y: offset,
 		});
+	}
+
+	setHighlightColor(color: string): void {
+		this.color = color;
+		this.highlightRect?.fill(color);
+		this.layer.draw();
+	}
+
+	setHighlightStrokeColor(color: string): void {
+		this.strokeColor = color;
+		this.highlightRect?.stroke(color);
+		this.layer.draw();
 	}
 
 	private update(startTime: number, endTime: number): void {

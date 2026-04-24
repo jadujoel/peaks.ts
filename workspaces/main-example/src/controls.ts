@@ -74,10 +74,28 @@ export class Controls {
 		this.peaks.events.addEventListener("segments.add", this.renderSegments);
 		this.peaks.events.addEventListener("segments.remove", this.renderSegments);
 		this.peaks.events.addEventListener("segments.dragend", this.renderSegments);
+		this.peaks.events.addEventListener("segments.update", this.renderSegments);
 		this.peaks.events.addEventListener("points.add", this.renderPoints);
 		this.peaks.events.addEventListener("points.remove", this.renderPoints);
+		this.peaks.events.addEventListener("points.update", this.renderPoints);
 
 		document.body.addEventListener("click", this.onActionClick);
+		document.body.addEventListener("change", this.onLabelChange);
+	};
+
+	private onLabelChange = (event: Event): void => {
+		const target = event.target;
+		if (!(target instanceof HTMLInputElement)) return;
+		const action = target.getAttribute("data-action");
+		const id = target.getAttribute("data-id");
+		if (!id) return;
+		if (action === "rename-segment") {
+			const segment = this.peaks.segments.getSegment(id);
+			if (segment) segment.update({ labelText: target.value });
+		} else if (action === "rename-point") {
+			const point = this.peaks.points.getPoint(id);
+			if (point) point.update({ labelText: target.value });
+		}
 	};
 
 	private onActionClick = (event: MouseEvent): void => {
@@ -279,6 +297,41 @@ export class Controls {
 		label.addEventListener("input", () => apply("label", label.value));
 		const grid = input("axis-grid-color");
 		grid.addEventListener("input", () => apply("grid", grid.value));
+
+		const playhead = input("playhead-color");
+		playhead.addEventListener("input", () => {
+			this.zoomView().setPlayheadColor(playhead.value);
+			this.overviewView()?.setPlayheadColor(playhead.value);
+		});
+
+		const overviewWave = input("overview-waveform-color");
+		overviewWave.addEventListener("input", () => {
+			this.overviewView()?.setWaveformColor(overviewWave.value);
+		});
+
+		const overviewHighlight = input("overview-highlight-color");
+		overviewHighlight.addEventListener("input", () => {
+			this.overviewView()?.setHighlightColor(overviewHighlight.value);
+		});
+
+		const startMarker = input("segment-start-marker-color");
+		startMarker.addEventListener("input", () => {
+			this.zoomView().setSegmentStartMarkerColor(startMarker.value);
+			this.overviewView()?.setSegmentStartMarkerColor(startMarker.value);
+		});
+
+		const endMarker = input("segment-end-marker-color");
+		endMarker.addEventListener("input", () => {
+			this.zoomView().setSegmentEndMarkerColor(endMarker.value);
+			this.overviewView()?.setSegmentEndMarkerColor(endMarker.value);
+		});
+
+		const segWave = input("segment-waveform-color");
+		segWave.addEventListener("input", () => {
+			for (const segment of this.peaks.segments.getSegments()) {
+				segment.update({ color: segWave.value });
+			}
+		});
 	};
 
 	private wireAmplitude = (): void => {
@@ -340,14 +393,15 @@ export class Controls {
 		const segments = this.peaks.segments.getSegments();
 		const rows = segments.map((segment: Segment) => {
 			const label = segment.labelText.length > 0 ? segment.labelText : "";
+			const id = this.escape(segment.id);
 			return (
 				`<tr>` +
-				`<td>${this.escape(segment.id)}</td>` +
-				`<td>${this.escape(label)}</td>` +
+				`<td>${id}</td>` +
+				`<td><input type="text" class="rename-input" data-action="rename-segment" data-id="${id}" value="${this.escape(label)}" /></td>` +
 				`<td>${segment.startTime.toFixed(2)}</td>` +
 				`<td>${segment.endTime.toFixed(2)}</td>` +
-				`<td><button type="button" data-action="loop-segment" data-id="${this.escape(segment.id)}">Loop</button></td>` +
-				`<td><button type="button" data-action="remove-segment" data-id="${this.escape(segment.id)}">Remove</button></td>` +
+				`<td><button type="button" data-action="loop-segment" data-id="${id}">Loop</button></td>` +
+				`<td><button type="button" data-action="remove-segment" data-id="${id}">Remove</button></td>` +
 				`</tr>`
 			);
 		});
@@ -361,12 +415,15 @@ export class Controls {
 		if (!tbody) return;
 		const points = this.peaks.points.getPoints();
 		const rows = points.map((point: Point) => {
+			const label = point.labelText.length > 0 ? point.labelText : "";
+			const id = this.escape(point.id);
 			return (
 				`<tr>` +
-				`<td>${this.escape(point.id)}</td>` +
+				`<td>${id}</td>` +
+				`<td><input type="text" class="rename-input" data-action="rename-point" data-id="${id}" value="${this.escape(label)}" /></td>` +
 				`<td>${point.time.toFixed(2)}</td>` +
-				`<td><button type="button" data-action="jump-point" data-id="${this.escape(point.id)}">Jump</button></td>` +
-				`<td><button type="button" data-action="remove-point" data-id="${this.escape(point.id)}">Remove</button></td>` +
+				`<td><button type="button" data-action="jump-point" data-id="${id}">Jump</button></td>` +
+				`<td><button type="button" data-action="remove-point" data-id="${id}">Remove</button></td>` +
 				`</tr>`
 			);
 		});

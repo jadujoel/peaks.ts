@@ -94,9 +94,20 @@ async function initPeaks(
 		driver,
 		emitCueEvents: true,
 		keyboard: true,
-		overview: { container: div("overview-container") },
+		overview: {
+			container: div("overview-container"),
+			highlightColor: "#5fa8d3",
+			highlightOpacity: 0.25,
+			waveformColor: "rgba(95, 168, 211, 0.5)",
+		},
+		playheadColor: "#ffffff",
 		pointMarkerColor: "#006eb0",
 		scrollbar: { container: div("scrollbar-container") },
+		segmentOptions: {
+			endMarkerColor: "#ffffff",
+			startMarkerColor: "#ffffff",
+			waveformColor: "#5fa8d3",
+		},
 		showPlayheadTime: true,
 		webAudio: {
 			multiChannel: state.multiChannel,

@@ -811,6 +811,18 @@ export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 	setAxisGridlineColor(color: string): void {
 		this.view.setAxisGridlineColor(color);
 	}
+	setPlayheadColor(color: string): void {
+		this.view.setPlayheadColor(color);
+	}
+	setPlayheadTextColor(color: string): void {
+		this.view.setPlayheadTextColor(color);
+	}
+	setSegmentStartMarkerColor(color: string): void {
+		this.view.setSegmentStartMarkerColor(color);
+	}
+	setSegmentEndMarkerColor(color: string): void {
+		this.view.setSegmentEndMarkerColor(color);
+	}
 	showPlayheadTime(show: boolean): void {
 		this.view.showPlayheadTime(show);
 	}

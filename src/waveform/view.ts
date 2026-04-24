@@ -400,6 +400,30 @@ export class WaveformView {
 		this.axisLayer.draw();
 	}
 
+	setPlayheadColor(color: string): void {
+		this.playheadLayer.setPlayheadColor(color);
+	}
+
+	setPlayheadTextColor(color: string): void {
+		this.playheadLayer.setPlayheadTextColor(color);
+	}
+
+	setSegmentStartMarkerColor(color: string): void {
+		const segmentOptions = this.viewOptions.segmentOptions as unknown as {
+			startMarkerColor: string;
+		};
+		segmentOptions.startMarkerColor = color;
+		this.segmentsLayer?.rebuild();
+	}
+
+	setSegmentEndMarkerColor(color: string): void {
+		const segmentOptions = this.viewOptions.segmentOptions as unknown as {
+			endMarkerColor: string;
+		};
+		segmentOptions.endMarkerColor = color;
+		this.segmentsLayer?.rebuild();
+	}
+
 	showPlayheadTime(show: boolean): void {
 		this.playheadLayer.showPlayheadTime(show);
 	}

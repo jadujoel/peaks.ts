@@ -428,6 +428,10 @@ export interface WaveformViewColorAPI extends WaveformViewLike {
 	setPlayedWaveformColor(color: WaveformColor | undefined): void;
 	setAxisLabelColor(color: string): void;
 	setAxisGridlineColor(color: string): void;
+	setPlayheadColor(color: string): void;
+	setPlayheadTextColor(color: string): void;
+	setSegmentStartMarkerColor(color: string): void;
+	setSegmentEndMarkerColor(color: string): void;
 	setAmplitudeScale(scale: number): undefined | never;
 }
 
@@ -439,7 +443,9 @@ export interface WaveformZoomviewAPI extends WaveformViewColorAPI {
 }
 
 // Public surface of the overview waveform view that consumers wire to UI.
-export type WaveformOverviewAPI = WaveformViewColorAPI;
+export interface WaveformOverviewAPI extends WaveformViewColorAPI {
+	setHighlightColor(color: string): void;
+}
 
 // Lighter view interface for cross-referencing
 // `setZoom` is only implemented by the zoom view, so it is optional here
