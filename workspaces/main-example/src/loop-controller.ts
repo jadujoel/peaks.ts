@@ -2,9 +2,7 @@ import type { Peaks, Segment } from "@jadujoel/peaks.ts";
 
 /**
  * Coordinates loop state for the example. Supports:
- *   • whole-file loop — implemented as a `playSegment` over `[0, duration]`
- *     with `loop: true`, since `ClipNodeAudioDriver` exposes loop only via
- *     the playSegment options object.
+ *   • whole-file loop — delegates to `peaks.player.playLooped()`.
  *   • single-segment loop — exposes a `loopSegment(segment)` method.
  *   • clearing the loop — `stop()` pauses playback and resets state.
  */
@@ -34,18 +32,9 @@ export class LoopController {
 		if (!Number.isFinite(duration) || duration <= 0) {
 			return Promise.resolve();
 		}
-		// The ClipNode driver expects a `Segment`-shaped object; build a
-		// transient one without inserting it into the segment store.
-		const transient: Segment = {
-			editable: false,
-			endTime: duration,
-			id: "__loop-file__",
-			labelText: "",
-			startTime: 0,
-		} as unknown as Segment;
 		this.state = { kind: "file" };
 		this.onChange("entire file");
-		return this.peaks.player.playSegment(transient, true);
+		return this.peaks.player.playLooped();
 	};
 
 	loopSegment = (segment: Segment): Promise<void> => {

@@ -2,24 +2,11 @@ import type {
 	Peaks,
 	Point,
 	Segment,
-	WaveformViewLike,
+	WaveformOverviewAPI,
+	WaveformZoomviewAPI,
 } from "@jadujoel/peaks.ts";
 import { div, input, output, select } from "./dom";
 import type { LoopController } from "./loop-controller";
-
-interface ColorAndDragView extends WaveformViewLike {
-	setWaveformColor(color: string): void;
-	setPlayedWaveformColor(color: string): void;
-	setAxisLabelColor(color: string): void;
-	setAxisGridlineColor(color: string): void;
-	setAmplitudeScale(scale: number): undefined | never;
-}
-
-interface ZoomViewExtras extends ColorAndDragView {
-	enableAutoScroll(enable: boolean, options?: { offset?: number }): void;
-	setWaveformDragMode(mode: string): void;
-	setSegmentDragMode(mode: string): void;
-}
 
 export type ChannelSwitcher = (mode: "mono" | "stereo") => Promise<void>;
 
@@ -59,18 +46,16 @@ export class Controls {
 		return controls;
 	}
 
-	private zoomView(): ZoomViewExtras {
-		const view = this.peaks.views.getView("zoomview") as
-			| ZoomViewExtras
-			| undefined;
+	private zoomView(): WaveformZoomviewAPI {
+		const view = this.peaks.views.getZoomview();
 		if (!view) {
 			throw new Error("zoomview not available");
 		}
 		return view;
 	}
 
-	private overviewView(): ColorAndDragView | undefined {
-		return this.peaks.views.getView("overview") as ColorAndDragView | undefined;
+	private overviewView(): WaveformOverviewAPI | undefined {
+		return this.peaks.views.getOverview();
 	}
 
 	private wirePlayback = (): void => {

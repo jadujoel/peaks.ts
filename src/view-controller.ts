@@ -166,6 +166,22 @@ export class ViewController {
 		}
 	}
 
+	/**
+	 * Typed accessor for the zoomable waveform view. Prefer this over
+	 * {@link ViewController.getView} when you need the concrete
+	 * `WaveformZoomView` surface (autoscroll, drag modes, color setters).
+	 */
+	getZoomview(): WaveformZoomView | undefined {
+		return this.zoomview;
+	}
+
+	/**
+	 * Typed accessor for the overview waveform view.
+	 */
+	getOverview(): WaveformOverview | undefined {
+		return this.overview;
+	}
+
 	getScrollbar(): Scrollbar | undefined {
 		return this.scrollbar;
 	}

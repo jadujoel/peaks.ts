@@ -2,12 +2,22 @@
 
 ## Unreleased (Peaks.ts)
 
-* `Peaks.from()` no longer accepts a callback. It now returns a
-  `ResultAsync<Peaks, Error>` from the
-  [`neverthrow`](https://github.com/supermacro/neverthrow) library, which is
-  thenable (so it composes with `await`/`.then()`) and supports the standard
-  `neverthrow` combinators. See
-  [doc/migration-guide.md](doc/migration-guide.md) for details.
+* **Breaking:** `Peaks.from()` now returns `Promise<Peaks>` and rejects on
+  init failure. Use `Peaks.tryFrom()` for the Result-shaped variant.
+* **Breaking:** `peaks.setSource(options)` now returns `Promise<void>`. The
+  callback form has been removed.
+* Added `peaks.views.getZoomview()` and `peaks.views.getOverview()` typed
+  accessors returning `WaveformZoomviewAPI | undefined` and
+  `WaveformOverviewAPI | undefined` so callers no longer have to cast the
+  result of `getView()`.
+* Added `peaks.player.playLooped()` to loop the entire source without
+  fabricating a transient `Segment`.
+* `AudioDriver` may implement `getSource()` so `Peaks.from()` and
+  `peaks.setSource()` auto-fill `webAudio.buffer` / `webAudio.context` from
+  the driver, removing the need to pass the same buffer twice.
+* Removed the previously-documented `ResultAsync` return type from
+  `Peaks.from()`. See [doc/migration-guide.md](doc/migration-guide.md) for
+  details.
 
 ## 4.0.0-beta.2 (2025/05/13)
 

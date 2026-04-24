@@ -50,7 +50,9 @@ export type {
 	PointOptions,
 	SegmentOptions,
 	SetSourceOptions,
+	WaveformOverviewAPI,
 	WaveformViewLike,
+	WaveformZoomviewAPI,
 } from "./types";
 export { PeaksGroup, PeaksNode };
 
@@ -78,14 +80,24 @@ export class Peaks {
 	) {}
 
 	/**
-	 * Initializes a Peaks instance and asynchronously builds its waveform views.
-	 *
-	 * Returns a `ResultAsync<Peaks, Error>` (which is also a `Promise`) that
-	 * resolves to a `Result` describing either the ready instance or the
-	 * initialization error. Callers should `await` it and inspect the
-	 * `Result` rather than relying on promise rejection for failures.
+	 * Initializes a Peaks instance and asynchronously builds its waveform
+	 * views. Resolves to the ready instance or rejects with the initialization
+	 * error. Use {@link Peaks.tryFrom} if you prefer a `ResultAsync`.
 	 */
-	static from(config: PeaksConfiguration): ResultAsync<Peaks, Error> {
+	static async from(config: PeaksConfiguration): Promise<Peaks> {
+		return Peaks.tryFrom(config).match(
+			(peaks) => peaks,
+			(error) => {
+				throw error;
+			},
+		);
+	}
+
+	/**
+	 * Result-returning variant of {@link Peaks.from}. Resolves to a
+	 * `Result<Peaks, Error>` instead of throwing.
+	 */
+	static tryFrom(config: PeaksConfiguration): ResultAsync<Peaks, Error> {
 		const optionsResult = resolvePeaksOptions(config);
 		if (optionsResult.isErr()) {
 			return errAsync(optionsResult.error);
@@ -223,46 +235,70 @@ export class Peaks {
 			.andThen((peaks) => okAsync<Peaks, Error>(peaks));
 	}
 
-	setSource(options: SetSourceOptions, callback: (err?: Error) => void) {
-		this.player
-			.setSource(options)
-			.then(() => {
-				if (!options.zoomLevels) {
-					(options as Writable<SetSourceOptions>).zoomLevels =
-						this.options.zoomLevels;
-				}
-
-				this.waveformBuilder = WaveformBuilder.from({
-					peaks: this as unknown as PeaksInstance,
-				});
-
-				this.waveformBuilder?.init(options, (err, data) => {
-					if (err) {
-						callback(err);
-						return;
+	/**
+	 * Replaces the audio source and rebuilds waveform data. Resolves once
+	 * the new waveform is rendered, rejects on any failure (driver error,
+	 * waveform parse error, missing media, etc.).
+	 */
+	setSource(options: SetSourceOptions): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			this.player
+				.setSource(options)
+				.then(() => {
+					if (!options.zoomLevels) {
+						(options as Writable<SetSourceOptions>).zoomLevels =
+							this.options.zoomLevels;
 					}
 
-					this.waveformBuilder = undefined;
-					this.waveformDataSlot.value = data;
+					// If the driver owns the buffer (e.g. ClipNodeAudioDriver),
+					// auto-fill `webAudio.buffer` so the WaveformBuilder doesn't
+					// require the caller to repeat what the driver already has.
+					const driverSource = this.player.driver.getSource?.();
+					const driverWebAudio = driverSource?.webAudio;
+					if (driverWebAudio?.buffer && options.webAudio) {
+						const callerWebAudio = options.webAudio;
+						const buffer = callerWebAudio.buffer ?? driverWebAudio.buffer;
+						const context = callerWebAudio.context ?? driverWebAudio.context;
+						const writable = options as Writable<SetSourceOptions>;
+						writable.webAudio = {
+							...callerWebAudio,
+							...(buffer !== undefined ? { buffer } : {}),
+							...(context !== undefined ? { context } : {}),
+						};
+					}
 
-					for (const viewName of ["overview", "zoomview"] as const) {
-						const view = this.views.getView(viewName);
+					this.waveformBuilder = WaveformBuilder.from({
+						peaks: this as unknown as PeaksInstance,
+					});
 
-						if (view && data) {
-							view.setWaveformData(data);
+					this.waveformBuilder?.init(options, (err, data) => {
+						if (err) {
+							reject(err);
+							return;
 						}
-					}
 
-					if (options.zoomLevels) {
-						this.zoom.setLevels(options.zoomLevels);
-					}
+						this.waveformBuilder = undefined;
+						this.waveformDataSlot.value = data;
 
-					callback();
+						for (const viewName of ["overview", "zoomview"] as const) {
+							const view = this.views.getView(viewName);
+
+							if (view && data) {
+								view.setWaveformData(data);
+							}
+						}
+
+						if (options.zoomLevels) {
+							this.zoom.setLevels(options.zoomLevels);
+						}
+
+						resolve();
+					});
+				})
+				.catch((err: Error) => {
+					reject(err);
 				});
-			})
-			.catch((err: Error) => {
-				callback(err);
-			});
+		});
 	}
 
 	getWaveformData(): WaveformData | undefined {

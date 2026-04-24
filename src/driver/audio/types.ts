@@ -61,4 +61,11 @@ export interface AudioDriver {
 	seek(time: number): void;
 	playSegment(options: PlaySegmentOptions): Promise<void>;
 	setSource(source: AudioSource): Promise<void>;
+	/**
+	 * Optional accessor used by Peaks to auto-fill `webAudio.buffer` (and
+	 * other source fields) so callers don't have to pass the same buffer
+	 * twice — once to construct the driver, once to configure the
+	 * WaveformBuilder. Drivers that don't own a buffer return `undefined`.
+	 */
+	getSource?(): AudioSource | undefined;
 }

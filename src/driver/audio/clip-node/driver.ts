@@ -174,11 +174,31 @@ export class ClipNodeAudioDriver implements AudioDriver {
 
 	async setSource(source: AudioSource): Promise<void> {
 		this.disposeNode();
-		this.buffer = source.webAudio?.buffer;
-		this.url = source.mediaUrl;
+		// Preserve existing buffer/url when the caller only updates side
+		// options like `multiChannel`. This lets `peaks.setSource({ webAudio:
+		// { multiChannel: true } })` work without re-passing the buffer.
+		if (source.webAudio?.buffer !== undefined) {
+			this.buffer = source.webAudio.buffer;
+		}
+		if (source.mediaUrl !== undefined) {
+			this.url = source.mediaUrl;
+		}
 		this.duration = this.buffer?.duration ?? 0;
 		await ensureWorkletModule(this.context);
 		this.createNode();
+	}
+
+	getSource(): AudioSource | undefined {
+		if (!this.buffer && this.url === undefined) {
+			return undefined;
+		}
+		return {
+			...(this.url !== undefined ? { mediaUrl: this.url } : {}),
+			webAudio: {
+				...(this.buffer !== undefined ? { buffer: this.buffer } : {}),
+				context: this.context,
+			},
+		};
 	}
 
 	private createNode(): void {

@@ -1,7 +1,6 @@
-// TODO: This is a transitional test adapter that bridges the old
-// callback-style `Peaks.from` signature used pervasively by the unit tests
-// to the new `ResultAsync`-returning `Peaks.from` API. New tests should
-// `await Peaks.from(opts)` and inspect the returned `Result` directly.
+// Transitional adapter that exposes the historical callback-style API
+// over the new Promise-based `Peaks.from`. New tests should
+// `await Peaks.from(opts)` (or `Peaks.tryFrom` for a `Result`) directly.
 
 import { Peaks } from "../../src/main";
 import type { PeaksConfiguration } from "../../src/types";
@@ -13,15 +12,11 @@ export function initPeaks(
 	callback: InitPeaksCallback,
 ): void {
 	Peaks.from(opts).then(
-		(result) => {
-			if (result.isErr()) {
-				callback(result.error);
-				return;
-			}
-			callback(undefined, result.value);
+		(instance) => {
+			callback(undefined, instance);
 		},
 		(error: unknown) => {
-			callback(error instanceof Error ? error : new Error(String(error)));
+			callback(error as Error);
 		},
 	);
 }

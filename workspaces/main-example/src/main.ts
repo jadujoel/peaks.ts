@@ -19,7 +19,6 @@ type CanvasDriver =
 
 interface AppState {
 	audioContext: AudioContext;
-	buffer: AudioBuffer;
 	multiChannel: boolean;
 }
 
@@ -81,15 +80,16 @@ async function fetchBuffer(
 
 async function initPeaks(
 	state: AppState,
+	buffer: AudioBuffer,
 	driverChoice: DriverChoice,
 ): Promise<Peaks> {
 	const audioDriver = ClipNodeAudioDriver.from({
-		buffer: state.buffer,
+		buffer,
 		context: state.audioContext,
 	});
 	const driver = await createDriver(driverChoice);
 
-	const result = await Peaks.from({
+	const peaks = await Peaks.from({
 		audio: audioDriver,
 		driver,
 		emitCueEvents: true,
@@ -99,7 +99,6 @@ async function initPeaks(
 		scrollbar: { container: div("scrollbar-container") },
 		showPlayheadTime: true,
 		webAudio: {
-			buffer: state.buffer,
 			multiChannel: state.multiChannel,
 			scale: 128,
 		},
@@ -110,10 +109,7 @@ async function initPeaks(
 		},
 	});
 
-	if (result.isErr()) {
-		throw result.error;
-	}
-	return result.value;
+	return peaks;
 }
 
 async function main(): Promise<void> {
@@ -122,9 +118,9 @@ async function main(): Promise<void> {
 
 	const audioContext = new AudioContext();
 	const buffer = await fetchBuffer(AUDIO_URL, audioContext);
-	const state: AppState = { audioContext, buffer, multiChannel: false };
+	const state: AppState = { audioContext, multiChannel: false };
 
-	const peaks = await initPeaks(state, driverChoice);
+	const peaks = await initPeaks(state, buffer, driverChoice);
 	(globalThis as unknown as { peaksInstance: Peaks }).peaksInstance = peaks;
 
 	const status = byId("status", HTMLParagraphElement);
@@ -137,22 +133,11 @@ async function main(): Promise<void> {
 
 	const channelSwitcher = async (mode: "mono" | "stereo"): Promise<void> => {
 		state.multiChannel = mode === "stereo";
-		// `setSource` returns via callback in the public API.
-		await new Promise<void>((resolveSwap, rejectSwap) => {
-			peaks.setSource(
-				{
-					webAudio: {
-						buffer: state.buffer,
-						multiChannel: state.multiChannel,
-						scale: 128,
-					},
-					zoomLevels: ZOOM_LEVELS,
-				},
-				(err) => {
-					if (err) rejectSwap(err);
-					else resolveSwap();
-				},
-			);
+		await peaks.setSource({
+			webAudio: {
+				multiChannel: state.multiChannel,
+				scale: 128,
+			},
 		});
 	};
 

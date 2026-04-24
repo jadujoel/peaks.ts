@@ -61,6 +61,12 @@ test("main example loads, exposes every feature group, and round-trips actions",
 	await page.locator('button[data-action="stop-loop"]').click();
 	await expect(page.locator("#loop-status")).toHaveText("(none)");
 
+	// P4: whole-file loop via player.playLooped() (no transient Segment hack)
+	await page.locator('button[data-action="loop-file"]').click();
+	await expect(page.locator("#loop-status")).toHaveText("entire file");
+	await page.locator('button[data-action="stop-loop"]').click();
+	await expect(page.locator("#loop-status")).toHaveText("(none)");
+
 	// Add a segment at the playhead and verify a new row appears
 	const initialRowCount = await page
 		.locator("#segments-table tbody tr")

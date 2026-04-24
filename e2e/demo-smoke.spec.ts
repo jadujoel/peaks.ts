@@ -65,7 +65,9 @@ test("precomputed waveform demo handles keyboard navigation without errors", asy
 	expect(consoleErrors).toEqual([]);
 });
 
-test("public init API returns a thenable Result", async ({ page }) => {
+test("public init API returns a Promise that rejects on bad config", async ({
+	page,
+}) => {
 	await page.goto("/index.html");
 
 	const result = await page.evaluate(async () => {
@@ -85,13 +87,21 @@ test("public init API returns a thenable Result", async ({ page }) => {
 			typeof returnValue === "object" &&
 			typeof (returnValue as { then?: unknown }).then === "function";
 
-		const awaited = (await returnValue) as { isErr: () => boolean };
+		let rejected = false;
+		let message = "";
+		try {
+			await returnValue;
+		} catch (error) {
+			rejected = true;
+			message = (error as Error).message;
+		}
 
-		return { isErr: awaited.isErr(), isThenable };
+		return { isThenable, message, rejected };
 	});
 
 	expect(result.isThenable).toBe(true);
-	expect(result.isErr).toBe(true);
+	expect(result.rejected).toBe(true);
+	expect(result.message.length).toBeGreaterThan(0);
 });
 
 test("public async init API resolves with an instance", async ({ page }) => {
@@ -103,30 +113,26 @@ test("public async init API resolves with an instance", async ({ page }) => {
 		) as () => Promise<{
 			Peaks: {
 				from: (options: Record<string, unknown>) => Promise<{
-					_unsafeUnwrap: () => {
-						dispose: () => void;
-						views: { getView: (name: string) => unknown };
-					};
+					dispose: () => void;
+					views: { getView: (name: string) => unknown };
 				}>;
 			};
 		}>;
 		const peaksModule = await loadPeaks();
-		const instance = (
-			await peaksModule.Peaks.from({
-				dataUri: {
-					arraybuffer: "/TOL_6min_720p_download.dat",
-					json: "/TOL_6min_720p_download.json",
-				},
-				mediaElement: document.getElementById("audio"),
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-					playheadClickTolerance: 3,
-				},
-			})
-		)._unsafeUnwrap();
+		const instance = await peaksModule.Peaks.from({
+			dataUri: {
+				arraybuffer: "/TOL_6min_720p_download.dat",
+				json: "/TOL_6min_720p_download.json",
+			},
+			mediaElement: document.getElementById("audio"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+				playheadClickTolerance: 3,
+			},
+		});
 
 		const hasZoomview = Boolean(instance.views.getView("zoomview"));
 		instance.dispose();
@@ -148,35 +154,31 @@ test("public async init API returns working concrete view instances", async ({
 		) as () => Promise<{
 			Peaks: {
 				from: (options: Record<string, unknown>) => Promise<{
-					_unsafeUnwrap: () => {
-						dispose: () => void;
-						views: {
-							getView: (name: string) => {
-								constructor?: { name?: string };
-								getStartTime: () => number;
-								scrollWaveform?: (options: { pixels: number }) => void;
-							};
+					dispose: () => void;
+					views: {
+						getView: (name: string) => {
+							constructor?: { name?: string };
+							getStartTime: () => number;
+							scrollWaveform?: (options: { pixels: number }) => void;
 						};
 					};
 				}>;
 			};
 		}>;
 		const peaksModule = await loadPeaks();
-		const instance = (
-			await peaksModule.Peaks.from({
-				dataUri: {
-					arraybuffer: "/TOL_6min_720p_download.dat",
-					json: "/TOL_6min_720p_download.json",
-				},
-				mediaElement: document.getElementById("audio"),
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
-			})
-		)._unsafeUnwrap();
+		const instance = await peaksModule.Peaks.from({
+			dataUri: {
+				arraybuffer: "/TOL_6min_720p_download.dat",
+				json: "/TOL_6min_720p_download.json",
+			},
+			mediaElement: document.getElementById("audio"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+			},
+		});
 
 		const overview = instance.views.getView("overview");
 		const zoomview = instance.views.getView("zoomview");
@@ -201,7 +203,9 @@ test("public async init API returns working concrete view instances", async ({
 	expect(result.startTimeMoved).toBe(true);
 });
 
-test("Peaks.from resolves to an Ok Result on success", async ({ page }) => {
+test("Peaks.from resolves with a usable instance on success", async ({
+	page,
+}) => {
 	await page.goto("/index.html");
 
 	const result = await page.evaluate(async () => {
@@ -209,15 +213,14 @@ test("Peaks.from resolves to an Ok Result on success", async ({ page }) => {
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
 			Peaks: {
-				from: (options: Record<string, unknown>) => Promise<{
-					isOk: () => boolean;
-					_unsafeUnwrap: () => { dispose: () => void };
-				}>;
+				from: (
+					options: Record<string, unknown>,
+				) => Promise<{ dispose: () => void }>;
 			};
 		}>;
 		const peaksModule = await loadPeaks();
 
-		const initResult = await peaksModule.Peaks.from({
+		const instance = await peaksModule.Peaks.from({
 			dataUri: {
 				arraybuffer: "/TOL_6min_720p_download.dat",
 				json: "/TOL_6min_720p_download.json",
@@ -231,15 +234,12 @@ test("Peaks.from resolves to an Ok Result on success", async ({ page }) => {
 			},
 		});
 
-		const isOk = initResult.isOk();
-		const instance = initResult._unsafeUnwrap();
-		const instanceOk = Boolean(instance);
+		const instanceOk = typeof instance.dispose === "function";
 		instance.dispose();
 
-		return { instanceOk, isOk };
+		return { instanceOk };
 	});
 
-	expect(result.isOk).toBe(true);
 	expect(result.instanceOk).toBe(true);
 });
 
@@ -301,11 +301,9 @@ test("custom point marker factory receives wrapper marker surface", async ({
 		) as () => Promise<{
 			Peaks: {
 				from: (options: Record<string, unknown>) => Promise<{
-					_unsafeUnwrap: () => {
-						dispose: () => void;
-						points: {
-							add: (point: { time: number; editable: boolean }) => void;
-						};
+					dispose: () => void;
+					points: {
+						add: (point: { time: number; editable: boolean }) => void;
 					};
 				}>;
 			};
@@ -318,50 +316,48 @@ test("custom point marker factory receives wrapper marker surface", async ({
 			hasAddText: false,
 		};
 
-		const instance = (
-			await peaksModule.Peaks.from({
-				createPointMarker: () => {
-					return {
-						dispose: () => {},
-						fitToView: () => {},
-						init: (group: {
-							addLine?: (attrs: Record<string, unknown>) => unknown;
-							addRect?: (attrs: Record<string, unknown>) => unknown;
-							addText?: (attrs: Record<string, unknown>) => unknown;
-						}) => {
-							markerSurface.hasAddRect = typeof group.addRect === "function";
-							markerSurface.hasAddLine = typeof group.addLine === "function";
-							markerSurface.hasAddText = typeof group.addText === "function";
-							group.addRect?.({ height: 6, width: 6, x: -3, y: 8 });
-							group.addLine?.({
-								points: [0, 0, 0, 40],
-								stroke: "#222",
-								strokeWidth: 1,
-							});
-							group.addText?.({
-								fill: "#111",
-								fontSize: 10,
-								text: "T",
-								x: 4,
-								y: 6,
-							});
-						},
-						update: () => {},
-					};
-				},
-				dataUri: {
-					arraybuffer: "/TOL_6min_720p_download.dat",
-					json: "/TOL_6min_720p_download.json",
-				},
-				mediaElement: document.getElementById("audio"),
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
-			})
-		)._unsafeUnwrap();
+		const instance = await peaksModule.Peaks.from({
+			createPointMarker: () => {
+				return {
+					dispose: () => {},
+					fitToView: () => {},
+					init: (group: {
+						addLine?: (attrs: Record<string, unknown>) => unknown;
+						addRect?: (attrs: Record<string, unknown>) => unknown;
+						addText?: (attrs: Record<string, unknown>) => unknown;
+					}) => {
+						markerSurface.hasAddRect = typeof group.addRect === "function";
+						markerSurface.hasAddLine = typeof group.addLine === "function";
+						markerSurface.hasAddText = typeof group.addText === "function";
+						group.addRect?.({ height: 6, width: 6, x: -3, y: 8 });
+						group.addLine?.({
+							points: [0, 0, 0, 40],
+							stroke: "#222",
+							strokeWidth: 1,
+						});
+						group.addText?.({
+							fill: "#111",
+							fontSize: 10,
+							text: "T",
+							x: 4,
+							y: 6,
+						});
+					},
+					update: () => {},
+				};
+			},
+			dataUri: {
+				arraybuffer: "/TOL_6min_720p_download.dat",
+				json: "/TOL_6min_720p_download.json",
+			},
+			mediaElement: document.getElementById("audio"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+			},
+		});
 
 		instance.points.add({ editable: true, time: 1 });
 		const surfaceSnapshot = { ...markerSurface };

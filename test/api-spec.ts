@@ -5,6 +5,7 @@ import { WaveformOverview } from "../src/waveform/overview";
 import { WaveformZoomView } from "../src/waveform/zoomview";
 import sampleJsonData from "./data/sample.json";
 import { initPeaks } from "./helpers/init-peaks";
+import { setSource } from "./helpers/set-source";
 
 const TestAudioContext = window.AudioContext;
 
@@ -68,8 +69,8 @@ describe("Peaks", () => {
 	});
 
 	describe("from", () => {
-		it("should return a ResultAsync that resolves to an Ok with a Peaks instance", async () => {
-			const result = await Peaks.from({
+		it("should resolve with a Peaks instance", async () => {
+			const instance = await Peaks.from({
 				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 				mediaElement: document.getElementById("media") as HTMLMediaElement,
 				overview: {
@@ -84,22 +85,24 @@ describe("Peaks", () => {
 				},
 			});
 
-			expect(result.isOk()).to.equal(true);
-			const instance = result._unsafeUnwrap();
 			expect(instance).to.be.an.instanceof(Peaks);
 			instance.dispose();
 		});
 
-		it("should return a ResultAsync that resolves to an Err on invalid options", async () => {
-			const result = await Peaks.from({
-				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
-				mediaElement: document.getElementById("media") as HTMLMediaElement,
-				overview: {},
-				zoomview: {},
-			});
+		it("should reject when invalid options are supplied", async () => {
+			let caught: Error | undefined;
+			try {
+				await Peaks.from({
+					dataUri: { arraybuffer: "/base/test/data/sample.dat" },
+					mediaElement: document.getElementById("media") as HTMLMediaElement,
+					overview: {},
+					zoomview: {},
+				});
+			} catch (error) {
+				caught = error as Error;
+			}
 
-			expect(result.isErr()).to.equal(true);
-			const error = result._unsafeUnwrapErr();
+			const error = expectPresent(caught);
 			expect(error).to.be.an.instanceOf(TypeError);
 			expect(error.message).to.match(/must be valid HTML elements/);
 		});
@@ -1133,7 +1136,7 @@ describe("Peaks", () => {
 					mediaUrl: "/base/test/data/unknown.mp3",
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					expect(error).to.be.an.instanceOf(MediaError);
 					done();
 				});
@@ -1154,7 +1157,7 @@ describe("Peaks", () => {
 				const peaks = getActivePeaks();
 				peaks.events.addEventListener("player.error", onError);
 
-				peaks.setSource(options, (error) => {
+				setSource(peaks, options, (error) => {
 					expect(error).to.be.an.instanceOf(MediaError);
 					expect(peaks.events.map.get("player.error")?.length ?? 0).to.equal(1);
 					done();
@@ -1171,7 +1174,7 @@ describe("Peaks", () => {
 					},
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					expect(error).to.be.an.instanceOf(Error);
 					done();
 				});
@@ -1187,7 +1190,7 @@ describe("Peaks", () => {
 					},
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					expect(error).to.be.undefined;
 					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
@@ -1204,7 +1207,7 @@ describe("Peaks", () => {
 					mediaUrl: "/base/test/data/sample.mp3",
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					expect(error).to.be.undefined;
 					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
@@ -1221,7 +1224,7 @@ describe("Peaks", () => {
 					},
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					expect(error).to.be.undefined;
 					expect(getDrawWaveformLayer().callCount).to.equal(1);
 					done();
@@ -1245,7 +1248,7 @@ describe("Peaks", () => {
 							},
 						};
 
-						getActivePeaks().setSource(options, (error) => {
+						setSource(getActivePeaks(), options, (error) => {
 							expect(error).to.be.undefined;
 							expect(getDrawWaveformLayer().callCount).to.equal(1);
 							done();
@@ -1266,7 +1269,7 @@ describe("Peaks", () => {
 							},
 						};
 
-						getActivePeaks().setSource(options, (error) => {
+						setSource(getActivePeaks(), options, (error) => {
 							expect(error).to.be.undefined;
 							expect(getDrawWaveformLayer().callCount).to.equal(1);
 							done();
@@ -1287,7 +1290,7 @@ describe("Peaks", () => {
 							},
 						};
 
-						getActivePeaks().setSource(options, (error) => {
+						setSource(getActivePeaks(), options, (error) => {
 							expect(error).to.be.an.instanceOf(Error);
 							done();
 						});
@@ -1305,7 +1308,7 @@ describe("Peaks", () => {
 					zoomLevels: [128, 256],
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					expect(error).to.be.undefined;
 					expect(getActivePeaks().zoom.getLevel()).to.equal(128);
 					expect(getDrawWaveformLayer().callCount).to.equal(1);
@@ -1324,7 +1327,7 @@ describe("Peaks", () => {
 					zoomLevels: [128, 256],
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					expect(error).to.be.undefined;
 					expect(getActivePeaks().zoom.getLevel()).to.equal(128);
 					expect(getDrawWaveformLayer().callCount).to.equal(1);
@@ -1341,7 +1344,7 @@ describe("Peaks", () => {
 					},
 				};
 
-				getActivePeaks().setSource(options, (error) => {
+				setSource(getActivePeaks(), options, (error) => {
 					const setSourceError = expectPresent(error);
 					expect(setSourceError).to.be.an.instanceOf(Error);
 					expect(setSourceError.message).to.match(

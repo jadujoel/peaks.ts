@@ -77,6 +77,30 @@ export class Player {
 		return this.driver.playSegment({ loop, segment });
 	}
 
+	/**
+	 * Plays the entire current source on a loop. The looped span runs from
+	 * `0` to {@link Player.getDuration} and never inserts a real segment
+	 * into the segment store.
+	 */
+	playLooped(): Promise<void> {
+		const duration = this.driver.getDuration();
+		if (!isValidTime(duration) || duration <= 0) {
+			return Promise.reject(
+				new Error("peaks.player.playLooped(): source has no positive duration"),
+			);
+		}
+
+		const transient = {
+			editable: false,
+			endTime: duration,
+			id: "__peaks_loop_file__",
+			labelText: "",
+			startTime: 0,
+		} as unknown as Segment;
+
+		return this.driver.playSegment({ loop: true, segment: transient });
+	}
+
 	setSource(options: AudioSource): Promise<void> {
 		return this.driver.setSource(options);
 	}

@@ -1,4 +1,5 @@
 import { err, ok, type Result } from "neverthrow";
+import type { AudioDriver } from "./driver/audio/types";
 import { KonvaCanvasDriver } from "./driver/konva/driver";
 import {
 	createPointMarker,
@@ -436,6 +437,34 @@ export function resolvePeaksOptions(
 	}
 
 	addSegmentOptions(options, config);
+
+	// Auto-fill webAudio from a driver that exposes its source so callers
+	// don't have to repeat the buffer / context they already passed when
+	// constructing the audio driver.
+	const audioDriver = config.audio as AudioDriver | undefined;
+	if (audioDriver?.getSource) {
+		const driverSource = audioDriver.getSource();
+		const driverWebAudio = driverSource?.webAudio;
+		if (driverWebAudio) {
+			const buffer = options.webAudio?.buffer ?? driverWebAudio.buffer;
+			const context = options.webAudio?.context ?? driverWebAudio.context;
+			const merged: WebAudioOptions = {
+				...(buffer !== undefined ? { buffer } : {}),
+				...(context !== undefined ? { context } : {}),
+				...(options.webAudio?.multiChannel !== undefined
+					? { multiChannel: options.webAudio.multiChannel }
+					: driverWebAudio.multiChannel !== undefined
+						? { multiChannel: driverWebAudio.multiChannel }
+						: {}),
+				...(options.webAudio?.scale !== undefined
+					? { scale: options.webAudio.scale }
+					: driverWebAudio.scale !== undefined
+						? { scale: driverWebAudio.scale }
+						: {}),
+			};
+			options.webAudio = merged;
+		}
+	}
 
 	if (!Array.isArray(options.zoomLevels)) {
 		return err(new TypeError("The zoomLevels option should be an array"));

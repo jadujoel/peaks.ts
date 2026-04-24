@@ -360,6 +360,7 @@ export interface PlayerInstance {
 	getDuration(): number;
 	seek(time: number): void;
 	playSegment(segment: Segment, loop: boolean): Promise<void>;
+	playLooped(): Promise<void>;
 	setSource(options: SetSourceOptions): Promise<void>;
 }
 
@@ -412,9 +413,33 @@ export interface ViewControllerInstance {
 	destroyOverview(): void;
 	destroyZoomview(): void;
 	dispose(): void;
+	/** Lower-level accessor that returns either view as the union type. */
 	getView(name?: string): WaveformViewLike | undefined;
+	/** Typed accessor for the zoomable waveform view. */
+	getZoomview(): WaveformZoomviewAPI | undefined;
+	/** Typed accessor for the overview waveform view. */
+	getOverview(): WaveformOverviewAPI | undefined;
 	getScrollbar(): unknown;
 }
+
+// Common color/scale surface implemented by both views.
+export interface WaveformViewColorAPI extends WaveformViewLike {
+	setWaveformColor(color: WaveformColor): void;
+	setPlayedWaveformColor(color: WaveformColor | undefined): void;
+	setAxisLabelColor(color: string): void;
+	setAxisGridlineColor(color: string): void;
+	setAmplitudeScale(scale: number): undefined | never;
+}
+
+// Public surface of the zoomable waveform view that consumers wire to UI.
+export interface WaveformZoomviewAPI extends WaveformViewColorAPI {
+	enableAutoScroll(enable: boolean, options?: { offset?: number }): void;
+	setWaveformDragMode(mode: string): void;
+	setSegmentDragMode(mode: string): void;
+}
+
+// Public surface of the overview waveform view that consumers wire to UI.
+export type WaveformOverviewAPI = WaveformViewColorAPI;
 
 // Lighter view interface for cross-referencing
 // `setZoom` is only implemented by the zoom view, so it is optional here

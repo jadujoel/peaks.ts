@@ -9,44 +9,40 @@ test("typed events bus delivers payloads to listeners", async ({ page }) => {
 		) as () => Promise<{
 			Peaks: {
 				from: (options: Record<string, unknown>) => Promise<{
-					_unsafeUnwrap: () => {
-						dispose: () => void;
-						events: {
-							addEventListener: (
-								type: string,
-								listener: (event: Record<string, unknown>) => void,
-								options?: { once?: boolean },
-							) => void;
-							removeEventListener: (
-								type: string,
-								listener: (event: Record<string, unknown>) => void,
-							) => void;
-						};
-						segments: {
-							add: (segment: Record<string, unknown>) => void;
-							removeAll: () => void;
-						};
+					dispose: () => void;
+					events: {
+						addEventListener: (
+							type: string,
+							listener: (event: Record<string, unknown>) => void,
+							options?: { once?: boolean },
+						) => void;
+						removeEventListener: (
+							type: string,
+							listener: (event: Record<string, unknown>) => void,
+						) => void;
+					};
+					segments: {
+						add: (segment: Record<string, unknown>) => void;
+						removeAll: () => void;
 					};
 				}>;
 			};
 		}>;
 
 		const peaksModule = await loadPeaks();
-		const instance = (
-			await peaksModule.Peaks.from({
-				dataUri: {
-					arraybuffer: "/TOL_6min_720p_download.dat",
-					json: "/TOL_6min_720p_download.json",
-				},
-				mediaElement: document.getElementById("audio"),
-				overview: {
-					container: document.getElementById("overview-container"),
-				},
-				zoomview: {
-					container: document.getElementById("zoomview-container"),
-				},
-			})
-		)._unsafeUnwrap();
+		const instance = await peaksModule.Peaks.from({
+			dataUri: {
+				arraybuffer: "/TOL_6min_720p_download.dat",
+				json: "/TOL_6min_720p_download.json",
+			},
+			mediaElement: document.getElementById("audio"),
+			overview: {
+				container: document.getElementById("overview-container"),
+			},
+			zoomview: {
+				container: document.getElementById("zoomview-container"),
+			},
+		});
 
 		const addEvents: Array<{
 			type: string;
