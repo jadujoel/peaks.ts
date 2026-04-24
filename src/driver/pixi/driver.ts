@@ -1236,6 +1236,11 @@ export class PixiDriverStage implements DriverStage {
 		const wrapped = unwrapLayer(layer);
 		this.host.app.stage.addChild(wrapped.container);
 		wrapped.bindHost(this.host);
+		// Konva's `stage.add(layer)` triggers an initial batchDraw on the
+		// added layer. Mirror that so consumers don't need to call
+		// `layer.draw()` manually after attaching (e.g. the waveform view's
+		// `updateWaveform` short-circuits on the no-op initial frameOffset).
+		wrapped.draw();
 	}
 
 	on<E extends Event = Event>(event: string, handler: EventHandler<E>): void {
