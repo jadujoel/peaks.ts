@@ -20,7 +20,7 @@
 				<div>
 					<h1>Peaks.ts <span class="hero__subtitle">Main Example</span></h1>
 					<p class="hero__tagline">
-						Comprehensive showcase using the Pixi canvas driver and the
+						Comprehensive showcase with switchable canvas drivers and the
 						<code>ClipNode</code> audio driver.
 					</p>
 				</div>
@@ -93,6 +93,13 @@
 					</label>
 				</div>
 				<div class="control-row">
+					<div class="field">
+						<label for="driver">Driver</label>
+						<select class="select" id="driver">
+							<option value="konva">Konva (default)</option>
+							<option value="pixi">Pixi</option>
+						</select>
+					</div>
 					<div class="field">
 						<label for="waveform-drag-mode">Drag mode</label>
 						<select class="select" id="waveform-drag-mode">

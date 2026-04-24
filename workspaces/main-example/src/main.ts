@@ -1,19 +1,59 @@
 import {
 	ClipNodeAudioDriver,
+	KonvaCanvasDriver,
 	Peaks,
 	PixiCanvasDriver,
 } from "@jadujoel/peaks.ts";
 import { Controls } from "./controls";
-import { byId, div } from "./dom";
+import { byId, div, select } from "./dom";
 import { LoopController } from "./loop-controller";
 
 const AUDIO_URL = "/sample.mp3";
 const ZOOM_LEVELS: readonly number[] = [128, 256, 512, 1024, 2048, 4096];
+const DRIVER_STORAGE_KEY = "peaks-example-driver";
+
+type DriverChoice = "konva" | "pixi";
+type CanvasDriver =
+	| ReturnType<typeof KonvaCanvasDriver.default>
+	| Awaited<ReturnType<typeof PixiCanvasDriver.create>>;
 
 interface AppState {
 	audioContext: AudioContext;
 	buffer: AudioBuffer;
 	multiChannel: boolean;
+}
+
+function isDriverChoice(value: string | null): value is DriverChoice {
+	return value === "konva" || value === "pixi";
+}
+
+function getInitialDriver(): DriverChoice {
+	const params = new URLSearchParams(globalThis.location.search);
+	const fromQuery = params.get("driver");
+	if (isDriverChoice(fromQuery)) return fromQuery;
+	const fromStorage = globalThis.localStorage?.getItem(DRIVER_STORAGE_KEY);
+	if (isDriverChoice(fromStorage)) return fromStorage;
+	return "konva";
+}
+
+async function createDriver(choice: DriverChoice): Promise<CanvasDriver> {
+	if (choice === "pixi") {
+		return PixiCanvasDriver.create();
+	}
+	return KonvaCanvasDriver.default();
+}
+
+function setupDriverSelector(current: DriverChoice): void {
+	const selectEl = select("driver");
+	selectEl.value = current;
+	selectEl.addEventListener("change", () => {
+		const next = selectEl.value;
+		if (!isDriverChoice(next) || next === current) return;
+		globalThis.localStorage?.setItem(DRIVER_STORAGE_KEY, next);
+		const url = new URL(globalThis.location.href);
+		url.searchParams.set("driver", next);
+		globalThis.location.assign(url.toString());
+	});
 }
 
 function showError(message: string): void {
@@ -39,12 +79,15 @@ async function fetchBuffer(
 	return context.decodeAudioData(arrayBuffer);
 }
 
-async function initPeaks(state: AppState): Promise<Peaks> {
+async function initPeaks(
+	state: AppState,
+	driverChoice: DriverChoice,
+): Promise<Peaks> {
 	const audioDriver = ClipNodeAudioDriver.from({
 		buffer: state.buffer,
 		context: state.audioContext,
 	});
-	const driver = await PixiCanvasDriver.create();
+	const driver = await createDriver(driverChoice);
 
 	const result = await Peaks.from({
 		audio: audioDriver,
@@ -74,11 +117,14 @@ async function initPeaks(state: AppState): Promise<Peaks> {
 }
 
 async function main(): Promise<void> {
+	const driverChoice = getInitialDriver();
+	setupDriverSelector(driverChoice);
+
 	const audioContext = new AudioContext();
 	const buffer = await fetchBuffer(AUDIO_URL, audioContext);
 	const state: AppState = { audioContext, buffer, multiChannel: false };
 
-	const peaks = await initPeaks(state);
+	const peaks = await initPeaks(state, driverChoice);
 	(globalThis as unknown as { peaksInstance: Peaks }).peaksInstance = peaks;
 
 	const status = byId("status", HTMLParagraphElement);
