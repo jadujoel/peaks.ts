@@ -3,134 +3,222 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Peaks.ts — Main Example</title>
+	<meta name="color-scheme" content="dark" />
+	<title>Peaks.ts · Main Example</title>
 	<link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-	<header>
-		<h1>Peaks.ts — Main Example</h1>
-		<p>
-			Comprehensive showcase using the Pixi canvas driver and the
-			<code>ClipNode</code> audio driver.
-		</p>
-		<p id="status">Initialising…</p>
-		<pre id="error" class="hide"></pre>
-	</header>
+	<main class="page">
+		<header class="hero">
+			<div class="hero__brand">
+				<span class="hero__logo" aria-hidden="true">
+					<svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Peaks.ts logo">
+						<title>Peaks.ts logo</title>
+						<path d="M2 16 L6 16 L8 8 L12 24 L16 4 L20 28 L24 10 L26 16 L30 16" />
+					</svg>
+				</span>
+				<div>
+					<h1>Peaks.ts <span class="hero__subtitle">Main Example</span></h1>
+					<p class="hero__tagline">
+						Comprehensive showcase using the Pixi canvas driver and the
+						<code>ClipNode</code> audio driver.
+					</p>
+				</div>
+			</div>
+			<div class="hero__status">
+				<span class="status-dot" aria-hidden="true"></span>
+				<p id="status">Initialising…</p>
+			</div>
+			<pre id="error" class="error hide"></pre>
+		</header>
 
-	<section class="waveform-area">
-		<div id="zoomview-container" class="waveform-container"></div>
-		<div id="overview-container" class="waveform-container overview"></div>
-		<div id="scrollbar-container" class="scrollbar-container"></div>
-	</section>
+		<section class="waveforms" aria-label="Waveform views">
+			<div class="waveform-card">
+				<div class="waveform-card__label">Zoomable</div>
+				<div id="zoomview-container" class="waveform-container"></div>
+			</div>
+			<div class="waveform-card">
+				<div class="waveform-card__label">Overview</div>
+				<div id="overview-container" class="waveform-container overview"></div>
+			</div>
+			<div id="scrollbar-container" class="scrollbar-container"></div>
+		</section>
 
-	<section class="controls">
-		<fieldset>
-			<legend>Playback</legend>
-			<button data-action="play" type="button">Play</button>
-			<button data-action="pause" type="button">Pause</button>
-			<button data-action="stop" type="button">Stop</button>
-			<span>Time: <output id="playhead-time">0.00</output>s</span>
-		</fieldset>
+		<section class="panel" aria-label="Controls">
+			<fieldset class="control-group">
+				<legend>Playback</legend>
+				<div class="control-row">
+					<button class="btn btn--primary" data-action="play" type="button">▶ Play</button>
+					<button class="btn" data-action="pause" type="button">❚❚ Pause</button>
+					<button class="btn" data-action="stop" type="button">■ Stop</button>
+					<span class="readout">Time <output id="playhead-time" class="mono">0.00</output>s</span>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Loops</legend>
-			<button data-action="loop-file" type="button">Loop file</button>
-			<button data-action="stop-loop" type="button">Stop loop</button>
-			<span>Looping: <output id="loop-status">(none)</output></span>
-		</fieldset>
+			<fieldset class="control-group">
+				<legend>Loops</legend>
+				<div class="control-row">
+					<button class="btn btn--primary" data-action="loop-file" type="button">Loop file</button>
+					<button class="btn" data-action="stop-loop" type="button">Stop loop</button>
+					<span class="readout">Looping <output id="loop-status" class="mono">(none)</output></span>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Zoom</legend>
-			<button data-action="zoom-in" type="button">Zoom in</button>
-			<button data-action="zoom-out" type="button">Zoom out</button>
-			<label>Level
-				<select id="zoom-level"></select>
-			</label>
-		</fieldset>
+			<fieldset class="control-group">
+				<legend>Zoom</legend>
+				<div class="control-row">
+					<button class="btn" data-action="zoom-in" type="button">Zoom in</button>
+					<button class="btn" data-action="zoom-out" type="button">Zoom out</button>
+					<div class="field">
+						<label for="zoom-level">Level</label>
+						<select class="select" id="zoom-level"></select>
+					</div>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Display</legend>
-			<label><input type="checkbox" id="auto-scroll" checked /> Auto-scroll</label>
-			<label><input type="checkbox" id="show-scrollbar" checked /> Scrollbar</label>
-			<label><input type="checkbox" id="show-overview" checked /> Overview</label>
-			<label>Drag mode
-				<select id="waveform-drag-mode">
-					<option value="scroll">scroll</option>
-					<option value="insert-segment">insert-segment</option>
-				</select>
-			</label>
-			<label>Segment drag
-				<select id="segment-drag-mode">
-					<option value="overlap">overlap</option>
-					<option value="no-overlap">no-overlap</option>
-					<option value="compress">compress</option>
-				</select>
-			</label>
-		</fieldset>
+			<fieldset class="control-group">
+				<legend>Display</legend>
+				<div class="control-row">
+					<label class="toggle">
+						<input type="checkbox" id="auto-scroll" checked />
+						<span>Auto-scroll</span>
+					</label>
+					<label class="toggle">
+						<input type="checkbox" id="show-scrollbar" checked />
+						<span>Scrollbar</span>
+					</label>
+					<label class="toggle">
+						<input type="checkbox" id="show-overview" checked />
+						<span>Overview</span>
+					</label>
+				</div>
+				<div class="control-row">
+					<div class="field">
+						<label for="waveform-drag-mode">Drag mode</label>
+						<select class="select" id="waveform-drag-mode">
+							<option value="scroll">Scroll</option>
+							<option value="insert-segment">Insert segment</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="segment-drag-mode">Segment drag</label>
+						<select class="select" id="segment-drag-mode">
+							<option value="overlap">Overlap</option>
+							<option value="no-overlap">No overlap</option>
+							<option value="compress">Compress</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Colors</legend>
-			<label>Waveform <input type="color" id="waveform-color" value="#00e180" /></label>
-			<label>Played <input type="color" id="played-color" value="#aa0044" /></label>
-			<label>Axis label <input type="color" id="axis-label-color" value="#aaaaaa" /></label>
-			<label>Axis grid <input type="color" id="axis-grid-color" value="#cccccc" /></label>
-		</fieldset>
+			<fieldset class="control-group">
+				<legend>Colors</legend>
+				<div class="control-row">
+					<label class="swatch">
+						<input type="color" id="waveform-color" value="#00e180" />
+						<span>Waveform</span>
+					</label>
+					<label class="swatch">
+						<input type="color" id="played-color" value="#aa0044" />
+						<span>Played</span>
+					</label>
+					<label class="swatch">
+						<input type="color" id="axis-label-color" value="#aaaaaa" />
+						<span>Axis label</span>
+					</label>
+					<label class="swatch">
+						<input type="color" id="axis-grid-color" value="#cccccc" />
+						<span>Axis grid</span>
+					</label>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Amplitude</legend>
-			<label>
-				Scale
-				<input type="range" id="amplitude-scale" min="0.1" max="4" step="0.1" value="1" />
-				<output id="amplitude-scale-value">1.0</output>
-			</label>
-		</fieldset>
+			<fieldset class="control-group">
+				<legend>Amplitude</legend>
+				<div class="control-row">
+					<div class="field field--grow">
+						<label for="amplitude-scale">
+							Scale <output id="amplitude-scale-value" class="mono">1.0</output>
+						</label>
+						<input type="range" id="amplitude-scale" min="0.1" max="4" step="0.1" value="1" />
+					</div>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Channels</legend>
-			<label>
-				<select id="channel-mode">
-					<option value="mono">Mono</option>
-					<option value="stereo">Multi-channel</option>
-				</select>
-			</label>
-		</fieldset>
+			<fieldset class="control-group">
+				<legend>Channels</legend>
+				<div class="control-row">
+					<div class="field">
+						<label for="channel-mode">Mode</label>
+						<select class="select" id="channel-mode">
+							<option value="mono">Mono</option>
+							<option value="stereo">Multi-channel</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Size</legend>
-			<label>
-				Width
-				<input type="range" id="width" min="400" max="1600" step="20" value="1000" />
-				<output id="width-value">1000</output>px
-			</label>
-			<label>
-				Height
-				<input type="range" id="height" min="100" max="400" step="10" value="200" />
-				<output id="height-value">200</output>px
-			</label>
-		</fieldset>
+			<fieldset class="control-group">
+				<legend>Size</legend>
+				<div class="control-row">
+					<div class="field field--grow">
+						<label for="width">
+							Width <output id="width-value" class="mono">1000</output>px
+						</label>
+						<input type="range" id="width" min="400" max="1600" step="20" value="1000" />
+					</div>
+				</div>
+				<div class="control-row">
+					<div class="field field--grow">
+						<label for="height">
+							Height <output id="height-value" class="mono">200</output>px
+						</label>
+						<input type="range" id="height" min="100" max="400" step="10" value="200" />
+					</div>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Segments</legend>
-			<button data-action="add-segment" type="button">Add at playhead</button>
-			<table id="segments-table">
-				<thead>
-					<tr><th>ID</th><th>Label</th><th>Start</th><th>End</th><th></th><th></th></tr>
-				</thead>
-				<tbody></tbody>
-			</table>
-		</fieldset>
+			<fieldset class="control-group control-group--wide">
+				<legend>Segments</legend>
+				<div class="control-row">
+					<button class="btn btn--primary" data-action="add-segment" type="button">+ Add at playhead</button>
+				</div>
+				<div class="table-wrap">
+					<table id="segments-table">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Label</th>
+								<th>Start</th>
+								<th>End</th>
+								<th colspan="2">Actions</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</fieldset>
 
-		<fieldset>
-			<legend>Points</legend>
-			<button data-action="add-point" type="button">Add at playhead</button>
-			<table id="points-table">
-				<thead>
-					<tr><th>ID</th><th>Time</th><th></th><th></th></tr>
-				</thead>
-				<tbody></tbody>
-			</table>
-		</fieldset>
-	</section>
+			<fieldset class="control-group control-group--wide">
+				<legend>Points</legend>
+				<div class="control-row">
+					<button class="btn btn--primary" data-action="add-point" type="button">+ Add at playhead</button>
+				</div>
+				<div class="table-wrap">
+					<table id="points-table">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Time</th>
+								<th colspan="2">Actions</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</fieldset>
+		</section>
+	</main>
 
 	<script type="importmap">
 		{ "imports": { "pixi.js": "/pixi.min.mjs" } }
