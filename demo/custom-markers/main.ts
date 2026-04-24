@@ -239,7 +239,7 @@ const options = {
 	},
 };
 
-Peaks.init(options).then((errOrInstance) => {
+Peaks.from(options).then((errOrInstance) => {
 	if (errOrInstance.isErr()) {
 		console.error(errOrInstance.error.message);
 		return;

@@ -1,7 +1,7 @@
 // TODO: This is a transitional test adapter that bridges the old
-// callback-style `Peaks.init` signature used pervasively by the unit tests
-// to the new `ResultAsync`-returning `Peaks.init` API. New tests should
-// `await Peaks.init(opts)` and inspect the returned `Result` directly.
+// callback-style `Peaks.from` signature used pervasively by the unit tests
+// to the new `ResultAsync`-returning `Peaks.from` API. New tests should
+// `await Peaks.from(opts)` and inspect the returned `Result` directly.
 
 import { Peaks } from "../../src/main";
 import type { PeaksConfiguration } from "../../src/types";
@@ -12,7 +12,7 @@ export function initPeaks(
 	opts: PeaksConfiguration,
 	callback: InitPeaksCallback,
 ): void {
-	Peaks.init(opts).then(
+	Peaks.from(opts).then(
 		(result) => {
 			if (result.isErr()) {
 				callback(result.error);

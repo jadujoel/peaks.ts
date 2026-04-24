@@ -68,7 +68,7 @@
     </div>
 
     <script type="module">
-      import Peaks from "/peaks.esm.js";
+      import { Peaks } from "/peaks.esm.js";
 
       ((Peaks) => {
         var audioContext = new AudioContext();
@@ -107,7 +107,7 @@
         }
 
         function createPeaksInstance(options) {
-          return Peaks.init(options).then((errOrInstance) => {
+          return Peaks.from(options).then((errOrInstance) => {
             if (errOrInstance.isErr()) {
               throw errOrInstance.error;
             }

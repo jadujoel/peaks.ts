@@ -67,9 +67,9 @@ describe("Peaks", () => {
 		}
 	});
 
-	describe("init", () => {
+	describe("from", () => {
 		it("should return a ResultAsync that resolves to an Ok with a Peaks instance", async () => {
-			const result = await Peaks.init({
+			const result = await Peaks.from({
 				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 				mediaElement: document.getElementById("media") as HTMLMediaElement,
 				overview: {
@@ -87,11 +87,11 @@ describe("Peaks", () => {
 			expect(result.isOk()).to.equal(true);
 			const instance = result._unsafeUnwrap();
 			expect(instance).to.be.an.instanceof(Peaks);
-			instance.destroy();
+			instance.dispose();
 		});
 
 		it("should return a ResultAsync that resolves to an Err on invalid options", async () => {
-			const result = await Peaks.init({
+			const result = await Peaks.from({
 				dataUri: { arraybuffer: "/base/test/data/sample.dat" },
 				mediaElement: document.getElementById("media") as HTMLMediaElement,
 				overview: {},
@@ -1353,7 +1353,7 @@ describe("Peaks", () => {
 		});
 	});
 
-	describe("destroy", () => {
+	describe("dispose", () => {
 		it("should clean up event listeners", (done: DoneCallback) => {
 			const errorSpy = sinon.spy().named("window.onerror");
 			const oldOnError = window.onerror;

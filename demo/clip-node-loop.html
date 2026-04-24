@@ -94,7 +94,7 @@
       { "imports": { "pixi.js": "/pixi.min.mjs" } }
     </script>
     <script type="module">
-      import Peaks, { ClipNodeAudioDriver, PixiCanvasDriver } from "/peaks.esm.js";
+      import { ClipNodeAudioDriver, Peaks, PixiCanvasDriver } from "/peaks.esm.js";
 
       const loopStatus = document.getElementById('loop-status');
       const initError = document.getElementById('init-error');
@@ -182,7 +182,7 @@
           }
         };
 
-        const errOrInstance = await Peaks.init(options);
+        const errOrInstance = await Peaks.from(options);
         if (errOrInstance.isErr()) {
           showInitError(errOrInstance.error.message);
           return;

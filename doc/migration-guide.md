@@ -4,7 +4,7 @@ This document describes any breaking changes in the Peaks.js API and provides ad
 
 ## Peaks.ts (`Peaks.init` returns a `ResultAsync`)
 
-`Peaks.init()` no longer accepts a callback. It now takes a single `options`
+`Peaks.from()` no longer accepts a callback. It now takes a single `options`
 argument and returns a [`ResultAsync<Peaks, Error>`](https://github.com/supermacro/neverthrow)
 from the `neverthrow` library. The returned value is a thenable, so it can be
 awaited or chained with `.then()`, and it can also be composed with
@@ -12,7 +12,7 @@ awaited or chained with `.then()`, and it can also be composed with
 
 ```js
 // Before
-Peaks.init(options, function(err, peaks) {
+Peaks.from(options, function(err, peaks) {
   if (err) {
     console.error(err.message);
     return;
@@ -22,7 +22,7 @@ Peaks.init(options, function(err, peaks) {
 });
 
 // After (promise / then style)
-Peaks.init(options).then((result) => {
+Peaks.from(options).then((result) => {
   if (result.isErr()) {
     console.error(result.error.message);
     return;
@@ -33,7 +33,7 @@ Peaks.init(options).then((result) => {
 });
 
 // After (async / await style)
-const result = await Peaks.init(options);
+const result = await Peaks.from(options);
 
 if (result.isOk()) {
   const peaks = result.value;
@@ -77,18 +77,18 @@ instance.events.removeEventListener('player.timeupdate', listener);
 
 ## Peaks.js v4.0.0
 
-The `peaks.ready` event has been removed in Peaks.js v4.0.0. Instead of using this event, applications must now pass a callback function to `Peaks.init()`. This enables error handling, which is only possible using the callback function.
+The `peaks.ready` event has been removed in Peaks.js v4.0.0. Instead of using this event, applications must now pass a callback function to `Peaks.from()`. This enables error handling, which is only possible using the callback function.
 
 ```js
 // Before
-const peaks = Peaks.init(options);
+const peaks = Peaks.from(options);
 
 peaks.on('peaks.ready', function() {
   // etc
 });
 
 // After
-Peaks.init(options, function(err, peaks) {
+Peaks.from(options, function(err, peaks) {
   if (err) {
     // Handle errors here.
     return;
@@ -102,13 +102,13 @@ Peaks.init(options, function(err, peaks) {
 
 Peaks.js v3.0.0 introduces a number of changes, described in the following sections.
 
-### `Peaks.init()` configuration options
+### `Peaks.from()` configuration options
 
-The segment customization options have been moved under a new `segmentOptions` object in the call to `Peaks.init()`, and some options have been renamed:
+The segment customization options have been moved under a new `segmentOptions` object in the call to `Peaks.from()`, and some options have been renamed:
 
 ```js
 // Before
-Peaks.init({
+Peaks.from({
   // Include other options as needed
   segmentStartMarkerColor: '#888',
   segmentEndMarkerColor: '#888',
@@ -118,7 +118,7 @@ Peaks.init({
 });
 
 // After
-Peaks.init({
+Peaks.from({
   // Include other options as needed
   segmentOptions: {
     startMarkerColor: '#888',
@@ -140,7 +140,7 @@ The following options have also been moved, so you will need to update your code
 
 ```js
 // Before
-Peaks.init({
+Peaks.from({
   containers: {
     zoomview: document.getElementById('zoomview-container'),
     overview: document.getElementById('overview-container')
@@ -155,7 +155,7 @@ Peaks.init({
 });
 
 // After
-Peaks.init({
+Peaks.from({
   zoomview: {
     container: document.getElementById('zoomview-container'),
     waveformColor: '#00e180'
@@ -354,7 +354,7 @@ const options = {
   audio: myAudioDriver
 };
 
-Peaks.init(options).then((result) => {
+Peaks.from(options).then((result) => {
   if (result.isErr()) return;
   // Use the Peaks.js instance
 });

@@ -7,10 +7,10 @@ test("typed events bus delivers payloads to listeners", async ({ page }) => {
 		const loadPeaks = new Function(
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
-			default: {
-				init: (options: Record<string, unknown>) => Promise<{
+			Peaks: {
+				from: (options: Record<string, unknown>) => Promise<{
 					_unsafeUnwrap: () => {
-						destroy: () => void;
+						dispose: () => void;
 						events: {
 							addEventListener: (
 								type: string,
@@ -33,7 +33,7 @@ test("typed events bus delivers payloads to listeners", async ({ page }) => {
 
 		const peaksModule = await loadPeaks();
 		const instance = (
-			await peaksModule.default.init({
+			await peaksModule.Peaks.from({
 				dataUri: {
 					arraybuffer: "/TOL_6min_720p_download.dat",
 					json: "/TOL_6min_720p_download.json",
@@ -92,7 +92,7 @@ test("typed events bus delivers payloads to listeners", async ({ page }) => {
 
 		const result = { addEvents, removeAllEvents };
 
-		instance.destroy();
+		instance.dispose();
 
 		return result;
 	});

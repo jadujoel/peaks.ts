@@ -140,7 +140,7 @@
     </div>
 
     <script type="module">
-      import Peaks from "/peaks.esm.js";
+      import { Peaks } from "/peaks.esm.js";
 
       ((Peaks) => {
         var renderSegments = (peaks) => {
@@ -328,7 +328,7 @@
           },
         };
 
-        Peaks.init(options).then((errOrInstance) => {
+        Peaks.from(options).then((errOrInstance) => {
           if (errOrInstance.isErr()) {
             console.error(errOrInstance.error.message);
             return;

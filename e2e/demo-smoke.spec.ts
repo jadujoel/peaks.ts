@@ -72,11 +72,11 @@ test("public init API returns a thenable Result", async ({ page }) => {
 		const loadPeaks = new Function(
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
-			default: { init: (...args: unknown[]) => unknown };
+			Peaks: { from: (...args: unknown[]) => unknown };
 		}>;
 		const peaksModule = await loadPeaks();
 
-		const returnValue = peaksModule.default.init({
+		const returnValue = peaksModule.Peaks.from({
 			mediaElement: document.getElementById("audio"),
 		});
 
@@ -101,10 +101,10 @@ test("public async init API resolves with an instance", async ({ page }) => {
 		const loadPeaks = new Function(
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
-			default: {
-				init: (options: Record<string, unknown>) => Promise<{
+			Peaks: {
+				from: (options: Record<string, unknown>) => Promise<{
 					_unsafeUnwrap: () => {
-						destroy: () => void;
+						dispose: () => void;
 						views: { getView: (name: string) => unknown };
 					};
 				}>;
@@ -112,7 +112,7 @@ test("public async init API resolves with an instance", async ({ page }) => {
 		}>;
 		const peaksModule = await loadPeaks();
 		const instance = (
-			await peaksModule.default.init({
+			await peaksModule.Peaks.from({
 				dataUri: {
 					arraybuffer: "/TOL_6min_720p_download.dat",
 					json: "/TOL_6min_720p_download.json",
@@ -129,7 +129,7 @@ test("public async init API resolves with an instance", async ({ page }) => {
 		)._unsafeUnwrap();
 
 		const hasZoomview = Boolean(instance.views.getView("zoomview"));
-		instance.destroy();
+		instance.dispose();
 
 		return hasZoomview;
 	});
@@ -146,10 +146,10 @@ test("public async init API returns working concrete view instances", async ({
 		const loadPeaks = new Function(
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
-			default: {
-				init: (options: Record<string, unknown>) => Promise<{
+			Peaks: {
+				from: (options: Record<string, unknown>) => Promise<{
 					_unsafeUnwrap: () => {
-						destroy: () => void;
+						dispose: () => void;
 						views: {
 							getView: (name: string) => {
 								constructor?: { name?: string };
@@ -163,7 +163,7 @@ test("public async init API returns working concrete view instances", async ({
 		}>;
 		const peaksModule = await loadPeaks();
 		const instance = (
-			await peaksModule.default.init({
+			await peaksModule.Peaks.from({
 				dataUri: {
 					arraybuffer: "/TOL_6min_720p_download.dat",
 					json: "/TOL_6min_720p_download.json",
@@ -191,7 +191,7 @@ test("public async init API returns working concrete view instances", async ({
 			zoomviewName: zoomview?.constructor?.name,
 		};
 
-		instance.destroy();
+		instance.dispose();
 
 		return evaluation;
 	});
@@ -201,23 +201,23 @@ test("public async init API returns working concrete view instances", async ({
 	expect(result.startTimeMoved).toBe(true);
 });
 
-test("Peaks.init resolves to an Ok Result on success", async ({ page }) => {
+test("Peaks.from resolves to an Ok Result on success", async ({ page }) => {
 	await page.goto("/index.html");
 
 	const result = await page.evaluate(async () => {
 		const loadPeaks = new Function(
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
-			default: {
-				init: (options: Record<string, unknown>) => Promise<{
+			Peaks: {
+				from: (options: Record<string, unknown>) => Promise<{
 					isOk: () => boolean;
-					_unsafeUnwrap: () => { destroy: () => void };
+					_unsafeUnwrap: () => { dispose: () => void };
 				}>;
 			};
 		}>;
 		const peaksModule = await loadPeaks();
 
-		const initResult = await peaksModule.default.init({
+		const initResult = await peaksModule.Peaks.from({
 			dataUri: {
 				arraybuffer: "/TOL_6min_720p_download.dat",
 				json: "/TOL_6min_720p_download.json",
@@ -234,7 +234,7 @@ test("Peaks.init resolves to an Ok Result on success", async ({ page }) => {
 		const isOk = initResult.isOk();
 		const instance = initResult._unsafeUnwrap();
 		const instanceOk = Boolean(instance);
-		instance.destroy();
+		instance.dispose();
 
 		return { instanceOk, isOk };
 	});
@@ -299,10 +299,10 @@ test("custom point marker factory receives wrapper marker surface", async ({
 		const loadPeaks = new Function(
 			'return import("/peaks.esm.js")',
 		) as () => Promise<{
-			default: {
-				init: (options: Record<string, unknown>) => Promise<{
+			Peaks: {
+				from: (options: Record<string, unknown>) => Promise<{
 					_unsafeUnwrap: () => {
-						destroy: () => void;
+						dispose: () => void;
 						points: {
 							add: (point: { time: number; editable: boolean }) => void;
 						};
@@ -319,7 +319,7 @@ test("custom point marker factory receives wrapper marker surface", async ({
 		};
 
 		const instance = (
-			await peaksModule.default.init({
+			await peaksModule.Peaks.from({
 				createPointMarker: () => {
 					return {
 						dispose: () => {},
@@ -365,7 +365,7 @@ test("custom point marker factory receives wrapper marker surface", async ({
 
 		instance.points.add({ editable: true, time: 1 });
 		const surfaceSnapshot = { ...markerSurface };
-		instance.destroy();
+		instance.dispose();
 
 		return surfaceSnapshot;
 	});

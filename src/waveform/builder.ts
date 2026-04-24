@@ -78,7 +78,7 @@ export class WaveformBuilder {
 		) {
 			callback(
 				new TypeError(
-					"Peaks.init(): You may only pass one source (webAudio, dataUri, or waveformData) to render waveform data.",
+					"Peaks.from(): You may only pass one source (webAudio, dataUri, or waveformData) to render waveform data.",
 				),
 				undefined,
 			);
@@ -88,7 +88,7 @@ export class WaveformBuilder {
 		// Todo: remove the support totally instead sos remove audioContext from the options then.
 		if (options.audioContext) {
 			this.peaks.logger?.(
-				"Peaks.init(): The audioContext option is deprecated, please pass a webAudio object instead",
+				"Peaks.from(): The audioContext option is deprecated, please pass a webAudio object instead",
 			);
 
 			(options as Writable<WaveformBuilderOptions>).webAudio = {
@@ -109,7 +109,7 @@ export class WaveformBuilder {
 		} else {
 			callback(
 				new Error(
-					"Peaks.init(): You must pass an audioContext, or dataUri, or waveformData to render waveform data",
+					"Peaks.from(): You must pass an audioContext, or dataUri, or waveformData to render waveform data",
 				),
 				undefined,
 			);
@@ -223,7 +223,7 @@ export class WaveformBuilder {
 			waveformData = options.waveformData;
 		} else {
 			callback(
-				new Error("Peaks.init(): The waveformData option must be an object"),
+				new Error("Peaks.from(): The waveformData option must be an object"),
 				undefined,
 			);
 			return;
@@ -238,7 +238,7 @@ export class WaveformBuilder {
 		if (!data) {
 			callback(
 				new Error(
-					"Peaks.init(): Unable to determine a compatible waveformData format",
+					"Peaks.from(): Unable to determine a compatible waveformData format",
 				),
 				undefined,
 			);
@@ -254,14 +254,14 @@ export class WaveformBuilder {
 			) {
 				callback(
 					new Error(
-						"Peaks.init(): Only mono or stereo waveforms are currently supported",
+						"Peaks.from(): Only mono or stereo waveforms are currently supported",
 					),
 					undefined,
 				);
 				return;
 			} else if (createdWaveformData.bits !== 8) {
 				callback(
-					new Error("Peaks.init(): 16-bit waveform data is not supported"),
+					new Error("Peaks.from(): 16-bit waveform data is not supported"),
 					undefined,
 				);
 				return;
@@ -280,7 +280,7 @@ export class WaveformBuilder {
 		if (!(options.webAudio?.context instanceof AudioContext)) {
 			callback(
 				new TypeError(
-					"Peaks.init(): The webAudio.audioContext option must be a valid AudioContext",
+					"Peaks.from(): The webAudio.audioContext option must be a valid AudioContext",
 				),
 				undefined,
 			);
@@ -291,7 +291,7 @@ export class WaveformBuilder {
 
 		if (!webAudioOptions) {
 			callback(
-				new TypeError("Peaks.init(): Missing webAudio options"),
+				new TypeError("Peaks.from(): Missing webAudio options"),
 				undefined,
 			);
 			return;
@@ -343,7 +343,7 @@ export class WaveformBuilder {
 
 		if (!webAudioOptions) {
 			callback(
-				new TypeError("Peaks.init(): Missing webAudio options"),
+				new TypeError("Peaks.from(): Missing webAudio options"),
 				undefined,
 			);
 			return;
@@ -359,7 +359,7 @@ export class WaveformBuilder {
 
 		if (!webAudioOptions.buffer) {
 			callback(
-				new TypeError("Peaks.init(): Missing webAudio.audioBuffer"),
+				new TypeError("Peaks.from(): Missing webAudio.audioBuffer"),
 				undefined,
 			);
 			return;
@@ -399,7 +399,7 @@ export class WaveformBuilder {
 		const self = this;
 
 		if (!url) {
-			self.peaks.logger?.("Peaks.init(): The mediaElement src is invalid");
+			self.peaks.logger?.("Peaks.from(): The mediaElement src is invalid");
 			return;
 		}
 

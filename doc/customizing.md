@@ -60,7 +60,7 @@ and so we recommend becoming familiar with Konva. You may find the following tut
 Peaks.js allows you to customize the appearance of the point and segment
 markers. This is achieved by providing `createPointMarker` and/or
 `createSegmentMarker` functions in the options passed when calling
-`Peaks.init()`, for example:
+`Peaks.from()`, for example:
 
 ```javascript
 function createPointMarker(options) {
@@ -77,7 +77,7 @@ const options = {
   createSegmentMarker: createSegmentMarker
 };
 
-Peaks.init(options).then((result) => {
+Peaks.from(options).then((result) => {
   if (result.isErr()) return;
   const peaks = result.value;
   // Use the Peaks.js instance here
@@ -104,10 +104,10 @@ options:
 | `view`       | `string`      | The name of the view that the marker is being created in, either `zoomview` or `overview`.                                    |
 | `layer`      | `PointsLayer` | The rendering layer, see [Layer API](#layer-api) for details.                                                                 |
 | `editable`   | `boolean`     | If `true`, the `Point` time can be changed by dragging the mouse.                                                             |
-| `color`      | `string`      | Color for the marker (set by the `pointMarkerColor` option in `Peaks.init()`).                                                |
-| `fontFamily` | `string`      | Font family for the marker text (set by the `fontFamily` option in `Peaks.init()`, default: `'sans-serif'`).                  |
-| `fontSize`   | `number`      | Font size, in px, for the marker text (set by the `fontSize` option in `Peaks.init()`, default: `10`)                         |
-| `fontShape`  | `string`      | Font shape for the marker text (set by the `fontShape` option in `Peaks.init()`, default: `'normal'`).                        |
+| `color`      | `string`      | Color for the marker (set by the `pointMarkerColor` option in `Peaks.from()`).                                                |
+| `fontFamily` | `string`      | Font family for the marker text (set by the `fontFamily` option in `Peaks.from()`, default: `'sans-serif'`).                  |
+| `fontSize`   | `number`      | Font size, in px, for the marker text (set by the `fontSize` option in `Peaks.from()`, default: `10`)                         |
+| `fontShape`  | `string`      | Font shape for the marker text (set by the `fontShape` option in `Peaks.from()`, default: `'normal'`).                        |
 
 The function should return an instance of an object as illustrated by the
 `CustomPointMarker` class below.
@@ -160,10 +160,10 @@ following options:
 | `view`           | `string`        | The name of the view that the marker is being created in, either `zoomview` or `overview`.                                                      |
 | `layer`          | `SegmentsLayer` | The rendering layer, see [Layer API](#layer-api) for details.                                                                                   |
 | `editable`       | `boolean`       | If `true`, the `Segment` start and end times can be changed by dragging the mouse.                                                              |
-| `color`          | `string`        | Color for the marker (set by the `segmentOptions.startMarkerColor` or `segmentOptions.endMarkerColor` option in `Peaks.init()`.                 |
-| `fontFamily`     | `string`        | Font family for the marker text (set by the `fontFamily` option in `Peaks.init()`, default: `'sans-serif'`).                                    |
-| `fontSize`       | `number`        | Font size, in px, for the marker text (set by the `fontSize` option in `Peaks.init()`, default: `10`)                                           |
-| `fontShape`      | `string`        | Font shape for the marker text (set by the `fontShape` option in `Peaks.init()`, default: `'normal'`).                                          |
+| `color`          | `string`        | Color for the marker (set by the `segmentOptions.startMarkerColor` or `segmentOptions.endMarkerColor` option in `Peaks.from()`.                 |
+| `fontFamily`     | `string`        | Font family for the marker text (set by the `fontFamily` option in `Peaks.from()`, default: `'sans-serif'`).                                    |
+| `fontSize`       | `number`        | Font size, in px, for the marker text (set by the `fontSize` option in `Peaks.from()`, default: `10`)                                           |
+| `fontShape`      | `string`        | Font shape for the marker text (set by the `fontShape` option in `Peaks.from()`, default: `'normal'`).                                          |
 | `startMarker`    | `boolean`       | If `true`, the marker indicates the start time of the segment. If `false`, the marker indicates the end time of the segment.                    |
 | `segmentOptions` | `object`        | An object with segment display options for the current view (see `segmentOptions` in [README.md](README.md)).                                   |
 
@@ -383,7 +383,7 @@ but you can call this function to force a redraw if needed.
 
 By default, Peaks.js shows the segment label when the user hovers the mouse
 over a segment. The label is a Konva object created by the `createSegmentLabel`
-function passed when calling `Peaks.init()`.
+function passed when calling `Peaks.from()`.
 
 ### `createSegmentLabel(options)`
 
@@ -419,7 +419,7 @@ const options = {
   createSegmentLabel: createSegmentLabel,
 };
 
-Peaks.init(options).then((result) => {
+Peaks.from(options).then((result) => {
   if (result.isErr()) return;
   const instance = result.value;
   // Use the Peaks.js instance here
@@ -463,7 +463,7 @@ const options = {
   audio: myAudioDriver
 };
 
-Peaks.init(options).then((result) => {
+Peaks.from(options).then((result) => {
   if (result.isErr()) return;
   const instance = result.value;
   // Use the Peaks.js instance here
@@ -478,7 +478,7 @@ section for details.
 
 Peaks.js allows you to customize the timestamp labels shown on the time axis or
 next to the playhead. This is achieved by providing `formatPlayheadTime` and
-`formatAxisTime` functions in the options passed when calling `Peaks.init()`.
+`formatAxisTime` functions in the options passed when calling `Peaks.from()`.
 
 These functions accept the time, as a number, and should return a string,
 for example:
@@ -500,7 +500,7 @@ const options = {
   formatAxisTime: formatAxisTime
 };
 
-Peaks.init(options).then((result) => {
+Peaks.from(options).then((result) => {
   if (result.isErr()) return;
   const peaks = result.value;
   // Use the Peaks.js instance here

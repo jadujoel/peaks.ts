@@ -2,7 +2,7 @@
 
 ## Unreleased (Peaks.ts)
 
-* `Peaks.init()` no longer accepts a callback. It now returns a
+* `Peaks.from()` no longer accepts a callback. It now returns a
   `ResultAsync<Peaks, Error>` from the
   [`neverthrow`](https://github.com/supermacro/neverthrow) library, which is
   thenable (so it composes with `await`/`.then()`) and supports the standard
@@ -34,7 +34,7 @@
   of the z-order, to allow it to be dragged (@chrisn)
 
 * (#546) The deprecated `peaks.ready` event has now been removed. You must
-  now provide a callback function to `Peaks.init()` (@chrisn)
+  now provide a callback function to `Peaks.from()` (@chrisn)
 
 * (#550) Fixed `touchend` event handling, by registering it as non-passive
   (@chrisn)
@@ -50,7 +50,7 @@
   zoomable waveform view after the view's width is changed (@chrisn)
 
 * The waveform views now initialise themselves to the correct position if the
-  playhead time is not zero when `Peaks.init()` is called (@chrisn)
+  playhead time is not zero when `Peaks.from()` is called (@chrisn)
 
 ## 3.4.2 (2024/08/15)
 
@@ -73,7 +73,7 @@
 * (#524) Fixed `'insert-segment'` waveform drag mode when clicking on an
   existing segment (@chrisn)
 
-* (#523) Added check for `MEDIA_ERR_SRC_NOT_SUPPORTED` error in `Peaks.init()`,
+* (#523) Added check for `MEDIA_ERR_SRC_NOT_SUPPORTED` error in `Peaks.from()`,
   in case the media element source uses an unsupported file format (@chrisn)
 
 ## 3.2.3 (2024/02/20)
@@ -250,7 +250,7 @@
   (@chrisn)
 
 * (#451) Disable use of Worker when using the `webAudio.audioBuffer` option
-  in `Peaks.init()` or `instance.setSource()` (@chrisn)
+  in `Peaks.from()` or `instance.setSource()` (@chrisn)
 
 * Removed deprecated options:
 
@@ -278,7 +278,7 @@
   style.
 
   Segment options are now controlled using the new `segmentOptions` settings
-  in `Peaks.init()`, and settings can be controlled separately for the
+  in `Peaks.from()`, and settings can be controlled separately for the
   overview and zoomable waveform views, using the `overview.segmentOptions`
   and `zoomview.segmentOptions` settings.
 
@@ -298,7 +298,7 @@
 
 ## 2.0.6 (2022/09/07)
 
-* (#443) Check container element height is non-zero in `Peaks.init()`
+* (#443) Check container element height is non-zero in `Peaks.from()`
   (@chrisn)
 
 * (#461) Fixed handling of deprecated `zoomviewWaveformColor` and
@@ -423,7 +423,7 @@
 
 * Use Rollup to build the custom markers demo page (@chrisn)
 
-* (#387) Added a new `Peaks.init()` options structure (@chrisn)
+* (#387) Added a new `Peaks.from()` options structure (@chrisn)
 
 * (#340) Added `showAxisTimeLabels`, `formatAxisTime`, and `formatPlayheadTime`
   options, to allow customization of the time labels shown next to the playhead
@@ -449,7 +449,7 @@
 * (#390) Fixed segment labels being overlapped by waveform segments, to ensure
   labels are visible (@chrisn)
 
-* (#348) An error is now returned if `Peaks.init()` or `setSource()` is called
+* (#348) An error is now returned if `Peaks.from()` or `setSource()` is called
   with 16-bit waveform data (@chrisn)
 
 * (#408) Added `peaks.once()` to the documented API (@chrisn)
@@ -484,8 +484,8 @@
 * (#353) Fixed setWaveformColor() to allow switching between fixed and gradient
   colors (@chrisn)
 
-* Changed `Peaks.init()` to return undefined. Instead of using the
-  `Peaks.init()` return value, you should now pass a callback parameter
+* Changed `Peaks.from()` to return undefined. Instead of using the
+  `Peaks.from()` return value, you should now pass a callback parameter
   (@chrisn)
 
 * Updated use of Konva.FastLayer, removes deprecation warnings (@chrisn)
@@ -503,10 +503,10 @@
 
 * Removed colors.css dependency (@chrisn)
 
-* Simplified template and container option checks in Peaks.init()
+* Simplified template and container option checks in Peaks.from()
   (@chrisn)
 
-* Updated demo pages to use the containers option in Peaks.init()
+* Updated demo pages to use the containers option in Peaks.from()
   (@chrisn)
 
 ## 0.24.0 (2021/03/09)
@@ -583,7 +583,7 @@
  * Removed deprecated code, including:
 
    * `segments.ready` event (use `peaks.ready` or pass a callback to
-     `Peaks.init()` instead)
+     `Peaks.from()` instead)
 
    * `points.add()` no longer accepts a `timestamp` option (use `time` instead)
 
@@ -593,7 +593,7 @@
    * `time.setCurrentTime()` and `time.getCurrentTime()` methods (use
      `player.seek()` and `player.getCurrentTime()` instead) (@chrisn)
 
- * Fixed error handling to use `Peaks.init()` callback consistently instead
+ * Fixed error handling to use `Peaks.from()` callback consistently instead
    of throwing errors in some cases (@chrisn)
 
  * Enabled code coverage test reports (@chrisn)
@@ -704,7 +704,7 @@
 
  * (#281) Fixed TypeScript definitions (@tscz)
 
- * Updated demo pages to use updated `Peaks.init()` API options (@chrisn)
+ * Updated demo pages to use updated `Peaks.from()` API options (@chrisn)
 
 ## 0.13.0 (2019/09/11)
 
@@ -712,7 +712,7 @@
    AudioBuffer
 
  * The API for creating waveforms using the Web Audio API has changed.
-   Instead of passing an `audioContext` option to `Peaks.init()` or
+   Instead of passing an `audioContext` option to `Peaks.from()` or
    `peaksInstance.setSource()`, you should now pass a `webAudio` object,
    for example:
 
@@ -725,7 +725,7 @@
       }
     }
 
-    Peaks.init(options, function(err, peaksInstance) { ... });
+    Peaks.from(options, function(err, peaksInstance) { ... });
     ```
 
  * The (undocumented) `waveformBuilderOptions` option has also been removed.
@@ -857,7 +857,7 @@
 ## 0.9.6 (2018/01/13)
 
  * (#112) Fixed a race condition where an audio element that contains
-   one or more source elements is added to a page, and `Peaks.init()`
+   one or more source elements is added to a page, and `Peaks.from()`
    is called before the audio element has selected which source
    to use. Also improved error reporting, to avoid a misleading "Unable to
    determine a compatible dataUri format for this browser" error (@chrisn)
@@ -1011,7 +1011,7 @@
 
  * Updated to Konva v1.0.x (@chrisn)
 
- * Fixed adding points from Peaks.init() (@chrisn)
+ * Fixed adding points from Peaks.from() (@chrisn)
 
  * (#144) Use `Konva.FastLayer` for drawing waveforms (@jdelStrother)
 
