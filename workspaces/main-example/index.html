@@ -251,6 +251,39 @@
 					</table>
 				</div>
 			</fieldset>
+
+			<fieldset class="control-group control-group--wide">
+				<legend>Tempo &amp; Grid</legend>
+				<div class="control-row">
+					<label>BPM <input id="tempo-bpm" type="number" min="20" max="300" step="1" value="120"></label>
+					<label>Time signature
+						<select id="tempo-signature">
+							<option value="4/4">4/4</option>
+							<option value="3/4">3/4</option>
+							<option value="6/8">6/8</option>
+							<option value="7/8">7/8</option>
+						</select>
+					</label>
+					<label>Grid step
+						<select id="tempo-step">
+							<option value="1/1">1/1</option>
+							<option value="1/2">1/2</option>
+							<option value="1/4" selected>1/4</option>
+							<option value="1/8">1/8</option>
+							<option value="1/16">1/16</option>
+							<option value="1/32">1/32</option>
+						</select>
+					</label>
+					<button class="btn" data-action="apply-tempo" type="button">Apply</button>
+					<label><input id="grid-visible" type="checkbox" checked> Show grid</label>
+				</div>
+				<div class="control-row">
+					<label><input id="snap-segments" type="checkbox"> Snap segment body</label>
+					<label><input id="snap-segment-markers" type="checkbox"> Snap segment markers</label>
+					<label><input id="snap-points" type="checkbox"> Snap points</label>
+					<label><input id="snap-insert-segment" type="checkbox"> Snap on insert</label>
+				</div>
+			</fieldset>
 		</section>
 	</main>
 

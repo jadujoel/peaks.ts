@@ -13,6 +13,8 @@ import type { PeaksNode } from "./peaks-node";
 import type { Point } from "./point";
 import type { ResultCallback } from "./result-callback";
 import type { Segment } from "./segment";
+import type { GridStep, TempoMap } from "./tempo-map";
+import type { SnapKind, TempoMapContext } from "./tempo-map-context";
 import type { WaveformColor } from "./utils";
 
 // ─── Logger ─────────────────────────────────────────────────────────
@@ -123,6 +125,28 @@ export interface PeaksOptions {
 	readonly scrollbar: ScrollbarDisplayOptions;
 	readonly segmentOptions?: SegmentDisplayOptions;
 	readonly audio?: AudioDriver;
+	readonly tempoMap?: TempoMap;
+	readonly grid?: GridDisplayOptions;
+	readonly snap?: SnapOptions;
+	readonly tempoMapContext?: TempoMapContext;
+}
+
+export interface GridDisplayOptions {
+	readonly step?: GridStep;
+	readonly color?: string;
+	readonly opacity?: number;
+	readonly showOnZoomview?: boolean;
+	readonly showOnOverview?: boolean;
+	readonly minPixelSpacing?: number;
+	readonly showBarLines?: boolean;
+}
+
+export interface SnapOptions {
+	readonly segments?: boolean;
+	readonly segmentMarkers?: boolean;
+	readonly points?: boolean;
+	readonly insertSegment?: boolean;
+	readonly step?: GridStep;
 }
 
 export interface WebAudioOptions {
@@ -197,6 +221,9 @@ export interface PeaksConfiguration {
 	readonly highlightOffset?: number;
 	readonly highlightCornerRadius?: number;
 	readonly waveformColor?: WaveformColor;
+	readonly tempoMap?: TempoMap;
+	readonly grid?: GridDisplayOptions;
+	readonly snap?: SnapOptions;
 }
 
 // ─── Segment / Point Options ────────────────────────────────────────
@@ -211,6 +238,7 @@ export interface SegmentOptions {
 	readonly markers?: boolean;
 	readonly overlay?: boolean;
 	readonly editable?: boolean;
+	readonly snap?: boolean;
 }
 
 export interface SegmentUpdateOptions {
@@ -231,6 +259,7 @@ export interface PointOptions {
 	readonly labelText?: string;
 	readonly color?: string;
 	readonly editable?: boolean;
+	readonly snap?: boolean;
 }
 
 export interface PointUpdateOptions {
@@ -440,6 +469,14 @@ export interface WaveformZoomviewAPI extends WaveformViewColorAPI {
 	enableAutoScroll(enable: boolean, options?: { offset?: number }): void;
 	setWaveformDragMode(mode: string): void;
 	setSegmentDragMode(mode: string): void;
+	setTempoMap(map: TempoMap | undefined): void;
+	getTempoMap(): TempoMap | undefined;
+	setGridStep(step: GridStep): void;
+	getGridStep(): GridStep;
+	setGridVisible(visible: boolean): void;
+	setSnapEnabled(kind: SnapKind, enabled: boolean): void;
+	isSnapEnabled(kind: SnapKind): boolean;
+	setSnapStep(step: GridStep | undefined): void;
 }
 
 // Public surface of the overview waveform view that consumers wire to UI.

@@ -10,6 +10,7 @@ import type {
 	PointerInteractionName,
 	ViewName,
 } from "../events";
+import { GridLayer } from "../grid-layer";
 import { PlayheadLayer } from "../playhead-layer";
 import { PointsLayer } from "../points-layer";
 import { SegmentsLayer } from "../segments-layer";
@@ -68,6 +69,7 @@ export class WaveformView {
 	public pointsLayer: PointsLayer | undefined;
 	public axisLayer!: DriverLayer;
 	public axis!: WaveformAxis;
+	public gridLayer: GridLayer | undefined;
 	public playheadLayer!: PlayheadLayer;
 	public formatPlayheadTimeFn: (time: number) => string;
 
@@ -379,7 +381,38 @@ export class WaveformView {
 		});
 
 		this.axis.addToLayer(this.axisLayer);
+		this.maybeCreateGridLayer();
 		this.stage.add(this.axisLayer);
+	}
+
+	private maybeCreateGridLayer(): void {
+		const context = this.peaksOptions.tempoMapContext;
+		if (!context) return;
+		const grid = this.peaksOptions.grid;
+		const isOverview = this.hooks?.getName?.() === "overview";
+		const showOnZoomview = grid?.showOnZoomview ?? true;
+		const showOnOverview = grid?.showOnOverview ?? false;
+		const visible = isOverview ? showOnOverview : showOnZoomview;
+		this.gridLayer = GridLayer.from({
+			context,
+			options: {
+				color: grid?.color ?? this.viewOptions.axisGridlineColor ?? "#cccccc",
+				minPixelSpacing: grid?.minPixelSpacing ?? 6,
+				opacity: grid?.opacity ?? 0.4,
+				showBarLines: grid?.showBarLines ?? true,
+				visible,
+			},
+			view: this.host,
+		});
+		this.gridLayer.addToLayer(this.axisLayer);
+		const redraw = (): void => {
+			this.axisLayer.draw();
+			this.peaks.events.dispatch("grid.update", {
+				step: context.getGridStep(),
+				tempoMap: context.getTempoMap(),
+			});
+		};
+		context.addChangeListener(redraw);
 	}
 
 	showAxisLabels(

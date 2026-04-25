@@ -1,6 +1,8 @@
 import { TypedEventTarget } from "@jadujoel/typed-event-target";
 import type { Point } from "./point";
 import type { Segment } from "./segment";
+import type { GridStep, TempoMap } from "./tempo-map";
+import type { SnapKind } from "./tempo-map-context";
 import type { PointUpdateOptions, SegmentUpdateOptions } from "./types";
 
 export type {
@@ -161,6 +163,18 @@ export type PeaksEventMap = {
 	readonly "zoom.update": {
 		readonly currentZoom: number;
 		readonly previousZoom: number;
+	};
+
+	// ── Tempo map / grid / snap ─────────────────────────────────────
+	readonly "grid.update": {
+		readonly tempoMap: TempoMap | undefined;
+		readonly step: GridStep;
+	};
+	readonly "snap.apply": {
+		readonly kind: SnapKind;
+		readonly rawTime: number;
+		readonly snappedTime: number;
+		readonly entityId?: string;
 	};
 };
 

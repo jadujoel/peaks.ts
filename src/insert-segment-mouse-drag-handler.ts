@@ -71,12 +71,19 @@ export class InsertSegmentMouseDragHandler {
 
 		const time = this.view.pixelsToTime(mousePosX + this.view.getFrameOffset());
 
+		const ctx = this.peaks.options.tempoMapContext;
+		const snappedTime = ctx?.isSnapEnabled("insertSegment")
+			? ctx.snapTimeFor("insertSegment", time)
+			: time;
+
 		this.peaks.segments.setInserting(true);
 
+		const snapEnabled = ctx?.isSnapEnabled("insertSegment") ?? false;
 		this.insertSegment = this.peaks.segments.add({
 			editable: true,
-			endTime: time,
-			startTime: time,
+			endTime: snappedTime,
+			startTime: snappedTime,
+			...(snapEnabled ? { snap: true } : {}),
 		}) as Segment;
 
 		this.insertSegmentShape = this.view.segmentsLayer?.getSegmentShape(

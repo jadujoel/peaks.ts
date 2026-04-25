@@ -5,6 +5,8 @@ import type { PlayheadLayer } from "../playhead-layer";
 import type { PointsLayer } from "../points-layer";
 import { ScrollMouseDragHandler } from "../scroll-mouse-drag-handler";
 import type { SegmentsLayer } from "../segments-layer";
+import type { GridStep, TempoMap } from "../tempo-map";
+import type { SnapKind } from "../tempo-map-context";
 import type {
 	OverviewOptions,
 	PeaksInstance,
@@ -855,5 +857,40 @@ export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 	}
 	fitToContainer(): void {
 		this.view.fitToContainer();
+	}
+
+	// ─── Tempo map / grid / snap ────────────────────────────────────
+
+	setTempoMap(map: TempoMap | undefined): void {
+		this.peaksOptions.tempoMapContext?.setTempoMap(map);
+	}
+
+	getTempoMap(): TempoMap | undefined {
+		return this.peaksOptions.tempoMapContext?.getTempoMap();
+	}
+
+	setGridStep(step: GridStep): void {
+		this.peaksOptions.tempoMapContext?.setGridStep(step);
+	}
+
+	getGridStep(): GridStep {
+		return this.peaksOptions.tempoMapContext?.getGridStep() ?? "1/4";
+	}
+
+	setGridVisible(visible: boolean): void {
+		this.view.gridLayer?.setVisible(visible);
+		this.axisLayer.draw();
+	}
+
+	setSnapEnabled(kind: SnapKind, enabled: boolean): void {
+		this.peaksOptions.tempoMapContext?.setSnapEnabled(kind, enabled);
+	}
+
+	isSnapEnabled(kind: SnapKind): boolean {
+		return this.peaksOptions.tempoMapContext?.isSnapEnabled(kind) ?? false;
+	}
+
+	setSnapStep(step: GridStep | undefined): void {
+		this.peaksOptions.tempoMapContext?.setSnapStep(step);
 	}
 }

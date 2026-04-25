@@ -6,6 +6,7 @@ import type {
 import type { EventFor, PeaksEventMap } from "./events";
 import type { Point } from "./point";
 import { PointMarker } from "./point-marker";
+import { snappingDragBound } from "./snap-drag-bound";
 import type { PeaksInstance, WaveformViewAPI, XY } from "./types";
 import { clamp, objectHasProperty } from "./utils";
 
@@ -302,10 +303,23 @@ export class PointsLayer {
 
 	private pointMarkerDragBoundFunc = (pos: XY): XY => {
 		// Allow the marker to be moved horizontally but not vertically.
-		return {
-			x: clamp(pos.x, 0, this.view.getWidth()),
+		const inner = (p: XY): XY => ({
+			x: clamp(p.x, 0, this.view.getWidth()),
 			y: this.dragPointMarker?.getAbsolutePosition().y ?? 0,
-		};
+		});
+		const ctx = this.peaks.options.tempoMapContext;
+		if (!ctx) {
+			return inner(pos);
+		}
+		const point = this.dragPointMarker?.getPoint();
+		const override = (point?.snap as boolean | undefined) ?? undefined;
+		return snappingDragBound({
+			context: ctx,
+			getOverride: () => override,
+			inner,
+			kind: "points",
+			view: this.view,
+		})(pos);
 	};
 
 	/**

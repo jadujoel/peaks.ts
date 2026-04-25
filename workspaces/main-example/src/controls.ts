@@ -1,10 +1,14 @@
 import type {
+	GridStep,
 	Peaks,
 	Point,
 	Segment,
+	SnapKind,
+	TimeSignature,
 	WaveformOverviewAPI,
 	WaveformZoomviewAPI,
 } from "@jadujoel/peaks.ts";
+import { TempoMap } from "@jadujoel/peaks.ts";
 import { div, input, output, select } from "./dom";
 import type { LoopController } from "./loop-controller";
 
@@ -42,6 +46,7 @@ export class Controls {
 		controls.wireSize();
 		controls.wireSegments();
 		controls.wirePoints();
+		controls.wireTempoGrid();
 		controls.subscribeToPeaks();
 		return controls;
 	}
@@ -163,6 +168,9 @@ export class Controls {
 				return;
 			case "remove-point":
 				if (id) this.peaks.points.removeById(id);
+				return;
+			case "apply-tempo":
+				this.applyTempo();
 				return;
 			default:
 				return;
@@ -395,6 +403,41 @@ export class Controls {
 		this.renderPoints();
 	};
 
+	private wireTempoGrid = (): void => {
+		this.applyTempo();
+		const visible = input("grid-visible");
+		visible.addEventListener("change", () => {
+			this.zoomView()?.setGridVisible(visible.checked);
+		});
+		const snapPairs: ReadonlyArray<readonly [string, SnapKind]> = [
+			["snap-segments", "segments"],
+			["snap-segment-markers", "segmentMarkers"],
+			["snap-points", "points"],
+			["snap-insert-segment", "insertSegment"],
+		];
+		for (const [id, kind] of snapPairs) {
+			const checkbox = input(id);
+			checkbox.addEventListener("change", () => {
+				this.zoomView()?.setSnapEnabled(kind, checkbox.checked);
+			});
+		}
+	};
+
+	private applyTempo = (): void => {
+		const bpmEl = input("tempo-bpm");
+		const bpm = Number.parseFloat(bpmEl.value);
+		if (!Number.isFinite(bpm) || bpm <= 0) return;
+		const sigEl = select("tempo-signature");
+		const signature = parseTimeSignature(sigEl.value);
+		const stepEl = select("tempo-step");
+		const step = stepEl.value as GridStep;
+		const map = TempoMap.constant({ bpm, signature });
+		const view = this.zoomView();
+		if (!view) return;
+		view.setTempoMap(map);
+		view.setGridStep(step);
+	};
+
 	private renderSegments = (): void => {
 		const tbody = document.querySelector<HTMLTableSectionElement>(
 			"#segments-table tbody",
@@ -458,4 +501,14 @@ export class Controls {
 			}
 		});
 	}
+}
+
+function parseTimeSignature(value: string): TimeSignature {
+	const parts = value.split("/");
+	const num = Number.parseInt(parts[0] ?? "", 10);
+	const den = Number.parseInt(parts[1] ?? "", 10);
+	if (!Number.isFinite(num) || !Number.isFinite(den) || num <= 0 || den <= 0) {
+		return { denominator: 4, numerator: 4 };
+	}
+	return { denominator: den, numerator: num };
 }

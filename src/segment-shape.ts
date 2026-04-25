@@ -12,6 +12,7 @@ import { OverlaySegmentMarker } from "./overlay-segment-marker";
 import type { PeaksNode } from "./peaks-node";
 import type { Segment } from "./segment";
 import { SegmentMarker } from "./segment-marker";
+import { snappingDragBound } from "./snap-drag-bound";
 import type {
 	CreateSegmentMarkerOptions,
 	Marker,
@@ -766,10 +767,19 @@ export class SegmentShape {
 
 	private onDragBoundFunc = (pos: XY) => {
 		// Allow the segment to be moved horizontally but not vertically.
-		return {
-			x: pos.x,
-			y: 0,
-		};
+		const ctx = this.peaks.options.tempoMapContext;
+		if (!ctx) {
+			return { x: pos.x, y: 0 };
+		}
+		const override = (this.segment.snap as boolean | undefined) ?? undefined;
+		const inner = (p: XY): XY => ({ x: p.x, y: 0 });
+		return snappingDragBound({
+			context: ctx,
+			getOverride: () => override,
+			inner,
+			kind: "segments",
+			view: this.view,
+		})(pos);
 	};
 
 	private onMouseEnter = (event: PeaksPointerEvent<MouseEvent>) => {
@@ -1013,10 +1023,20 @@ export class SegmentShape {
 		segmentMarker: SegmentMarkerAPI,
 		pos: XY,
 	) => {
-		return {
-			x: pos.x,
-			y: segmentMarker.getAbsolutePosition().y,
-		};
+		const y = segmentMarker.getAbsolutePosition().y;
+		const ctx = this.peaks.options.tempoMapContext;
+		if (!ctx) {
+			return { x: pos.x, y };
+		}
+		const override = (this.segment.snap as boolean | undefined) ?? undefined;
+		const inner = (p: XY): XY => ({ x: p.x, y });
+		return snappingDragBound({
+			context: ctx,
+			getOverride: () => override,
+			inner,
+			kind: "segmentMarkers",
+			view: this.view,
+		})(pos);
 	};
 
 	private onSegmentMarkerClick = () => {

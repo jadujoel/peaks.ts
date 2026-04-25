@@ -3,6 +3,7 @@ import {
 	KonvaCanvasDriver,
 	Peaks,
 	PixiCanvasDriver,
+	TempoMap,
 } from "@jadujoel/peaks.ts";
 import { Controls } from "./controls";
 import { byId, div, select } from "./dom";
@@ -134,6 +135,9 @@ async function main(): Promise<void> {
 
 	const peaks = await initPeaks(state, buffer, driverChoice);
 	(globalThis as unknown as { peaksInstance: Peaks }).peaksInstance = peaks;
+	(
+		globalThis as unknown as { PeaksTest: { TempoMap: typeof TempoMap } }
+	).PeaksTest = { TempoMap };
 
 	const status = byId("status", HTMLParagraphElement);
 	status.textContent = "Ready";

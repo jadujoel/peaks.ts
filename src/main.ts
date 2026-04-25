@@ -44,6 +44,10 @@ export {
 } from "./peaks-options";
 export { Point } from "./point";
 export { Segment } from "./segment";
+export type { GridStep, TempoSection, TimeSignature } from "./tempo-map";
+export { TempoMap } from "./tempo-map";
+export type { SnapEvent, SnapKind } from "./tempo-map-context";
+export { TempoMapContext } from "./tempo-map-context";
 export type {
 	PeaksConfiguration,
 	PeaksOptions,
@@ -123,6 +127,15 @@ export class Peaks {
 
 		const events = createPeaksEvents();
 		const logger = options.logger;
+
+		// Wire snap → events bus.
+		options.tempoMapContext?.addSnapListener((snap) => {
+			events.dispatch("snap.apply", {
+				kind: snap.kind,
+				rawTime: snap.rawTime,
+				snappedTime: snap.snappedTime,
+			});
+		});
 
 		const core = PeaksCore.from({ events, logger, options });
 		const peaksRef = core as unknown as PeaksInstance;

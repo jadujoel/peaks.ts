@@ -6,6 +6,7 @@ import {
 	createSegmentLabel,
 	createSegmentMarker,
 } from "./marker-factories";
+import { TempoMapContext } from "./tempo-map-context";
 import type {
 	OverviewOptions,
 	PeaksConfiguration,
@@ -437,6 +438,30 @@ export function resolvePeaksOptions(
 	}
 
 	addSegmentOptions(options, config);
+
+	const cfg = config as PeaksConfiguration;
+	const tempoMapContext = TempoMapContext.from({
+		...(cfg.grid?.step !== undefined ? { gridStep: cfg.grid.step } : {}),
+		snapFlags: {
+			insertSegment: cfg.snap?.insertSegment ?? false,
+			points: cfg.snap?.points ?? false,
+			segmentMarkers: cfg.snap?.segmentMarkers ?? false,
+			segments: cfg.snap?.segments ?? false,
+		},
+		...(cfg.snap?.step !== undefined ? { snapStep: cfg.snap.step } : {}),
+		...(cfg.tempoMap !== undefined ? { tempoMap: cfg.tempoMap } : {}),
+	});
+	(options as { tempoMapContext: TempoMapContext }).tempoMapContext =
+		tempoMapContext;
+	if (cfg.tempoMap) {
+		(options as { tempoMap: typeof cfg.tempoMap }).tempoMap = cfg.tempoMap;
+	}
+	if (cfg.grid) {
+		(options as { grid: typeof cfg.grid }).grid = cfg.grid;
+	}
+	if (config.snap) {
+		(options as { snap: typeof cfg.snap }).snap = cfg.snap;
+	}
 
 	// Auto-fill webAudio from a driver that exposes its source so callers
 	// don't have to repeat the buffer / context they already passed when
