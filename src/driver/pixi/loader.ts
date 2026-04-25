@@ -10,9 +10,9 @@
 
 import type { CanvasDriver } from "../types";
 
-export class PixiCanvasDriver {
-	static async create(): Promise<CanvasDriver> {
+export const PixiCanvasDriver = {
+	async create(): Promise<CanvasDriver> {
 		const { PixiCanvasDriver: Impl } = await import("./driver");
 		return Impl.create();
-	}
-}
+	},
+};

@@ -1,30 +1,29 @@
+import type { ResultAsync } from "neverthrow";
 import sinon from "sinon";
 import WaveformData from "waveform-data";
-import type { WaveformBuilderCallback } from "../src/types";
-import { WaveformBuilder } from "../src/waveform/builder";
+import {
+	type FetchResponseType,
+	WaveformBuilder,
+} from "../src/waveform/builder";
 import sampleJsonData from "./data/sample.json";
 
 const TestAudioContext = window.AudioContext;
 
-// `createXHR` is `private` in the production type but is spied on in tests
-// to assert request URL/credentials behaviour. Cast through this shape so
-// `sinon.spy(builder, "createXHR")` keeps a precise return type.
-type WaveformBuilderWithXHR = WaveformBuilder & {
-	createXHR: (
+// `fetchData` is `private` in the production type but is spied on in tests
+// to assert request URL behaviour. Cast through this shape so
+// `sinon.spy(builder, "fetchData")` keeps a precise return type.
+type WaveformBuilderWithFetch = WaveformBuilder & {
+	fetchData: (
 		url: string,
-		requestType: string,
-		withCredentials: boolean,
-		onLoad: (this: XMLHttpRequest, event: ProgressEvent<EventTarget>) => void,
-		onError: () => void,
-		onAbort: () => void,
-	) => XMLHttpRequest;
+		requestType: FetchResponseType,
+	) => ResultAsync<ArrayBuffer | unknown, Error>;
 };
-const exposeXHR = (builder: WaveformBuilder): WaveformBuilderWithXHR =>
-	builder as WaveformBuilderWithXHR;
+const exposeFetch = (builder: WaveformBuilder): WaveformBuilderWithFetch =>
+	builder as WaveformBuilderWithFetch;
 
 describe("WaveformBuilder", () => {
 	describe("init", () => {
-		it("should not accept a string as dataUri", (done: DoneCallback) => {
+		it("should not accept a string as dataUri", (done) => {
 			const peaks = {
 				options: {
 					dataUri: "base/test/data/sample.json",
@@ -34,14 +33,16 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.be.an.instanceOf(Error);
-				expect(waveformData).to.equal(undefined);
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				() => done(new Error("expected error")),
+				(err) => {
+					expect(err).to.be.an.instanceOf(Error);
+					done();
+				},
+			);
 		});
 
-		it("should invoke callback with an error if the data handling fails", (done: DoneCallback) => {
+		it("should invoke callback with an error if the data handling fails", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -53,15 +54,16 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.be.an.instanceOf(Error);
-				expect(waveformData).to.not.be.ok;
-
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				() => done(new Error("expected error")),
+				(err) => {
+					expect(err).to.be.an.instanceOf(Error);
+					done();
+				},
+			);
 		});
 
-		it("should invoke callback with an error if the data handling fails due to a network error", (done: DoneCallback) => {
+		it("should invoke callback with an error if the data handling fails due to a network error", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -73,16 +75,17 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.be.an.instanceof(Error);
-				expect(err?.message).to.equal("XHR failed");
-				expect(waveformData).to.equal(undefined);
-
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				() => done(new Error("expected error")),
+				(err) => {
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.equal("Request failed");
+					done();
+				},
+			);
 		});
 
-		it("should fetch JSON format waveform data", (done: DoneCallback) => {
+		it("should fetch JSON format waveform data", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -94,21 +97,22 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
+			const fetchData = sinon.spy(exposeFetch(waveformBuilder), "fetchData");
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
+			waveformBuilder.init(peaks.options).match(
+				(waveformData) => {
+					expect(waveformData).to.be.an.instanceOf(WaveformData);
 
-				const url = createXHR.getCall(0).args[0];
+					const url = fetchData.getCall(0).args[0];
+					expect(url).to.equal(peaks.options.dataUri.json);
 
-				expect(url).to.equal(peaks.options.dataUri.json);
-
-				done();
-			});
+					done();
+				},
+				(err) => done(err),
+			);
 		});
 
-		it("should fetch binary format waveform data", (done: DoneCallback) => {
+		it("should fetch binary format waveform data", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -120,143 +124,22 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
+			const fetchData = sinon.spy(exposeFetch(waveformBuilder), "fetchData");
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
-
-				const url = createXHR.getCall(0).args[0];
-
-				expect(url).to.equal(peaks.options.dataUri.arraybuffer);
-
-				done();
-			});
-		});
-
-		it("should not use credentials if withCredentials is not set", (done: DoneCallback) => {
-			const peaks = {
-				options: {
-					dataUri: {
-						json: "base/test/data/sample.json",
-					},
-					mediaElement: document.getElementById("media"),
-				},
-			};
-
-			const waveformBuilder = WaveformBuilder.from({ peaks });
-
-			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
-
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
-
-				const xhr = createXHR.getCall(0).returnValue as XMLHttpRequest;
-
-				expect(xhr.withCredentials).to.equal(false);
-
-				done();
-			});
-		});
-
-		it("should use credentials if withCredentials is set", (done: DoneCallback) => {
-			const peaks = {
-				options: {
-					dataUri: {
-						json: "base/test/data/sample.json",
-					},
-					mediaElement: document.getElementById("media"),
-					withCredentials: true,
-				},
-			};
-
-			const waveformBuilder = WaveformBuilder.from({ peaks });
-
-			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
-
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
-
-				const xhr = createXHR.getCall(0).returnValue as XMLHttpRequest;
-
-				expect(xhr.withCredentials).to.equal(true);
-
-				done();
-			});
-		});
-
-		"ArrayBuffer" in window &&
-			it("should use the arraybuffer dataUri connector", (done: DoneCallback) => {
-				const peaks = {
-					options: {
-						dataUri: {
-							arraybuffer: "base/test/data/sample.dat",
-						},
-						mediaElement: document.getElementById("media"),
-					},
-				};
-
-				const waveformBuilder = WaveformBuilder.from({ peaks });
-
-				const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
-
-				waveformBuilder.init(peaks.options, (err, waveformData) => {
-					expect(err).to.equal(undefined);
+			waveformBuilder.init(peaks.options).match(
+				(waveformData) => {
 					expect(waveformData).to.be.an.instanceOf(WaveformData);
 
-					const url = createXHR.getCall(0).args[0];
-
+					const url = fetchData.getCall(0).args[0];
 					expect(url).to.equal(peaks.options.dataUri.arraybuffer);
 
 					done();
-				});
-			});
+				},
+				(err) => done(err),
+			);
+		});
 
-		!("ArrayBuffer" in window) &&
-			it("should invoke callback with an error if the only available format is browser incompatible", (done: DoneCallback) => {
-				const peaks = {
-					options: {
-						dataUri: {
-							arraybuffer: "base/test/data/sample.dat",
-						},
-						mediaElement: document.getElementById("media"),
-					},
-				};
-
-				const waveformBuilder = WaveformBuilder.from({ peaks });
-
-				waveformBuilder.init(peaks.options, (err, waveformData) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err?.message).to.match(/Unable to determine/);
-					expect(waveformData).to.equal(undefined);
-					done();
-				});
-			});
-
-		"ArrayBuffer" in window &&
-			it("should invoke callback with an error if arraybuffer data is invalid", (done: DoneCallback) => {
-				const peaks = {
-					options: {
-						mediaElement: document.getElementById("media"),
-						waveformData: {
-							arraybuffer: "foo",
-						},
-					},
-				};
-
-				const waveformBuilder = WaveformBuilder.from({ peaks });
-
-				waveformBuilder.init(peaks.options, (err, waveformData) => {
-					expect(err).to.be.an.instanceOf(Error);
-					expect(err?.message).to.match(/Unable to determine/);
-					expect(waveformData).to.equal(undefined);
-					done();
-				});
-			});
-
-		it("should use the waveformData json data connector", (done: DoneCallback) => {
+		it("should use the waveformData json data connector", (done) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -268,14 +151,16 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				(waveformData) => {
+					expect(waveformData).to.be.an.instanceOf(WaveformData);
+					done();
+				},
+				(err) => done(err),
+			);
 		});
 
-		it("should throw if waveformData json data is invalid", (done: DoneCallback) => {
+		it("should throw if waveformData json data is invalid", (done) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -287,14 +172,16 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.be.an.instanceOf(Error);
-				expect(waveformData).to.equal(undefined);
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				() => done(new Error("expected error")),
+				(err) => {
+					expect(err).to.be.an.instanceOf(Error);
+					done();
+				},
+			);
 		});
 
-		it("should prefer binary waveform data over JSON", (done: DoneCallback) => {
+		it("should prefer binary waveform data over JSON", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -307,24 +194,26 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const createXHR = sinon.spy(exposeXHR(waveformBuilder), "createXHR");
+			const fetchData = sinon.spy(exposeFetch(waveformBuilder), "fetchData");
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
+			waveformBuilder.init(peaks.options).match(
+				(waveformData) => {
+					expect(waveformData).to.be.an.instanceOf(WaveformData);
 
-				const url = createXHR.getCall(0).args[0];
-				const expectedDataUri = window.ArrayBuffer
-					? peaks.options.dataUri.arraybuffer
-					: peaks.options.dataUri.json;
+					const url = fetchData.getCall(0).args[0];
+					const expectedDataUri = window.ArrayBuffer
+						? peaks.options.dataUri.arraybuffer
+						: peaks.options.dataUri.json;
 
-				expect(url).to.equal(expectedDataUri);
+					expect(url).to.equal(expectedDataUri);
 
-				done();
-			});
+					done();
+				},
+				(err) => done(err),
+			);
 		});
 
-		it("should return an error given 16-bit waveform data", (done: DoneCallback) => {
+		it("should return an error given 16-bit waveform data", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -336,16 +225,17 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.be.an.instanceOf(Error);
-				expect(err?.message).to.match(/16-bit waveform data is not supported/);
-				expect(waveformData).to.equal(undefined);
-
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				() => done(new Error("expected error")),
+				(err) => {
+					expect(err).to.be.an.instanceOf(Error);
+					expect(err.message).to.match(/16-bit waveform data is not supported/);
+					done();
+				},
+			);
 		});
 
-		it("should build using WebAudio if the API is available and audioContext is provided", (done: DoneCallback) => {
+		it("should build using WebAudio if the API is available and audioContext is provided", (done) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -359,16 +249,18 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				(waveformData) => {
+					expect(waveformData).to.be.an.instanceOf(WaveformData);
+					done();
+				},
+				(err) => done(err),
+			);
 		});
 	});
 
 	describe("abort", () => {
-		it("should abort an HTTP request for waveform data", (done: DoneCallback) => {
+		it("should abort an HTTP request for waveform data", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -380,17 +272,17 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const callback: WaveformBuilderCallback = (err, waveformData) => {
-				expect(err).to.be.an.instanceOf(Error);
-				expect(waveformData).to.equal(undefined);
-				done();
-			};
-
-			waveformBuilder.init(peaks.options, callback);
+			waveformBuilder.init(peaks.options).match(
+				() => done(new Error("expected error")),
+				(err) => {
+					expect(err).to.be.an.instanceOf(Error);
+					done();
+				},
+			);
 			waveformBuilder.abort();
 		});
 
-		it("should abort an HTTP request for audio data", (done: DoneCallback) => {
+		it("should abort an HTTP request for audio data", (done) => {
 			const peaks = {
 				options: {
 					mediaElement: document.getElementById("media"),
@@ -404,17 +296,17 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			const callback: WaveformBuilderCallback = (err, waveformData) => {
-				expect(err).to.be.an.instanceOf(Error);
-				expect(waveformData).to.equal(undefined);
-				done();
-			};
-
-			waveformBuilder.init(peaks.options, callback);
+			waveformBuilder.init(peaks.options).match(
+				() => done(new Error("expected error")),
+				(err) => {
+					expect(err).to.be.an.instanceOf(Error);
+					done();
+				},
+			);
 			waveformBuilder.abort();
 		});
 
-		it("should do nothing if the HTTP request has not yet been sent", (done: DoneCallback) => {
+		it("should do nothing if the HTTP request has not yet been sent", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -427,15 +319,16 @@ describe("WaveformBuilder", () => {
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 			waveformBuilder.abort();
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
-
-				done();
-			});
+			waveformBuilder.init(peaks.options).match(
+				(waveformData) => {
+					expect(waveformData).to.be.an.instanceOf(WaveformData);
+					done();
+				},
+				(err) => done(err),
+			);
 		});
 
-		it("should do nothing if the HTTP request has completed", (done: DoneCallback) => {
+		it("should do nothing if the HTTP request has completed", (done) => {
 			const peaks = {
 				options: {
 					dataUri: {
@@ -447,14 +340,28 @@ describe("WaveformBuilder", () => {
 
 			const waveformBuilder = WaveformBuilder.from({ peaks });
 
-			waveformBuilder.init(peaks.options, (err, waveformData) => {
-				waveformBuilder.abort();
+			waveformBuilder.init(peaks.options).match(
+				(waveformData) => {
+					waveformBuilder.abort();
+					expect(waveformData).to.be.an.instanceOf(WaveformData);
+					done();
+				},
+				(err) => done(err),
+			);
+		});
+	});
 
-				expect(err).to.equal(undefined);
-				expect(waveformData).to.be.an.instanceOf(WaveformData);
-
-				done();
-			});
+	describe("hasValidContentRangeHeader (regression)", () => {
+		it("should return false for undefined", async () => {
+			const { hasValidContentRangeHeader } = await import(
+				"../src/waveform/builder"
+			);
+			expect(hasValidContentRangeHeader(undefined)).to.equal(false);
+			expect(hasValidContentRangeHeader("")).to.equal(false);
+			expect(hasValidContentRangeHeader("not-a-range")).to.equal(false);
+			expect(hasValidContentRangeHeader("bytes 1-9/10")).to.equal(false);
+			expect(hasValidContentRangeHeader("bytes 0-8/10")).to.equal(false);
+			expect(hasValidContentRangeHeader("bytes 0-9/10")).to.equal(true);
 		});
 	});
 });

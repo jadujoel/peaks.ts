@@ -111,7 +111,6 @@ function createDefaultOptions(): PeaksOptions {
 		waveformCache: true,
 		waveformData: undefined,
 		webAudio: undefined,
-		withCredentials: false,
 		zoomLevels: [512, 1024, 2048, 4096],
 	} as unknown as PeaksOptions;
 }

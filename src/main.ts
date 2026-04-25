@@ -175,19 +175,7 @@ export class Peaks {
 		return playerInit
 			.andThen(() => {
 				const builder = WaveformBuilder.from({ peaks: peaksRef });
-
-				return ResultAsync.fromPromise(
-					new Promise<WaveformData | undefined>((resolve, reject) => {
-						builder.init(options, (buildErr, waveformData) => {
-							if (buildErr) {
-								reject(buildErr);
-								return;
-							}
-							resolve(waveformData);
-						});
-					}),
-					(error) => error as Error,
-				);
+				return builder.init(options);
 			})
 			.andThen((waveformData) => {
 				const postBuildContainerErr = checkContainerElements(options);
@@ -280,33 +268,35 @@ export class Peaks {
 						};
 					}
 
-					this.waveformBuilder = WaveformBuilder.from({
+					const builder = WaveformBuilder.from({
 						peaks: this as unknown as PeaksInstance,
 					});
+					this.waveformBuilder = builder;
 
-					this.waveformBuilder?.init(options, (err, data) => {
-						if (err) {
-							reject(err);
-							return;
-						}
+					builder.init(options).match(
+						(data) => {
+							this.waveformBuilder = undefined;
+							this.waveformDataSlot.value = data;
 
-						this.waveformBuilder = undefined;
-						this.waveformDataSlot.value = data;
+							for (const viewName of ["overview", "zoomview"] as const) {
+								const view = this.views.getView(viewName);
 
-						for (const viewName of ["overview", "zoomview"] as const) {
-							const view = this.views.getView(viewName);
-
-							if (view && data) {
-								view.setWaveformData(data);
+								if (view) {
+									view.setWaveformData(data);
+								}
 							}
-						}
 
-						if (options.zoomLevels) {
-							this.zoom.setLevels(options.zoomLevels);
-						}
+							if (options.zoomLevels) {
+								this.zoom.setLevels(options.zoomLevels);
+							}
 
-						resolve();
-					});
+							resolve();
+						},
+						(err) => {
+							this.waveformBuilder = undefined;
+							reject(err);
+						},
+					);
 				})
 				.catch((err: Error) => {
 					reject(err);

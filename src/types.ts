@@ -11,7 +11,6 @@ import type { PeaksGroup } from "./peaks-group";
 import type { PeaksNode } from "./peaks-node";
 
 import type { Point } from "./point";
-import type { ResultCallback } from "./result-callback";
 import type { Segment } from "./segment";
 import type { GridStep, TempoMap } from "./tempo-map";
 import type { SnapKind, TempoMapContext } from "./tempo-map-context";
@@ -106,7 +105,6 @@ export interface PeaksOptions {
 	readonly mediaElement?: HTMLMediaElement;
 	readonly mediaUrl?: string;
 	readonly dataUri?: Record<string, string>;
-	readonly withCredentials: boolean;
 	readonly waveformData?: Record<string, unknown>;
 	readonly webAudio?: WebAudioOptions;
 	readonly nudgeIncrement: number;
@@ -170,7 +168,6 @@ export interface PeaksConfiguration {
 	readonly waveformCache?: boolean;
 	readonly mediaUrl?: string;
 	readonly dataUri?: Record<string, string>;
-	readonly withCredentials?: boolean;
 	readonly waveformData?: Record<string, unknown>;
 	readonly webAudio?: WebAudioOptions;
 	readonly audioContext?: AudioContext;
@@ -522,12 +519,6 @@ export interface MouseDragHandlers {
 	readonly onMouseMove: (mousePosX: number) => void;
 	readonly onMouseUp: (mousePosX: number) => void;
 }
-
-// ─── Waveform builder callback ──────────────────────────────────────
-export type WaveformBuilderCallback = ResultCallback<
-	Error | TypeError | DOMException,
-	WaveformData
->;
 
 export type { XY } from "./driver/types";
 

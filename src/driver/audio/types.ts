@@ -26,7 +26,6 @@ export interface AudioSource {
 	readonly dataUri?: Record<string, string>;
 	readonly waveformData?: Record<string, unknown>;
 	readonly webAudio?: WebAudioOptions;
-	readonly withCredentials?: boolean;
 }
 
 /**

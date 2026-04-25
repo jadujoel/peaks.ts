@@ -362,10 +362,6 @@ var options = {
     json: null
   },
 
-  // If true, Peaks.js will send credentials with all network requests,
-  // i.e., when fetching waveform data
-  withCredentials: false,
-
   //
   // Web Audio generated waveform data options
   //
@@ -652,7 +648,6 @@ The `options` parameter is an object with the following keys. Only one of `dataU
   * `audioContext`: (optional) A Web Audio `AudioContext` instance, used to compute the waveform data from the media
   * `audioBuffer`: (optional) A Web Audio `AudioBuffer` instance, containing the decoded audio samples. If present, this audio data is used and the `mediaUrl` is not fetched.
   * `multiChannel`: (optional) If `true`, the waveform will show all available channels. If `false` (the default), the audio is shown as a single channel waveform.
-* `withCredentials`: (optional) If `true`, Peaks.js will send credentials when requesting the waveform data from a server
 * `zoomLevels`: (optional) Array of zoom levels in samples per pixel. If not present, the values passed to [Peaks.init()](#peaksinitoptions) will be used
 
 For example, to change the media URL and request pre-computed waveform data from the server:
