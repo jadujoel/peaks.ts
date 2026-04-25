@@ -48,7 +48,7 @@ export class DefaultSegmentMarker {
 				: this.options.segment?.endTime) ?? 0;
 
 		this.label = group.addText({
-			fill: "#000",
+			fill: "#fff",
 			fontFamily: this.options.fontFamily ?? SegmentMarkerDefaults.fontFamily,
 			fontSize: this.options.fontSize ?? SegmentMarkerDefaults.fontSize,
 			fontStyle: this.options.fontStyle ?? SegmentMarkerDefaults.fontStyle,

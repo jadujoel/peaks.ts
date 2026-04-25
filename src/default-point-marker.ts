@@ -63,7 +63,7 @@ export class DefaultPointMarker {
 		});
 
 		this.label = group.addText({
-			fill: "#000",
+			fill: "#fff",
 			fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
 			fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
 			fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
@@ -74,7 +74,7 @@ export class DefaultPointMarker {
 		});
 
 		this.time = group.addText({
-			fill: "#000",
+			fill: "#fff",
 			fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
 			fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
 			fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
