@@ -28,7 +28,9 @@ export class OverlaySegmentMarker {
 			: this.options.segment.endTime;
 
 		this.label = group.addText({
-			fill: "#000",
+			fill:
+				this.options.labelColor ??
+				this.options.segmentOptions.overlayLabelColor,
 			fontFamily: this.options.fontFamily,
 			fontSize: this.options.fontSize,
 			fontStyle: this.options.fontStyle,

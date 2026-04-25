@@ -76,6 +76,8 @@ export interface SegmentDisplayOptions {
 	readonly markers: boolean;
 	readonly startMarkerColor: string;
 	readonly endMarkerColor: string;
+	readonly markerLabelColor: string;
+	readonly labelColor: string;
 	readonly waveformColor: string;
 	readonly overlayColor: string;
 	readonly overlayOpacity: number;
@@ -109,6 +111,7 @@ export interface PeaksOptions {
 	readonly webAudio?: WebAudioOptions;
 	readonly nudgeIncrement: number;
 	readonly pointMarkerColor: string;
+	readonly pointMarkerLabelColor: string;
 	readonly createSegmentMarker: (
 		options: CreateSegmentMarkerOptions,
 	) => Marker | undefined;
@@ -173,6 +176,7 @@ export interface PeaksConfiguration {
 	readonly audioContext?: AudioContext;
 	readonly nudgeIncrement?: number;
 	readonly pointMarkerColor?: string;
+	readonly pointMarkerLabelColor?: string;
 	readonly createSegmentMarker?: (
 		options: CreateSegmentMarkerOptions,
 	) => Marker | undefined;
@@ -293,6 +297,7 @@ export interface CreateSegmentMarkerOptions {
 	readonly editable: boolean;
 	readonly startMarker: boolean;
 	readonly color: string;
+	readonly labelColor?: string;
 	readonly fontFamily: string;
 	readonly fontSize: number;
 	readonly fontStyle: string;
@@ -305,6 +310,7 @@ export interface CreateSegmentLabelOptions {
 	readonly segment: Segment;
 	readonly view: string;
 	readonly layer: SegmentsLayerAPI;
+	readonly color?: string;
 	readonly fontFamily: string;
 	readonly fontSize: number;
 	readonly fontStyle: string;
@@ -315,6 +321,7 @@ export interface CreatePointMarkerOptions {
 	readonly draggable?: boolean;
 	readonly editable?: boolean;
 	readonly color?: string;
+	readonly labelColor?: string;
 	readonly fontFamily?: string;
 	readonly fontSize?: number;
 	readonly fontStyle?: string;

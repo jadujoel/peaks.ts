@@ -9,6 +9,7 @@ export const DefaultOptions = {
 	fontFamily: "sans-serif",
 	fontSize: 10,
 	fontStyle: "normal",
+	labelColor: "#ffffff",
 } as const satisfies Omit<CreatePointMarkerOptions, "point">;
 
 export interface DefaultPointMarkerFromOptions {
@@ -63,7 +64,7 @@ export class DefaultPointMarker {
 		});
 
 		this.label = group.addText({
-			fill: "#fff",
+			fill: this.options.labelColor ?? DefaultOptions.labelColor,
 			fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
 			fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
 			fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,
@@ -74,7 +75,7 @@ export class DefaultPointMarker {
 		});
 
 		this.time = group.addText({
-			fill: "#fff",
+			fill: this.options.labelColor ?? DefaultOptions.labelColor,
 			fontFamily: this.options.fontFamily ?? DefaultOptions.fontFamily,
 			fontSize: this.options.fontSize ?? DefaultOptions.fontSize,
 			fontStyle: this.options.fontStyle ?? DefaultOptions.fontStyle,

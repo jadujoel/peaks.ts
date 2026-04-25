@@ -9,6 +9,7 @@ export const SegmentMarkerDefaults = {
 	fontStyle: "normal",
 	handleHeight: 20,
 	handleWidth: 10,
+	labelColor: "#ffffff",
 } as const;
 
 export interface DefaultSegmentMarkerFromOptions {
@@ -48,7 +49,7 @@ export class DefaultSegmentMarker {
 				: this.options.segment?.endTime) ?? 0;
 
 		this.label = group.addText({
-			fill: "#fff",
+			fill: this.options.labelColor ?? SegmentMarkerDefaults.labelColor,
 			fontFamily: this.options.fontFamily ?? SegmentMarkerDefaults.fontFamily,
 			fontSize: this.options.fontSize ?? SegmentMarkerDefaults.fontSize,
 			fontStyle: this.options.fontStyle ?? SegmentMarkerDefaults.fontStyle,

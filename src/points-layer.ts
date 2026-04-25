@@ -190,11 +190,12 @@ export class PointsLayer {
 		const viewOptions = this.view.getViewOptions();
 
 		const marker = this.peaks.options.createPointMarker({
-			color: point.color ?? "#000",
+			color: point.color ?? this.peaks.options.pointMarkerColor,
 			editable: editable,
 			fontFamily: viewOptions.fontFamily ?? "",
 			fontSize: viewOptions.fontSize ?? 0,
 			fontStyle: viewOptions.fontStyle ?? "",
+			labelColor: this.peaks.options.pointMarkerLabelColor,
 			layer: this,
 			point: point,
 			view: this.view.getName(),

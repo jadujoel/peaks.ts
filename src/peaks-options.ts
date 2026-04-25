@@ -66,6 +66,8 @@ const defaultOverviewOptions = {
 
 const defaultSegmentOptions = {
 	endMarkerColor: "#aaaaaa",
+	labelColor: "#000000",
+	markerLabelColor: "#ffffff",
 	markers: true,
 	overlay: false,
 	overlayBorderColor: "#ff0000",
@@ -105,6 +107,7 @@ function createDefaultOptions(): PeaksOptions {
 		mediaUrl: undefined,
 		nudgeIncrement: 1.0,
 		pointMarkerColor: "#39cccc",
+		pointMarkerLabelColor: "#ffffff",
 		waveformCache: true,
 		waveformData: undefined,
 		webAudio: undefined,

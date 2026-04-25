@@ -31,10 +31,10 @@ export function createSegmentLabel(
 	options: CreateSegmentLabelOptions,
 ): PeaksNode {
 	const node = options.layer.getDriver().createText({
-		fill: "#000",
-		fontFamily: options.fontFamily || "sans-serif",
-		fontSize: options.fontSize || 12,
-		fontStyle: options.fontStyle || "normal",
+		fill: options.color ?? "#000",
+		fontFamily: options.fontFamily ?? "sans-serif",
+		fontSize: options.fontSize ?? 12,
+		fontStyle: options.fontStyle ?? "normal",
 		text: options.segment?.labelText ?? "",
 		textAlign: "center",
 		x: 12,

@@ -79,6 +79,7 @@ export class SegmentShape {
 		}
 
 		const label = peaks.options.createSegmentLabel({
+			color: segmentOptions.labelColor,
 			fontFamily: viewOptions.fontFamily,
 			fontSize: viewOptions.fontSize,
 			fontStyle: viewOptions.fontStyle,
@@ -447,6 +448,7 @@ export class SegmentShape {
 				fontFamily: viewOptions.fontFamily,
 				fontSize: viewOptions.fontSize,
 				fontStyle: viewOptions.fontStyle,
+				labelColor: segmentOptions.markerLabelColor,
 				layer: this.layer,
 				segment: this.segment,
 				segmentOptions: this.view.getViewOptions().segmentOptions,
@@ -478,6 +480,7 @@ export class SegmentShape {
 				fontFamily: viewOptions.fontFamily,
 				fontSize: viewOptions.fontSize,
 				fontStyle: viewOptions.fontStyle,
+				labelColor: segmentOptions.markerLabelColor,
 				layer: this.layer,
 				segment: this.segment,
 				segmentOptions: this.view.getViewOptions().segmentOptions,

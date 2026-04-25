@@ -58,8 +58,23 @@ describe("default marker label colors", () => {
 		marker.init(group);
 
 		expect(recorded.addText.length).to.equal(2);
-		expect(recorded.addText[0].fill).to.equal("#fff");
-		expect(recorded.addText[1].fill).to.equal("#fff");
+		expect(recorded.addText[0].fill).to.equal("#ffffff");
+		expect(recorded.addText[1].fill).to.equal("#ffffff");
+	});
+
+	it("DefaultPointMarker honours custom labelColor option", () => {
+		const { group, recorded } = createFakeGroup();
+		const marker = DefaultPointMarker.from({
+			options: {
+				labelColor: "#ff00ff",
+				layer: layerStub,
+				point: { labelText: "p", time: 0 },
+			} as never,
+		});
+		marker.init(group);
+
+		expect(recorded.addText[0].fill).to.equal("#ff00ff");
+		expect(recorded.addText[1].fill).to.equal("#ff00ff");
 	});
 
 	it("DefaultSegmentMarker label defaults to white", () => {
@@ -74,6 +89,21 @@ describe("default marker label colors", () => {
 		marker.init(group);
 
 		expect(recorded.addText.length).to.be.greaterThan(0);
-		expect(recorded.addText[0].fill).to.equal("#fff");
+		expect(recorded.addText[0].fill).to.equal("#ffffff");
+	});
+
+	it("DefaultSegmentMarker honours custom labelColor option", () => {
+		const { group, recorded } = createFakeGroup();
+		const marker = DefaultSegmentMarker.from({
+			options: {
+				labelColor: "#00ff00",
+				layer: layerStub,
+				segment: { endTime: 1, startTime: 0 },
+				startMarker: true,
+			} as never,
+		});
+		marker.init(group);
+
+		expect(recorded.addText[0].fill).to.equal("#00ff00");
 	});
 });
