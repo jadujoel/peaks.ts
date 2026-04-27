@@ -72,6 +72,7 @@ export class WaveformView {
 	public gridLayer: GridLayer | undefined;
 	public playheadLayer!: PlayheadLayer;
 	public formatPlayheadTimeFn: (time: number) => string;
+	private resizeObserver: ResizeObserver | undefined;
 
 	private constructor(
 		public readonly peaks: PeaksInstance,
@@ -175,6 +176,19 @@ export class WaveformView {
 		this.stage.on("click", this.onClick);
 		this.stage.on("dblclick", this.onDblClick);
 		this.stage.on("contextmenu", this.onContextMenu);
+
+		this.observeContainerResize();
+	}
+
+	private observeContainerResize(): void {
+		if (typeof ResizeObserver === "undefined") {
+			return;
+		}
+
+		this.resizeObserver = new ResizeObserver(() => {
+			this.fitToContainer();
+		});
+		this.resizeObserver.observe(this.container);
 	}
 
 	getName(): string {
@@ -618,7 +632,7 @@ export class WaveformView {
 	}
 
 	fitToContainer(): void {
-		if (this.container.clientWidth === 0 && this.container.clientHeight === 0) {
+		if (this.container.clientWidth === 0 || this.container.clientHeight === 0) {
 			return;
 		}
 
@@ -659,6 +673,9 @@ export class WaveformView {
 	}
 
 	dispose(): void {
+		this.resizeObserver?.disconnect();
+		this.resizeObserver = undefined;
+
 		this.playheadLayer.dispose();
 
 		if (this.segmentsLayer) {

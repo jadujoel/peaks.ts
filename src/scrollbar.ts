@@ -31,10 +31,7 @@ function scrollboxDragBoundFunc(pos: XY): XY {
  */
 export class Scrollbar {
 	private constructor(
-		private readonly container: Pick<
-			HTMLElement,
-			"clientWidth" | "clientHeight"
-		>,
+		private readonly container: HTMLDivElement,
 		private readonly peaks: PeaksInstance,
 		private readonly stage: DriverStage,
 		private readonly layer: DriverLayer,
@@ -48,6 +45,7 @@ export class Scrollbar {
 		private scrollboxWidth: number = 0,
 		private zoomview: WaveformZoomView | undefined = undefined,
 		private dragging: boolean = false,
+		private resizeObserver: ResizeObserver | undefined = undefined,
 	) {}
 
 	static async from(options: ScrollbarFromOptions): Promise<Scrollbar> {
@@ -111,6 +109,7 @@ export class Scrollbar {
 		);
 
 		instance.updateScrollbarWidthAndPosition();
+		instance.observeContainerResize();
 
 		return instance;
 	}
@@ -122,7 +121,7 @@ export class Scrollbar {
 	}
 
 	fitToContainer(): void {
-		if (this.container.clientWidth === 0 && this.container.clientHeight === 0) {
+		if (this.container.clientWidth === 0 || this.container.clientHeight === 0) {
 			return;
 		}
 
@@ -138,12 +137,25 @@ export class Scrollbar {
 	}
 
 	dispose(): void {
+		this.resizeObserver?.disconnect();
+		this.resizeObserver = undefined;
 		this.peaks.events.removeEventListener(
 			"zoomview.update",
 			this.onZoomviewUpdate,
 		);
 		this.layer.destroy();
 		this.stage.destroy();
+	}
+
+	private observeContainerResize(): void {
+		if (typeof ResizeObserver === "undefined") {
+			return;
+		}
+
+		this.resizeObserver = new ResizeObserver(() => {
+			this.fitToContainer();
+		});
+		this.resizeObserver.observe(this.container);
 	}
 
 	/**

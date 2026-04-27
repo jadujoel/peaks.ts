@@ -379,19 +379,23 @@ export class Controls {
 
 	private wireSize = (): void => {
 		const root = document.documentElement;
+		const applyFit = (): void => {
+			this.zoomView()?.fitToContainer();
+			this.overviewView()?.fitToContainer();
+		};
 		const width = input("width");
 		const widthOut = output("width-value");
 		width.addEventListener("input", () => {
 			widthOut.value = width.value;
 			root.style.setProperty("--zoomview-width", `${width.value}px`);
-			window.dispatchEvent(new Event("resize"));
+			applyFit();
 		});
 		const height = input("height");
 		const heightOut = output("height-value");
 		height.addEventListener("input", () => {
 			heightOut.value = height.value;
 			root.style.setProperty("--zoomview-height", `${height.value}px`);
-			window.dispatchEvent(new Event("resize"));
+			applyFit();
 		});
 	};
 

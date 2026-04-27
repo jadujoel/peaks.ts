@@ -480,11 +480,15 @@ export interface WaveformZoomviewAPI extends WaveformViewColorAPI {
 	setSnapEnabled(kind: SnapKind, enabled: boolean): void;
 	isSnapEnabled(kind: SnapKind): boolean;
 	setSnapStep(step: GridStep | undefined): void;
+	fitToView(): void;
+	fitToContainer(): void;
 }
 
 // Public surface of the overview waveform view that consumers wire to UI.
 export interface WaveformOverviewAPI extends WaveformViewColorAPI {
 	setHighlightColor(color: string): void;
+	fitToView(): void;
+	fitToContainer(): void;
 }
 
 // Lighter view interface for cross-referencing
