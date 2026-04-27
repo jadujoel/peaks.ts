@@ -126,7 +126,7 @@
 				<legend>Colors</legend>
 				<div class="control-row">
 					<label class="swatch">
-						<input type="color" id="waveform-color" value="#5fa8d3" />
+						<input type="color" id="waveform-color" value="#00e180" />
 						<span>Waveform</span>
 					</label>
 					<label class="swatch">
@@ -148,7 +148,7 @@
 						<span>Playhead</span>
 					</label>
 					<label class="swatch">
-						<input type="color" id="overview-waveform-color" value="#5fa8d3" />
+						<input type="color" id="overview-waveform-color" value="#00e180" />
 						<span>Overview waveform</span>
 					</label>
 					<label class="swatch">
@@ -201,10 +201,14 @@
 						<input type="range" id="height" min="100" max="400" step="10" value="200" />
 					</div>
 				</div>
+			</fieldset>
+
+			<fieldset class="control-group">
+				<legend>Amplitude</legend>
 				<div class="control-row">
 					<div class="field field--grow">
 						<label for="amplitude-scale">
-							Amplitude <output id="amplitude-scale-value" class="mono">1.0</output>
+							Scale <output id="amplitude-scale-value" class="mono">1.0</output>
 						</label>
 						<input type="range" id="amplitude-scale" min="0.1" max="4" step="0.1" value="1" />
 					</div>

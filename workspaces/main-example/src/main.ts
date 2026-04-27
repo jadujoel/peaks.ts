@@ -83,7 +83,7 @@ async function initPeaks(
 			container: div("overview-container"),
 			highlightColor: "#5fa8d3",
 			highlightOpacity: 0.25,
-			waveformColor: "rgba(95, 168, 211, 0.5)",
+			waveformColor: "#00e180",
 		},
 		playheadColor: "#ffffff",
 		pointMarkerColor: "#006eb0",
@@ -99,7 +99,7 @@ async function initPeaks(
 		zoomview: {
 			container: div("zoomview-container"),
 			showPlayheadTime: true,
-			waveformColor: "rgba(95, 168, 211, 0.5)",
+			waveformColor: "#00e180",
 		},
 	});
 
