@@ -6,6 +6,7 @@
 		"strict": false,
 		"strictNullChecks": false
 	},
+	"exclude": ["test/legacy/**"],
 	"extends": "./tsconfig.json",
 	"include": ["test/**/*.ts"]
 }

@@ -1,4 +1,5 @@
 import { err, ok, type Result } from "neverthrow";
+import type { DataSourceOptions } from "./data-source";
 import type { AudioDriver } from "./driver/audio/types";
 import { KonvaCanvasDriver } from "./driver/konva/driver";
 import {
@@ -13,7 +14,6 @@ import type {
 	PeaksOptions,
 	ScrollbarDisplayOptions,
 	SegmentDisplayOptions,
-	WebAudioOptions,
 	ZoomviewOptions,
 } from "./types";
 import {
@@ -98,7 +98,7 @@ function createDefaultOptions(): PeaksOptions {
 		createPointMarker: createPointMarker,
 		createSegmentLabel: createSegmentLabel,
 		createSegmentMarker: createSegmentMarker,
-		dataUri: undefined,
+		data: undefined,
 		driver: KonvaCanvasDriver.default(),
 		logger: (...args: unknown[]) => {
 			console.error(...args);
@@ -109,8 +109,6 @@ function createDefaultOptions(): PeaksOptions {
 		pointMarkerColor: "#39cccc",
 		pointMarkerLabelColor: "#ffffff",
 		waveformCache: true,
-		waveformData: undefined,
-		webAudio: undefined,
 		zoomLevels: [512, 1024, 2048, 4096],
 	} as unknown as PeaksOptions;
 }
@@ -385,15 +383,16 @@ export function resolvePeaksOptions(
 	}
 
 	if (!config.audio) {
-		const webAudio = config.webAudio as WebAudioOptions | undefined;
-		const hasAudioContextSource =
-			(config.audioContext ?? webAudio?.context) !== undefined &&
-			(webAudio?.buffer !== undefined || typeof config.mediaUrl === "string");
+		const data = config.data as DataSourceOptions | undefined;
+		const hasWebAudioSource =
+			data?.type === "webaudio" &&
+			data.context !== undefined &&
+			(data.buffer !== undefined || typeof config.mediaUrl === "string");
 
-		if (!config.mediaElement && !hasAudioContextSource) {
+		if (!config.mediaElement && !hasWebAudioSource) {
 			return err(
 				new Error(
-					"Provide one of: mediaElement, audio driver, or audioContext with audioBuffer/mediaUrl",
+					"Provide one of: mediaElement, audio driver, or data: { type: 'webaudio', context, buffer | mediaUrl }",
 				),
 			);
 		}
@@ -465,31 +464,32 @@ export function resolvePeaksOptions(
 		(options as { snap: typeof cfg.snap }).snap = cfg.snap;
 	}
 
-	// Auto-fill webAudio from a driver that exposes its source so callers
-	// don't have to repeat the buffer / context they already passed when
-	// constructing the audio driver.
+	// Auto-fill data: { type: "webaudio" } from a driver that exposes its
+	// source so callers don't have to repeat the buffer / context they
+	// already passed when constructing the audio driver.
 	const audioDriver = config.audio as AudioDriver | undefined;
 	if (audioDriver?.getSource) {
 		const driverSource = audioDriver.getSource();
 		const driverWebAudio = driverSource?.webAudio;
 		if (driverWebAudio) {
-			const buffer = options.webAudio?.buffer ?? driverWebAudio.buffer;
-			const context = options.webAudio?.context ?? driverWebAudio.context;
-			const merged: WebAudioOptions = {
+			const existing =
+				options.data?.type === "webaudio" ? options.data : undefined;
+			const buffer = existing?.buffer ?? driverWebAudio.buffer;
+			const context = existing?.context ?? driverWebAudio.context;
+			const multiChannel =
+				existing?.multiChannel ?? driverWebAudio.multiChannel;
+			const scale = existing?.scale ?? driverWebAudio.scale;
+			const merged: import("./data-source").DataSourceWebAudio = {
+				type: "webaudio",
 				...(buffer !== undefined ? { buffer } : {}),
 				...(context !== undefined ? { context } : {}),
-				...(options.webAudio?.multiChannel !== undefined
-					? { multiChannel: options.webAudio.multiChannel }
-					: driverWebAudio.multiChannel !== undefined
-						? { multiChannel: driverWebAudio.multiChannel }
-						: {}),
-				...(options.webAudio?.scale !== undefined
-					? { scale: options.webAudio.scale }
-					: driverWebAudio.scale !== undefined
-						? { scale: driverWebAudio.scale }
-						: {}),
+				...(multiChannel !== undefined ? { multiChannel } : {}),
+				...(scale !== undefined ? { scale } : {}),
+				...(existing?.element !== undefined
+					? { element: existing.element }
+					: {}),
 			};
-			options.webAudio = merged;
+			(options as Writable<PeaksOptions>).data = merged;
 		}
 	}
 

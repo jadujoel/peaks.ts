@@ -92,6 +92,11 @@ async function initPeaks(
 
 	const peaks = await Peaks.from({
 		audio: audioDriver,
+		data: {
+			multiChannel: state.multiChannel,
+			scale: 128,
+			type: "webaudio",
+		},
 		driver,
 		emitCueEvents: true,
 		keyboard: true,
@@ -110,10 +115,6 @@ async function initPeaks(
 			waveformColor: "#5fa8d3",
 		},
 		showPlayheadTime: true,
-		webAudio: {
-			multiChannel: state.multiChannel,
-			scale: 128,
-		},
 		zoomLevels: ZOOM_LEVELS,
 		zoomview: {
 			container: div("zoomview-container"),
@@ -150,9 +151,10 @@ async function main(): Promise<void> {
 	const channelSwitcher = async (mode: "mono" | "stereo"): Promise<void> => {
 		state.multiChannel = mode === "stereo";
 		await peaks.setSource({
-			webAudio: {
+			data: {
 				multiChannel: state.multiChannel,
 				scale: 128,
+				type: "webaudio",
 			},
 		});
 	};

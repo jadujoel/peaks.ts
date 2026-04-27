@@ -1,4 +1,5 @@
 import type WaveformData from "waveform-data";
+import type { DataSourceOptions } from "./data-source";
 import type { AudioDriver, AudioSource } from "./driver/audio/types";
 import type {
 	CanvasDriver,
@@ -9,12 +10,19 @@ import type {
 import type { PeaksEvents, PointerInteractionName } from "./events";
 import type { PeaksGroup } from "./peaks-group";
 import type { PeaksNode } from "./peaks-node";
-
 import type { Point } from "./point";
 import type { Segment } from "./segment";
 import type { GridStep, TempoMap } from "./tempo-map";
 import type { SnapKind, TempoMapContext } from "./tempo-map-context";
 import type { WaveformColor } from "./utils";
+
+export type {
+	DataSourceArrayBuffer,
+	DataSourceJson,
+	DataSourceOptions,
+	DataSourceUri,
+	DataSourceWebAudio,
+} from "./data-source";
 
 // ─── Logger ─────────────────────────────────────────────────────────
 export type Logger = (...args: unknown[]) => void;
@@ -104,9 +112,7 @@ export interface PeaksOptions {
 	readonly waveformCache: boolean;
 	readonly mediaElement?: HTMLMediaElement;
 	readonly mediaUrl?: string;
-	readonly dataUri?: Record<string, string>;
-	readonly waveformData?: Record<string, unknown>;
-	readonly webAudio?: WebAudioOptions;
+	readonly data?: DataSourceOptions;
 	readonly nudgeIncrement: number;
 	readonly pointMarkerColor: string;
 	readonly pointMarkerLabelColor: string;
@@ -162,15 +168,12 @@ export interface WebAudioOptions {
 // refactor so that its more specific, for exxample multiple of these properties cannot be used together
 // some props rule out other props
 export interface PeaksConfiguration {
-	readonly mediaElement?: HTMLMediaElement;
 	readonly audio?: AudioDriver;
+	readonly mediaElement?: HTMLMediaElement;
+	readonly mediaUrl?: string;
 	readonly zoomLevels?: readonly number[];
 	readonly waveformCache?: boolean;
-	readonly mediaUrl?: string;
-	readonly dataUri?: Record<string, string>;
-	readonly waveformData?: Record<string, unknown>;
-	readonly webAudio?: WebAudioOptions;
-	readonly audioContext?: AudioContext;
+	readonly data?: DataSourceOptions;
 	readonly nudgeIncrement?: number;
 	readonly pointMarkerColor?: string;
 	readonly pointMarkerLabelColor?: string;
@@ -229,7 +232,6 @@ export interface PeaksConfiguration {
 
 // ─── Segment / Point Options ────────────────────────────────────────
 export interface SegmentOptions {
-	[key: string]: unknown;
 	readonly id?: string;
 	readonly startTime: number;
 	readonly endTime: number;
@@ -243,7 +245,6 @@ export interface SegmentOptions {
 }
 
 export interface SegmentUpdateOptions {
-	[key: string]: unknown;
 	readonly id?: string;
 	readonly startTime?: number;
 	readonly endTime?: number;
@@ -254,7 +255,6 @@ export interface SegmentUpdateOptions {
 }
 
 export interface PointOptions {
-	[key: string]: unknown;
 	readonly id?: string;
 	readonly time: number;
 	readonly labelText?: string;
@@ -264,7 +264,6 @@ export interface PointOptions {
 }
 
 export interface PointUpdateOptions {
-	[key: string]: unknown;
 	readonly id?: string;
 	readonly time?: number;
 	readonly labelText?: string;
@@ -509,6 +508,7 @@ export interface SetZoomOptions {
 // levels). Drivers ignore unknown fields.
 export interface SetSourceOptions extends AudioSource {
 	readonly zoomLevels?: readonly number[];
+	readonly data?: DataSourceOptions;
 }
 
 export type { AudioDriver, AudioSource } from "./driver/audio/types";

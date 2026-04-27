@@ -16,20 +16,23 @@ export function buildDefaultAudioDriver(
 			mediaElement: config.mediaElement,
 		});
 	}
-	const audioContext = config.audioContext ?? config.webAudio?.context;
-	const audioBuffer = config.webAudio?.buffer;
-	const url = typeof config.mediaUrl === "string" ? config.mediaUrl : undefined;
-
-	if (audioContext && (audioBuffer ?? url)) {
-		return audioBuffer
-			? ClipNodeAudioDriver.from({ buffer: audioBuffer, context: audioContext })
-			: ClipNodeAudioDriver.from({
-					context: audioContext,
-					url: url as string,
-				});
+	if (config.data?.type === "webaudio") {
+		const data = config.data;
+		if (data.context && data.buffer) {
+			return ClipNodeAudioDriver.from({
+				buffer: data.buffer,
+				context: data.context,
+			});
+		}
+		if (data.context && config.mediaUrl) {
+			return ClipNodeAudioDriver.from({
+				context: data.context,
+				url: config.mediaUrl,
+			});
+		}
 	}
 
 	return new TypeError(
-		"Provide one of: mediaElement, audio driver, or audioContext with audioBuffer/mediaUrl",
+		"Provide one of: mediaElement, audio driver, or data: { type: 'webaudio', context, buffer | mediaUrl }",
 	);
 }

@@ -116,6 +116,7 @@ export default defineConfig({
 			provider: "v8",
 			reporter: ["html", "text", "text-summary"],
 		},
+		exclude: ["test/legacy/**", "node_modules/**"],
 		fileParallelism: false,
 		globals: true,
 		include: ["test/**/*-spec.{js,ts}"],

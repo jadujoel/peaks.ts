@@ -1,14 +1,26 @@
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import WaveformData from "waveform-data";
+import type {
+	DataSourceArrayBuffer,
+	DataSourceJson,
+	DataSourceOptions,
+	DataSourceUri,
+	DataSourceWebAudio,
+} from "../data-source";
 import type { PeaksEvents } from "../events";
-import type { Logger, WebAudioOptions } from "../types";
-import type { Writable } from "../utils";
+import type { Logger } from "../types";
 import { isArrayBuffer, isObject } from "../utils";
 
+export type {
+	DataSourceArrayBuffer,
+	DataSourceJson,
+	DataSourceOptions,
+	DataSourceUri,
+	DataSourceWebAudio,
+} from "../data-source";
+
 export interface WaveformBuilderOptions {
-	readonly dataUri?: Record<string, string> | string;
-	readonly waveformData?: Record<string, unknown>;
-	readonly webAudio?: WebAudioOptions;
+	readonly data?: DataSourceOptions;
 	readonly zoomLevels?: readonly number[];
 }
 
@@ -66,46 +78,31 @@ export class WaveformBuilder {
 	}
 
 	init(options: WaveformBuilderOptions): ResultAsync<WaveformData, Error> {
-		if (
-			(options.dataUri && options.webAudio) ||
-			(options.waveformData && options.webAudio) ||
-			(options.dataUri && options.waveformData)
-		) {
+		const data = options.data;
+
+		if (!data) {
 			return errAsync(
-				new TypeError(
-					"You may only pass one source (webAudio, dataUri, or waveformData) to render waveform data.",
+				new Error(
+					"You must pass a data source (uri, arraybuffer, json, or webaudio) to render waveform data",
 				),
 			);
 		}
 
-		if (options.dataUri) {
-			return this.getRemoteWaveformData(options);
+		switch (data.type) {
+			case "uri":
+				return this.buildFromRemoteUri(data);
+			case "arraybuffer":
+				return this.buildFromArrayBuffer(data);
+			case "json":
+				return this.buildFromJson(data);
+			case "webaudio":
+				return this.buildFromWebAudio(data, options.zoomLevels);
 		}
-		if (options.waveformData) {
-			return this.buildWaveformFromLocalData(options);
-		}
-		if (options.webAudio) {
-			if (options.webAudio.buffer) {
-				return this.buildWaveformDataFromAudioBuffer(options);
-			}
-			return this.buildWaveformDataUsingWebAudio(options);
-		}
-		return errAsync(
-			new Error(
-				"You must pass an audioContext, or dataUri, or waveformData to render waveform data",
-			),
-		);
 	}
 
-	private getRemoteWaveformData(
-		options: WaveformBuilderOptions,
+	private buildFromRemoteUri(
+		data: DataSourceUri,
 	): ResultAsync<WaveformData, Error> {
-		if (!isObject(options.dataUri)) {
-			return errAsync(new TypeError("The dataUri option must be an object"));
-		}
-
-		const dataUri = options.dataUri;
-
 		const candidates: ReadonlyArray<{
 			readonly globalName: string;
 			readonly type: FetchResponseType;
@@ -119,7 +116,7 @@ export class WaveformBuilder {
 
 		for (const candidate of candidates) {
 			if (candidate.globalName in window) {
-				const candidateUrl = dataUri[candidate.type];
+				const candidateUrl = data[candidate.type];
 				if (candidateUrl) {
 					requestType = candidate.type;
 					url = candidateUrl;
@@ -131,79 +128,84 @@ export class WaveformBuilder {
 		if (!url || !requestType) {
 			return errAsync(
 				new Error(
-					"Unable to determine a compatible dataUri format for this browser",
+					"Unable to determine a compatible data.uri format for this browser",
 				),
 			);
 		}
 
-		return this.fetchData(url, requestType).andThen((data) => {
+		return this.fetchData(url, requestType).andThen((fetched) => {
 			this.controller = undefined;
-			return createWaveformData(data as ArrayBuffer);
+			return createWaveformData(fetched as ArrayBuffer);
 		});
 	}
 
-	private buildWaveformFromLocalData(
-		options: WaveformBuilderOptions,
+	private buildFromArrayBuffer(
+		data: DataSourceArrayBuffer,
 	): ResultAsync<WaveformData, Error> {
-		if (!isObject(options.waveformData)) {
-			return errAsync(
-				new Error("The waveformData option must be an object"),
-			);
+		if (!isArrayBuffer(data.arraybuffer)) {
+			return errAsync(new TypeError("data.arraybuffer must be an ArrayBuffer"));
 		}
-
-		const waveformData = options.waveformData;
-		let data: unknown;
-
-		if (isObject(waveformData.json)) {
-			data = waveformData.json;
-		} else if (isArrayBuffer(waveformData.arraybuffer)) {
-			data = waveformData.arraybuffer;
-		}
-
-		if (!data) {
-			return errAsync(
-				new Error(
-					"Unable to determine a compatible waveformData format",
-				),
-			);
-		}
-
 		return ResultAsync.fromPromise(
-			Promise.resolve().then(() => WaveformData.create(data as ArrayBuffer)),
+			Promise.resolve().then(() => WaveformData.create(data.arraybuffer)),
 			(err) => (err instanceof Error ? err : new Error(String(err))),
 		).andThen((created) => validateWaveformData(created, ""));
 	}
 
-	private buildWaveformDataUsingWebAudio(
-		options: WaveformBuilderOptions,
+	private buildFromJson(
+		data: DataSourceJson,
 	): ResultAsync<WaveformData, Error> {
-		if (!(options.webAudio?.context instanceof AudioContext)) {
+		if (!isObject(data.json)) {
+			return errAsync(new TypeError("data.json must be an object"));
+		}
+		return ResultAsync.fromPromise(
+			Promise.resolve().then(() =>
+				WaveformData.create(data.json as unknown as ArrayBuffer),
+			),
+			(err) => (err instanceof Error ? err : new Error(String(err))),
+		).andThen((created) => validateWaveformData(created, ""));
+	}
+
+	private buildFromWebAudio(
+		data: DataSourceWebAudio,
+		zoomLevels?: readonly number[],
+	): ResultAsync<WaveformData, Error> {
+		if (!(data.context instanceof AudioContext)) {
 			return errAsync(
-				new TypeError(
-					"The webAudio.audioContext option must be a valid AudioContext",
-				),
+				new TypeError("data.context must be a valid AudioContext"),
 			);
 		}
 
-		const webAudioOptions = options.webAudio;
+		const scale = zoomLevels?.[0] ?? data.scale;
+		const multiChannel = data.multiChannel ?? false;
 
-		const firstZoomLevel = options.zoomLevels?.[0];
-		if (
-			firstZoomLevel !== undefined &&
-			webAudioOptions.scale !== firstZoomLevel
-		) {
-			(webAudioOptions as Writable<WebAudioOptions>).scale = firstZoomLevel;
+		if (data.buffer) {
+			const builderOptions: {
+				audio_buffer: AudioBuffer;
+				split_channels: boolean;
+				scale?: number;
+				disable_worker: boolean;
+			} = {
+				audio_buffer: data.buffer,
+				disable_worker: true,
+				split_channels: multiChannel,
+			};
+			if (scale !== undefined) {
+				builderOptions.scale = scale;
+			}
+			return createFromAudio(builderOptions);
 		}
 
-		// If the media element has already selected which source to play, its
-		// currentSrc attribute will contain the source media URL. Otherwise,
-		// we wait for a canplay event to tell us when the media is ready.
-		const mediaSourceUrl = this.peaks.options.mediaElement?.currentSrc;
+		// Fall back to fetching the bytes off the media element source.
+		const context = data.context;
+		const element = data.element ?? this.peaks.options.mediaElement;
+		const mediaSourceUrl = element?.currentSrc;
 
 		if (mediaSourceUrl) {
 			return this.requestAudioAndBuildWaveformData(
 				mediaSourceUrl,
-				webAudioOptions,
+				context,
+				multiChannel,
+				scale,
 			);
 		}
 
@@ -212,75 +214,32 @@ export class WaveformBuilder {
 				this.peaks.events?.addEventListener(
 					"player.canplay",
 					() => {
-						resolve(this.peaks.options.mediaElement?.currentSrc ?? "");
+						resolve(
+							(element ?? this.peaks.options.mediaElement)?.currentSrc ?? "",
+						);
 					},
 					{ once: true },
 				);
 			}),
 			(err) => (err instanceof Error ? err : new Error(String(err))),
 		).andThen((url) =>
-			this.requestAudioAndBuildWaveformData(url, webAudioOptions),
+			this.requestAudioAndBuildWaveformData(url, context, multiChannel, scale),
 		);
-	}
-
-	private buildWaveformDataFromAudioBuffer(
-		options: WaveformBuilderOptions,
-	): ResultAsync<WaveformData, Error> {
-		const webAudioOptions = options.webAudio;
-
-		if (!webAudioOptions) {
-			return errAsync(new TypeError("Missing webAudio options"));
-		}
-
-		const firstZoomLevel = options.zoomLevels?.[0];
-		if (
-			firstZoomLevel !== undefined &&
-			webAudioOptions.scale !== firstZoomLevel
-		) {
-			(webAudioOptions as Writable<WebAudioOptions>).scale = firstZoomLevel;
-		}
-
-		if (!webAudioOptions.buffer) {
-			return errAsync(
-				new TypeError("Missing webAudio.audioBuffer"),
-			);
-		}
-
-		const builderOptions: {
-			audio_buffer: AudioBuffer;
-			split_channels: boolean;
-			scale?: number;
-			disable_worker: boolean;
-		} = {
-			audio_buffer: webAudioOptions.buffer,
-			disable_worker: true,
-			split_channels: webAudioOptions.multiChannel ?? false,
-		};
-
-		if (webAudioOptions.scale !== undefined) {
-			builderOptions.scale = webAudioOptions.scale;
-		}
-
-		return createFromAudio(builderOptions);
 	}
 
 	private requestAudioAndBuildWaveformData(
 		url: string,
-		webAudio: WebAudioOptions,
+		context: AudioContext,
+		multiChannel: boolean,
+		scale?: number,
 	): ResultAsync<WaveformData, Error> {
 		if (!url) {
 			this.peaks.logger?.("The mediaElement src is invalid");
-			return errAsync(
-				new Error("The mediaElement src is invalid"),
-			);
+			return errAsync(new Error("The mediaElement src is invalid"));
 		}
 
-		return this.fetchData(url, "arraybuffer").andThen((data) => {
+		return this.fetchData(url, "arraybuffer").andThen((fetched) => {
 			this.controller = undefined;
-
-			if (!webAudio.context) {
-				return errAsync<WaveformData, Error>(new Error("Missing audioContext"));
-			}
 
 			const builderOptions: {
 				audio_context: AudioContext;
@@ -288,15 +247,13 @@ export class WaveformBuilder {
 				split_channels: boolean;
 				scale?: number;
 			} = {
-				array_buffer: data as ArrayBuffer,
-				audio_context: webAudio.context,
-				split_channels: webAudio.multiChannel ?? false,
+				array_buffer: fetched as ArrayBuffer,
+				audio_context: context,
+				split_channels: multiChannel,
 			};
-
-			if (webAudio.scale !== undefined) {
-				builderOptions.scale = webAudio.scale;
+			if (scale !== undefined) {
+				builderOptions.scale = scale;
 			}
-
 			return createFromAudio(builderOptions);
 		});
 	}

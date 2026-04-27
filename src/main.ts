@@ -252,17 +252,18 @@ export class Peaks {
 					}
 
 					// If the driver owns the buffer (e.g. ClipNodeAudioDriver),
-					// auto-fill `webAudio.buffer` so the WaveformBuilder doesn't
-					// require the caller to repeat what the driver already has.
+					// auto-fill `data: { type: "webaudio" }` so the WaveformBuilder
+					// doesn't require the caller to repeat what the driver already has.
 					const driverSource = this.player.driver.getSource?.();
 					const driverWebAudio = driverSource?.webAudio;
-					if (driverWebAudio?.buffer && options.webAudio) {
-						const callerWebAudio = options.webAudio;
-						const buffer = callerWebAudio.buffer ?? driverWebAudio.buffer;
-						const context = callerWebAudio.context ?? driverWebAudio.context;
+					if (driverWebAudio?.buffer) {
 						const writable = options as Writable<SetSourceOptions>;
-						writable.webAudio = {
-							...callerWebAudio,
+						const existing =
+							options.data?.type === "webaudio" ? options.data : undefined;
+						const buffer = existing?.buffer ?? driverWebAudio.buffer;
+						const context = existing?.context ?? driverWebAudio.context;
+						writable.data = {
+							...(existing ?? { type: "webaudio" as const }),
 							...(buffer !== undefined ? { buffer } : {}),
 							...(context !== undefined ? { context } : {}),
 						};
