@@ -377,7 +377,7 @@ var options = {
 
     // If true, the waveform will show all available channels
     // If false, the audio is shown as a single channel waveform
-    multiChannel: false
+    stereo: false
   },
 
   // Array of zoom levels in samples per pixel. Smaller numbers represent
@@ -647,7 +647,7 @@ The `options` parameter is an object with the following keys. Only one of `dataU
 * `webAudio`: (optional) If using the Web Audio API to generate the waveform, this should be an object containing the following values:
   * `audioContext`: (optional) A Web Audio `AudioContext` instance, used to compute the waveform data from the media
   * `audioBuffer`: (optional) A Web Audio `AudioBuffer` instance, containing the decoded audio samples. If present, this audio data is used and the `mediaUrl` is not fetched.
-  * `multiChannel`: (optional) If `true`, the waveform will show all available channels. If `false` (the default), the audio is shown as a single channel waveform.
+  * `stereo`: (optional) If `true`, the waveform will show all available channels. If `false` (the default), the audio is shown as a single channel waveform.
 * `zoomLevels`: (optional) Array of zoom levels in samples per pixel. If not present, the values passed to [Peaks.init()](#peaksinitoptions) will be used
 
 For example, to change the media URL and request pre-computed waveform data from the server:
@@ -675,7 +675,7 @@ const options = {
   mediaUrl: '/sample.mp3',
   webAudio: {
     audioContext: audioContext,
-    multiChannel: true
+    stereo: true
   }
 };
 

@@ -175,8 +175,8 @@ export class ClipNodeAudioDriver implements AudioDriver {
 	async setSource(source: AudioSource): Promise<void> {
 		this.disposeNode();
 		// Preserve existing buffer/url when the caller only updates side
-		// options like `multiChannel`. This lets `peaks.setSource({ webAudio:
-		// { multiChannel: true } })` work without re-passing the buffer.
+		// options like `stereo`. This lets `peaks.setSource({ webAudio:
+		// { stereo: true } })` work without re-passing the buffer.
 		if (source.webAudio?.buffer !== undefined) {
 			this.buffer = source.webAudio.buffer;
 		}

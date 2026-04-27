@@ -410,7 +410,7 @@ test.describe("pixi rendering @ main-example", () => {
 		expect(redStats.hash).not.toBe(greenStats.hash);
 	});
 
-	test("switching to multi-channel mode keeps both canvases rendering", async ({
+	test("switching to stereo mode keeps both canvases rendering", async ({
 		page,
 	}) => {
 		const errs = await gotoReady(page);

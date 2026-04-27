@@ -40,7 +40,7 @@ bun run example:build
 | Display     | Auto-scroll, Scrollbar, Overview, drag modes      | `zoomview.enableAutoScroll`, `setWaveformDragMode`, `setSegmentDragMode`, `views.*Overview` |
 | Colors      | Waveform / played / axis label / axis grid        | `view.setWaveformColor`, `setPlayedWaveformColor`, `setAxisLabelColor`, `setAxisGridlineColor` |
 | Amplitude   | Scale slider (0.1 – 4)                            | `view.setAmplitudeScale`                                                                    |
-| Channels    | Mono / Multi-channel                              | `peaks.setSource({ webAudio: { multiChannel } })`                                           |
+| Channels    | Mono / Stereo                              | `peaks.setSource({ webAudio: { stereo } })`                                           |
 | Size        | Width / Height                                    | CSS custom properties + `window.dispatchEvent('resize')`                                    |
 | Segments    | Add at playhead, list, Loop, Remove               | `peaks.segments.add/getSegments/removeById`                                                 |
 | Points      | Add at playhead, list, Jump, Remove               | `peaks.points.add/getPoints/removeById`                                                     |

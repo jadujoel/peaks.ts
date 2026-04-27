@@ -20,7 +20,7 @@ type CanvasDriver =
 
 interface AppState {
 	audioContext: AudioContext;
-	multiChannel: boolean;
+	stereo: boolean;
 }
 
 function isDriverChoice(value: string | null): value is DriverChoice {
@@ -93,8 +93,8 @@ async function initPeaks(
 	const peaks = await Peaks.from({
 		audio: audioDriver,
 		data: {
-			multiChannel: state.multiChannel,
 			scale: 128,
+			stereo: state.stereo,
 			type: "webaudio",
 		},
 		driver,
@@ -132,7 +132,7 @@ async function main(): Promise<void> {
 
 	const audioContext = new AudioContext();
 	const buffer = await fetchBuffer(AUDIO_URL, audioContext);
-	const state: AppState = { audioContext, multiChannel: false };
+	const state: AppState = { audioContext, stereo: false };
 
 	const peaks = await initPeaks(state, buffer, driverChoice);
 	(globalThis as unknown as { peaksInstance: Peaks }).peaksInstance = peaks;
@@ -149,11 +149,11 @@ async function main(): Promise<void> {
 	});
 
 	const channelSwitcher = async (mode: "mono" | "stereo"): Promise<void> => {
-		state.multiChannel = mode === "stereo";
+		state.stereo = mode === "stereo";
 		await peaks.setSource({
 			data: {
-				multiChannel: state.multiChannel,
 				scale: 128,
+				stereo: state.stereo,
 				type: "webaudio",
 			},
 		});

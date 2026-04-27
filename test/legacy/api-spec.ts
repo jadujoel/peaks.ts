@@ -519,7 +519,7 @@ describe("Peaks", () => {
 				});
 			});
 
-			describe("with audioContext and multiChannel enabled", () => {
+			describe("with audioContext and stereo enabled", () => {
 				it("should initialise correctly", (done: DoneCallback) => {
 					initPeaks(
 						{
@@ -529,7 +529,7 @@ describe("Peaks", () => {
 							},
 							webAudio: {
 								context: new TestAudioContext(),
-								multiChannel: true,
+								stereo: true,
 							},
 							zoomview: {
 								container: document.getElementById("zoomview-container"),
@@ -564,7 +564,7 @@ describe("Peaks", () => {
 									},
 									webAudio: {
 										buffer: audioBuffer,
-										multiChannel: true,
+										stereo: true,
 									},
 									zoomLevels: [128, 256],
 									zoomview: {
@@ -1244,7 +1244,7 @@ describe("Peaks", () => {
 							mediaUrl: "/base/test/data/sample.mp3",
 							webAudio: {
 								buffer: audioBuffer,
-								multiChannel: true,
+								stereo: true,
 							},
 						};
 

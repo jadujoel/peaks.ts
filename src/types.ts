@@ -159,7 +159,7 @@ export interface SnapOptions {
 export interface WebAudioOptions {
 	readonly context?: AudioContext;
 	readonly buffer?: AudioBuffer;
-	readonly multiChannel?: boolean;
+	readonly stereo?: boolean;
 	readonly scale?: number;
 }
 

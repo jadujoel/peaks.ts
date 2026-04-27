@@ -1,5 +1,5 @@
 import { err, ok, type Result } from "neverthrow";
-import type { DataSourceOptions } from "./data-source";
+import type { DataSourceOptions, DataSourceWebAudio } from "./data-source";
 import type { AudioDriver } from "./driver/audio/types";
 import { KonvaCanvasDriver } from "./driver/konva/driver";
 import {
@@ -476,14 +476,13 @@ export function resolvePeaksOptions(
 				options.data?.type === "webaudio" ? options.data : undefined;
 			const buffer = existing?.buffer ?? driverWebAudio.buffer;
 			const context = existing?.context ?? driverWebAudio.context;
-			const multiChannel =
-				existing?.multiChannel ?? driverWebAudio.multiChannel;
+			const stereo = existing?.stereo ?? driverWebAudio.stereo;
 			const scale = existing?.scale ?? driverWebAudio.scale;
-			const merged: import("./data-source").DataSourceWebAudio = {
+			const merged: DataSourceWebAudio = {
 				type: "webaudio",
 				...(buffer !== undefined ? { buffer } : {}),
 				...(context !== undefined ? { context } : {}),
-				...(multiChannel !== undefined ? { multiChannel } : {}),
+				...(stereo !== undefined ? { stereo } : {}),
 				...(scale !== undefined ? { scale } : {}),
 				...(existing?.element !== undefined
 					? { element: existing.element }

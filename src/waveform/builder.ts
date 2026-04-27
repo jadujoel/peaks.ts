@@ -176,7 +176,7 @@ export class WaveformBuilder {
 		}
 
 		const scale = zoomLevels?.[0] ?? data.scale;
-		const multiChannel = data.multiChannel ?? false;
+		const stereo = data.stereo ?? false;
 
 		if (data.buffer) {
 			const builderOptions: {
@@ -187,7 +187,7 @@ export class WaveformBuilder {
 			} = {
 				audio_buffer: data.buffer,
 				disable_worker: true,
-				split_channels: multiChannel,
+				split_channels: stereo,
 			};
 			if (scale !== undefined) {
 				builderOptions.scale = scale;
@@ -204,7 +204,7 @@ export class WaveformBuilder {
 			return this.requestAudioAndBuildWaveformData(
 				mediaSourceUrl,
 				context,
-				multiChannel,
+				stereo,
 				scale,
 			);
 		}
@@ -223,14 +223,14 @@ export class WaveformBuilder {
 			}),
 			(err) => (err instanceof Error ? err : new Error(String(err))),
 		).andThen((url) =>
-			this.requestAudioAndBuildWaveformData(url, context, multiChannel, scale),
+			this.requestAudioAndBuildWaveformData(url, context, stereo, scale),
 		);
 	}
 
 	private requestAudioAndBuildWaveformData(
 		url: string,
 		context: AudioContext,
-		multiChannel: boolean,
+		stereo: boolean,
 		scale?: number,
 	): ResultAsync<WaveformData, Error> {
 		if (!url) {
@@ -249,7 +249,7 @@ export class WaveformBuilder {
 			} = {
 				array_buffer: fetched as ArrayBuffer,
 				audio_context: context,
-				split_channels: multiChannel,
+				split_channels: stereo,
 			};
 			if (scale !== undefined) {
 				builderOptions.scale = scale;

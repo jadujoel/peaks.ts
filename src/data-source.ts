@@ -29,7 +29,7 @@ export interface DataSourceWebAudio {
 	readonly context?: AudioContext;
 	readonly buffer?: AudioBuffer;
 	readonly element?: HTMLMediaElement;
-	readonly multiChannel?: boolean;
+	readonly stereo?: boolean;
 	readonly scale?: number;
 }
 
