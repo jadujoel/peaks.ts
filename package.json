@@ -101,7 +101,7 @@
 	},
 	"type": "module",
 	"types": "./dist/esm/main.d.ts",
-	"version": "5.0.0",
+	"version": "5.0.1",
 	"workspaces": [
 		"workspaces/*"
 	]
