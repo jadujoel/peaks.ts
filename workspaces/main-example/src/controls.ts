@@ -1,16 +1,14 @@
 import type {
 	GridStep,
+	LoopController,
 	Peaks,
 	Point,
 	Segment,
 	SnapKind,
 	TimeSignature,
-	WaveformOverviewAPI,
-	WaveformZoomviewAPI,
 } from "@jadujoel/peaks.ts";
 import { TempoMap } from "@jadujoel/peaks.ts";
 import { div, input, output, select } from "./dom";
-import type { LoopController } from "./loop-controller";
 
 export type ChannelSwitcher = (mode: "mono" | "stereo") => Promise<void>;
 
@@ -51,11 +49,11 @@ export class Controls {
 		return controls;
 	}
 
-	private zoomView(): WaveformZoomviewAPI | undefined {
+	private zoomView() {
 		return this.peaks.views.getZoomview();
 	}
 
-	private overviewView(): WaveformOverviewAPI | undefined {
+	private overviewView() {
 		return this.peaks.views.getOverview();
 	}
 
@@ -154,11 +152,7 @@ export class Controls {
 				}
 				return;
 			case "add-point":
-				this.peaks.points.add({
-					editable: true,
-					labelText: "Point",
-					time: this.peaks.player.getCurrentTime(),
-				});
+				this.peaks.points.addAtPlayhead();
 				return;
 			case "jump-point":
 				if (id) {
@@ -178,18 +172,7 @@ export class Controls {
 	};
 
 	private addSegmentAtPlayhead = (): void => {
-		const start = this.peaks.player.getCurrentTime();
-		const duration = this.peaks.player.getDuration();
-		const end = Math.min(
-			start + 5,
-			Number.isFinite(duration) && duration > 0 ? duration : start + 5,
-		);
-		this.peaks.segments.add({
-			editable: true,
-			endTime: end,
-			labelText: "Segment",
-			startTime: start,
-		});
+		this.peaks.segments.addAtPlayhead();
 	};
 
 	private loopSegmentById = (id: string): void => {
@@ -281,46 +264,25 @@ export class Controls {
 	};
 
 	private wireColors = (): void => {
-		const apply = (
-			key: "waveform" | "played" | "label" | "grid",
-			color: string,
-		): void => {
-			const zoom = this.zoomView();
-			const overview = this.overviewView();
-			switch (key) {
-				case "waveform":
-					zoom?.setWaveformColor(color);
-					overview?.setWaveformColor(color);
-					return;
-				case "played":
-					zoom?.setPlayedWaveformColor(color);
-					overview?.setPlayedWaveformColor(color);
-					return;
-				case "label":
-					zoom?.setAxisLabelColor(color);
-					overview?.setAxisLabelColor(color);
-					return;
-				case "grid":
-					zoom?.setAxisGridlineColor(color);
-					overview?.setAxisGridlineColor(color);
-					return;
-			}
-		};
+		const views = this.peaks.views;
 
 		const wave = input("waveform-color");
-		wave.addEventListener("input", () => apply("waveform", wave.value));
+		wave.addEventListener("input", () => views.setWaveformColor(wave.value));
 		const played = input("played-color");
-		played.addEventListener("input", () => apply("played", played.value));
+		played.addEventListener("input", () =>
+			views.setPlayedWaveformColor(played.value),
+		);
 		const label = input("axis-label-color");
-		label.addEventListener("input", () => apply("label", label.value));
+		label.addEventListener("input", () => views.setAxisLabelColor(label.value));
 		const grid = input("axis-grid-color");
-		grid.addEventListener("input", () => apply("grid", grid.value));
+		grid.addEventListener("input", () =>
+			views.setAxisGridlineColor(grid.value),
+		);
 
 		const playhead = input("playhead-color");
-		playhead.addEventListener("input", () => {
-			this.zoomView()?.setPlayheadColor(playhead.value);
-			this.overviewView()?.setPlayheadColor(playhead.value);
-		});
+		playhead.addEventListener("input", () =>
+			views.setPlayheadColor(playhead.value),
+		);
 
 		const overviewWave = input("overview-waveform-color");
 		overviewWave.addEventListener("input", () => {
@@ -328,27 +290,23 @@ export class Controls {
 		});
 
 		const overviewHighlight = input("overview-highlight-color");
-		overviewHighlight.addEventListener("input", () => {
-			this.overviewView()?.setHighlightColor(overviewHighlight.value);
-		});
+		overviewHighlight.addEventListener("input", () =>
+			views.setHighlightColor(overviewHighlight.value),
+		);
 
 		const startMarker = input("segment-start-marker-color");
-		startMarker.addEventListener("input", () => {
-			this.zoomView()?.setSegmentStartMarkerColor(startMarker.value);
-			this.overviewView()?.setSegmentStartMarkerColor(startMarker.value);
-		});
+		startMarker.addEventListener("input", () =>
+			views.setSegmentStartMarkerColor(startMarker.value),
+		);
 
 		const endMarker = input("segment-end-marker-color");
-		endMarker.addEventListener("input", () => {
-			this.zoomView()?.setSegmentEndMarkerColor(endMarker.value);
-			this.overviewView()?.setSegmentEndMarkerColor(endMarker.value);
-		});
+		endMarker.addEventListener("input", () =>
+			views.setSegmentEndMarkerColor(endMarker.value),
+		);
 
 		const segWave = input("segment-waveform-color");
 		segWave.addEventListener("input", () => {
-			for (const segment of this.peaks.segments.getSegments()) {
-				segment.update({ color: segWave.value });
-			}
+			this.peaks.segments.updateAll({ color: segWave.value });
 		});
 	};
 
@@ -359,8 +317,7 @@ export class Controls {
 			const scale = Number(slider.value);
 			value.value = scale.toFixed(1);
 			try {
-				this.zoomView()?.setAmplitudeScale(scale);
-				this.overviewView()?.setAmplitudeScale(scale);
+				this.peaks.views.setAmplitudeScale(scale);
 			} catch (error) {
 				console.warn("setAmplitudeScale failed", error);
 			}
@@ -380,8 +337,7 @@ export class Controls {
 	private wireSize = (): void => {
 		const root = document.documentElement;
 		const applyFit = (): void => {
-			this.zoomView()?.fitToContainer();
-			this.overviewView()?.fitToContainer();
+			this.peaks.views.fitToContainer();
 		};
 		const width = input("width");
 		const widthOut = output("width-value");

@@ -1,22 +1,18 @@
+import type { CanvasDriver, CanvasDriverKind } from "@jadujoel/peaks.ts";
 import {
-	ClipNodeAudioDriver,
-	KonvaCanvasDriver,
+	createCanvasDriver,
+	LoopController,
 	Peaks,
-	PixiCanvasDriver,
 	TempoMap,
 } from "@jadujoel/peaks.ts";
 import { Controls } from "./controls";
 import { byId, div, select } from "./dom";
-import { LoopController } from "./loop-controller";
 
 const AUDIO_URL = "./sample.mp3";
 const ZOOM_LEVELS: readonly number[] = [128, 256, 512, 1024, 2048, 4096];
 const DRIVER_STORAGE_KEY = "peaks-example-driver";
 
-type DriverChoice = "konva" | "pixi";
-type CanvasDriver =
-	| ReturnType<typeof KonvaCanvasDriver.default>
-	| Awaited<ReturnType<typeof PixiCanvasDriver.create>>;
+type DriverChoice = CanvasDriverKind;
 
 interface AppState {
 	audioContext: AudioContext;
@@ -36,11 +32,8 @@ function getInitialDriver(): DriverChoice {
 	return "konva";
 }
 
-async function createDriver(choice: DriverChoice): Promise<CanvasDriver> {
-	if (choice === "pixi") {
-		return PixiCanvasDriver.create();
-	}
-	return KonvaCanvasDriver.default();
+function createDriver(choice: DriverChoice): Promise<CanvasDriver> {
+	return createCanvasDriver({ kind: choice });
 }
 
 function setupDriverSelector(current: DriverChoice): void {
@@ -70,28 +63,14 @@ function setLoopStatus(text: string): void {
 	out.value = text;
 }
 
-async function fetchBuffer(
-	url: string,
-	context: AudioContext,
-): Promise<AudioBuffer> {
-	const response = await fetch(url);
-	const arrayBuffer = await response.arrayBuffer();
-	return context.decodeAudioData(arrayBuffer);
-}
-
 async function initPeaks(
 	state: AppState,
-	buffer: AudioBuffer,
 	driverChoice: DriverChoice,
 ): Promise<Peaks> {
-	const audioDriver = ClipNodeAudioDriver.from({
-		buffer,
-		context: state.audioContext,
-	});
 	const driver = await createDriver(driverChoice);
 
-	const peaks = await Peaks.from({
-		audio: audioDriver,
+	const peaks = await Peaks.fromUrl({
+		audioContext: state.audioContext,
 		data: {
 			scale: 128,
 			stereo: state.stereo,
@@ -115,6 +94,7 @@ async function initPeaks(
 			waveformColor: "#5fa8d3",
 		},
 		showPlayheadTime: true,
+		url: AUDIO_URL,
 		zoomLevels: ZOOM_LEVELS,
 		zoomview: {
 			container: div("zoomview-container"),
@@ -131,10 +111,9 @@ async function main(): Promise<void> {
 	setupDriverSelector(driverChoice);
 
 	const audioContext = new AudioContext();
-	const buffer = await fetchBuffer(AUDIO_URL, audioContext);
 	const state: AppState = { audioContext, stereo: false };
 
-	const peaks = await initPeaks(state, buffer, driverChoice);
+	const peaks = await initPeaks(state, driverChoice);
 	(globalThis as unknown as { peaksInstance: Peaks }).peaksInstance = peaks;
 	(
 		globalThis as unknown as { PeaksTest: { TempoMap: typeof TempoMap } }

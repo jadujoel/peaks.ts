@@ -413,6 +413,13 @@ export interface SegmentsInstance {
 	setInserting(value: boolean): void;
 	isInserting(): boolean;
 	updateSegmentId(segment: Segment, newId: string): void;
+	updateAll(patch: SegmentUpdateOptions): void;
+	addAtPlayhead(options?: {
+		readonly duration?: number;
+		readonly labelText?: string;
+		readonly editable?: boolean;
+		readonly id?: string;
+	}): Segment;
 }
 
 export interface PointsInstance {
@@ -427,6 +434,12 @@ export interface PointsInstance {
 	removeByTime(time: number): Point[];
 	removeAll(): void;
 	updatePointId(point: Point, newId: string): void;
+	updateAll(patch: PointUpdateOptions): void;
+	addAtPlayhead(options?: {
+		readonly labelText?: string;
+		readonly editable?: boolean;
+		readonly id?: string;
+	}): Point;
 }
 
 export interface ZoomInstance {
@@ -452,6 +465,18 @@ export interface ViewControllerInstance {
 	/** Typed accessor for the overview waveform view. */
 	getOverview(): WaveformOverviewAPI | undefined;
 	getScrollbar(): unknown;
+	// Fan-out helpers — apply a setting to whichever views are present.
+	setWaveformColor(color: WaveformColor): void;
+	setPlayedWaveformColor(color: WaveformColor | undefined): void;
+	setPlayheadColor(color: string): void;
+	setPlayheadTextColor(color: string): void;
+	setAxisLabelColor(color: string): void;
+	setAxisGridlineColor(color: string): void;
+	setSegmentStartMarkerColor(color: string): void;
+	setSegmentEndMarkerColor(color: string): void;
+	setAmplitudeScale(scale: number): undefined | never;
+	setHighlightColor(color: string): void;
+	fitToContainer(): void;
 }
 
 // Common color/scale surface implemented by both views.
@@ -480,14 +505,12 @@ export interface WaveformZoomviewAPI extends WaveformViewColorAPI {
 	setSnapEnabled(kind: SnapKind, enabled: boolean): void;
 	isSnapEnabled(kind: SnapKind): boolean;
 	setSnapStep(step: GridStep | undefined): void;
-	fitToView(): void;
 	fitToContainer(): void;
 }
 
 // Public surface of the overview waveform view that consumers wire to UI.
 export interface WaveformOverviewAPI extends WaveformViewColorAPI {
 	setHighlightColor(color: string): void;
-	fitToView(): void;
 	fitToContainer(): void;
 }
 

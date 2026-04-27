@@ -1,5 +1,9 @@
 import { Segment, validateSegmentOptions } from "../segment";
-import type { PeaksInstance, SegmentOptions } from "../types";
+import type {
+	PeaksInstance,
+	SegmentOptions,
+	SegmentUpdateOptions,
+} from "../types";
 import type { Writable } from "../utils";
 import { extend, isNullOrUndefined } from "../utils";
 
@@ -287,4 +291,57 @@ export class WaveformSegments {
 	isInserting(): boolean {
 		return this.inserting;
 	}
+
+	/**
+	 * Applies the same {@link SegmentUpdateOptions} patch to every existing
+	 * segment. Useful for fan-out UI controls (e.g. a single colour picker
+	 * that recolours all segments). No-op when the segment store is empty.
+	 *
+	 * @throws {TypeError|RangeError|Error} Whatever {@link Segment.update}
+	 *   throws for invalid patches.
+	 */
+	updateAll(patch: SegmentUpdateOptions): void {
+		for (const segment of this.segments) {
+			segment.update(patch);
+		}
+	}
+
+	/**
+	 * Adds a segment that starts at the player's current time.
+	 *
+	 * `endTime` defaults to `startTime + duration` and is clamped to the
+	 * media duration when known. Defaults: `duration = 5`, `editable =
+	 * true`, `labelText = "Segment"`. The new segment is returned.
+	 */
+	addAtPlayhead(options: AddAtPlayheadSegmentOptions = {}): Segment {
+		const start = this.peaks.player.getCurrentTime();
+		const duration = options.duration ?? 5;
+		const mediaDuration = this.peaks.player.getDuration();
+		const naturalEnd = start + duration;
+		const end =
+			Number.isFinite(mediaDuration) && mediaDuration > 0
+				? Math.min(naturalEnd, mediaDuration)
+				: naturalEnd;
+
+		const created = this.add({
+			editable: options.editable ?? true,
+			endTime: end,
+			labelText: options.labelText ?? "Segment",
+			startTime: start,
+			...(options.id !== undefined ? { id: options.id } : {}),
+		});
+
+		return Array.isArray(created) ? (created[0] as Segment) : created;
+	}
+}
+
+export interface AddAtPlayheadSegmentOptions {
+	/** Duration in seconds; defaults to 5. */
+	readonly duration?: number;
+	/** Defaults to "Segment". */
+	readonly labelText?: string;
+	/** Defaults to true so the new segment is immediately draggable. */
+	readonly editable?: boolean;
+	/** Optional explicit id; one is generated when omitted. */
+	readonly id?: string;
 }

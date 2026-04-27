@@ -1,6 +1,7 @@
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import type WaveformData from "waveform-data";
 import { CueEmitter } from "./cue-emitter";
+import { ClipNodeAudioDriver } from "./driver/audio/clip-node/driver";
 import { createPeaksEvents, type PeaksEvents } from "./events";
 import { KeyboardHandler } from "./keyboard-handler";
 import { resolveAudioDriver } from "./peaks-audio";
@@ -28,9 +29,20 @@ import { WaveformSegments } from "./waveform/segments";
 import { ZoomController } from "./zoom-controller";
 
 export { ClipNodeAudioDriver } from "./driver/audio/clip-node/driver";
+export type {
+	CanvasDriverKind,
+	CreateCanvasDriverOptions,
+} from "./driver/factory";
+export { createCanvasDriver } from "./driver/factory";
 export { KonvaCanvasDriver } from "./driver/konva/driver";
 export { PixiCanvasDriver } from "./driver/pixi/loader";
+export type { CanvasDriver } from "./driver/types";
 export type { PeaksEvents } from "./events";
+export type {
+	LoopControllerFromOptions,
+	LoopState,
+} from "./loop-controller";
+export { LoopController } from "./loop-controller";
 export {
 	addSegmentOptions,
 	checkContainerElements,
@@ -62,6 +74,18 @@ export { PeaksGroup, PeaksNode };
 
 export interface WaveformDataSlot {
 	value: WaveformData | undefined;
+}
+
+/**
+ * Options accepted by {@link Peaks.fromUrl}. All `PeaksConfiguration`
+ * fields are accepted as-is. `audio` is auto-populated from the decoded
+ * buffer unless supplied explicitly.
+ */
+export interface PeaksFromUrlOptions extends PeaksConfiguration {
+	readonly url: string;
+	readonly audioContext: AudioContext;
+	/** Custom fetch implementation. Defaults to `globalThis.fetch`. */
+	readonly fetch?: typeof fetch;
 }
 
 export class Peaks {
@@ -307,6 +331,46 @@ export class Peaks {
 
 	getWaveformData(): WaveformData | undefined {
 		return this.waveformDataSlot.value;
+	}
+
+	/**
+	 * Convenience factory: fetches `url`, decodes the response into an
+	 * `AudioBuffer`, wraps it in a {@link ClipNodeAudioDriver}, and calls
+	 * {@link Peaks.from} with the supplied configuration.
+	 *
+	 * Removes the boilerplate of `fetch → arrayBuffer → decodeAudioData →
+	 * driver` that every consumer otherwise repeats. If the caller passes
+	 * `audio` explicitly, that driver wins; if they pass `data`, it is
+	 * used as-is, otherwise a `webaudio` data source is built from the
+	 * decoded buffer.
+	 *
+	 * @throws {Error} If the fetch fails or decoding throws.
+	 */
+	static async fromUrl(options: PeaksFromUrlOptions): Promise<Peaks> {
+		const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+		const response = await fetchImpl(options.url);
+		const arrayBuffer = await response.arrayBuffer();
+		const buffer = await options.audioContext.decodeAudioData(arrayBuffer);
+
+		const audio =
+			options.audio ??
+			ClipNodeAudioDriver.from({ buffer, context: options.audioContext });
+
+		const data: PeaksConfiguration["data"] = options.data ?? {
+			buffer,
+			context: options.audioContext,
+			scale: 128,
+			stereo: false,
+			type: "webaudio",
+		};
+
+		const { url: _url, audioContext: _ctx, fetch: _fetch, ...rest } = options;
+
+		return Peaks.from({
+			...rest,
+			audio,
+			data,
+		});
 	}
 
 	dispose() {

@@ -1,5 +1,5 @@
 import { Point, validatePointOptions } from "../point";
-import type { PeaksInstance, PointOptions } from "../types";
+import type { PeaksInstance, PointOptions, PointUpdateOptions } from "../types";
 
 /**
  * Handles all functionality related to the adding, removing and manipulation
@@ -136,6 +136,34 @@ export class WaveformPoints {
 	}
 
 	/**
+	 * Applies the same {@link PointUpdateOptions} patch to every existing
+	 * point. No-op when there are no points.
+	 *
+	 * @throws {TypeError|RangeError|Error} Whatever {@link Point.update}
+	 *   throws for invalid patches.
+	 */
+	updateAll(patch: PointUpdateOptions): void {
+		for (const point of this.points) {
+			point.update(patch);
+		}
+	}
+
+	/**
+	 * Adds a point at the player's current time. Defaults: `editable =
+	 * true`, `labelText = "Point"`. Returns the created point.
+	 */
+	addAtPlayhead(options: AddAtPlayheadPointOptions = {}): Point {
+		const created = this.add({
+			editable: options.editable ?? true,
+			labelText: options.labelText ?? "Point",
+			time: this.peaks.player.getCurrentTime(),
+			...(options.id !== undefined ? { id: options.id } : {}),
+		});
+
+		return Array.isArray(created) ? (created[0] as Point) : created;
+	}
+
+	/**
 	 * Returns a new unique point id value.
 	 */
 	private nextPointName(): string {
@@ -239,4 +267,13 @@ export class WaveformPoints {
 		});
 		return removed;
 	}
+}
+
+export interface AddAtPlayheadPointOptions {
+	/** Defaults to "Point". */
+	readonly labelText?: string;
+	/** Defaults to true so the new point is immediately draggable. */
+	readonly editable?: boolean;
+	/** Optional explicit id; one is generated when omitted. */
+	readonly id?: string;
 }
