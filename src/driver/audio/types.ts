@@ -83,4 +83,11 @@ export interface AudioDriver {
 	 * previously configured loop. Polling-based drivers can ignore this.
 	 */
 	setLooped?(loop: boolean): void;
+	/**
+	 * Optional hook to update the playback rate. `1` is normal speed,
+	 * `0.5` is half speed, `2` is double speed. Negative values play in
+	 * reverse on drivers that support it; drivers that don't may clamp
+	 * the value.
+	 */
+	setPlaybackRate?(rate: number): void;
 }

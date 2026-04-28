@@ -96,13 +96,12 @@ test("Size controls resize the waveform stages, not just the CSS containers", as
 		);
 	};
 
-	// Shrink width and height so the container becomes smaller than the
-	// initial canvas backing store. The canvas must follow.
-	await setSlider("width", 500);
+	// Shrink height so the container becomes smaller than the initial
+	// canvas backing store. The canvas must follow. Width is now driven
+	// purely by the layout (full-width waveform), not a slider.
 	await setSlider("height", 120);
 
 	const shrunk = await readDims();
-	expect(shrunk.zoomContainer.w).toBe(500);
 	expect(shrunk.zoomContainer.h).toBe(120);
 	expect(shrunk.zoomCanvas.w).toBe(shrunk.zoomContainer.w);
 	expect(shrunk.zoomCanvas.h).toBe(shrunk.zoomContainer.h);
@@ -111,8 +110,7 @@ test("Size controls resize the waveform stages, not just the CSS containers", as
 	expect(shrunk.scrollCanvas.w).toBe(shrunk.scrollContainer.w);
 	expect(shrunk.scrollCanvas.h).toBe(shrunk.scrollContainer.h);
 
-	// Grow back. Width is clamped by viewport but height should reach 400.
-	await setSlider("width", 1600);
+	// Grow height back to a larger value.
 	await setSlider("height", 400);
 
 	const grown = await readDims();

@@ -104,9 +104,21 @@ test.describe("main-example inbox fixes", () => {
 	}) => {
 		await gotoReady(page);
 
-		await page
-			.locator('button[data-action="loop-segment"][data-id="segment-1"]')
-			.click();
+		await page.evaluate(async () => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						segments: { getSegment: (id: string) => unknown };
+					};
+				}
+			).peaksInstance;
+			const lc = (
+				globalThis as unknown as {
+					__loopController: { loopSegment: (s: unknown) => Promise<void> };
+				}
+			).__loopController;
+			await lc.loopSegment(peaks.segments.getSegment("segment-1"));
+		});
 		await expect(page.locator("#loop-status")).toContainText("Loop A");
 		await expect(page.locator("#loop-status")).toContainText("5.00");
 		await expect(page.locator("#loop-status")).toContainText("12.00");
@@ -167,7 +179,7 @@ test.describe("main-example inbox fixes", () => {
 
 		await page
 			.locator(
-				'#points-table button[data-action="jump-point"][data-id="point-1"]',
+				'#points-compact button[data-action="jump-point"][data-id="point-1"]',
 			)
 			.click();
 

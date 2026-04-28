@@ -71,10 +71,15 @@ export class SeekMouseDragHandler {
 		const width = this.view.getWidth();
 		const clamped = clamp(x, 0, width);
 		const duration = this.peaks.player.getDuration();
-		const time =
+		let time =
 			clamped >= width
 				? duration
 				: Math.min(this.view.pixelsToTime(clamped), duration);
+
+		const ctx = this.peaks.options.tempoMapContext;
+		if (ctx) {
+			time = ctx.snapTimeFor("playhead", time);
+		}
 
 		this.view.updatePlayheadTime(time);
 		this.peaks.player.seek(time);

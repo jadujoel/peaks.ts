@@ -308,11 +308,21 @@ test.describe("pixi rendering @ main-example", () => {
 		const zoom = page.locator("#zoomview-container canvas").first();
 
 		const beforeLoop = await statsForCanvas(zoom);
-		const loopBtn = page.locator(
-			'button[data-action="loop-segment"][data-id="segment-1"]',
-		);
-		await expect(loopBtn).toBeVisible();
-		await loopBtn.click();
+		await page.evaluate(async () => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						segments: { getSegment: (id: string) => unknown };
+					};
+				}
+			).peaksInstance;
+			const lc = (
+				globalThis as unknown as {
+					__loopController: { loopSegment: (s: unknown) => Promise<void> };
+				}
+			).__loopController;
+			await lc.loopSegment(peaks.segments.getSegment("segment-1"));
+		});
 
 		await expect(page.locator("#loop-status")).not.toHaveText("(none)");
 
@@ -351,10 +361,10 @@ test.describe("pixi rendering @ main-example", () => {
 		});
 		await settle(page);
 		const before = await statsForCanvas(zoom);
-		const initialRows = await page.locator("#segments-table tbody tr").count();
+		const initialRows = await page.locator("#segments-compact li").count();
 
 		await page.locator('button[data-action="add-segment"]').click();
-		await expect(page.locator("#segments-table tbody tr")).toHaveCount(
+		await expect(page.locator("#segments-compact li")).toHaveCount(
 			initialRows + 1,
 		);
 		await settle(page);
@@ -377,10 +387,10 @@ test.describe("pixi rendering @ main-example", () => {
 		});
 		await settle(page);
 		const before = await statsForCanvas(zoom);
-		const initialRows = await page.locator("#points-table tbody tr").count();
+		const initialRows = await page.locator("#points-compact li").count();
 
 		await page.locator('button[data-action="add-point"]').click();
-		await expect(page.locator("#points-table tbody tr")).toHaveCount(
+		await expect(page.locator("#points-compact li")).toHaveCount(
 			initialRows + 1,
 		);
 		await settle(page);
@@ -481,22 +491,22 @@ test.describe("pixi rendering @ main-example", () => {
 		expect(after.nonTransparent).toBeGreaterThan(500);
 	});
 
-	test("resizing the width keeps the zoomview rendering the waveform", async ({
+	test("resizing the height keeps the zoomview rendering the waveform", async ({
 		page,
 	}) => {
 		await gotoReady(page);
 		const zoom = page.locator("#zoomview-container canvas").first();
 
-		await page.locator("#width").evaluate((el: HTMLInputElement) => {
-			el.value = "600";
+		await page.locator("#height").evaluate((el: HTMLInputElement) => {
+			el.value = "140";
 			el.dispatchEvent(new Event("input", { bubbles: true }));
 		});
 		await settle(page);
 		const small = await statsForCanvas(zoom);
 		expect(small.nonTransparent).toBeGreaterThan(500);
 
-		await page.locator("#width").evaluate((el: HTMLInputElement) => {
-			el.value = "1200";
+		await page.locator("#height").evaluate((el: HTMLInputElement) => {
+			el.value = "320";
 			el.dispatchEvent(new Event("input", { bubbles: true }));
 		});
 		await settle(page);

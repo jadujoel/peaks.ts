@@ -165,6 +165,9 @@ async function main(): Promise<void> {
 		onChange: setLoopStatus,
 		peaks,
 	});
+	(
+		globalThis as unknown as { __loopController: LoopController }
+	).__loopController = loopController;
 
 	const channelSwitcher = async (mode: "mono" | "stereo"): Promise<void> => {
 		state.stereo = mode === "stereo";

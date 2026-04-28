@@ -154,6 +154,7 @@ export interface SnapOptions {
 	readonly segmentMarkers?: boolean;
 	readonly points?: boolean;
 	readonly insertSegment?: boolean;
+	readonly playhead?: boolean;
 	readonly step?: GridStep;
 }
 

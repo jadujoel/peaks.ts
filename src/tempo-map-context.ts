@@ -4,13 +4,15 @@ export type SnapKind =
 	| "segments"
 	| "segmentMarkers"
 	| "points"
-	| "insertSegment";
+	| "insertSegment"
+	| "playhead";
 
 export interface SnapFlags {
 	readonly segments: boolean;
 	readonly segmentMarkers: boolean;
 	readonly points: boolean;
 	readonly insertSegment: boolean;
+	readonly playhead: boolean;
 }
 
 export interface TempoMapContextFromOptions {
@@ -32,6 +34,7 @@ export const DEFAULT_GRID_STEP: GridStep = "1/4";
 
 const DEFAULT_FLAGS: SnapFlags = {
 	insertSegment: false,
+	playhead: false,
 	points: false,
 	segmentMarkers: false,
 	segments: false,

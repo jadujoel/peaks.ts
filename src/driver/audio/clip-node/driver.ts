@@ -185,6 +185,12 @@ export class ClipNodeAudioDriver implements AudioDriver {
 		node.loop = loop;
 	}
 
+	setPlaybackRate(rate: number): void {
+		const node = this.node;
+		if (!node) return;
+		node.playbackRate.value = rate;
+	}
+
 	async setSource(source: AudioSource): Promise<void> {
 		this.disposeNode();
 		// Preserve existing buffer/url when the caller only updates side

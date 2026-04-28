@@ -137,15 +137,6 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 	test("compact list jump button seeks to segment start", async ({ page }) => {
 		await gotoReady(page);
 
-		// The compact list only shows when the full Segments group is
-		// collapsed. Close the details first to mirror the user-facing flow.
-		await page.evaluate(() => {
-			const details = document.getElementById(
-				"segments-group",
-			) as HTMLDetailsElement;
-			details.open = false;
-		});
-
 		// Capture seek calls to verify the compact button delegates to
 		// player.seek with the segment's startTime.
 		await page.evaluate(() => {
@@ -177,30 +168,12 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 		expect(calls[0]).toBeCloseTo(5, 5);
 	});
 
-	test("expanded segments/points panel widens the aside", async ({ page }) => {
+	test("width slider has been removed (waveform is full-width)", async ({
+		page,
+	}) => {
 		await gotoReady(page);
-
-		// Collapse both panels and capture the slim aside width.
-		await page.evaluate(() => {
-			for (const id of ["segments-group", "points-group"]) {
-				const el = document.getElementById(id) as HTMLDetailsElement;
-				el.open = false;
-			}
-		});
-		const collapsedWidth = await page
-			.locator(".page__aside")
-			.evaluate((el) => el.getBoundingClientRect().width);
-
-		// Expand the segments panel — the table needs the wider column.
-		await page.evaluate(() => {
-			(document.getElementById("segments-group") as HTMLDetailsElement).open =
-				true;
-		});
-		const expandedWidth = await page
-			.locator(".page__aside")
-			.evaluate((el) => el.getBoundingClientRect().width);
-
-		expect(expandedWidth).toBeGreaterThan(collapsedWidth + 100);
+		await expect(page.locator("#width")).toHaveCount(0);
+		await expect(page.locator("#width-value")).toHaveCount(0);
 	});
 
 	test("played waveform color is applied on first paint", async ({ page }) => {
@@ -225,25 +198,30 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 		expect(initial).toBe("#aa0044");
 	});
 
-	test("editing the segment start/end inputs updates the segment", async ({
+	test("right-clicking a segment row opens the editor popover and applies edits", async ({
 		page,
 	}) => {
 		await gotoReady(page);
 
-		// Locate the start-time input for segment-1 (seeded at 5..12) and
-		// commit a new value via change event (mirrors blur/Enter).
-		await page.evaluate(() => {
-			const start = document.querySelector(
-				'input[data-action="edit-segment-start"][data-id="segment-1"]',
-			) as HTMLInputElement;
-			start.value = "6.5";
-			start.dispatchEvent(new Event("change", { bubbles: true }));
-			const end = document.querySelector(
-				'input[data-action="edit-segment-end"][data-id="segment-1"]',
-			) as HTMLInputElement;
-			end.value = "11";
-			end.dispatchEvent(new Event("change", { bubbles: true }));
-		});
+		const row = page.locator(
+			'#segments-compact li[data-segment-id="segment-1"]',
+		);
+		await row.dispatchEvent("contextmenu");
+		await expect(page.locator("#context-menu")).not.toHaveClass(/hide/);
+		await page
+			.locator('#context-menu .context-menu__item:has-text("Edit")')
+			.click();
+		await expect(page.locator("#edit-popover")).not.toHaveClass(/hide/);
+
+		await page
+			.locator('#edit-popover input[data-edit-field="startTime"]')
+			.fill("6.5");
+		await page
+			.locator('#edit-popover input[data-edit-field="endTime"]')
+			.fill("11");
+		await page
+			.locator('#edit-popover button[data-action="apply-edit"]')
+			.click();
 
 		const bounds = await page.evaluate(() => {
 			const peaks = (
@@ -264,16 +242,22 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 		expect(bounds?.end).toBeCloseTo(11, 5);
 	});
 
-	test("editing the point time input updates the point", async ({ page }) => {
+	test("right-clicking a point row opens the editor popover and applies edits", async ({
+		page,
+	}) => {
 		await gotoReady(page);
 
-		await page.evaluate(() => {
-			const t = document.querySelector(
-				'input[data-action="edit-point-time"][data-id="point-1"]',
-			) as HTMLInputElement;
-			t.value = "25.25";
-			t.dispatchEvent(new Event("change", { bubbles: true }));
-		});
+		const row = page.locator('#points-compact li[data-point-id="point-1"]');
+		await row.dispatchEvent("contextmenu");
+		await page
+			.locator('#context-menu .context-menu__item:has-text("Edit")')
+			.click();
+		await page
+			.locator('#edit-popover input[data-edit-field="time"]')
+			.fill("25.25");
+		await page
+			.locator('#edit-popover button[data-action="apply-edit"]')
+			.click();
 
 		const time = await page.evaluate(() => {
 			const peaks = (
@@ -326,26 +310,99 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 		expect(calls).toContain(false);
 	});
 
-	test("side panel collapses to a vertical strip and reclaims main width", async ({
+	test("side panel is always-visible and waveform stretches full width", async ({
 		page,
 	}) => {
 		await gotoReady(page);
 
-		const openWidth = await page
+		// The aside is no longer collapsible; ensure a non-zero width.
+		const asideWidth = await page
 			.locator(".page__aside")
 			.evaluate((el) => el.getBoundingClientRect().width);
+		expect(asideWidth).toBeGreaterThan(100);
 
-		// Close the top-level side-panel <details>.
+		// The waveform container fills the available main-column width.
+		const { mainW, waveformW } = await page.evaluate(() => {
+			const main = document.querySelector(".page__main") as HTMLElement;
+			const wf = document.querySelector(".waveform-container") as HTMLElement;
+			return {
+				mainW: main.getBoundingClientRect().width,
+				waveformW: wf.getBoundingClientRect().width,
+			};
+		});
+		expect(waveformW).toBeGreaterThan(mainW * 0.9);
+	});
+
+	test("playback-rate slider applies the rate to the player", async ({
+		page,
+	}) => {
+		await gotoReady(page);
+
+		// Spy on player.setPlaybackRate to capture the value the slider sends.
 		await page.evaluate(() => {
-			const panel = document.querySelector(".side-panel") as HTMLDetailsElement;
-			panel.open = false;
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						player: { setPlaybackRate: (rate: number) => void };
+					};
+				}
+			).peaksInstance;
+			(globalThis as unknown as { __rateCalls: number[] }).__rateCalls = [];
+			const original = peaks.player.setPlaybackRate.bind(peaks.player);
+			peaks.player.setPlaybackRate = (rate: number) => {
+				(globalThis as unknown as { __rateCalls: number[] }).__rateCalls.push(
+					rate,
+				);
+				original(rate);
+			};
 		});
 
-		const closedWidth = await page
-			.locator(".page__aside")
-			.evaluate((el) => el.getBoundingClientRect().width);
+		await page.locator("#playback-rate").evaluate((el: HTMLInputElement) => {
+			el.value = "1.5";
+			el.dispatchEvent(new Event("input", { bubbles: true }));
+		});
 
-		// Closed strip should be markedly narrower than the open panel.
-		expect(closedWidth).toBeLessThan(openWidth - 100);
+		const calls = await page.evaluate(
+			() => (globalThis as unknown as { __rateCalls: number[] }).__rateCalls,
+		);
+		expect(calls.at(-1)).toBeCloseTo(1.5, 5);
+		await expect(page.locator("#playback-rate-value")).toHaveText("1.50");
+	});
+
+	test("right-clicking the zoomview adds a segment at the click position", async ({
+		page,
+	}) => {
+		await gotoReady(page);
+
+		const before = await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: { segments: { getSegments: () => unknown[] } };
+				}
+			).peaksInstance;
+			return peaks.segments.getSegments().length;
+		});
+
+		const container = page.locator("#zoomview-container");
+		await container.scrollIntoViewIfNeeded();
+		const box = await container.boundingBox();
+		if (!box) throw new Error("zoomview not laid out");
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+		await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, {
+			button: "right",
+		});
+		await page
+			.locator('#context-menu .context-menu__item:has-text("Add segment")')
+			.click();
+
+		const after = await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: { segments: { getSegments: () => unknown[] } };
+				}
+			).peaksInstance;
+			return peaks.segments.getSegments().length;
+		});
+		expect(after).toBe(before + 1);
 	});
 });

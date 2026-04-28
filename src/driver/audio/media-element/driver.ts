@@ -268,6 +268,14 @@ export class MediaElementAudioDriver implements AudioDriver {
 		}
 	}
 
+	setPlaybackRate(rate: number): void {
+		if (!this.mediaElement) return;
+		// HTMLMediaElement does not support negative or zero playback
+		// rates; clamp to a small positive minimum so the slider's negative
+		// values still produce predictable (slow forward) playback.
+		this.mediaElement.playbackRate = Math.max(0.0625, rate);
+	}
+
 	playSegment(options: PlaySegmentOptions): Promise<void> {
 		if (!this.segmentPlayer) {
 			return Promise.reject(

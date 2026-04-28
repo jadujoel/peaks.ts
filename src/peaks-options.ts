@@ -449,6 +449,7 @@ export function resolvePeaksOptions(
 		...(cfg.grid?.step !== undefined ? { gridStep: cfg.grid.step } : {}),
 		snapFlags: {
 			insertSegment: cfg.snap?.insertSegment ?? false,
+			playhead: cfg.snap?.playhead ?? false,
 			points: cfg.snap?.points ?? false,
 			segmentMarkers: cfg.snap?.segmentMarkers ?? false,
 			segments: cfg.snap?.segments ?? false,

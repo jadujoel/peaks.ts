@@ -2,8 +2,6 @@ import type {
 	GridStep,
 	LoopController,
 	Peaks,
-	Point,
-	Segment,
 	SnapKind,
 	TimeSignature,
 } from "@jadujoel/peaks.ts";
@@ -17,6 +15,11 @@ export interface ControlsFromOptions {
 	readonly loopController: LoopController;
 	readonly channelSwitcher: ChannelSwitcher;
 	readonly zoomLevels: readonly number[];
+}
+
+interface MenuItem {
+	readonly label: string;
+	readonly run: () => void;
 }
 
 export class Controls {
@@ -34,18 +37,18 @@ export class Controls {
 			options.channelSwitcher,
 			options.zoomLevels,
 		);
-		controls.wirePlayback();
-		controls.wireLoops();
 		controls.wireZoom();
 		controls.wireDisplay();
 		controls.wireColors();
 		controls.wireAmplitude();
 		controls.wireChannels();
 		controls.wireSize();
-		controls.wireSegments();
-		controls.wirePoints();
+		controls.wirePlaybackRate();
+		controls.wireWaveformContextMenu();
 		controls.wireTempoGrid();
 		controls.subscribeToPeaks();
+		controls.renderSegments();
+		controls.renderPoints();
 		return controls;
 	}
 
@@ -56,11 +59,6 @@ export class Controls {
 	private overviewView() {
 		return this.peaks.views.getOverview();
 	}
-
-	private wirePlayback = (): void => {
-		// Action buttons are handled via the document-level click delegation
-		// installed in subscribeToPeaks().
-	};
 
 	private subscribeToPeaks = (): void => {
 		const playheadTime = output("playhead-time");
@@ -79,42 +77,8 @@ export class Controls {
 		this.peaks.events.addEventListener("points.update", this.renderPoints);
 
 		document.body.addEventListener("click", this.onActionClick);
-		document.body.addEventListener("change", this.onLabelChange);
-	};
-
-	private onLabelChange = (event: Event): void => {
-		const target = event.target;
-		if (!(target instanceof HTMLInputElement)) return;
-		const action = target.getAttribute("data-action");
-		const id = target.getAttribute("data-id");
-		if (!id) return;
-		if (action === "rename-segment") {
-			const segment = this.peaks.segments.getSegment(id);
-			if (segment) segment.update({ labelText: target.value });
-		} else if (action === "rename-point") {
-			const point = this.peaks.points.getPoint(id);
-			if (point) point.update({ labelText: target.value });
-		} else if (action === "edit-segment-start") {
-			const segment = this.peaks.segments.getSegment(id);
-			const value = Number.parseFloat(target.value);
-			if (segment && Number.isFinite(value)) {
-				const startTime = Math.max(0, Math.min(value, segment.endTime));
-				segment.update({ startTime });
-			}
-		} else if (action === "edit-segment-end") {
-			const segment = this.peaks.segments.getSegment(id);
-			const value = Number.parseFloat(target.value);
-			if (segment && Number.isFinite(value)) {
-				const endTime = Math.max(segment.startTime, value);
-				segment.update({ endTime });
-			}
-		} else if (action === "edit-point-time") {
-			const point = this.peaks.points.getPoint(id);
-			const value = Number.parseFloat(target.value);
-			if (point && Number.isFinite(value) && value >= 0) {
-				point.update({ time: value });
-			}
-		}
+		document.body.addEventListener("click", this.onDocumentClickDismiss, true);
+		document.addEventListener("keydown", this.onDocumentKeydown);
 	};
 
 	private onActionClick = (event: MouseEvent): void => {
@@ -158,7 +122,7 @@ export class Controls {
 				this.syncZoomSelect();
 				return;
 			case "add-segment":
-				this.addSegmentAtPlayhead();
+				this.peaks.segments.addAtPlayhead();
 				return;
 			case "jump-segment":
 				if (id) {
@@ -197,20 +161,12 @@ export class Controls {
 		}
 	};
 
-	private addSegmentAtPlayhead = (): void => {
-		this.peaks.segments.addAtPlayhead();
-	};
-
 	private loopSegmentById = (id: string): void => {
 		const segment = this.peaks.segments.getSegment(id);
 		if (!segment) return;
 		this.loopController.loopSegment(segment).catch((error: unknown) => {
 			console.warn("playSegment failed", error);
 		});
-	};
-
-	private wireLoops = (): void => {
-		// Status output is updated via LoopController.onChange; nothing to bind here.
 	};
 
 	private wireZoom = (): void => {
@@ -298,9 +254,6 @@ export class Controls {
 		played.addEventListener("input", () =>
 			views.setPlayedWaveformColor(played.value),
 		);
-		// Apply the initial played-color so the played overlay appears
-		// immediately on first paint instead of only after the user
-		// touches the picker.
 		views.setPlayedWaveformColor(played.value);
 		const label = input("axis-label-color");
 		label.addEventListener("input", () => views.setAxisLabelColor(label.value));
@@ -339,9 +292,6 @@ export class Controls {
 			this.peaks.segments.updateAll({ color: segWave.value });
 		});
 
-		// Background colors are applied to the host containers — the
-		// driver canvases are transparent, so this re-tints whatever the
-		// waveform sits on without needing a library API.
 		const zoomBg = input("zoomview-bg-color");
 		const overviewBg = input("overview-bg-color");
 		const applyZoomBg = (): void => {
@@ -385,13 +335,6 @@ export class Controls {
 		const applyFit = (): void => {
 			this.peaks.views.fitToContainer();
 		};
-		const width = input("width");
-		const widthOut = output("width-value");
-		width.addEventListener("input", () => {
-			widthOut.value = width.value;
-			root.style.setProperty("--zoomview-width", `${width.value}px`);
-			applyFit();
-		});
 		const height = input("height");
 		const heightOut = output("height-value");
 		height.addEventListener("input", () => {
@@ -401,12 +344,16 @@ export class Controls {
 		});
 	};
 
-	private wireSegments = (): void => {
-		this.renderSegments();
-	};
-
-	private wirePoints = (): void => {
-		this.renderPoints();
+	private wirePlaybackRate = (): void => {
+		const slider = input("playback-rate");
+		const value = output("playback-rate-value");
+		const apply = (): void => {
+			const rate = Number(slider.value);
+			value.value = rate.toFixed(2);
+			this.peaks.player.setPlaybackRate(rate);
+		};
+		slider.addEventListener("input", apply);
+		apply();
 	};
 
 	private wireTempoGrid = (): void => {
@@ -420,6 +367,7 @@ export class Controls {
 			"segmentMarkers",
 			"points",
 			"insertSegment",
+			"playhead",
 		];
 		const snapToggle = input("snap-enabled");
 		snapToggle.addEventListener("change", () => {
@@ -446,89 +394,346 @@ export class Controls {
 		view.setGridStep(step);
 	};
 
-	private renderSegments = (): void => {
-		const tbody = document.querySelector<HTMLTableSectionElement>(
-			"#segments-table tbody",
-		);
-		const segments = this.peaks.segments.getSegments();
-		if (tbody) {
-			const rows = segments.map((segment: Segment) => {
-				const label = segment.labelText.length > 0 ? segment.labelText : "";
-				const id = this.escape(segment.id);
-				return (
-					`<tr>` +
-					`<td>${id}</td>` +
-					`<td><input type="text" class="rename-input" data-action="rename-segment" data-id="${id}" value="${this.escape(label)}" /></td>` +
-					`<td><input type="number" class="time-input" min="0" step="0.01" data-action="edit-segment-start" data-id="${id}" value="${segment.startTime.toFixed(2)}" /></td>` +
-					`<td><input type="number" class="time-input" min="0" step="0.01" data-action="edit-segment-end" data-id="${id}" value="${segment.endTime.toFixed(2)}" /></td>` +
-					`<td><button type="button" data-action="loop-segment" data-id="${id}">Loop</button></td>` +
-					`<td><button type="button" data-action="remove-segment" data-id="${id}">Remove</button></td>` +
-					`</tr>`
-				);
+	// ─── Right-click context menu on the waveform views ────────────────
+
+	private wireWaveformContextMenu = (): void => {
+		const containers = [div("zoomview-container"), div("overview-container")];
+		for (const container of containers) {
+			container.addEventListener("contextmenu", (event) => {
+				this.openWaveformMenu(container, event);
 			});
-			tbody.innerHTML = rows.join("");
 		}
-		this.renderCompactSegments(segments);
 	};
 
-	private renderCompactSegments = (segments: readonly Segment[]): void => {
+	private openWaveformMenu = (
+		container: HTMLDivElement,
+		event: MouseEvent,
+	): void => {
+		event.preventDefault();
+		const rect = container.getBoundingClientRect();
+		const x = event.clientX - rect.left;
+		const time = this.timeFromContainerX(container, x, rect.width);
+		if (!Number.isFinite(time)) return;
+		this.openContextMenu(event.clientX, event.clientY, [
+			{
+				label: `Add segment here (${time.toFixed(2)}s)`,
+				run: () => {
+					const duration = this.peaks.player.getDuration();
+					const end =
+						Number.isFinite(duration) && duration > 0
+							? Math.min(time + 5, duration)
+							: time + 5;
+					this.peaks.segments.add({
+						editable: true,
+						endTime: end,
+						labelText: "Segment",
+						startTime: time,
+					});
+				},
+			},
+			{
+				label: `Add point here (${time.toFixed(2)}s)`,
+				run: () => {
+					this.peaks.points.add({
+						editable: true,
+						labelText: "Point",
+						time,
+					});
+				},
+			},
+		]);
+	};
+
+	private timeFromContainerX(
+		container: HTMLDivElement,
+		x: number,
+		width: number,
+	): number {
+		// Prefer the view's own pixel→time mapping when available.
+		const isOverview = container.id === "overview-container";
+		const view = isOverview ? this.overviewView() : this.zoomView();
+		if (view) {
+			return view.pixelOffsetToTime(x);
+		}
+		const duration = this.peaks.player.getDuration();
+		if (!Number.isFinite(duration) || duration <= 0 || width <= 0) return 0;
+		return (x / width) * duration;
+	}
+
+	// ─── Compact list rendering & per-entry context menu ───────────────
+
+	private renderSegments = (): void => {
 		const list = document.getElementById("segments-compact");
 		if (!(list instanceof HTMLUListElement)) return;
+		const segments = this.peaks.segments.getSegments();
 		const items = segments.map((segment) => {
 			const id = this.escape(segment.id);
-			const label =
+			const labelText =
 				segment.labelText.length > 0 ? this.escape(segment.labelText) : id;
 			return (
-				`<li class="compact-list__item">` +
+				`<li class="compact-list__item" data-segment-id="${id}">` +
 				`<button type="button" class="compact-list__btn" data-action="jump-segment" data-id="${id}">` +
-				`<span class="compact-list__label">${label}</span>` +
+				`<span class="compact-list__label">${labelText}</span>` +
 				`<span class="compact-list__time mono">${segment.startTime.toFixed(2)}–${segment.endTime.toFixed(2)}</span>` +
 				`</button></li>`
 			);
 		});
 		list.innerHTML = items.join("");
+		for (const item of list.querySelectorAll<HTMLLIElement>(
+			"li[data-segment-id]",
+		)) {
+			const segId = item.dataset.segmentId;
+			if (!segId) continue;
+			item.addEventListener("contextmenu", (event) => {
+				this.openSegmentMenu(segId, event);
+			});
+		}
 	};
 
 	private renderPoints = (): void => {
-		const tbody = document.querySelector<HTMLTableSectionElement>(
-			"#points-table tbody",
-		);
-		const points = this.peaks.points.getPoints();
-		if (tbody) {
-			const rows = points.map((point: Point) => {
-				const label = point.labelText.length > 0 ? point.labelText : "";
-				const id = this.escape(point.id);
-				return (
-					`<tr>` +
-					`<td>${id}</td>` +
-					`<td><input type="text" class="rename-input" data-action="rename-point" data-id="${id}" value="${this.escape(label)}" /></td>` +
-					`<td><input type="number" class="time-input" min="0" step="0.01" data-action="edit-point-time" data-id="${id}" value="${point.time.toFixed(2)}" /></td>` +
-					`<td><button type="button" data-action="jump-point" data-id="${id}">Jump</button></td>` +
-					`<td><button type="button" data-action="remove-point" data-id="${id}">Remove</button></td>` +
-					`</tr>`
-				);
-			});
-			tbody.innerHTML = rows.join("");
-		}
-		this.renderCompactPoints(points);
-	};
-
-	private renderCompactPoints = (points: readonly Point[]): void => {
 		const list = document.getElementById("points-compact");
 		if (!(list instanceof HTMLUListElement)) return;
+		const points = this.peaks.points.getPoints();
 		const items = points.map((point) => {
 			const id = this.escape(point.id);
-			const label =
+			const labelText =
 				point.labelText.length > 0 ? this.escape(point.labelText) : id;
 			return (
-				`<li class="compact-list__item">` +
+				`<li class="compact-list__item" data-point-id="${id}">` +
 				`<button type="button" class="compact-list__btn" data-action="jump-point" data-id="${id}">` +
-				`<span class="compact-list__label">${label}</span>` +
+				`<span class="compact-list__label">${labelText}</span>` +
 				`<span class="compact-list__time mono">${point.time.toFixed(2)}</span>` +
 				`</button></li>`
 			);
 		});
 		list.innerHTML = items.join("");
+		for (const item of list.querySelectorAll<HTMLLIElement>(
+			"li[data-point-id]",
+		)) {
+			const pid = item.dataset.pointId;
+			if (!pid) continue;
+			item.addEventListener("contextmenu", (event) => {
+				this.openPointMenu(pid, event);
+			});
+		}
+	};
+
+	private openSegmentMenu = (id: string, event: MouseEvent): void => {
+		event.preventDefault();
+		const segment = this.peaks.segments.getSegment(id);
+		if (!segment) return;
+		this.openContextMenu(event.clientX, event.clientY, [
+			{ label: "Edit…", run: () => this.openSegmentEditor(id, event) },
+			{
+				label: "Jump to start",
+				run: () => this.peaks.player.seek(segment.startTime),
+			},
+			{ label: "Loop", run: () => this.loopSegmentById(id) },
+			{
+				label: "Remove",
+				run: () => {
+					if (this.loopController.currentSegmentId() === id) {
+						this.loopController.stop();
+					}
+					this.peaks.segments.removeById(id);
+				},
+			},
+		]);
+	};
+
+	private openPointMenu = (id: string, event: MouseEvent): void => {
+		event.preventDefault();
+		const point = this.peaks.points.getPoint(id);
+		if (!point) return;
+		this.openContextMenu(event.clientX, event.clientY, [
+			{ label: "Edit…", run: () => this.openPointEditor(id, event) },
+			{ label: "Jump", run: () => this.peaks.player.seek(point.time) },
+			{ label: "Remove", run: () => this.peaks.points.removeById(id) },
+		]);
+	};
+
+	// ─── Context-menu and edit-popover plumbing ────────────────────────
+
+	private openContextMenu = (
+		clientX: number,
+		clientY: number,
+		items: readonly MenuItem[],
+	): void => {
+		const menu = document.getElementById("context-menu");
+		if (!(menu instanceof HTMLDivElement)) return;
+		menu.replaceChildren();
+		for (const item of items) {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.className = "context-menu__item";
+			button.textContent = item.label;
+			button.addEventListener("click", () => {
+				// Dismiss the menu first so an item that opens the popover
+				// (e.g. "Edit…") doesn't have its popover immediately closed
+				// by a wholesale dismissOverlays() call.
+				const menuEl = document.getElementById("context-menu");
+				if (menuEl) {
+					menuEl.classList.add("hide");
+					menuEl.setAttribute("aria-hidden", "true");
+				}
+				item.run();
+			});
+			menu.append(button);
+		}
+		menu.classList.remove("hide");
+		menu.setAttribute("aria-hidden", "false");
+		this.positionFloating(menu, clientX, clientY);
+	};
+
+	private openSegmentEditor = (id: string, event: MouseEvent): void => {
+		const segment = this.peaks.segments.getSegment(id);
+		if (!segment) return;
+		const popover = this.popoverElement();
+		if (!popover) return;
+		popover.replaceChildren();
+
+		const labelInput = createTextInput(segment.labelText);
+		labelInput.dataset.editField = "labelText";
+		const startInput = createNumberInput(segment.startTime);
+		startInput.dataset.editField = "startTime";
+		const endInput = createNumberInput(segment.endTime);
+		endInput.dataset.editField = "endTime";
+		const colorInput = createColorInput(segment.color ?? "#5fa8d3");
+		colorInput.dataset.editField = "color";
+
+		popover.append(
+			wrapField("Label", labelInput),
+			row(wrapField("Start (s)", startInput), wrapField("End (s)", endInput)),
+			wrapField("Color", colorInput),
+			actions([
+				{
+					action: "apply-edit",
+					label: "Apply",
+					primary: true,
+					run: () => {
+						const start = Number(startInput.value);
+						const end = Number(endInput.value);
+						if (
+							!Number.isFinite(start) ||
+							!Number.isFinite(end) ||
+							end < start
+						) {
+							return;
+						}
+						segment.update({
+							color: colorInput.value,
+							endTime: end,
+							labelText: labelInput.value,
+							startTime: Math.max(0, start),
+						});
+						this.dismissOverlays();
+					},
+				},
+				{ label: "Cancel", run: () => this.dismissOverlays() },
+			]),
+		);
+
+		popover.classList.remove("hide");
+		popover.setAttribute("aria-hidden", "false");
+		this.positionFloating(popover, event.clientX, event.clientY);
+		labelInput.focus();
+	};
+
+	private openPointEditor = (id: string, event: MouseEvent): void => {
+		const point = this.peaks.points.getPoint(id);
+		if (!point) return;
+		const popover = this.popoverElement();
+		if (!popover) return;
+		popover.replaceChildren();
+
+		const labelInput = createTextInput(point.labelText);
+		labelInput.dataset.editField = "labelText";
+		const timeInput = createNumberInput(point.time);
+		timeInput.dataset.editField = "time";
+		const colorInput = createColorInput(point.color ?? "#5fa8d3");
+		colorInput.dataset.editField = "color";
+
+		popover.append(
+			wrapField("Label", labelInput),
+			wrapField("Time (s)", timeInput),
+			wrapField("Color", colorInput),
+			actions([
+				{
+					action: "apply-edit",
+					label: "Apply",
+					primary: true,
+					run: () => {
+						const time = Number(timeInput.value);
+						if (!Number.isFinite(time) || time < 0) return;
+						point.update({
+							color: colorInput.value,
+							labelText: labelInput.value,
+							time,
+						});
+						this.dismissOverlays();
+					},
+				},
+				{ label: "Cancel", run: () => this.dismissOverlays() },
+			]),
+		);
+
+		popover.classList.remove("hide");
+		popover.setAttribute("aria-hidden", "false");
+		this.positionFloating(popover, event.clientX, event.clientY);
+		labelInput.focus();
+	};
+
+	private popoverElement(): HTMLDivElement | undefined {
+		const el = document.getElementById("edit-popover");
+		return el instanceof HTMLDivElement ? el : undefined;
+	}
+
+	private positionFloating(
+		element: HTMLElement,
+		clientX: number,
+		clientY: number,
+	): void {
+		// Render once to measure.
+		element.style.left = `${clientX}px`;
+		element.style.top = `${clientY}px`;
+		const rect = element.getBoundingClientRect();
+		const maxX = window.innerWidth - rect.width - 8;
+		const maxY = window.innerHeight - rect.height - 8;
+		element.style.left = `${Math.max(8, Math.min(clientX, maxX))}px`;
+		element.style.top = `${Math.max(8, Math.min(clientY, maxY))}px`;
+	}
+
+	private dismissOverlays = (): void => {
+		for (const id of ["context-menu", "edit-popover"]) {
+			const el = document.getElementById(id);
+			if (el) {
+				el.classList.add("hide");
+				el.setAttribute("aria-hidden", "true");
+			}
+		}
+	};
+
+	private onDocumentClickDismiss = (event: MouseEvent): void => {
+		const target = event.target;
+		if (!(target instanceof Node)) return;
+		const menu = document.getElementById("context-menu");
+		const popover = document.getElementById("edit-popover");
+		const inMenu =
+			menu && !menu.classList.contains("hide") && menu.contains(target);
+		const inPopover =
+			popover &&
+			!popover.classList.contains("hide") &&
+			popover.contains(target);
+		if (inMenu || inPopover) return;
+		// Close on any outside click; the listener is registered with
+		// `capture: true` so it fires before action handlers.
+		this.dismissOverlays();
+	};
+
+	private onDocumentKeydown = (event: KeyboardEvent): void => {
+		if (event.key === "Escape") {
+			this.dismissOverlays();
+		}
 	};
 
 	private escape(value: string): string {
@@ -559,4 +764,64 @@ function parseTimeSignature(value: string): TimeSignature {
 		return { denominator: 4, numerator: 4 };
 	}
 	return { denominator: den, numerator: num };
+}
+
+function createTextInput(value: string): HTMLInputElement {
+	const el = document.createElement("input");
+	el.type = "text";
+	el.value = value;
+	return el;
+}
+
+function createNumberInput(value: number): HTMLInputElement {
+	const el = document.createElement("input");
+	el.type = "number";
+	el.step = "0.01";
+	el.min = "0";
+	el.value = value.toFixed(2);
+	return el;
+}
+
+function createColorInput(value: string): HTMLInputElement {
+	const el = document.createElement("input");
+	el.type = "color";
+	el.value = value;
+	return el;
+}
+
+function wrapField(label: string, control: HTMLElement): HTMLLabelElement {
+	const lab = document.createElement("label");
+	const span = document.createElement("span");
+	span.textContent = label;
+	lab.append(span, control);
+	return lab;
+}
+
+function row(...children: readonly HTMLElement[]): HTMLDivElement {
+	const r = document.createElement("div");
+	r.className = "edit-popover__row";
+	r.append(...children);
+	return r;
+}
+
+interface ActionSpec {
+	readonly label: string;
+	readonly primary?: boolean;
+	readonly action?: string;
+	readonly run: () => void;
+}
+
+function actions(specs: readonly ActionSpec[]): HTMLDivElement {
+	const container = document.createElement("div");
+	container.className = "edit-popover__actions";
+	for (const spec of specs) {
+		const button = document.createElement("button");
+		button.type = "button";
+		button.className = spec.primary ? "btn btn--primary" : "btn";
+		button.textContent = spec.label;
+		if (spec.action !== undefined) button.dataset.action = spec.action;
+		button.addEventListener("click", spec.run);
+		container.append(button);
+	}
+	return container;
 }

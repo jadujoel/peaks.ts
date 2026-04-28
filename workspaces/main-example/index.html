@@ -99,6 +99,14 @@
 						<span class="readout">Time <output id="playhead-time" class="mono">0.00</output>s</span>
 						<span class="readout">Looping <output id="loop-status" class="mono">(none)</output></span>
 					</div>
+					<div class="control-row">
+						<div class="field field--grow">
+							<label for="playback-rate">
+								Rate <output id="playback-rate-value" class="mono">1.00</output>×
+							</label>
+							<input type="range" id="playback-rate" min="-2" max="2" step="0.05" value="1" />
+						</div>
+					</div>
 				</fieldset>
 
 				<fieldset class="control-group">
@@ -174,12 +182,6 @@
 					<div class="subgroup">
 						<div class="subgroup__heading">Size</div>
 						<div class="control-row">
-							<div class="field field--grow">
-								<label for="width">
-									Width <output id="width-value" class="mono">1000</output>px
-								</label>
-								<input type="range" id="width" min="400" max="1600" step="20" value="1000" />
-							</div>
 							<div class="field field--grow">
 								<label for="height">
 									Height <output id="height-value" class="mono">200</output>px
@@ -323,59 +325,31 @@
 		</div>
 
 		<aside class="page__aside" aria-label="Segments and points">
-			<details class="side-panel" open>
-				<summary class="side-panel__summary">Segments &amp; Points</summary>
+			<section class="side-panel">
+				<header class="side-panel__summary">Segments &amp; Points</header>
 
-				<details class="control-group control-group--collapsible" id="segments-group" open>
-					<summary class="control-group__summary">
-						<span class="control-group__legend">Segments</span>
-						<span class="control-group__hint">Click to expand</span>
-					</summary>
-					<div class="control-row">
-						<button class="btn btn--primary" data-action="add-segment" type="button">+ Add at playhead</button>
+				<div class="side-panel__group" id="segments-group">
+					<div class="side-panel__group-header">
+						<span class="side-panel__group-title">Segments</span>
+						<button class="btn btn--primary btn--sm" data-action="add-segment" type="button">+ At playhead</button>
 					</div>
-					<div class="table-wrap">
-						<table id="segments-table">
-							<thead>
-								<tr>
-									<th>ID</th>
-									<th>Label</th>
-									<th>Start</th>
-									<th>End</th>
-									<th colspan="2">Actions</th>
-								</tr>
-							</thead>
-							<tbody></tbody>
-						</table>
-					</div>
-				</details>
-				<ul class="compact-list" id="segments-compact" aria-label="Segments (compact)"></ul>
+					<ul class="compact-list" id="segments-compact" aria-label="Segments"></ul>
+					<p class="side-panel__hint">Right-click an entry to edit.</p>
+				</div>
 
-				<details class="control-group control-group--collapsible" id="points-group" open>
-					<summary class="control-group__summary">
-						<span class="control-group__legend">Points</span>
-						<span class="control-group__hint">Click to expand</span>
-					</summary>
-					<div class="control-row">
-						<button class="btn btn--primary" data-action="add-point" type="button">+ Add at playhead</button>
+				<div class="side-panel__group" id="points-group">
+					<div class="side-panel__group-header">
+						<span class="side-panel__group-title">Points</span>
+						<button class="btn btn--primary btn--sm" data-action="add-point" type="button">+ At playhead</button>
 					</div>
-					<div class="table-wrap">
-						<table id="points-table">
-							<thead>
-								<tr>
-									<th>ID</th>
-									<th>Label</th>
-									<th>Time</th>
-									<th colspan="2">Actions</th>
-								</tr>
-							</thead>
-							<tbody></tbody>
-						</table>
-					</div>
-				</details>
-				<ul class="compact-list" id="points-compact" aria-label="Points (compact)"></ul>
-			</details>
+					<ul class="compact-list" id="points-compact" aria-label="Points"></ul>
+					<p class="side-panel__hint">Right-click an entry to edit.</p>
+				</div>
+			</section>
 		</aside>
+
+		<div id="context-menu" class="context-menu hide" role="menu" aria-hidden="true"></div>
+		<div id="edit-popover" class="edit-popover hide" role="dialog" aria-hidden="true"></div>
 	</main>
 
 	<script type="importmap">

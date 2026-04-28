@@ -88,15 +88,17 @@ export class SegmentShape {
 			});
 		}
 
-		const label = peaks.options.createSegmentLabel({
-			color: segmentOptions.labelColor,
-			fontFamily: viewOptions.fontFamily,
-			fontSize: viewOptions.fontSize,
-			fontStyle: viewOptions.fontStyle,
-			layer: layer,
-			segment: segment,
-			view: view.getName(),
-		});
+		const label = useOverlay
+			? undefined
+			: peaks.options.createSegmentLabel({
+					color: segmentOptions.labelColor,
+					fontFamily: viewOptions.fontFamily,
+					fontSize: viewOptions.fontSize,
+					fontStyle: viewOptions.fontStyle,
+					layer: layer,
+					segment: segment,
+					view: view.getName(),
+				});
 
 		const segmentStartOffset = view.timeToPixelOffset(segment.startTime);
 		const segmentEndOffset = view.timeToPixelOffset(segment.endTime);

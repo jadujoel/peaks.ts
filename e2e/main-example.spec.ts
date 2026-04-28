@@ -46,12 +46,31 @@ test("main example loads, exposes every feature group, and round-trips actions",
 		expect(fieldsetLegends).toContain(legend);
 	}
 
-	// Seeded segments are listed and the loop button works
-	const loopBtn = page.locator(
-		'button[data-action="loop-segment"][data-id="segment-1"]',
+	// Seeded segments are listed in the compact list. The Loop button now
+	// lives behind a right-click context menu, so drive the loop via the
+	// public LoopController API instead of clicking a row button.
+	const seededRow = page.locator(
+		'#segments-compact li[data-segment-id="segment-1"]',
 	);
-	await expect(loopBtn).toBeVisible();
-	await loopBtn.click();
+	await expect(seededRow).toBeVisible();
+	await page.evaluate(async () => {
+		const peaks = (
+			globalThis as unknown as {
+				peaksInstance: {
+					segments: { getSegment: (id: string) => unknown };
+				};
+			} & {
+				__loopController: { loopSegment: (segment: unknown) => Promise<void> };
+			}
+		).peaksInstance;
+		const segment = peaks.segments.getSegment("segment-1");
+		const lc = (
+			globalThis as unknown as {
+				__loopController: { loopSegment: (segment: unknown) => Promise<void> };
+			}
+		).__loopController;
+		await lc.loopSegment(segment);
+	});
 	await expect(page.locator("#loop-status")).toContainText("Loop A");
 	await page.locator('button[data-action="stop-loop"]').click();
 	await expect(page.locator("#loop-status")).toHaveText("(none)");
@@ -62,19 +81,17 @@ test("main example loads, exposes every feature group, and round-trips actions",
 	await page.locator('button[data-action="stop-loop"]').click();
 	await expect(page.locator("#loop-status")).toHaveText("(none)");
 
-	// Add a segment at the playhead and verify a new row appears
-	const initialRowCount = await page
-		.locator("#segments-table tbody tr")
-		.count();
+	// Add a segment at the playhead and verify a new compact row appears
+	const initialRowCount = await page.locator("#segments-compact li").count();
 	await page.locator('button[data-action="add-segment"]').click();
-	await expect(page.locator("#segments-table tbody tr")).toHaveCount(
+	await expect(page.locator("#segments-compact li")).toHaveCount(
 		initialRowCount + 1,
 	);
 
-	// Add a point at the playhead and verify the points table grows
-	const initialPointRows = await page.locator("#points-table tbody tr").count();
+	// Add a point at the playhead and verify the points compact list grows
+	const initialPointRows = await page.locator("#points-compact li").count();
 	await page.locator('button[data-action="add-point"]').click();
-	await expect(page.locator("#points-table tbody tr")).toHaveCount(
+	await expect(page.locator("#points-compact li")).toHaveCount(
 		initialPointRows + 1,
 	);
 
@@ -117,12 +134,12 @@ test("main example loads, exposes every feature group, and round-trips actions",
 	});
 	await expect(page.locator("#amplitude-scale-value")).toHaveText("2.0");
 
-	// Width / height resize
-	await page.locator("#width").evaluate((el: HTMLInputElement) => {
-		el.value = "800";
+	// Height resize
+	await page.locator("#height").evaluate((el: HTMLInputElement) => {
+		el.value = "260";
 		el.dispatchEvent(new Event("input", { bubbles: true }));
 	});
-	await expect(page.locator("#width-value")).toHaveText("800");
+	await expect(page.locator("#height-value")).toHaveText("260");
 
 	// Channel switch (mono → stereo) — should not throw
 	await page.selectOption("#channel-mode", "stereo");

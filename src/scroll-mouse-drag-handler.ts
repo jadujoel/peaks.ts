@@ -148,6 +148,11 @@ export class ScrollMouseDragHandler {
 			time = duration;
 		}
 
+		const ctx = this.peaks.options.tempoMapContext;
+		if (ctx) {
+			time = ctx.snapTimeFor("playhead", time);
+		}
+
 		this.view.updatePlayheadTime(time);
 
 		this.peaks.player.seek(time);

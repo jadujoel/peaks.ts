@@ -125,4 +125,18 @@ export class Player {
 	setLooped(loop: boolean): void {
 		this.driver.setLooped?.(loop);
 	}
+
+	/**
+	 * Updates the playback rate. `1` is normal speed. Some drivers (e.g.
+	 * `<audio>`) clamp negative values to a positive minimum.
+	 */
+	setPlaybackRate(rate: number): void {
+		if (!Number.isFinite(rate)) {
+			this.peaks?.logger(
+				"peaks.player.setPlaybackRate(): parameter must be a finite number",
+			);
+			return;
+		}
+		this.driver.setPlaybackRate?.(rate);
+	}
 }
