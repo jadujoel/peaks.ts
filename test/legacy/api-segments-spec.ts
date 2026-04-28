@@ -187,8 +187,12 @@ describe("Peaks.segments", () => {
 			expect(segment.editable).to.equal(false);
 			expect(segment.color).to.be.a("string");
 			expect(segment.borderColor).to.be.a("string");
-			expect(segment.markers).to.be.a("boolean");
-			expect(segment.overlay).to.be.a("boolean");
+			expect(
+				segment.markers === undefined || typeof segment.markers === "boolean",
+			).to.equal(true);
+			expect(
+				segment.overlay === undefined || typeof segment.overlay === "boolean",
+			).to.equal(true);
 			expect(segment.id).to.be.a("string");
 		});
 

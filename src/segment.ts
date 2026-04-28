@@ -55,8 +55,6 @@ function applySegmentDefaults(
 			(defaults.overlay ? defaults.overlayColor : defaults.waveformColor),
 		editable: options.editable ?? false,
 		labelText: options.labelText ?? "",
-		markers: options.markers ?? defaults.markers,
-		overlay: options.overlay ?? defaults.overlay,
 	};
 }
 
@@ -232,8 +230,8 @@ export class Segment {
 
 	private constructor(
 		public readonly pid: number,
-		public readonly markers: boolean,
-		public readonly overlay: boolean,
+		public readonly markers: boolean | undefined,
+		public readonly overlay: boolean | undefined,
 		public id: string,
 		public startTime: number,
 		public endTime: number,
@@ -248,8 +246,8 @@ export class Segment {
 		const merged = applySegmentDefaults(options.options, options.defaults);
 		const instance = new Segment(
 			options.pid,
-			merged.markers ?? false,
-			merged.overlay ?? false,
+			merged.markers,
+			merged.overlay,
 			merged.id ?? `peaks.segment.${options.pid}`,
 			merged.startTime,
 			merged.endTime,

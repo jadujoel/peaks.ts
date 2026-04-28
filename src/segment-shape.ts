@@ -44,6 +44,8 @@ export class SegmentShape {
 		private readonly layer: SegmentsLayerAPI,
 		private readonly view: WaveformViewAPI,
 		private readonly overlayOffset: number,
+		private readonly useOverlay: boolean,
+		private readonly useMarkers: boolean,
 		private readonly waveformShape: WaveformShape | undefined,
 		private readonly overlay: DriverGroup,
 		private readonly overlayRect: DriverRect,
@@ -70,8 +72,15 @@ export class SegmentShape {
 		const overlayOffset = segmentOptions.overlayOffset;
 		const draggable = segment.editable && view.isSegmentDraggingEnabled();
 
+		// The "use overlay rect" / "use marker handles" decision is made per
+		// view: a segment can opt in/out via segment.overlay/segment.markers,
+		// but otherwise the view-level segmentOptions defaults take over.
+		const useOverlay = segment.overlay ?? segmentOptions.overlay;
+		const useMarkers = segment.markers ?? segmentOptions.markers;
+		const showWaveform = !useOverlay || segmentOptions.overlayShowWaveform;
+
 		let waveformShape: WaveformShape | undefined;
-		if (!segment.overlay) {
+		if (showWaveform) {
 			waveformShape = WaveformShape.from({
 				color: segment.color,
 				segment: segment,
@@ -124,7 +133,7 @@ export class SegmentShape {
 		let overlayOpacity: number | undefined;
 		let overlayCornerRadius: number | undefined;
 
-		if (segment.overlay) {
+		if (useOverlay) {
 			overlayBorderColor =
 				segment.borderColor || segmentOptions.overlayBorderColor;
 			overlayBorderWidth = segmentOptions.overlayBorderWidth;
@@ -160,7 +169,7 @@ export class SegmentShape {
 		overlay.add(overlayRect);
 
 		let overlayText: DriverText | undefined;
-		if (segment.overlay) {
+		if (useOverlay) {
 			overlayText = driver.createText({
 				align: segmentOptions.overlayLabelAlign,
 				fill: segmentOptions.overlayLabelColor,
@@ -185,6 +194,8 @@ export class SegmentShape {
 			layer,
 			view,
 			overlayOffset,
+			useOverlay,
+			useMarkers,
 			waveformShape,
 			overlay,
 			overlayRect,
@@ -258,7 +269,7 @@ export class SegmentShape {
 			this.overlayText.text(this.segment.labelText);
 		}
 
-		if (this.segment.overlay) {
+		if (this.useOverlay) {
 			if (this.color) {
 				this.overlayRect.fill(this.color);
 			}
@@ -266,6 +277,8 @@ export class SegmentShape {
 			if (this.borderColor) {
 				this.overlayRect.stroke(this.borderColor);
 			}
+
+			this.waveformShape?.setWaveformColor(this.segment.color);
 		} else {
 			this.waveformShape?.setWaveformColor(this.segment.color);
 		}
@@ -447,9 +460,9 @@ export class SegmentShape {
 		let startMarker: Marker | undefined;
 		let endMarker: Marker | undefined;
 
-		if (this.segment.markers) {
+		if (this.useMarkers) {
 			createSegmentMarkerFn = this.peaks.options.createSegmentMarker;
-		} else if (this.segment.overlay) {
+		} else if (this.useOverlay) {
 			createSegmentMarkerFn = (options: CreateSegmentMarkerOptions) =>
 				OverlaySegmentMarker.from({ options });
 		}

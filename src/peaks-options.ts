@@ -81,6 +81,7 @@ const defaultSegmentOptions = {
 	overlayLabelVerticalAlign: "top",
 	overlayOffset: 25,
 	overlayOpacity: 0.3,
+	overlayShowWaveform: true,
 	startMarkerColor: "#aaaaaa",
 	waveformColor: "#0074d9",
 } as const;

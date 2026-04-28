@@ -80,6 +80,7 @@ export interface OverviewOptions extends ViewOptions {
 
 export interface SegmentDisplayOptions {
 	readonly overlay: boolean;
+	readonly overlayShowWaveform: boolean;
 	readonly markers: boolean;
 	readonly startMarkerColor: string;
 	readonly endMarkerColor: string;

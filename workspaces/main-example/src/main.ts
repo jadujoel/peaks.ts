@@ -93,6 +93,10 @@ async function initPeaks(
 			container: div("overview-container"),
 			highlightColor: "#5eead4",
 			highlightOpacity: 0.18,
+			segmentOptions: {
+				overlayOffset: 0,
+				overlayOpacity: 0.22,
+			},
 			waveformColor: "#5eead4",
 		},
 		playheadColor: "#fafafa",
@@ -100,6 +104,17 @@ async function initPeaks(
 		scrollbar: { container: div("scrollbar-container") },
 		segmentOptions: {
 			endMarkerColor: "#5eead4",
+			overlay: true,
+			overlayBorderWidth: 0,
+			overlayCornerRadius: 4,
+			overlayFontSize: 11,
+			overlayLabelAlign: "left",
+			overlayLabelColor: "#e2e8f0",
+			overlayLabelPadding: 6,
+			overlayLabelVerticalAlign: "top",
+			overlayOffset: 0,
+			overlayOpacity: 0.18,
+			overlayShowWaveform: true,
 			startMarkerColor: "#5eead4",
 			waveformColor: "#5eead4",
 		},
@@ -109,6 +124,9 @@ async function initPeaks(
 		zoomview: {
 			container: div("zoomview-container"),
 			playedWaveformColor: "#0d9488",
+			segmentOptions: {
+				overlayOffset: 0,
+			},
 			showPlayheadTime: true,
 			waveformColor: "#5eead4",
 		},
@@ -178,21 +196,46 @@ async function main(): Promise<void> {
 			startTime: 5,
 		},
 		{
+			color: "#a78bfa",
+			editable: true,
+			endTime: 22,
+			id: "segment-verse",
+			labelText: "Verse",
+			startTime: 13,
+		},
+		{
 			color: "#7dd3fc",
 			editable: true,
-			endTime: 38,
+			endTime: 27,
 			id: "segment-2",
 			labelText: "Loop B",
-			startTime: 30,
+			startTime: 22,
+		},
+		{
+			color: "#f472b6",
+			editable: true,
+			endTime: 32,
+			id: "segment-drop",
+			labelText: "Drop",
+			startTime: 27,
 		},
 	]);
-	peaks.points.add({
-		color: "#fbbf24",
-		editable: true,
-		id: "point-1",
-		labelText: "Marker",
-		time: 20,
-	});
+	peaks.points.add([
+		{
+			color: "#fbbf24",
+			editable: true,
+			id: "point-1",
+			labelText: "Marker",
+			time: 20,
+		},
+		{
+			color: "#f97316",
+			editable: true,
+			id: "point-hit",
+			labelText: "Hit",
+			time: 28,
+		},
+	]);
 
 	// Re-create LoopController if the Peaks instance is ever swapped (not
 	// triggered today, but reserved for future "Recreate" button).

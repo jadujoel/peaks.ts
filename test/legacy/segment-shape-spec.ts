@@ -245,6 +245,45 @@ describe("SegmentShape", () => {
 		});
 	});
 
+	describe("with per-view overlay segmentOptions", () => {
+		it("should flip rendering mode without setting segment.overlay", (done: DoneCallback) => {
+			createPeaksInstance(
+				{
+					overview: {
+						segmentOptions: {
+							markers: false,
+							overlay: true,
+						},
+					},
+					zoomview: {
+						segmentOptions: {
+							markers: true,
+							overlay: false,
+						},
+					},
+				},
+				() => {
+					const segment = p.segments.add({
+						editable: true,
+						endTime: 10,
+						id: "segment1",
+						startTime: 0,
+					});
+
+					const zoomview = p.views.getView("zoomview");
+					const overview = p.views.getView("overview");
+
+					const zoomShape = zoomview.segmentsLayer.getSegmentShape(segment);
+					const overviewShape = overview.segmentsLayer.getSegmentShape(segment);
+
+					expect(zoomShape.overlayText).to.equal(undefined);
+					expect(overviewShape.overlayText).to.not.equal(undefined);
+					done();
+				},
+			);
+		});
+	});
+
 	describe("with overlay style segments", () => {
 		it("should not create marker handles", (done: DoneCallback) => {
 			createPeaksInstance(
@@ -271,12 +310,40 @@ describe("SegmentShape", () => {
 			);
 		});
 
-		it("should not create a waveform segment", (done: DoneCallback) => {
+		it("should create a waveform shape under the overlay rect", (done: DoneCallback) => {
 			createPeaksInstance(
 				{
 					segmentOptions: {
 						markers: false,
 						overlay: true,
+					},
+				},
+				() => {
+					const segment = p.segments.add({
+						editable: true,
+						endTime: 10,
+						id: "segment1",
+						startTime: 0,
+					});
+
+					const zoomview = p.views.getView("zoomview");
+
+					const segmentShape = zoomview.segmentsLayer.getSegmentShape(segment);
+
+					expect(segmentShape).to.be.an.instanceOf(SegmentShape);
+					expect(segmentShape.waveformShape).to.not.equal(undefined);
+					done();
+				},
+			);
+		});
+
+		it("should not create a waveform segment when overlayShowWaveform is false", (done: DoneCallback) => {
+			createPeaksInstance(
+				{
+					segmentOptions: {
+						markers: false,
+						overlay: true,
+						overlayShowWaveform: false,
 					},
 				},
 				() => {
