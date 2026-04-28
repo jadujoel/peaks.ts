@@ -25,6 +25,10 @@ function contentType(path: string): string {
 	if (path.endsWith(".map")) return "application/json; charset=utf-8";
 	if (path.endsWith(".mp3")) return "audio/mpeg";
 	if (path.endsWith(".ogg")) return "audio/ogg";
+	if (path.endsWith(".opus")) return "audio/ogg; codecs=opus";
+	if (path.endsWith(".m4a")) return "audio/mp4";
+	if (path.endsWith(".wav")) return "audio/wav";
+	if (path.endsWith(".dat")) return "application/octet-stream";
 	return "application/octet-stream";
 }
 

@@ -6,10 +6,33 @@ import {
 	TempoMap,
 } from "@jadujoel/peaks.ts";
 import { Controls } from "./controls";
-import { byId, div, select } from "./dom";
+import { byId, div, input, select } from "./dom";
 
-const AUDIO_URL = "./sample.mp3";
+const ANGSTEN_OPUS_URL = "./angsten.opus";
+const ANGSTEN_MP3_URL = "./angsten.mp3";
+const DEFAULT_WAVEFORM_DAT = "./angsten.dat";
 const ZOOM_LEVELS: readonly number[] = [128, 256, 512, 1024, 2048, 4096];
+
+function pickDefaultAudioUrl(): { url: string; name: string; codec: string } {
+	const probe = document.createElement("audio");
+	const canOpus = probe.canPlayType('audio/ogg; codecs="opus"');
+	if (canOpus === "probably" || canOpus === "maybe") {
+		return { codec: "opus", name: "angsten.opus", url: ANGSTEN_OPUS_URL };
+	}
+	return { codec: "mp3", name: "angsten.mp3", url: ANGSTEN_MP3_URL };
+}
+
+async function probeOpusDecodable(context: AudioContext): Promise<boolean> {
+	try {
+		const response = await fetch(ANGSTEN_OPUS_URL);
+		if (!response.ok) return false;
+		const buffer = await response.arrayBuffer();
+		await context.decodeAudioData(buffer.slice(0));
+		return true;
+	} catch {
+		return false;
+	}
+}
 const DRIVER_STORAGE_KEY = "peaks-example-driver";
 
 type DriverChoice = CanvasDriverKind;
@@ -17,6 +40,7 @@ type DriverChoice = CanvasDriverKind;
 interface AppState {
 	audioContext: AudioContext;
 	stereo: boolean;
+	audioUrl: string;
 }
 
 function isDriverChoice(value: string | null): value is DriverChoice {
@@ -71,6 +95,52 @@ function setLoopStatus(text: string): void {
 	out.value = text;
 }
 
+function setLoadedFileName(name: string): void {
+	const el = document.querySelector(".file-chip__name");
+	if (el) el.textContent = name;
+}
+
+function wireFileUpload(state: AppState, peaks: Peaks): void {
+	const fileInput = input("audio-file");
+	let lastObjectUrl: string | undefined;
+
+	fileInput.addEventListener("change", () => {
+		const file = fileInput.files?.[0];
+		if (!file) return;
+		void loadUserAudio(file);
+	});
+
+	async function loadUserAudio(file: File): Promise<void> {
+		setStatusChip("loading…", false);
+		try {
+			const arrayBuffer = await file.arrayBuffer();
+			// Decode against a copy so the buffer isn't transferred and the
+			// underlying data stays available for re-decoding by other code.
+			const buffer = await state.audioContext.decodeAudioData(
+				arrayBuffer.slice(0),
+			);
+			if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+			lastObjectUrl = URL.createObjectURL(file);
+			await peaks.setSource({
+				data: {
+					buffer,
+					context: state.audioContext,
+					scale: 128,
+					stereo: state.stereo,
+					type: "webaudio",
+				},
+				mediaUrl: lastObjectUrl,
+				webAudio: { buffer, context: state.audioContext },
+			});
+			setLoadedFileName(file.name);
+			setStatusChip("ready", true);
+		} catch (error) {
+			console.error("upload load failed", error);
+			setStatusChip("error", false);
+		}
+	}
+}
+
 async function initPeaks(
 	state: AppState,
 	driverChoice: DriverChoice,
@@ -82,9 +152,8 @@ async function initPeaks(
 		axisGridlineColor: "#3a4150",
 		axisLabelColor: "#9aa3b2",
 		data: {
-			scale: 128,
-			stereo: state.stereo,
-			type: "webaudio",
+			arraybuffer: DEFAULT_WAVEFORM_DAT,
+			type: "uri",
 		},
 		driver,
 		emitCueEvents: true,
@@ -119,7 +188,7 @@ async function initPeaks(
 			waveformColor: "#5eead4",
 		},
 		showPlayheadTime: true,
-		url: AUDIO_URL,
+		url: state.audioUrl,
 		zoomLevels: ZOOM_LEVELS,
 		zoomview: {
 			container: div("zoomview-container"),
@@ -140,7 +209,27 @@ async function main(): Promise<void> {
 	setupDriverSelector(driverChoice);
 
 	const audioContext = new AudioContext();
-	const state: AppState = { audioContext, stereo: false };
+	const initialAudio = pickDefaultAudioUrl();
+	let defaultAudio = initialAudio;
+	// canPlayType may report "maybe" for opus on browsers that nevertheless
+	// can't decode it through Web Audio (notably Safari/WebKit). Verify by
+	// actually decoding a small chunk before committing to opus.
+	if (initialAudio.codec === "opus") {
+		const opusOk = await probeOpusDecodable(audioContext);
+		if (!opusOk) {
+			defaultAudio = {
+				codec: "mp3",
+				name: "angsten.mp3",
+				url: ANGSTEN_MP3_URL,
+			};
+		}
+	}
+	const state: AppState = {
+		audioContext,
+		audioUrl: defaultAudio.url,
+		stereo: false,
+	};
+	setLoadedFileName(defaultAudio.name);
 
 	const peaks = await initPeaks(state, driverChoice);
 	(globalThis as unknown as { peaksInstance: Peaks }).peaksInstance = peaks;
@@ -186,6 +275,8 @@ async function main(): Promise<void> {
 		peaks,
 		zoomLevels: ZOOM_LEVELS,
 	});
+
+	wireFileUpload(state, peaks);
 
 	// Seed the demo with two example segments and one point so the UI
 	// has interactive content immediately.
