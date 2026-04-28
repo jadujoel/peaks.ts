@@ -62,6 +62,7 @@ export class WaveformOverview implements WaveformViewAPI, WaveformViewHooks {
 		this.playheadLayer.updatePlayheadTime(time);
 
 		this.mouseDragHandler = SeekMouseDragHandler.from({
+			onSeek: this.scrollZoomviewToSeek,
 			peaks,
 			view: this as unknown as SeekMouseDragHandlerViewParam,
 		});
@@ -164,6 +165,10 @@ export class WaveformOverview implements WaveformViewAPI, WaveformViewHooks {
 		readonly endTime: number;
 	}): void => {
 		this.showHighlight(event.startTime, event.endTime);
+	};
+
+	private scrollZoomviewToSeek = (time: number): void => {
+		this.peaks.views.getZoomview()?.scrollToTime(time);
 	};
 
 	// ─── Public API ───────────────────────────────────────────────────

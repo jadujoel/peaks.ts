@@ -9,286 +9,314 @@
 </head>
 <body>
 	<main class="page">
-		<header class="hero">
-			<div class="hero__brand">
-				<span class="hero__logo" aria-hidden="true">
-					<svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Peaks.ts logo">
-						<title>Peaks.ts logo</title>
-						<path d="M2 16 L6 16 L8 8 L12 24 L16 4 L20 28 L24 10 L26 16 L30 16" />
-					</svg>
-				</span>
-				<div>
-					<h1>Peaks.ts <span class="hero__subtitle">Main Example</span></h1>
-					<p class="hero__tagline">
-						Comprehensive showcase with switchable canvas drivers and the
-						<code>ClipNode</code> audio driver.
-					</p>
-				</div>
-			</div>
-			<div class="hero__status">
-				<span class="status-dot" aria-hidden="true"></span>
-				<p id="status">Initialising…</p>
-			</div>
+		<div class="page__main">
+			<p id="status" class="visually-hidden" role="status" aria-live="polite">Initialising…</p>
 			<pre id="error" class="error hide"></pre>
-		</header>
 
-		<section class="waveforms" aria-label="Waveform views">
-			<div class="waveform-card">
-				<div class="waveform-card__label">Zoomable</div>
-				<div id="zoomview-container" class="waveform-container"></div>
-			</div>
-			<div class="waveform-card">
-				<div class="waveform-card__label">Overview</div>
-				<div id="overview-container" class="waveform-container overview"></div>
-			</div>
-			<div id="scrollbar-container" class="scrollbar-container"></div>
-		</section>
-
-		<section class="panel" aria-label="Controls">
-			<fieldset class="control-group">
-				<legend>Playback</legend>
-				<div class="control-row">
-					<button class="btn btn--primary" data-action="play" type="button">▶ Play</button>
-					<button class="btn" data-action="pause" type="button">❚❚ Pause</button>
-					<button class="btn" data-action="stop" type="button">■ Stop</button>
-					<span class="readout">Time <output id="playhead-time" class="mono">0.00</output>s</span>
-				</div>
-			</fieldset>
-
-			<fieldset class="control-group">
-				<legend>Loops</legend>
-				<div class="control-row">
-					<button class="btn btn--primary" data-action="loop-file" type="button">Loop file</button>
-					<button class="btn" data-action="stop-loop" type="button">Stop loop</button>
-					<span class="readout">Looping <output id="loop-status" class="mono">(none)</output></span>
-				</div>
-			</fieldset>
-
-			<fieldset class="control-group">
-				<legend>Zoom</legend>
-				<div class="control-row">
-					<button class="btn" data-action="zoom-in" type="button">Zoom in</button>
-					<button class="btn" data-action="zoom-out" type="button">Zoom out</button>
-					<div class="field">
-						<label for="zoom-level">Level</label>
-						<select class="select" id="zoom-level"></select>
+			<section class="top-bar" aria-label="Top controls">
+				<fieldset class="control-group">
+					<legend>Playback</legend>
+					<div class="control-row">
+						<button class="btn btn--primary" data-action="play" type="button">▶ Play</button>
+						<button class="btn" data-action="pause" type="button">❚❚ Pause</button>
+						<button class="btn" data-action="stop" type="button">■ Stop</button>
+						<button class="btn btn--primary" data-action="loop-file" type="button">Loop file</button>
+						<button class="btn" data-action="stop-loop" type="button">Stop loop</button>
+						<span class="readout">Time <output id="playhead-time" class="mono">0.00</output>s</span>
+						<span class="readout">Looping <output id="loop-status" class="mono">(none)</output></span>
 					</div>
-				</div>
-			</fieldset>
+				</fieldset>
 
-			<fieldset class="control-group">
-				<legend>Display</legend>
-				<div class="control-row">
-					<label class="toggle">
-						<input type="checkbox" id="auto-scroll" checked />
-						<span>Auto-scroll</span>
-					</label>
-					<label class="toggle">
-						<input type="checkbox" id="show-scrollbar" checked />
-						<span>Scrollbar</span>
-					</label>
-					<label class="toggle">
-						<input type="checkbox" id="show-overview" checked />
-						<span>Overview</span>
-					</label>
-					<label class="toggle">
-						<input type="checkbox" id="show-zoomview" checked />
-						<span>Zoomview</span>
-					</label>
-				</div>
-				<div class="control-row">
-					<div class="field">
-						<label for="driver">Driver</label>
-						<select class="select" id="driver">
-							<option value="konva">Konva (default)</option>
-							<option value="pixi">Pixi</option>
-						</select>
+				<fieldset class="control-group">
+					<legend>Tempo &amp; Grid</legend>
+					<div class="control-row">
+						<div class="field">
+							<label for="tempo-bpm">BPM</label>
+							<input id="tempo-bpm" type="number" min="20" max="300" step="1" value="120" />
+						</div>
+						<div class="field">
+							<label for="tempo-signature">Time signature</label>
+							<select id="tempo-signature">
+								<option value="4/4">4/4</option>
+								<option value="3/4">3/4</option>
+								<option value="6/8">6/8</option>
+								<option value="7/8">7/8</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="tempo-step">Grid step</label>
+							<select id="tempo-step">
+								<option value="1/1">1/1</option>
+								<option value="1/2">1/2</option>
+								<option value="1/4" selected>1/4</option>
+								<option value="1/8">1/8</option>
+								<option value="1/16">1/16</option>
+								<option value="1/32">1/32</option>
+							</select>
+						</div>
+						<button class="btn" data-action="apply-tempo" type="button">Apply</button>
 					</div>
-					<div class="field">
-						<label for="waveform-drag-mode">Drag mode</label>
-						<select class="select" id="waveform-drag-mode">
-							<option value="scroll">Scroll</option>
-							<option value="insert-segment">Insert segment</option>
-						</select>
-					</div>
-					<div class="field">
-						<label for="segment-drag-mode">Segment drag</label>
-						<select class="select" id="segment-drag-mode">
-							<option value="overlap">Overlap</option>
-							<option value="no-overlap">No overlap</option>
-							<option value="compress">Compress</option>
-						</select>
-					</div>
-				</div>
-			</fieldset>
-
-			<fieldset class="control-group">
-				<legend>Colors</legend>
-				<div class="control-row">
-					<label class="swatch">
-						<input type="color" id="waveform-color" value="#00e180" />
-						<span>Waveform</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="played-color" value="#aa0044" />
-						<span>Played</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="axis-label-color" value="#aaaaaa" />
-						<span>Axis label</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="axis-grid-color" value="#cccccc" />
-						<span>Axis grid</span>
-					</label>
-				</div>
-				<div class="control-row">
-					<label class="swatch">
-						<input type="color" id="playhead-color" value="#ffffff" />
-						<span>Playhead</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="overview-waveform-color" value="#00e180" />
-						<span>Overview waveform</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="overview-highlight-color" value="#5fa8d3" />
-						<span>Overview highlight</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="segment-start-marker-color" value="#ffffff" />
-						<span>Segment start</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="segment-end-marker-color" value="#ffffff" />
-						<span>Segment end</span>
-					</label>
-					<label class="swatch">
-						<input type="color" id="segment-waveform-color" value="#5fa8d3" />
-						<span>Segment waveform</span>
-					</label>
-				</div>
-			</fieldset>
-
-			<fieldset class="control-group">
-				<legend>Channels</legend>
-				<div class="control-row">
-					<div class="field">
-						<label for="channel-mode">Mode</label>
-						<select class="select" id="channel-mode">
-							<option value="mono">Mono</option>
-							<option value="stereo">Stereo</option>
-						</select>
-					</div>
-				</div>
-			</fieldset>
-
-			<fieldset class="control-group">
-				<legend>Size</legend>
-				<div class="control-row">
-					<div class="field field--grow">
-						<label for="width">
-							Width <output id="width-value" class="mono">1000</output>px
+					<div class="control-row">
+						<label class="toggle">
+							<input id="grid-visible" type="checkbox" checked />
+							<span>Show grid</span>
 						</label>
-						<input type="range" id="width" min="400" max="1600" step="20" value="1000" />
 					</div>
+					<div class="subgroup" role="group" aria-labelledby="snap-heading">
+						<div id="snap-heading" class="subgroup__heading">Snap</div>
+						<div class="control-row">
+								<label class="toggle" title="Snap the segment body to the grid when dragging the whole segment">
+									<input id="snap-segments" type="checkbox" />
+									<span>Segment body</span>
+								</label>
+								<label class="toggle" title="Snap the start/end handles of a segment to the grid when dragging a segment marker">
+									<input id="snap-segment-markers" type="checkbox" />
+									<span>Segment markers</span>
+								</label>
+								<label class="toggle" title="Snap point markers to the grid when dragging">
+									<input id="snap-points" type="checkbox" />
+									<span>Points</span>
+								</label>
+								<label class="toggle" title="Snap the start/end time to the grid when click-dragging to create a new segment">
+								<input id="snap-insert-segment" type="checkbox" />
+								<span>On insert</span>
+							</label>
+						</div>
+					</div>
+				</fieldset>
+			</section>
+
+			<section class="waveforms" aria-label="Waveform views">
+				<div class="waveform-card">
+					<div class="waveform-card__label">Zoomable</div>
+					<div id="zoomview-container" class="waveform-container"></div>
 				</div>
-				<div class="control-row">
-					<div class="field field--grow">
-						<label for="height">
-							Height <output id="height-value" class="mono">200</output>px
+				<div class="waveform-card">
+					<div class="waveform-card__label">Overview</div>
+					<div id="overview-container" class="waveform-container overview"></div>
+				</div>
+				<div id="scrollbar-container" class="scrollbar-container"></div>
+			</section>
+
+			<section class="panel" aria-label="Controls">
+				<fieldset class="control-group control-group--wide">
+					<legend>View</legend>
+					<div class="subgroup">
+						<div class="subgroup__heading">Zoom</div>
+						<div class="control-row">
+							<button class="btn" data-action="zoom-in" type="button">Zoom in</button>
+							<button class="btn" data-action="zoom-out" type="button">Zoom out</button>
+							<div class="field">
+								<label for="zoom-level">Level</label>
+								<select class="select" id="zoom-level"></select>
+							</div>
+						</div>
+					</div>
+					<div class="subgroup">
+						<div class="subgroup__heading">Size</div>
+						<div class="control-row">
+							<div class="field field--grow">
+								<label for="width">
+									Width <output id="width-value" class="mono">1000</output>px
+								</label>
+								<input type="range" id="width" min="400" max="1600" step="20" value="1000" />
+							</div>
+							<div class="field field--grow">
+								<label for="height">
+									Height <output id="height-value" class="mono">200</output>px
+								</label>
+								<input type="range" id="height" min="100" max="400" step="10" value="200" />
+							</div>
+						</div>
+					</div>
+					<div class="subgroup">
+						<div class="subgroup__heading">Amplitude</div>
+						<div class="control-row">
+							<div class="field field--grow">
+								<label for="amplitude-scale">
+									Scale <output id="amplitude-scale-value" class="mono">1.0</output>
+								</label>
+								<input type="range" id="amplitude-scale" min="0.1" max="4" step="0.1" value="1" />
+							</div>
+						</div>
+					</div>
+					<div class="subgroup">
+						<div class="subgroup__heading">Channels</div>
+						<div class="control-row">
+							<div class="field">
+								<label for="channel-mode">Mode</label>
+								<select class="select" id="channel-mode">
+									<option value="mono">Mono</option>
+									<option value="stereo">Stereo</option>
+								</select>
+							</div>
+						</div>
+					</div>
+				</fieldset>
+
+				<fieldset class="control-group">
+					<legend>Display</legend>
+					<div class="control-row">
+						<label class="toggle">
+							<input type="checkbox" id="auto-scroll" checked />
+							<span>Auto-scroll</span>
 						</label>
-						<input type="range" id="height" min="100" max="400" step="10" value="200" />
-					</div>
-				</div>
-			</fieldset>
-
-			<fieldset class="control-group">
-				<legend>Amplitude</legend>
-				<div class="control-row">
-					<div class="field field--grow">
-						<label for="amplitude-scale">
-							Scale <output id="amplitude-scale-value" class="mono">1.0</output>
+						<label class="toggle">
+							<input type="checkbox" id="show-scrollbar" checked />
+							<span>Scrollbar</span>
 						</label>
-						<input type="range" id="amplitude-scale" min="0.1" max="4" step="0.1" value="1" />
+						<label class="toggle">
+							<input type="checkbox" id="show-overview" checked />
+							<span>Overview</span>
+						</label>
+						<label class="toggle">
+							<input type="checkbox" id="show-zoomview" checked />
+							<span>Zoomview</span>
+						</label>
 					</div>
-				</div>
-			</fieldset>
+					<div class="control-row">
+						<div class="field">
+							<label for="driver">Driver</label>
+							<select class="select" id="driver">
+								<option value="konva">Konva (default)</option>
+								<option value="pixi">Pixi</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="waveform-drag-mode">Drag mode</label>
+							<select class="select" id="waveform-drag-mode">
+								<option value="scroll">Scroll</option>
+								<option value="insert-segment">Insert segment</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="segment-drag-mode">Segment drag</label>
+							<select class="select" id="segment-drag-mode">
+								<option value="overlap">Overlap</option>
+								<option value="no-overlap">No overlap</option>
+								<option value="compress">Compress</option>
+							</select>
+						</div>
+					</div>
+				</fieldset>
 
-			<fieldset class="control-group control-group--wide">
-				<legend>Segments</legend>
-				<div class="control-row">
-					<button class="btn btn--primary" data-action="add-segment" type="button">+ Add at playhead</button>
-				</div>
-				<div class="table-wrap">
-					<table id="segments-table">
-						<thead>
-							<tr>
-								<th>ID</th>
-								<th>Label</th>
-								<th>Start</th>
-								<th>End</th>
-								<th colspan="2">Actions</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-				</div>
-			</fieldset>
+				<fieldset class="control-group">
+					<legend>Colors</legend>
+					<div class="control-row">
+						<label class="swatch">
+							<input type="color" id="waveform-color" value="#00e180" />
+							<span>Waveform</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="played-color" value="#aa0044" />
+							<span>Played</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="axis-label-color" value="#dddddd" />
+							<span>Axis label</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="axis-grid-color" value="#cccccc" />
+							<span>Axis grid</span>
+						</label>
+					</div>
+					<div class="control-row">
+						<label class="swatch">
+							<input type="color" id="playhead-color" value="#ffffff" />
+							<span>Playhead</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="overview-waveform-color" value="#00e180" />
+							<span>Overview waveform</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="overview-highlight-color" value="#5fa8d3" />
+							<span>Overview highlight</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="segment-start-marker-color" value="#ffffff" />
+							<span>Segment start</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="segment-end-marker-color" value="#ffffff" />
+							<span>Segment end</span>
+						</label>
+						<label class="swatch">
+							<input type="color" id="segment-waveform-color" value="#5fa8d3" />
+							<span>Segment waveform</span>
+						</label>
+					</div>
+					<div class="subgroup">
+						<div class="subgroup__heading">Background</div>
+						<div class="control-row">
+							<label class="swatch">
+								<input type="color" id="zoomview-bg-color" value="#05060c" />
+								<span>Zoomview</span>
+							</label>
+							<label class="swatch">
+								<input type="color" id="overview-bg-color" value="#05060c" />
+								<span>Overview</span>
+							</label>
+						</div>
+					</div>
+				</fieldset>
+			</section>
+		</div>
 
-			<fieldset class="control-group control-group--wide">
-				<legend>Points</legend>
-				<div class="control-row">
-					<button class="btn btn--primary" data-action="add-point" type="button">+ Add at playhead</button>
-				</div>
-				<div class="table-wrap">
-					<table id="points-table">
-						<thead>
-							<tr>
-								<th>ID</th>
-								<th>Label</th>
-								<th>Time</th>
-								<th colspan="2">Actions</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-				</div>
-			</fieldset>
+		<aside class="page__aside" aria-label="Segments and points">
+			<details class="side-panel" open>
+				<summary class="side-panel__summary">Segments &amp; Points</summary>
 
-			<fieldset class="control-group control-group--wide">
-				<legend>Tempo &amp; Grid</legend>
-				<div class="control-row">
-					<label>BPM <input id="tempo-bpm" type="number" min="20" max="300" step="1" value="120"></label>
-					<label>Time signature
-						<select id="tempo-signature">
-							<option value="4/4">4/4</option>
-							<option value="3/4">3/4</option>
-							<option value="6/8">6/8</option>
-							<option value="7/8">7/8</option>
-						</select>
-					</label>
-					<label>Grid step
-						<select id="tempo-step">
-							<option value="1/1">1/1</option>
-							<option value="1/2">1/2</option>
-							<option value="1/4" selected>1/4</option>
-							<option value="1/8">1/8</option>
-							<option value="1/16">1/16</option>
-							<option value="1/32">1/32</option>
-						</select>
-					</label>
-					<button class="btn" data-action="apply-tempo" type="button">Apply</button>
-					<label><input id="grid-visible" type="checkbox" checked> Show grid</label>
-				</div>
-				<div class="control-row">
-					<label><input id="snap-segments" type="checkbox"> Snap segment body</label>
-					<label><input id="snap-segment-markers" type="checkbox"> Snap segment markers</label>
-					<label><input id="snap-points" type="checkbox"> Snap points</label>
-					<label><input id="snap-insert-segment" type="checkbox"> Snap on insert</label>
-				</div>
-			</fieldset>
-		</section>
+				<details class="control-group control-group--collapsible" id="segments-group" open>
+					<summary class="control-group__summary">
+						<span class="control-group__legend">Segments</span>
+						<span class="control-group__hint">Click to expand</span>
+					</summary>
+					<div class="control-row">
+						<button class="btn btn--primary" data-action="add-segment" type="button">+ Add at playhead</button>
+					</div>
+					<div class="table-wrap">
+						<table id="segments-table">
+							<thead>
+								<tr>
+									<th>ID</th>
+									<th>Label</th>
+									<th>Start</th>
+									<th>End</th>
+									<th colspan="2">Actions</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</details>
+				<ul class="compact-list" id="segments-compact" aria-label="Segments (compact)"></ul>
+
+				<details class="control-group control-group--collapsible" id="points-group" open>
+					<summary class="control-group__summary">
+						<span class="control-group__legend">Points</span>
+						<span class="control-group__hint">Click to expand</span>
+					</summary>
+					<div class="control-row">
+						<button class="btn btn--primary" data-action="add-point" type="button">+ Add at playhead</button>
+					</div>
+					<div class="table-wrap">
+						<table id="points-table">
+							<thead>
+								<tr>
+									<th>ID</th>
+									<th>Label</th>
+									<th>Time</th>
+									<th colspan="2">Actions</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</details>
+				<ul class="compact-list" id="points-compact" aria-label="Points (compact)"></ul>
+			</details>
+		</aside>
 	</main>
 
 	<script type="importmap">

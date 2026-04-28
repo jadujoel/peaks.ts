@@ -394,6 +394,7 @@ export interface PlayerInstance {
 	playSegment(segment: Segment, loop: boolean): Promise<void>;
 	playLooped(): Promise<void>;
 	setSource(options: SetSourceOptions): Promise<void>;
+	setLoopBounds(startTime: number, endTime: number): void;
 }
 
 export interface SegmentsInstance {
@@ -506,6 +507,7 @@ export interface WaveformZoomviewAPI extends WaveformViewColorAPI {
 	isSnapEnabled(kind: SnapKind): boolean;
 	setSnapStep(step: GridStep | undefined): void;
 	fitToContainer(): void;
+	scrollToTime(time: number): void;
 }
 
 // Public surface of the overview waveform view that consumers wire to UI.

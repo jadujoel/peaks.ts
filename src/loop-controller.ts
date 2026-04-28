@@ -1,3 +1,4 @@
+import type { EventFor, PeaksEventMap } from "./events";
 import type { Segment } from "./segment";
 import type { PeaksInstance } from "./types";
 
@@ -31,6 +32,12 @@ export interface LoopControllerFromOptions {
  * Held state is observable via {@link LoopController.state} and
  * {@link LoopController.currentSegmentId} so consumers can, for example,
  * stop the loop when the segment that's currently looping is removed.
+ *
+ * While a single segment is looping, the controller listens for
+ * `segments.update` and `segments.dragged` events. If the active
+ * segment's bounds change, the loop is updated in place via
+ * {@link Player.setLoopBounds}, and the playhead is rewound to the new
+ * start when it has fallen past the new end.
  */
 export class LoopController {
 	private constructor(
@@ -40,9 +47,35 @@ export class LoopController {
 	) {}
 
 	static from(options: LoopControllerFromOptions): LoopController {
-		return new LoopController(options.peaks, options.onChange ?? noop, {
-			kind: "none",
-		});
+		const controller = new LoopController(
+			options.peaks,
+			options.onChange ?? noop,
+			{ kind: "none" },
+		);
+		controller.subscribe();
+		return controller;
+	}
+
+	private subscribe(): void {
+		this.peaks.events.addEventListener(
+			"segments.update",
+			this.onSegmentChanged,
+		);
+		this.peaks.events.addEventListener(
+			"segments.dragged",
+			this.onSegmentChanged,
+		);
+	}
+
+	dispose(): void {
+		this.peaks.events.removeEventListener(
+			"segments.update",
+			this.onSegmentChanged,
+		);
+		this.peaks.events.removeEventListener(
+			"segments.dragged",
+			this.onSegmentChanged,
+		);
 	}
 
 	/**
@@ -87,6 +120,22 @@ export class LoopController {
 			? this.currentState.id
 			: undefined;
 	}
+
+	private onSegmentChanged = (
+		event:
+			| EventFor<PeaksEventMap, "segments.update">
+			| EventFor<PeaksEventMap, "segments.dragged">,
+	): void => {
+		if (this.currentState.kind !== "segment") return;
+		const segment = event.segment;
+		if (segment.id !== this.currentState.id) return;
+		this.peaks.player.setLoopBounds(segment.startTime, segment.endTime);
+		const currentTime = this.peaks.player.getCurrentTime();
+		if (currentTime >= segment.endTime || currentTime < segment.startTime) {
+			this.peaks.player.seek(segment.startTime);
+		}
+		this.onChange(formatSegmentLabel(segment));
+	};
 }
 
 function noop(): void {

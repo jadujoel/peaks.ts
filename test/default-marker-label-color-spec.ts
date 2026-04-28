@@ -1,6 +1,7 @@
 import { DefaultPointMarker } from "../src/default-point-marker";
 import { DefaultSegmentMarker } from "../src/default-segment-marker";
 import type { PeaksGroup } from "../src/peaks-group";
+import { resolvePeaksOptions } from "../src/peaks-options";
 
 interface RecordedAttrs {
 	addText: Array<Record<string, unknown>>;
@@ -105,5 +106,54 @@ describe("default marker label colors", () => {
 		marker.init(group);
 
 		expect(recorded.addText[0].fill).to.equal("#00ff00");
+	});
+});
+
+describe("color options resolution", () => {
+	it("applies default values for new color options", () => {
+		const result = resolvePeaksOptions({
+			mediaElement: document.createElement("audio"),
+			overview: {
+				container: document.getElementById(
+					"overview-container",
+				) as HTMLDivElement,
+			},
+			zoomview: {
+				container: document.getElementById(
+					"zoomview-container",
+				) as HTMLDivElement,
+			},
+		});
+		if (result.isErr()) throw result.error;
+		const opts = result.value;
+		expect(opts.pointMarkerLabelColor).to.equal("#ffffff");
+		expect(opts.segmentOptions?.markerLabelColor).to.equal("#ffffff");
+		expect(opts.segmentOptions?.labelColor).to.equal("#ffffff");
+	});
+
+	it("honours user-provided color options", () => {
+		const result = resolvePeaksOptions({
+			mediaElement: document.createElement("audio"),
+			overview: {
+				container: document.getElementById(
+					"overview-container",
+				) as HTMLDivElement,
+			},
+			pointMarkerLabelColor: "#abcdef",
+			segmentOptions: {
+				labelColor: "#123456",
+				markerLabelColor: "#fedcba",
+			},
+			zoomview: {
+				container: document.getElementById(
+					"zoomview-container",
+				) as HTMLDivElement,
+			},
+		});
+		if (result.isErr()) throw result.error;
+		const opts = result.value;
+		expect(opts.pointMarkerLabelColor).to.equal("#abcdef");
+		expect(opts.segmentOptions?.markerLabelColor).to.equal("#fedcba");
+		expect(opts.segmentOptions?.labelColor).to.equal("#123456");
 	});
 });

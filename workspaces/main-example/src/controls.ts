@@ -140,6 +140,12 @@ export class Controls {
 			case "add-segment":
 				this.addSegmentAtPlayhead();
 				return;
+			case "jump-segment":
+				if (id) {
+					const segment = this.peaks.segments.getSegment(id);
+					if (segment) this.peaks.player.seek(segment.startTime);
+				}
+				return;
 			case "loop-segment":
 				if (id) this.loopSegmentById(id);
 				return;
@@ -308,6 +314,22 @@ export class Controls {
 		segWave.addEventListener("input", () => {
 			this.peaks.segments.updateAll({ color: segWave.value });
 		});
+
+		// Background colors are applied to the host containers — the
+		// driver canvases are transparent, so this re-tints whatever the
+		// waveform sits on without needing a library API.
+		const zoomBg = input("zoomview-bg-color");
+		const overviewBg = input("overview-bg-color");
+		const applyZoomBg = (): void => {
+			div("zoomview-container").style.backgroundColor = zoomBg.value;
+		};
+		const applyOverviewBg = (): void => {
+			div("overview-container").style.backgroundColor = overviewBg.value;
+		};
+		zoomBg.addEventListener("input", applyZoomBg);
+		overviewBg.addEventListener("input", applyOverviewBg);
+		applyZoomBg();
+		applyOverviewBg();
 	};
 
 	private wireAmplitude = (): void => {
@@ -402,45 +424,85 @@ export class Controls {
 		const tbody = document.querySelector<HTMLTableSectionElement>(
 			"#segments-table tbody",
 		);
-		if (!tbody) return;
 		const segments = this.peaks.segments.getSegments();
-		const rows = segments.map((segment: Segment) => {
-			const label = segment.labelText.length > 0 ? segment.labelText : "";
+		if (tbody) {
+			const rows = segments.map((segment: Segment) => {
+				const label = segment.labelText.length > 0 ? segment.labelText : "";
+				const id = this.escape(segment.id);
+				return (
+					`<tr>` +
+					`<td>${id}</td>` +
+					`<td><input type="text" class="rename-input" data-action="rename-segment" data-id="${id}" value="${this.escape(label)}" /></td>` +
+					`<td>${segment.startTime.toFixed(2)}</td>` +
+					`<td>${segment.endTime.toFixed(2)}</td>` +
+					`<td><button type="button" data-action="loop-segment" data-id="${id}">Loop</button></td>` +
+					`<td><button type="button" data-action="remove-segment" data-id="${id}">Remove</button></td>` +
+					`</tr>`
+				);
+			});
+			tbody.innerHTML = rows.join("");
+		}
+		this.renderCompactSegments(segments);
+	};
+
+	private renderCompactSegments = (segments: readonly Segment[]): void => {
+		const list = document.getElementById("segments-compact");
+		if (!(list instanceof HTMLUListElement)) return;
+		const items = segments.map((segment) => {
 			const id = this.escape(segment.id);
+			const label =
+				segment.labelText.length > 0 ? this.escape(segment.labelText) : id;
 			return (
-				`<tr>` +
-				`<td>${id}</td>` +
-				`<td><input type="text" class="rename-input" data-action="rename-segment" data-id="${id}" value="${this.escape(label)}" /></td>` +
-				`<td>${segment.startTime.toFixed(2)}</td>` +
-				`<td>${segment.endTime.toFixed(2)}</td>` +
-				`<td><button type="button" data-action="loop-segment" data-id="${id}">Loop</button></td>` +
-				`<td><button type="button" data-action="remove-segment" data-id="${id}">Remove</button></td>` +
-				`</tr>`
+				`<li class="compact-list__item">` +
+				`<button type="button" class="compact-list__btn" data-action="jump-segment" data-id="${id}">` +
+				`<span class="compact-list__label">${label}</span>` +
+				`<span class="compact-list__time mono">${segment.startTime.toFixed(2)}–${segment.endTime.toFixed(2)}</span>` +
+				`</button></li>`
 			);
 		});
-		tbody.innerHTML = rows.join("");
+		list.innerHTML = items.join("");
 	};
 
 	private renderPoints = (): void => {
 		const tbody = document.querySelector<HTMLTableSectionElement>(
 			"#points-table tbody",
 		);
-		if (!tbody) return;
 		const points = this.peaks.points.getPoints();
-		const rows = points.map((point: Point) => {
-			const label = point.labelText.length > 0 ? point.labelText : "";
+		if (tbody) {
+			const rows = points.map((point: Point) => {
+				const label = point.labelText.length > 0 ? point.labelText : "";
+				const id = this.escape(point.id);
+				return (
+					`<tr>` +
+					`<td>${id}</td>` +
+					`<td><input type="text" class="rename-input" data-action="rename-point" data-id="${id}" value="${this.escape(label)}" /></td>` +
+					`<td>${point.time.toFixed(2)}</td>` +
+					`<td><button type="button" data-action="jump-point" data-id="${id}">Jump</button></td>` +
+					`<td><button type="button" data-action="remove-point" data-id="${id}">Remove</button></td>` +
+					`</tr>`
+				);
+			});
+			tbody.innerHTML = rows.join("");
+		}
+		this.renderCompactPoints(points);
+	};
+
+	private renderCompactPoints = (points: readonly Point[]): void => {
+		const list = document.getElementById("points-compact");
+		if (!(list instanceof HTMLUListElement)) return;
+		const items = points.map((point) => {
 			const id = this.escape(point.id);
+			const label =
+				point.labelText.length > 0 ? this.escape(point.labelText) : id;
 			return (
-				`<tr>` +
-				`<td>${id}</td>` +
-				`<td><input type="text" class="rename-input" data-action="rename-point" data-id="${id}" value="${this.escape(label)}" /></td>` +
-				`<td>${point.time.toFixed(2)}</td>` +
-				`<td><button type="button" data-action="jump-point" data-id="${id}">Jump</button></td>` +
-				`<td><button type="button" data-action="remove-point" data-id="${id}">Remove</button></td>` +
-				`</tr>`
+				`<li class="compact-list__item">` +
+				`<button type="button" class="compact-list__btn" data-action="jump-point" data-id="${id}">` +
+				`<span class="compact-list__label">${label}</span>` +
+				`<span class="compact-list__time mono">${point.time.toFixed(2)}</span>` +
+				`</button></li>`
 			);
 		});
-		tbody.innerHTML = rows.join("");
+		list.innerHTML = items.join("");
 	};
 
 	private escape(value: string): string {

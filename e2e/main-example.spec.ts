@@ -38,15 +38,10 @@ test("main example loads, exposes every feature group, and round-trips actions",
 		.allTextContents();
 	for (const legend of [
 		"Playback",
-		"Loops",
-		"Zoom",
+		"Tempo & Grid",
+		"View",
 		"Display",
 		"Colors",
-		"Amplitude",
-		"Channels",
-		"Size",
-		"Segments",
-		"Points",
 	]) {
 		expect(fieldsetLegends).toContain(legend);
 	}

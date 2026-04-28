@@ -49,6 +49,7 @@ export class SegmentShape {
 		private readonly overlayRect: DriverRect,
 		private readonly overlayText: DriverText | undefined,
 		private readonly label: PeaksNode | undefined,
+		private readonly labelXOffset: number,
 		private color: string | undefined,
 		private borderColor: string | undefined,
 		private draggable: boolean,
@@ -91,6 +92,14 @@ export class SegmentShape {
 		const segmentStartOffset = view.timeToPixelOffset(segment.startTime);
 		const segmentEndOffset = view.timeToPixelOffset(segment.endTime);
 		const overlayRectHeight = Math.max(0, view.getHeight() - 2 * overlayOffset);
+
+		// Position the label so it tracks the segment's start. The factory
+		// places the label at x=0 by default; we treat that x as a padding
+		// relative to the segment's start offset.
+		const labelXOffset = label ? label.x() : 0;
+		if (label) {
+			label.x(segmentStartOffset + labelXOffset);
+		}
 
 		let instance: SegmentShape;
 		const driver = view.getDriver();
@@ -181,6 +190,7 @@ export class SegmentShape {
 			overlayRect,
 			overlayText,
 			label,
+			labelXOffset,
 			segment.color,
 			segment.borderColor,
 			draggable,
@@ -239,6 +249,9 @@ export class SegmentShape {
 
 		if (this.label) {
 			this.label.text(this.segment.labelText);
+			if (!this.dragging) {
+				this.label.x(segmentStartOffset + this.labelXOffset);
+			}
 		}
 
 		if (this.overlayText) {

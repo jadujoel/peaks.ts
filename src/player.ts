@@ -104,4 +104,15 @@ export class Player {
 	setSource(options: AudioSource): Promise<void> {
 		return this.driver.setSource(options);
 	}
+
+	/**
+	 * Updates the active loop's bounds in place. Drivers that natively
+	 * loop (e.g. `ClipNode`) update their loop boundary properties and
+	 * playback continues without a restart. Polling-based drivers read
+	 * the segment reference each tick, so they pick up new bounds
+	 * automatically — for those drivers this method is a no-op.
+	 */
+	setLoopBounds(startTime: number, endTime: number): void {
+		this.driver.setLoopBounds?.(startTime, endTime);
+	}
 }

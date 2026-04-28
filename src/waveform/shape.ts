@@ -28,7 +28,7 @@ export interface WaveformShapeFromOptions {
 
 export class WaveformShape {
 	private constructor(
-		private readonly color: WaveformColor,
+		private color: WaveformColor,
 		private readonly shape: DriverShape,
 		private readonly view: WaveformViewAPI,
 		private segment: TimeRange | undefined,
@@ -132,6 +132,10 @@ export class WaveformShape {
 		} else {
 			throw new TypeError("Unknown type for color property");
 		}
+
+		// Persist the latest color so subsequent resize-driven `fitToView`
+		// calls don't snap back to the original construction-time value.
+		this.color = color;
 	}
 
 	fitToView(): void {

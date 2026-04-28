@@ -129,6 +129,12 @@ async function statsForCanvas(canvas: Locator): Promise<CanvasStats> {
 		for (let i = 0; i < pixels.length; i += 4) {
 			hash ^= pixels[i] ?? 0;
 			hash = Math.imul(hash, 0x01000193) >>> 0;
+			hash ^= pixels[i + 1] ?? 0;
+			hash = Math.imul(hash, 0x01000193) >>> 0;
+			hash ^= pixels[i + 2] ?? 0;
+			hash = Math.imul(hash, 0x01000193) >>> 0;
+			hash ^= pixels[i + 3] ?? 0;
+			hash = Math.imul(hash, 0x01000193) >>> 0;
 		}
 		const denom = nonTransparent || 1;
 		return {

@@ -1,14 +1,12 @@
 import { err, ok, type Result } from "neverthrow";
 import type { DataSourceOptions, DataSourceWebAudio } from "./data-source";
+import { DefaultSegmentMarker } from "./default-segment-marker";
 import type { AudioDriver } from "./driver/audio/types";
 import { KonvaCanvasDriver } from "./driver/konva/driver";
-import {
-	createPointMarker,
-	createSegmentLabel,
-	createSegmentMarker,
-} from "./marker-factories";
+import { createPointMarker, createSegmentLabel } from "./marker-factories";
 import { TempoMapContext } from "./tempo-map-context";
 import type {
+	CreateSegmentMarkerOptions,
 	OverviewOptions,
 	PeaksConfiguration,
 	PeaksOptions,
@@ -66,7 +64,7 @@ const defaultOverviewOptions = {
 
 const defaultSegmentOptions = {
 	endMarkerColor: "#aaaaaa",
-	labelColor: "#000000",
+	labelColor: "#ffffff",
 	markerLabelColor: "#ffffff",
 	markers: true,
 	overlay: false,
@@ -78,7 +76,7 @@ const defaultSegmentOptions = {
 	overlayFontSize: 12,
 	overlayFontStyle: "normal",
 	overlayLabelAlign: "left",
-	overlayLabelColor: "#000000",
+	overlayLabelColor: "#ffffff",
 	overlayLabelPadding: 8,
 	overlayLabelVerticalAlign: "top",
 	overlayOffset: 25,
@@ -97,8 +95,11 @@ function createDefaultOptions(): PeaksOptions {
 		audio: undefined,
 		createPointMarker: createPointMarker,
 		createSegmentLabel: createSegmentLabel,
-		createSegmentMarker: createSegmentMarker,
-		data: undefined,
+		createSegmentMarker: (options: CreateSegmentMarkerOptions) =>
+			options.view === "zoomview"
+				? DefaultSegmentMarker.from({ options })
+				: undefined,
+		dataUri: undefined,
 		driver: KonvaCanvasDriver.default(),
 		logger: (...args: unknown[]) => {
 			console.error(...args);
@@ -109,6 +110,8 @@ function createDefaultOptions(): PeaksOptions {
 		pointMarkerColor: "#39cccc",
 		pointMarkerLabelColor: "#ffffff",
 		waveformCache: true,
+		waveformData: undefined,
+		withCredentials: false,
 		zoomLevels: [512, 1024, 2048, 4096],
 	} as unknown as PeaksOptions;
 }

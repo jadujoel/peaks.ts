@@ -71,6 +71,8 @@ async function initPeaks(
 
 	const peaks = await Peaks.fromUrl({
 		audioContext: state.audioContext,
+		axisGridlineColor: "#cccccc",
+		axisLabelColor: "#dddddd",
 		data: {
 			scale: 128,
 			stereo: state.stereo,

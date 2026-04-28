@@ -6,6 +6,7 @@ import { clamp } from "./utils";
 export interface SeekMouseDragHandlerFromOptions {
 	readonly peaks: PeaksInstance;
 	readonly view: SeekMouseDragHandlerViewApi;
+	readonly onSeek?: (time: number) => void;
 }
 
 export interface SeekMouseDragHandlerViewApi extends WaveformViewAPI {
@@ -17,12 +18,17 @@ export class SeekMouseDragHandler {
 	private constructor(
 		private readonly peaks: PeaksInstance,
 		private readonly view: SeekMouseDragHandlerViewApi,
+		private readonly onSeek: ((time: number) => void) | undefined,
 		private firstMove: boolean = false,
 		private handler: MouseDragHandler | undefined = undefined,
 	) {}
 
 	static from(options: SeekMouseDragHandlerFromOptions): SeekMouseDragHandler {
-		const instance = new SeekMouseDragHandler(options.peaks, options.view);
+		const instance = new SeekMouseDragHandler(
+			options.peaks,
+			options.view,
+			options.onSeek,
+		);
 		instance.handler = MouseDragHandler.from({
 			driver: options.peaks.options.driver,
 			handlers: {
@@ -72,5 +78,6 @@ export class SeekMouseDragHandler {
 
 		this.view.updatePlayheadTime(time);
 		this.peaks.player.seek(time);
+		this.onSeek?.(time);
 	}
 }

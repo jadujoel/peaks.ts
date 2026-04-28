@@ -67,4 +67,13 @@ export interface AudioDriver {
 	 * WaveformBuilder. Drivers that don't own a buffer return `undefined`.
 	 */
 	getSource?(): AudioSource | undefined;
+	/**
+	 * Optional hook to update the active loop's bounds without restarting
+	 * playback. Called when a looping segment's endpoints change live (for
+	 * example, the user drags one of its markers). Drivers that drive
+	 * looping by polling a mutable {@link Segment} reference can leave
+	 * this unimplemented; native-loop drivers (e.g. `ClipNode`) implement
+	 * it to update their loop boundary properties in place.
+	 */
+	setLoopBounds?(startTime: number, endTime: number): void;
 }

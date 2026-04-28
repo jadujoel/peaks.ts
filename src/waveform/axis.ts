@@ -176,6 +176,12 @@ export class WaveformAxis {
 				const labelY = height - 1 - this.bottomMarkerHeight;
 
 				if (labelX >= 0) {
+					// Draw a subtle dark drop-shadow first so labels stay
+					// readable on bright/noisy waveform backgrounds. Cheap and
+					// driver-agnostic — just two `fillText` calls.
+					context.setAttr("fillStyle", "rgba(0, 0, 0, 0.6)");
+					context.fillText(label, labelX + 1, labelY + 1);
+					context.setAttr("fillStyle", this.labelColor);
 					context.fillText(label, labelX, labelY);
 				}
 			}

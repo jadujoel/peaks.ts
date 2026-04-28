@@ -591,6 +591,21 @@ export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 	}
 
 	/**
+	 * Centers the visible window on the supplied time, clamped to the
+	 * waveform bounds. When the zoom level is `auto` (the entire waveform
+	 * fits in the viewport) this is a no-op.
+	 */
+	scrollToTime(time: number): void {
+		if (this.zoomLevelAuto) {
+			return;
+		}
+
+		const visiblePixels = this.width;
+		const targetPixel = this.timeToPixels(time) - Math.floor(visiblePixels / 2);
+		this.updateWaveform(targetPixel, false);
+	}
+
+	/**
 	 * Returns the length of the waveform, in pixels.
 	 */
 
