@@ -415,18 +415,20 @@ export class Controls {
 		visible.addEventListener("change", () => {
 			this.zoomView()?.setGridVisible(visible.checked);
 		});
-		const snapPairs: ReadonlyArray<readonly [string, SnapKind]> = [
-			["snap-segments", "segments"],
-			["snap-segment-markers", "segmentMarkers"],
-			["snap-points", "points"],
-			["snap-insert-segment", "insertSegment"],
+		const snapKinds: readonly SnapKind[] = [
+			"segments",
+			"segmentMarkers",
+			"points",
+			"insertSegment",
 		];
-		for (const [id, kind] of snapPairs) {
-			const checkbox = input(id);
-			checkbox.addEventListener("change", () => {
-				this.zoomView()?.setSnapEnabled(kind, checkbox.checked);
-			});
-		}
+		const snapToggle = input("snap-enabled");
+		snapToggle.addEventListener("change", () => {
+			const view = this.zoomView();
+			if (!view) return;
+			for (const kind of snapKinds) {
+				view.setSnapEnabled(kind, snapToggle.checked);
+			}
+		});
 	};
 
 	private applyTempo = (): void => {

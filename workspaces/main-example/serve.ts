@@ -11,12 +11,14 @@ if (!ok) {
 
 const indexHtml = resolve(root, "index.html");
 const styleCss = resolve(root, "style.css");
+const faviconSvg = resolve(root, "favicon.svg");
 const distDir = resolve(root, "dist");
 const publicDir = resolve(root, "public");
 
 function contentType(path: string): string {
 	if (path.endsWith(".html")) return "text/html; charset=utf-8";
 	if (path.endsWith(".css")) return "text/css; charset=utf-8";
+	if (path.endsWith(".svg")) return "image/svg+xml";
 	if (path.endsWith(".js") || path.endsWith(".mjs"))
 		return "text/javascript; charset=utf-8";
 	if (path.endsWith(".json")) return "application/json; charset=utf-8";
@@ -44,6 +46,7 @@ const server = Bun.serve({
 
 		if (pathname === "/index.html") return serveFile(indexHtml);
 		if (pathname === "/style.css") return serveFile(styleCss);
+		if (pathname === "/favicon.svg") return serveFile(faviconSvg);
 		if (pathname.startsWith("/dist/")) {
 			return serveFile(resolve(distDir, pathname.slice("/dist/".length)));
 		}

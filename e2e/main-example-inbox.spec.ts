@@ -37,6 +37,11 @@ test.describe("main-example inbox fixes", () => {
 			.locator("canvas")
 			.first()
 			.waitFor({ state: "visible" });
+		// Scroll the overview into view so raw mouse coordinates from
+		// boundingBox() map into the visible viewport. Without this, a
+		// taller header layout can push the overview below the fold and
+		// page.mouse.click(...) silently misses.
+		await overviewContainer.scrollIntoViewIfNeeded();
 		const box = await overviewContainer.boundingBox();
 		if (!box) throw new Error("overview not laid out");
 

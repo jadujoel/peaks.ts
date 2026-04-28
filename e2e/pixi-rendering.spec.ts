@@ -123,7 +123,9 @@ async function statsForCanvas(canvas: Locator): Promise<CanvasStats> {
 				sumG += g;
 				sumB += b;
 				if (r > g + 30 && r > b + 30) redLeaning += 1;
-				if (g > r + 30 && g > b + 30) greenLeaning += 1;
+				// Match green/teal/mint waveform ink: green dominant over red,
+				// blue may also exceed red (i.e. cyan/teal hues count too).
+				if (g > r + 30 && b > r + 30) greenLeaning += 1;
 			}
 		}
 		for (let i = 0; i < pixels.length; i += 4) {

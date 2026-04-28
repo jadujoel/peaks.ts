@@ -93,25 +93,24 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 		expect(persisted).toBe(customColor);
 	});
 
-	test("snap controls live under Tempo & Grid without 'Snap' prefix labels", async ({
+	test("snap controls live under Tempo & Grid as a single toggle", async ({
 		page,
 	}) => {
 		await gotoReady(page);
-		// Each snap toggle now uses a shorter label nested under the Snap
-		// subgroup. The `Snap` heading and the four toggle inputs must exist.
-		await expect(page.getByText("Snap", { exact: true }).first()).toBeVisible();
-		await expect(page.locator("#snap-segments")).toBeVisible();
-		await expect(page.locator("#snap-segment-markers")).toBeVisible();
-		await expect(page.locator("#snap-points")).toBeVisible();
-		await expect(page.locator("#snap-insert-segment")).toBeVisible();
-		// The full `Snap segment body` label should no longer exist on any
-		// individual `<span>` — the toggles use the shortened labels.
+		// The four per-kind snap toggles have been collapsed into a single
+		// `Snap` toggle that controls all snap kinds at once.
+		await expect(page.locator("#snap-enabled")).toBeVisible();
+		await expect(page.locator("#snap-segments")).toHaveCount(0);
+		await expect(page.locator("#snap-segment-markers")).toHaveCount(0);
+		await expect(page.locator("#snap-points")).toHaveCount(0);
+		await expect(page.locator("#snap-insert-segment")).toHaveCount(0);
 		const labelTexts = await page
 			.locator("label.toggle span")
 			.allTextContents();
-		expect(labelTexts).toContain("Segment body");
-		expect(labelTexts).not.toContain("Snap segment body");
-		expect(labelTexts).not.toContain("Snap on insert");
+		expect(labelTexts).toContain("Snap");
+		expect(labelTexts).not.toContain("Segment body");
+		expect(labelTexts).not.toContain("Segment markers");
+		expect(labelTexts).not.toContain("On insert");
 	});
 
 	test("background color picker re-tints the zoomview container", async ({

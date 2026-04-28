@@ -49,9 +49,17 @@ function setupDriverSelector(current: DriverChoice): void {
 	});
 }
 
+function setStatusChip(text: string, live = false): void {
+	const chip = document.getElementById("status-chip");
+	const label = document.getElementById("status-chip-text");
+	if (label) label.textContent = text;
+	if (chip) chip.classList.toggle("chip--live", live);
+}
+
 function showError(message: string): void {
 	const status = byId("status", HTMLParagraphElement);
 	status.textContent = "Failed to initialise";
+	setStatusChip("error", false);
 	const errorPre = byId("error", HTMLPreElement);
 	errorPre.textContent = `Initialization error: ${message}`;
 	errorPre.classList.remove("hide");
@@ -71,8 +79,8 @@ async function initPeaks(
 
 	const peaks = await Peaks.fromUrl({
 		audioContext: state.audioContext,
-		axisGridlineColor: "#cccccc",
-		axisLabelColor: "#dddddd",
+		axisGridlineColor: "#3a4150",
+		axisLabelColor: "#9aa3b2",
 		data: {
 			scale: 128,
 			stereo: state.stereo,
@@ -83,25 +91,26 @@ async function initPeaks(
 		keyboard: true,
 		overview: {
 			container: div("overview-container"),
-			highlightColor: "#5fa8d3",
-			highlightOpacity: 0.25,
-			waveformColor: "#00e180",
+			highlightColor: "#5eead4",
+			highlightOpacity: 0.18,
+			waveformColor: "#5eead4",
 		},
-		playheadColor: "#ffffff",
-		pointMarkerColor: "#006eb0",
+		playheadColor: "#fafafa",
+		pointMarkerColor: "#fbbf24",
 		scrollbar: { container: div("scrollbar-container") },
 		segmentOptions: {
-			endMarkerColor: "#ffffff",
-			startMarkerColor: "#ffffff",
-			waveformColor: "#5fa8d3",
+			endMarkerColor: "#5eead4",
+			startMarkerColor: "#5eead4",
+			waveformColor: "#5eead4",
 		},
 		showPlayheadTime: true,
 		url: AUDIO_URL,
 		zoomLevels: ZOOM_LEVELS,
 		zoomview: {
 			container: div("zoomview-container"),
+			playedWaveformColor: "#0d9488",
 			showPlayheadTime: true,
-			waveformColor: "#00e180",
+			waveformColor: "#5eead4",
 		},
 	});
 
@@ -123,6 +132,16 @@ async function main(): Promise<void> {
 
 	const status = byId("status", HTMLParagraphElement);
 	status.textContent = "Ready";
+	setStatusChip("ready", true);
+	peaks.events.addEventListener("player.playing", () =>
+		setStatusChip("playing", true),
+	);
+	peaks.events.addEventListener("player.pause", () =>
+		setStatusChip("paused", false),
+	);
+	peaks.events.addEventListener("player.ended", () =>
+		setStatusChip("ended", false),
+	);
 
 	const loopController = LoopController.from({
 		onChange: setLoopStatus,
@@ -151,6 +170,7 @@ async function main(): Promise<void> {
 	// has interactive content immediately.
 	peaks.segments.add([
 		{
+			color: "#5eead4",
 			editable: true,
 			endTime: 12,
 			id: "segment-1",
@@ -158,6 +178,7 @@ async function main(): Promise<void> {
 			startTime: 5,
 		},
 		{
+			color: "#7dd3fc",
 			editable: true,
 			endTime: 38,
 			id: "segment-2",
@@ -166,6 +187,7 @@ async function main(): Promise<void> {
 		},
 	]);
 	peaks.points.add({
+		color: "#fbbf24",
 		editable: true,
 		id: "point-1",
 		labelText: "Marker",

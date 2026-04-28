@@ -5,10 +5,84 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="color-scheme" content="dark" />
 	<title>Peaks.ts · Main Example</title>
+	<link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+		rel="stylesheet" />
 	<link rel="stylesheet" href="./style.css" />
 </head>
 <body>
 	<main class="page">
+		<header class="topbar" aria-label="Header">
+			<div class="brand" title="Peaks.ts">
+				<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+					<rect width="32" height="32" rx="7" fill="oklch(15% 0.012 230)" />
+					<g fill="currentColor">
+						<rect x="4"  y="14" width="2" height="4"  rx="1"/>
+						<rect x="7"  y="11" width="2" height="10" rx="1"/>
+						<rect x="10" y="7"  width="2" height="18" rx="1"/>
+						<rect x="13" y="4"  width="2" height="24" rx="1"/>
+						<rect x="16" y="9"  width="2" height="14" rx="1"/>
+						<rect x="19" y="6"  width="2" height="20" rx="1"/>
+						<rect x="22" y="11" width="2" height="10" rx="1"/>
+						<rect x="25" y="13" width="2" height="6"  rx="1"/>
+						<rect x="28" y="14" width="2" height="4"  rx="1"/>
+					</g>
+				</svg>
+				<span class="brand-name">Peaks<span class="brand-name__suffix">.ts</span></span>
+			</div>
+			<span class="brand-sub">main-example</span>
+
+			<div class="file-chip" title="Loaded audio">
+				<svg class="file-chip__art" viewBox="0 0 88 22" preserveAspectRatio="none" aria-hidden="true">
+					<g fill="currentColor">
+						<rect x="0"  y="7" width="2" height="8"  rx="1"/>
+						<rect x="3"  y="4" width="2" height="14" rx="1"/>
+						<rect x="6"  y="2" width="2" height="18" rx="1"/>
+						<rect x="9"  y="6" width="2" height="10" rx="1"/>
+						<rect x="12" y="3" width="2" height="16" rx="1"/>
+						<rect x="15" y="8" width="2" height="6"  rx="1"/>
+						<rect x="18" y="4" width="2" height="14" rx="1"/>
+						<rect x="21" y="1" width="2" height="20" rx="1"/>
+						<rect x="24" y="5" width="2" height="12" rx="1"/>
+						<rect x="27" y="3" width="2" height="16" rx="1"/>
+						<rect x="30" y="7" width="2" height="8"  rx="1"/>
+						<rect x="33" y="2" width="2" height="18" rx="1"/>
+						<rect x="36" y="6" width="2" height="10" rx="1"/>
+						<rect x="39" y="4" width="2" height="14" rx="1"/>
+						<rect x="42" y="8" width="2" height="6"  rx="1"/>
+						<rect x="45" y="3" width="2" height="16" rx="1"/>
+						<rect x="48" y="5" width="2" height="12" rx="1"/>
+						<rect x="51" y="2" width="2" height="18" rx="1"/>
+						<rect x="54" y="7" width="2" height="8"  rx="1"/>
+						<rect x="57" y="4" width="2" height="14" rx="1"/>
+						<rect x="60" y="6" width="2" height="10" rx="1"/>
+						<rect x="63" y="3" width="2" height="16" rx="1"/>
+						<rect x="66" y="8" width="2" height="6"  rx="1"/>
+						<rect x="69" y="2" width="2" height="18" rx="1"/>
+						<rect x="72" y="5" width="2" height="12" rx="1"/>
+						<rect x="75" y="7" width="2" height="8"  rx="1"/>
+						<rect x="78" y="4" width="2" height="14" rx="1"/>
+						<rect x="81" y="6" width="2" height="10" rx="1"/>
+						<rect x="84" y="8" width="2" height="6"  rx="1"/>
+					</g>
+				</svg>
+				<div class="file-chip__meta">
+					<div class="file-chip__name">sample.mp3</div>
+					<div class="file-chip__sub">webaudio · mono</div>
+				</div>
+			</div>
+
+			<div class="topbar__spacer"></div>
+
+			<span class="chip chip--live" id="status-chip">
+				<span class="chip__dot"></span>
+				<span>Status</span>
+				<b id="status-chip-text">loading…</b>
+			</span>
+		</header>
 		<div class="page__main">
 			<p id="status" class="visually-hidden" role="status" aria-live="polite">Initialising…</p>
 			<pre id="error" class="error hide"></pre>
@@ -62,26 +136,11 @@
 							<span>Show grid</span>
 						</label>
 					</div>
-					<div class="subgroup" role="group" aria-labelledby="snap-heading">
-						<div id="snap-heading" class="subgroup__heading">Snap</div>
-						<div class="control-row">
-								<label class="toggle" title="Snap the segment body to the grid when dragging the whole segment">
-									<input id="snap-segments" type="checkbox" />
-									<span>Segment body</span>
-								</label>
-								<label class="toggle" title="Snap the start/end handles of a segment to the grid when dragging a segment marker">
-									<input id="snap-segment-markers" type="checkbox" />
-									<span>Segment markers</span>
-								</label>
-								<label class="toggle" title="Snap point markers to the grid when dragging">
-									<input id="snap-points" type="checkbox" />
-									<span>Points</span>
-								</label>
-								<label class="toggle" title="Snap the start/end time to the grid when click-dragging to create a new segment">
-								<input id="snap-insert-segment" type="checkbox" />
-								<span>On insert</span>
-							</label>
-						</div>
+					<div class="control-row">
+						<label class="toggle" title="Snap segments, markers, points, and inserts to the grid">
+							<input id="snap-enabled" type="checkbox" />
+							<span>Snap</span>
+						</label>
 					</div>
 				</fieldset>
 			</section>
