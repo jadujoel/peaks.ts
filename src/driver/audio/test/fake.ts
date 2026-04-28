@@ -109,6 +109,10 @@ export class FakeAudioDriver implements AudioDriver {
 		this.segmentEnd = endTime;
 	}
 
+	setLooped(loop: boolean): void {
+		this.looping = loop;
+	}
+
 	setSource(source: AudioSource): Promise<void> {
 		this.currentTime = 0;
 		this.duration = source.webAudio?.buffer?.duration ?? this.duration;

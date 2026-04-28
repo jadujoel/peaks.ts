@@ -107,22 +107,30 @@ export class DefaultPointMarker {
 				// Position text to the left of the marker
 				time.x(-24 - time.getWidth());
 				time.show();
+				document.body.style.cursor = "grab";
 			}
 		});
 
 		handle.on("mouseout touchend", () => {
 			if (this.draggable) {
 				time.hide();
+				document.body.style.cursor = "";
 			}
 		});
 
 		group.on("dragstart", () => {
 			time.x(-24 - time.getWidth());
 			time.show();
+			if (this.draggable) {
+				document.body.style.cursor = "grabbing";
+			}
 		});
 
 		group.on("dragend", () => {
 			time.hide();
+			if (this.draggable) {
+				document.body.style.cursor = "";
+			}
 		});
 	}
 

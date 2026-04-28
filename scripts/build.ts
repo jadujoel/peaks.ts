@@ -73,4 +73,19 @@ if (!minResult.success) {
 
 console.log("✓ dist/peaks.min.js");
 
+// Re-establish hardlinks between dist/ and the workspace dependency
+// cache (`node_modules/.bun/@jadujoel+peaks.ts@root/...`). Cleaning and
+// recreating dist/ above severs the prior hardlinks, so any subsequent
+// `bun --filter @peaks/main-example build` would otherwise read a stale
+// peaks.esm.js. `bun install` is idempotent and fast and rewires the
+// hardlinks back to the freshly built dist.
+try {
+	execSync("bun install", {
+		cwd: resolve(import.meta.dir, ".."),
+		stdio: "inherit",
+	});
+} catch (error) {
+	console.warn("post-build bun install failed:", error);
+}
+
 console.log("Build complete.");

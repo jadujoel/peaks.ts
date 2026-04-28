@@ -69,10 +69,12 @@ export class OverlaySegmentMarker {
 			}
 
 			label.show();
+			document.body.style.cursor = "grabbing";
 		});
 
 		group.on("dragend", () => {
 			label.hide();
+			document.body.style.cursor = "";
 		});
 
 		handle.on("mouseover touchstart", () => {
@@ -82,13 +84,13 @@ export class OverlaySegmentMarker {
 
 			label.show();
 
-			document.body.style.cursor = "ew-resize";
+			document.body.style.cursor = "grab";
 		});
 
 		handle.on("mouseout touchend", () => {
 			label.hide();
 
-			document.body.style.cursor = "default";
+			document.body.style.cursor = "";
 		});
 	}
 

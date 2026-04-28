@@ -135,10 +135,16 @@ export class DefaultSegmentMarker {
 			}
 
 			label.show();
+			if (this.editable) {
+				document.body.style.cursor = "grabbing";
+			}
 		});
 
 		group.on("dragend", () => {
 			label.hide();
+			if (this.editable) {
+				document.body.style.cursor = "";
+			}
 		});
 
 		handle.on("mouseover touchstart", () => {
@@ -147,10 +153,16 @@ export class DefaultSegmentMarker {
 			}
 
 			label.show();
+			if (this.editable) {
+				document.body.style.cursor = "grab";
+			}
 		});
 
 		handle.on("mouseout touchend", () => {
 			label.hide();
+			if (this.editable) {
+				document.body.style.cursor = "";
+			}
 		});
 	}
 }

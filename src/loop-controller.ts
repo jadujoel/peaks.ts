@@ -108,6 +108,7 @@ export class LoopController {
 	stop = (): void => {
 		this.currentState = { kind: "none" };
 		this.peaks.player.pause();
+		this.peaks.player.setLooped(false);
 		this.onChange("(none)");
 	};
 

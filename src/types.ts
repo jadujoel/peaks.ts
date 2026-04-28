@@ -395,6 +395,7 @@ export interface PlayerInstance {
 	playLooped(): Promise<void>;
 	setSource(options: SetSourceOptions): Promise<void>;
 	setLoopBounds(startTime: number, endTime: number): void;
+	setLooped(loop: boolean): void;
 }
 
 export interface SegmentsInstance {

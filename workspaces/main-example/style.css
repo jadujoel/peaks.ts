@@ -132,6 +132,15 @@ code,
 	grid-template-columns: minmax(0, 1fr) 520px;
 }
 
+/*
+ * When the side panel itself is collapsed (vertical strip), shrink the
+ * aside column to the strip's intrinsic width so the main waveform area
+ * reclaims the horizontal space.
+ */
+.page:has(.page__aside .side-panel:not([open])) {
+	grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .page__main {
 	min-width: 0;
 	display: flex;
@@ -503,6 +512,15 @@ code,
 
 .side-panel:not([open]) .side-panel__summary {
 	border-bottom: none;
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	padding: 18px 14px;
+	justify-content: flex-start;
+	gap: 12px;
+}
+
+.side-panel:not([open]) .side-panel__summary::after {
+	transform: rotate(135deg);
 }
 
 .side-panel > .control-group {

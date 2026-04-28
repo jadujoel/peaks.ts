@@ -94,6 +94,26 @@ export class Controls {
 		} else if (action === "rename-point") {
 			const point = this.peaks.points.getPoint(id);
 			if (point) point.update({ labelText: target.value });
+		} else if (action === "edit-segment-start") {
+			const segment = this.peaks.segments.getSegment(id);
+			const value = Number.parseFloat(target.value);
+			if (segment && Number.isFinite(value)) {
+				const startTime = Math.max(0, Math.min(value, segment.endTime));
+				segment.update({ startTime });
+			}
+		} else if (action === "edit-segment-end") {
+			const segment = this.peaks.segments.getSegment(id);
+			const value = Number.parseFloat(target.value);
+			if (segment && Number.isFinite(value)) {
+				const endTime = Math.max(segment.startTime, value);
+				segment.update({ endTime });
+			}
+		} else if (action === "edit-point-time") {
+			const point = this.peaks.points.getPoint(id);
+			const value = Number.parseFloat(target.value);
+			if (point && Number.isFinite(value) && value >= 0) {
+				point.update({ time: value });
+			}
 		}
 	};
 
@@ -278,6 +298,10 @@ export class Controls {
 		played.addEventListener("input", () =>
 			views.setPlayedWaveformColor(played.value),
 		);
+		// Apply the initial played-color so the played overlay appears
+		// immediately on first paint instead of only after the user
+		// touches the picker.
+		views.setPlayedWaveformColor(played.value);
 		const label = input("axis-label-color");
 		label.addEventListener("input", () => views.setAxisLabelColor(label.value));
 		const grid = input("axis-grid-color");
@@ -433,8 +457,8 @@ export class Controls {
 					`<tr>` +
 					`<td>${id}</td>` +
 					`<td><input type="text" class="rename-input" data-action="rename-segment" data-id="${id}" value="${this.escape(label)}" /></td>` +
-					`<td>${segment.startTime.toFixed(2)}</td>` +
-					`<td>${segment.endTime.toFixed(2)}</td>` +
+					`<td><input type="number" class="time-input" min="0" step="0.01" data-action="edit-segment-start" data-id="${id}" value="${segment.startTime.toFixed(2)}" /></td>` +
+					`<td><input type="number" class="time-input" min="0" step="0.01" data-action="edit-segment-end" data-id="${id}" value="${segment.endTime.toFixed(2)}" /></td>` +
 					`<td><button type="button" data-action="loop-segment" data-id="${id}">Loop</button></td>` +
 					`<td><button type="button" data-action="remove-segment" data-id="${id}">Remove</button></td>` +
 					`</tr>`
@@ -476,7 +500,7 @@ export class Controls {
 					`<tr>` +
 					`<td>${id}</td>` +
 					`<td><input type="text" class="rename-input" data-action="rename-point" data-id="${id}" value="${this.escape(label)}" /></td>` +
-					`<td>${point.time.toFixed(2)}</td>` +
+					`<td><input type="number" class="time-input" min="0" step="0.01" data-action="edit-point-time" data-id="${id}" value="${point.time.toFixed(2)}" /></td>` +
 					`<td><button type="button" data-action="jump-point" data-id="${id}">Jump</button></td>` +
 					`<td><button type="button" data-action="remove-point" data-id="${id}">Remove</button></td>` +
 					`</tr>`

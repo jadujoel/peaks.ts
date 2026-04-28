@@ -115,4 +115,14 @@ export class Player {
 	setLoopBounds(startTime: number, endTime: number): void {
 		this.driver.setLoopBounds?.(startTime, endTime);
 	}
+
+	/**
+	 * Enables or disables looping on the underlying playback node without
+	 * changing playback state. The loop controller calls this in `stop()`
+	 * so a subsequent `play()` does not reuse the previous loop config.
+	 * No-op for drivers that loop via segment polling.
+	 */
+	setLooped(loop: boolean): void {
+		this.driver.setLooped?.(loop);
+	}
 }

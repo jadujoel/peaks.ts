@@ -13,6 +13,7 @@ interface PlayerStub {
 	playSegment: (segment: Segment, loop: boolean) => Promise<void>;
 	seek: (time: number) => void;
 	setLoopBounds: (startTime: number, endTime: number) => void;
+	setLooped: (loop: boolean) => void;
 	isPlaying: () => boolean;
 	isSeeking: () => boolean;
 	init: () => Promise<void>;
@@ -41,6 +42,7 @@ function makePlayer(overrides: Partial<PlayerStub> = {}): PlayerStub {
 		playSegment: () => Promise.resolve(),
 		seek: () => {},
 		setLoopBounds: () => {},
+		setLooped: () => {},
 		setSource: () => Promise.resolve(),
 		...overrides,
 	};
@@ -105,7 +107,8 @@ describe("LoopController", () => {
 
 	it("stop pauses the player and clears state", async () => {
 		const pause = vi.fn();
-		const player = makePlayer({ isPlaying: () => true, pause });
+		const setLooped = vi.fn();
+		const player = makePlayer({ isPlaying: () => true, pause, setLooped });
 		const labels: string[] = [];
 		const controller = LoopController.from({
 			onChange: (label) => labels.push(label),
@@ -116,6 +119,7 @@ describe("LoopController", () => {
 		controller.stop();
 
 		expect(pause).toHaveBeenCalledOnce();
+		expect(setLooped).toHaveBeenCalledWith(false);
 		expect(controller.state()).toEqual({ kind: "none" });
 		expect(controller.currentSegmentId()).toBe(undefined);
 		expect(labels).toEqual(["entire file", "(none)"]);

@@ -76,4 +76,11 @@ export interface AudioDriver {
 	 * it to update their loop boundary properties in place.
 	 */
 	setLoopBounds?(startTime: number, endTime: number): void;
+	/**
+	 * Optional hook to enable or disable looping on the underlying
+	 * playback node without changing playback state. Used by the loop
+	 * controller's `stop()` so subsequent `play()` calls don't reuse the
+	 * previously configured loop. Polling-based drivers can ignore this.
+	 */
+	setLooped?(loop: boolean): void;
 }

@@ -803,6 +803,10 @@ export class SegmentShape {
 			this.label.moveToTop();
 		}
 
+		if (this.draggable && !this.dragging) {
+			document.body.style.cursor = "grab";
+		}
+
 		this.peaks.events.dispatch("segments.mouseenter", {
 			evt: event.evt,
 			segment: this.segment,
@@ -810,6 +814,10 @@ export class SegmentShape {
 	};
 
 	private onMouseLeave = (event: PeaksPointerEvent<MouseEvent>) => {
+		if (this.draggable && !this.dragging) {
+			document.body.style.cursor = "";
+		}
+
 		this.peaks.events.dispatch("segments.mouseleave", {
 			evt: event.evt,
 			segment: this.segment,
@@ -837,6 +845,8 @@ export class SegmentShape {
 		this.dragStartX = this.overlay?.x();
 		this.dragStartTime = this.segment.startTime;
 		this.dragEndTime = this.segment.endTime;
+
+		document.body.style.cursor = "grabbing";
 
 		this.peaks.events.dispatch("segments.dragstart", {
 			evt: event.evt,
@@ -976,6 +986,8 @@ export class SegmentShape {
 
 	private onSegmentDragEnd = (event: PeaksPointerEvent<MouseEvent>) => {
 		this.dragging = false;
+
+		document.body.style.cursor = "";
 
 		this.peaks.events.dispatch("segments.dragend", {
 			evt: event.evt,

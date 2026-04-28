@@ -203,4 +203,150 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 
 		expect(expandedWidth).toBeGreaterThan(collapsedWidth + 100);
 	});
+
+	test("played waveform color is applied on first paint", async ({ page }) => {
+		await gotoReady(page);
+
+		const initial = await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						views: {
+							getZoomview: () =>
+								| { view: { playedWaveformColor: string | undefined } }
+								| undefined;
+						};
+					};
+				}
+			).peaksInstance;
+			return peaks.views.getZoomview()?.view.playedWaveformColor;
+		});
+		// The HTML picker defaults to #aa0044, and Controls now applies it
+		// on init so the played overlay appears without first input.
+		expect(initial).toBe("#aa0044");
+	});
+
+	test("editing the segment start/end inputs updates the segment", async ({
+		page,
+	}) => {
+		await gotoReady(page);
+
+		// Locate the start-time input for segment-1 (seeded at 5..12) and
+		// commit a new value via change event (mirrors blur/Enter).
+		await page.evaluate(() => {
+			const start = document.querySelector(
+				'input[data-action="edit-segment-start"][data-id="segment-1"]',
+			) as HTMLInputElement;
+			start.value = "6.5";
+			start.dispatchEvent(new Event("change", { bubbles: true }));
+			const end = document.querySelector(
+				'input[data-action="edit-segment-end"][data-id="segment-1"]',
+			) as HTMLInputElement;
+			end.value = "11";
+			end.dispatchEvent(new Event("change", { bubbles: true }));
+		});
+
+		const bounds = await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						segments: {
+							getSegment: (
+								id: string,
+							) => { startTime: number; endTime: number } | undefined;
+						};
+					};
+				}
+			).peaksInstance;
+			const seg = peaks.segments.getSegment("segment-1");
+			return seg ? { end: seg.endTime, start: seg.startTime } : undefined;
+		});
+		expect(bounds?.start).toBeCloseTo(6.5, 5);
+		expect(bounds?.end).toBeCloseTo(11, 5);
+	});
+
+	test("editing the point time input updates the point", async ({ page }) => {
+		await gotoReady(page);
+
+		await page.evaluate(() => {
+			const t = document.querySelector(
+				'input[data-action="edit-point-time"][data-id="point-1"]',
+			) as HTMLInputElement;
+			t.value = "25.25";
+			t.dispatchEvent(new Event("change", { bubbles: true }));
+		});
+
+		const time = await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						points: {
+							getPoint: (id: string) => { time: number } | undefined;
+						};
+					};
+				}
+			).peaksInstance;
+			return peaks.points.getPoint("point-1")?.time;
+		});
+		expect(time).toBeCloseTo(25.25, 5);
+	});
+
+	test("Stop Loop disables the underlying clip-node loop flag", async ({
+		page,
+	}) => {
+		await gotoReady(page);
+
+		// Spy on player.setLooped to verify the loop controller calls it.
+		await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						player: { setLooped: (loop: boolean) => void };
+					};
+				}
+			).peaksInstance;
+			(globalThis as unknown as { __loopedCalls: boolean[] }).__loopedCalls =
+				[];
+			const original = peaks.player.setLooped.bind(peaks.player);
+			peaks.player.setLooped = (loop: boolean) => {
+				(
+					globalThis as unknown as { __loopedCalls: boolean[] }
+				).__loopedCalls.push(loop);
+				original(loop);
+			};
+		});
+
+		// Start file loop then stop it via the demo's Stop Loop button.
+		await page.locator('[data-action="loop-file"]').click();
+		await page.locator('[data-action="stop-loop"]').click();
+
+		const calls = await page.evaluate(
+			() =>
+				(globalThis as unknown as { __loopedCalls: boolean[] }).__loopedCalls,
+		);
+		expect(calls).toContain(false);
+	});
+
+	test("side panel collapses to a vertical strip and reclaims main width", async ({
+		page,
+	}) => {
+		await gotoReady(page);
+
+		const openWidth = await page
+			.locator(".page__aside")
+			.evaluate((el) => el.getBoundingClientRect().width);
+
+		// Close the top-level side-panel <details>.
+		await page.evaluate(() => {
+			const panel = document.querySelector(".side-panel") as HTMLDetailsElement;
+			panel.open = false;
+		});
+
+		const closedWidth = await page
+			.locator(".page__aside")
+			.evaluate((el) => el.getBoundingClientRect().width);
+
+		// Closed strip should be markedly narrower than the open panel.
+		expect(closedWidth).toBeLessThan(openWidth - 100);
+	});
 });
