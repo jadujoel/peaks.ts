@@ -157,7 +157,7 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 
 		await page
 			.locator(
-				'#segments-compact button[data-action="jump-segment"][data-id="segment-1"]',
+				'#segments-compact button[data-action="jump-segment"][data-id="segment-intro"]',
 			)
 			.click();
 
@@ -165,7 +165,7 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 			() => (globalThis as unknown as { __seekCalls: number[] }).__seekCalls,
 		);
 		expect(calls).toHaveLength(1);
-		expect(calls[0]).toBeCloseTo(5, 5);
+		expect(calls[0]).toBeCloseTo(0, 5);
 	});
 
 	test("width slider has been removed (waveform is full-width)", async ({
@@ -204,7 +204,7 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 		await gotoReady(page);
 
 		const row = page.locator(
-			'#segments-compact li[data-segment-id="segment-1"]',
+			'#segments-compact li[data-segment-id="segment-intro"]',
 		);
 		await row.dispatchEvent("contextmenu");
 		await expect(page.locator("#context-menu")).not.toHaveClass(/hide/);
@@ -235,7 +235,7 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 					};
 				}
 			).peaksInstance;
-			const seg = peaks.segments.getSegment("segment-1");
+			const seg = peaks.segments.getSegment("segment-intro");
 			return seg ? { end: seg.endTime, start: seg.startTime } : undefined;
 		});
 		expect(bounds?.start).toBeCloseTo(6.5, 5);
@@ -404,5 +404,51 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 			return peaks.segments.getSegments().length;
 		});
 		expect(after).toBe(before + 1);
+	});
+
+	test("segments compact list is ordered by startTime, not insertion order", async ({
+		page,
+	}) => {
+		await gotoReady(page);
+
+		// Insert a new segment whose startTime falls between two seeded
+		// segments. It must appear in the right slot, not at the end.
+		await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						segments: {
+							add: (s: {
+								id: string;
+								startTime: number;
+								endTime: number;
+								labelText: string;
+							}) => void;
+						};
+					};
+				}
+			).peaksInstance;
+			peaks.segments.add({
+				endTime: 13.5,
+				id: "segment-z-inserted",
+				labelText: "Inserted",
+				startTime: 10,
+			});
+		});
+
+		const ids = await page.evaluate(() =>
+			Array.from(
+				document.querySelectorAll<HTMLLIElement>(
+					"#segments-compact li[data-segment-id]",
+				),
+			).map((li) => li.dataset.segmentId ?? ""),
+		);
+
+		const insertedIndex = ids.indexOf("segment-z-inserted");
+		expect(insertedIndex).toBeGreaterThan(0);
+		expect(insertedIndex).toBeLessThan(ids.length - 1);
+		// Must sit between segment-verse-1 (3.93) and segment-prechorus (19.97).
+		expect(ids[insertedIndex - 1]).toBe("segment-verse-1");
+		expect(ids[insertedIndex + 1]).toBe("segment-prechorus");
 	});
 });

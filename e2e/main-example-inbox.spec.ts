@@ -117,11 +117,11 @@ test.describe("main-example inbox fixes", () => {
 					__loopController: { loopSegment: (s: unknown) => Promise<void> };
 				}
 			).__loopController;
-			await lc.loopSegment(peaks.segments.getSegment("segment-1"));
+			await lc.loopSegment(peaks.segments.getSegment("segment-intro"));
 		});
-		await expect(page.locator("#loop-status")).toContainText("Loop A");
-		await expect(page.locator("#loop-status")).toContainText("5.00");
-		await expect(page.locator("#loop-status")).toContainText("12.00");
+		await expect(page.locator("#loop-status")).toContainText("Intro");
+		await expect(page.locator("#loop-status")).toContainText("0.00");
+		await expect(page.locator("#loop-status")).toContainText("3.93");
 
 		// Programmatically extend the loop end. LoopController observes
 		// `segments.update`, calls `player.setLoopBounds`, and re-emits the
@@ -138,8 +138,8 @@ test.describe("main-example inbox fixes", () => {
 					};
 				}
 			).peaksInstance;
-			const segment = peaks.segments.getSegment("segment-1");
-			if (!segment) throw new Error("missing segment-1");
+			const segment = peaks.segments.getSegment("segment-intro");
+			if (!segment) throw new Error("missing segment-intro");
 			segment.update({ endTime: 20 });
 		});
 

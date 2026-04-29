@@ -19,6 +19,7 @@ export interface TempoMapContextFromOptions {
 	readonly tempoMap?: TempoMap;
 	readonly gridStep?: GridStep;
 	readonly snapStep?: GridStep;
+	readonly gridOffset?: number;
 	readonly snapFlags?: Partial<SnapFlags>;
 	readonly onChange?: () => void;
 	readonly onSnap?: (event: SnapEvent) => void;
@@ -54,6 +55,7 @@ export class TempoMapContext {
 		private gridStep: GridStep,
 		private snapStep: GridStep | undefined,
 		private snapFlags: SnapFlags,
+		private gridOffset: number,
 	) {}
 
 	static from(options: TempoMapContextFromOptions = {}): TempoMapContext {
@@ -66,6 +68,7 @@ export class TempoMapContext {
 			options.gridStep ?? DEFAULT_GRID_STEP,
 			options.snapStep,
 			flags,
+			normalizeOffset(options.gridOffset),
 		);
 		if (options.onChange) ctx.addChangeListener(options.onChange);
 		if (options.onSnap) ctx.addSnapListener(options.onSnap);
@@ -99,6 +102,17 @@ export class TempoMapContext {
 		this.notifyChange();
 	}
 
+	getGridOffset(): number {
+		return this.gridOffset;
+	}
+
+	setGridOffset(seconds: number): void {
+		const next = normalizeOffset(seconds);
+		if (next === this.gridOffset) return;
+		this.gridOffset = next;
+		this.notifyChange();
+	}
+
 	isSnapEnabled(kind: SnapKind): boolean {
 		return this.snapFlags[kind];
 	}
@@ -127,7 +141,9 @@ export class TempoMapContext {
 		if (!enabled || !this.map) {
 			return rawTime;
 		}
-		const snapped = snapTime(this.map, this.getSnapStep(), rawTime);
+		const offset = this.gridOffset;
+		const snapped =
+			snapTime(this.map, this.getSnapStep(), rawTime - offset) + offset;
 		if (snapped !== rawTime) {
 			for (const listener of this.snapListeners) {
 				listener({ kind, rawTime, snappedTime: snapped });
@@ -141,4 +157,9 @@ export class TempoMapContext {
 			listener();
 		}
 	}
+}
+
+function normalizeOffset(seconds: number | undefined): number {
+	if (seconds === undefined || !Number.isFinite(seconds)) return 0;
+	return seconds;
 }

@@ -321,7 +321,7 @@ test.describe("pixi rendering @ main-example", () => {
 					__loopController: { loopSegment: (s: unknown) => Promise<void> };
 				}
 			).__loopController;
-			await lc.loopSegment(peaks.segments.getSegment("segment-1"));
+			await lc.loopSegment(peaks.segments.getSegment("segment-verse-1"));
 		});
 
 		await expect(page.locator("#loop-status")).not.toHaveText("(none)");
@@ -405,6 +405,25 @@ test.describe("pixi rendering @ main-example", () => {
 	}) => {
 		await gotoReady(page);
 		const zoom = page.locator("#zoomview-container canvas").first();
+
+		// The seeded segments cover the entire visible window; their
+		// translucent overlays would dominate the colour stats. Clear them
+		// so we can measure the waveform colour itself.
+		await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						segments: {
+							getSegments: () => readonly { id: string }[];
+							removeById: (id: string) => void;
+						};
+					};
+				}
+			).peaksInstance;
+			for (const segment of peaks.segments.getSegments().slice()) {
+				peaks.segments.removeById(segment.id);
+			}
+		});
 
 		const greenStats = await statsForCanvas(zoom);
 		expect(greenStats.greenLeaning).toBeGreaterThan(greenStats.redLeaning);

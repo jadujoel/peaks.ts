@@ -50,7 +50,7 @@ test("main example loads, exposes every feature group, and round-trips actions",
 	// lives behind a right-click context menu, so drive the loop via the
 	// public LoopController API instead of clicking a row button.
 	const seededRow = page.locator(
-		'#segments-compact li[data-segment-id="segment-1"]',
+		'#segments-compact li[data-segment-id="segment-intro"]',
 	);
 	await expect(seededRow).toBeVisible();
 	await page.evaluate(async () => {
@@ -63,7 +63,7 @@ test("main example loads, exposes every feature group, and round-trips actions",
 				__loopController: { loopSegment: (segment: unknown) => Promise<void> };
 			}
 		).peaksInstance;
-		const segment = peaks.segments.getSegment("segment-1");
+		const segment = peaks.segments.getSegment("segment-intro");
 		const lc = (
 			globalThis as unknown as {
 				__loopController: { loopSegment: (segment: unknown) => Promise<void> };
@@ -71,7 +71,7 @@ test("main example loads, exposes every feature group, and round-trips actions",
 		).__loopController;
 		await lc.loopSegment(segment);
 	});
-	await expect(page.locator("#loop-status")).toContainText("Loop A");
+	await expect(page.locator("#loop-status")).toContainText("Intro");
 	await page.locator('button[data-action="stop-loop"]').click();
 	await expect(page.locator("#loop-status")).toHaveText("(none)");
 

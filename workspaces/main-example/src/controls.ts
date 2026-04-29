@@ -387,11 +387,14 @@ export class Controls {
 		const signature = parseTimeSignature(sigEl.value);
 		const stepEl = select("tempo-step");
 		const step = stepEl.value as GridStep;
+		const offsetEl = input("tempo-offset");
+		const offset = Number.parseFloat(offsetEl.value);
 		const map = TempoMap.constant({ bpm, signature });
 		const view = this.zoomView();
 		if (!view) return;
 		view.setTempoMap(map);
 		view.setGridStep(step);
+		view.setGridOffset(Number.isFinite(offset) ? offset : 0);
 	};
 
 	// ─── Right-click context menu on the waveform views ────────────────
@@ -465,7 +468,10 @@ export class Controls {
 	private renderSegments = (): void => {
 		const list = document.getElementById("segments-compact");
 		if (!(list instanceof HTMLUListElement)) return;
-		const segments = this.peaks.segments.getSegments();
+		const segments = this.peaks.segments
+			.getSegments()
+			.slice()
+			.sort((a, b) => a.startTime - b.startTime);
 		const items = segments.map((segment) => {
 			const id = this.escape(segment.id);
 			const labelText =

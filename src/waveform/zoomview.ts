@@ -908,4 +908,13 @@ export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 	setSnapStep(step: GridStep | undefined): void {
 		this.peaksOptions.tempoMapContext?.setSnapStep(step);
 	}
+
+	setGridOffset(seconds: number): void {
+		this.peaksOptions.tempoMapContext?.setGridOffset(seconds);
+		this.axisLayer.draw();
+	}
+
+	getGridOffset(): number {
+		return this.peaksOptions.tempoMapContext?.getGridOffset() ?? 0;
+	}
 }

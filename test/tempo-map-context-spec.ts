@@ -95,4 +95,42 @@ describe("TempoMapContext", () => {
 			expect(ctx.getSnapStep()).to.equal("1/8");
 		});
 	});
+
+	describe("gridOffset", () => {
+		const map = TempoMap.constant({ bpm: 120 }); // 1/4 step = 0.5s
+
+		it("defaults to 0", () => {
+			expect(TempoMapContext.from().getGridOffset()).to.equal(0);
+		});
+
+		it("normalizes non-finite offsets to 0", () => {
+			const ctx = TempoMapContext.from({ gridOffset: Number.NaN });
+			expect(ctx.getGridOffset()).to.equal(0);
+		});
+
+		it("shifts snap target by the offset", () => {
+			const ctx = TempoMapContext.from({
+				gridOffset: 0.1,
+				snapFlags: { segments: true },
+				tempoMap: map,
+			});
+			// Without offset, 0.6s snaps to 0.5s. With +0.1 offset the
+			// grid sits at 0.1, 0.6, 1.1, ... so 0.6s stays at 0.6s.
+			expect(ctx.snapTimeFor("segments", 0.6)).to.be.closeTo(0.6, 1e-9);
+			expect(ctx.snapTimeFor("segments", 0.7)).to.be.closeTo(0.6, 1e-9);
+		});
+
+		it("notifies change listeners on setGridOffset", () => {
+			let count = 0;
+			const ctx = TempoMapContext.from();
+			ctx.addChangeListener(() => {
+				count++;
+			});
+			ctx.setGridOffset(0.25);
+			ctx.setGridOffset(0.25); // no-op
+			ctx.setGridOffset(0.5);
+			expect(count).to.equal(2);
+			expect(ctx.getGridOffset()).to.equal(0.5);
+		});
+	});
 });

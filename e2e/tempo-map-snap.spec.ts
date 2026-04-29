@@ -167,8 +167,8 @@ test.describe("tempo map snap", () => {
 	}) => {
 		await gotoReady(page);
 		// Programmatic API updates are not snapped — only interactive drags.
-		await setSegmentTimes(page, "segment-1", 0.37, 1.31);
-		const segment = await getSegment(page, "segment-1");
+		await setSegmentTimes(page, "segment-intro", 0.37, 1.31);
+		const segment = await getSegment(page, "segment-intro");
 		expect(segment.startTime).toBeCloseTo(0.37, 5);
 		expect(segment.endTime).toBeCloseTo(1.31, 5);
 	});
@@ -224,5 +224,38 @@ test.describe("tempo map snap", () => {
 		expect(result.kind).toBe("segments");
 		expect(result.rawTime).toBeCloseTo(0.62, 5);
 		expect(Math.abs(result.snappedTime - 0.5)).toBeLessThan(SNAP_TOLERANCE);
+	});
+
+	test("grid offset shifts the snap target by the configured seconds", async ({
+		page,
+	}) => {
+		await gotoReady(page);
+		await configureTempo(page, {
+			bpm: 120,
+			gridStep: "1/4", // 0.5s step
+			snap: { segments: true },
+		});
+
+		// Apply a 0.1s grid offset via the demo's Apply button after
+		// populating the offset input.
+		await page.locator("#tempo-offset").fill("0.1");
+		await page.locator('button[data-action="apply-tempo"]').click();
+
+		const snapped = await page.evaluate(() => {
+			const peaks = (
+				globalThis as unknown as {
+					peaksInstance: {
+						options: {
+							tempoMapContext: {
+								snapTimeFor: (kind: string, t: number) => number;
+							};
+						};
+					};
+				}
+			).peaksInstance;
+			return peaks.options.tempoMapContext.snapTimeFor("segments", 0.7);
+		});
+		// Grid lines at 0.1, 0.6, 1.1, ... so 0.7 → 0.6.
+		expect(snapped).toBeCloseTo(0.6, 5);
 	});
 });

@@ -278,40 +278,73 @@ async function main(): Promise<void> {
 
 	wireFileUpload(state, peaks);
 
-	// Seed the demo with two example segments and one point so the UI
-	// has interactive content immediately.
+	// Seed the demo with example segments and one point so the UI
+	// has interactive content immediately. Times correspond to the
+	// pre-computed `angsten.opus` waveform shipped with the demo.
 	peaks.segments.add([
 		{
-			color: "#5eead4",
+			color: "#22c55e",
 			editable: true,
-			endTime: 12,
-			id: "segment-1",
-			labelText: "Loop A",
-			startTime: 5,
+			endTime: 3.93,
+			id: "segment-intro",
+			labelText: "Intro",
+			startTime: 0,
 		},
 		{
-			color: "#a78bfa",
+			color: "#facc15",
 			editable: true,
-			endTime: 22,
-			id: "segment-verse",
+			endTime: 19.97,
+			id: "segment-verse-1",
 			labelText: "Verse",
-			startTime: 13,
+			startTime: 3.93,
 		},
 		{
 			color: "#7dd3fc",
 			editable: true,
-			endTime: 27,
-			id: "segment-2",
-			labelText: "Loop B",
-			startTime: 22,
+			endTime: 35.93,
+			id: "segment-prechorus",
+			labelText: "PreChorus",
+			startTime: 19.97,
 		},
 		{
 			color: "#f472b6",
 			editable: true,
-			endTime: 32,
-			id: "segment-drop",
-			labelText: "Drop",
-			startTime: 27,
+			endTime: 51.97,
+			id: "segment-chorus",
+			labelText: "Chorus",
+			startTime: 35.93,
+		},
+		{
+			color: "#a78bfa",
+			editable: true,
+			endTime: 67.84,
+			id: "segment-bridge",
+			labelText: "Bridge",
+			startTime: 51.97,
+		},
+		{
+			color: "#ef4444",
+			editable: true,
+			endTime: 83.97,
+			id: "segment-solo",
+			labelText: "Solo",
+			startTime: 67.84,
+		},
+		{
+			color: "#facc15",
+			editable: true,
+			endTime: 91.99,
+			id: "segment-verse-2",
+			labelText: "Verse",
+			startTime: 84.15,
+		},
+		{
+			color: "#3b82f6",
+			editable: true,
+			endTime: 118.95,
+			id: "segment-outro",
+			labelText: "Outro",
+			startTime: 91.99,
 		},
 	]);
 	peaks.points.add([

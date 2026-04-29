@@ -88,6 +88,7 @@ export class GridLayer {
 		if (!this.opts.visible) return;
 		const map = this.context.getTempoMap();
 		if (!map) return;
+		const offset = this.context.getGridOffset();
 		const startTime = this.view.getStartTime();
 		const endTime = this.view.getEndTime();
 		const step = this.context.getGridStep();
@@ -122,7 +123,15 @@ export class GridLayer {
 			.numerator;
 		let beatSeconds = 60 / firstSection.bpm;
 
-		for (const { time, section } of gridTimes(map, step, startTime, endTime)) {
+		const shiftedStart = Math.max(0, startTime - offset);
+		const shiftedEnd = endTime - offset;
+		for (const { time, section } of gridTimes(
+			map,
+			step,
+			shiftedStart,
+			shiftedEnd,
+		)) {
+			const drawnTime = time + offset;
 			if (section !== lastBarSection) {
 				lastBarSection = section;
 				const sig = section.signature ?? DEFAULT_TIME_SIGNATURE;
@@ -137,7 +146,7 @@ export class GridLayer {
 			index++;
 
 			const pixelOffset =
-				this.view.timeToPixels(time) - this.view.getFrameOffset();
+				this.view.timeToPixels(drawnTime) - this.view.getFrameOffset();
 			if (pixelOffset < -1 || pixelOffset > width + 1) {
 				continue;
 			}
