@@ -120,8 +120,8 @@ test.describe("main-example inbox fixes", () => {
 			await lc.loopSegment(peaks.segments.getSegment("segment-intro"));
 		});
 		await expect(page.locator("#loop-status")).toContainText("Intro");
-		await expect(page.locator("#loop-status")).toContainText("0.00");
-		await expect(page.locator("#loop-status")).toContainText("3.93");
+		await expect(page.locator("#loop-status")).toContainText("0.12");
+		await expect(page.locator("#loop-status")).toContainText("4.12");
 
 		// Programmatically extend the loop end. LoopController observes
 		// `segments.update`, calls `player.setLoopBounds`, and re-emits the

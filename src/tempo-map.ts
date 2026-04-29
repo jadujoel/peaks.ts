@@ -264,6 +264,70 @@ export function* gridTimes(
 }
 
 /**
+ * Returns the 1-based bar number for `time` under `map`, accounting for an
+ * optional `gridOffset` (seconds). Bars are numbered cumulatively across
+ * sections starting from bar 1 at the offset (or at section.time === 0
+ * when there is no offset). For times before the offset, returns 0.
+ *
+ * The result is the floor of the fractional bar position so that any time
+ * within bar N returns N.
+ */
+export function barNumberAt(
+	map: TempoMap,
+	time: number,
+	gridOffset = 0,
+): number {
+	if (!Number.isFinite(time)) return 0;
+	const shifted = time - gridOffset;
+	if (shifted < 0) return 0;
+	const sections = map.sections;
+	let bars = 0;
+	for (let i = 0; i < sections.length; i++) {
+		const section = sections[i] as TempoSection;
+		const next = sections[i + 1];
+		const sectionEnd = next ? next.time : Number.POSITIVE_INFINITY;
+		const beatsPerBar = (section.signature ?? DEFAULT_TIME_SIGNATURE).numerator;
+		const barSeconds = (60 / section.bpm) * beatsPerBar;
+		if (barSeconds <= 0) continue;
+		if (shifted < sectionEnd) {
+			const within = Math.max(0, shifted - section.time);
+			return bars + Math.floor(within / barSeconds) + 1;
+		}
+		const sectionDuration = sectionEnd - section.time;
+		bars += Math.floor(sectionDuration / barSeconds);
+	}
+	return bars + 1;
+}
+
+/**
+ * Format a time as a bar label, e.g. `"Bar 5"` for bar-aligned times and
+ * `"Bar 5.2"` (bar.beat) for off-bar times. Returns the empty string when
+ * `map` is undefined.
+ */
+export function formatBarLabel(
+	time: number,
+	map: TempoMap | undefined,
+	gridOffset = 0,
+): string {
+	if (!map) return "";
+	const bar = barNumberAt(map, time, gridOffset);
+	if (bar <= 0) return "Bar 0";
+	const section = tempoSectionAt(map, Math.max(0, time - gridOffset));
+	const beatsPerBar = (section.signature ?? DEFAULT_TIME_SIGNATURE).numerator;
+	const beatSeconds = 60 / section.bpm;
+	const barSeconds = beatSeconds * beatsPerBar;
+	if (barSeconds <= 0) return `Bar ${bar}`;
+	const shifted = Math.max(0, time - gridOffset);
+	const within = (shifted - section.time) % barSeconds;
+	const tolerance = beatSeconds * 1e-3;
+	if (within < tolerance || barSeconds - within < tolerance) {
+		return `Bar ${bar}`;
+	}
+	const beat = Math.floor(within / beatSeconds) + 1;
+	return `Bar ${bar}.${beat}`;
+}
+
+/**
  * Returns `true` when `time` is the start of a bar in `section`.
  */
 export function isBarStart(

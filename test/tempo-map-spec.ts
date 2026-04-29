@@ -1,4 +1,6 @@
 import {
+	barNumberAt,
+	formatBarLabel,
 	gridTimes,
 	snapTime,
 	stepDurationSeconds,
@@ -175,6 +177,57 @@ describe("TempoMap", () => {
 		it("yields nothing for inverted window", () => {
 			const out = [...gridTimes(map, "1/4", 5, 1)];
 			expect(out.length).to.equal(0);
+		});
+	});
+
+	describe("barNumberAt", () => {
+		const map = TempoMap.constant({ bpm: 120 }); // 4/4, bar = 2s
+
+		it("returns 1 for time 0", () => {
+			expect(barNumberAt(map, 0)).to.equal(1);
+		});
+
+		it("returns 2 for time 2s (start of bar 2)", () => {
+			expect(barNumberAt(map, 2)).to.equal(2);
+		});
+
+		it("returns 1 for an off-bar time within bar 1", () => {
+			expect(barNumberAt(map, 1.5)).to.equal(1);
+		});
+
+		it("respects gridOffset", () => {
+			expect(barNumberAt(map, 0.12, 0.12)).to.equal(1);
+			expect(barNumberAt(map, 4.12, 0.12)).to.equal(3);
+			expect(barNumberAt(map, 0, 0.12)).to.equal(0);
+		});
+
+		it("crosses sections cumulatively", () => {
+			const multi = TempoMap.from({
+				sections: [
+					{ bpm: 120, time: 0 }, // bar = 2s, two bars in 4s
+					{ bpm: 60, time: 4 }, // bar = 4s
+				],
+			})._unsafeUnwrap();
+			expect(barNumberAt(multi, 0)).to.equal(1);
+			expect(barNumberAt(multi, 4)).to.equal(3);
+			expect(barNumberAt(multi, 8)).to.equal(4);
+		});
+	});
+
+	describe("formatBarLabel", () => {
+		const map = TempoMap.constant({ bpm: 120 });
+
+		it("returns 'Bar N' for bar-aligned times", () => {
+			expect(formatBarLabel(0.12, map, 0.12)).to.equal("Bar 1");
+			expect(formatBarLabel(2.12, map, 0.12)).to.equal("Bar 2");
+		});
+
+		it("returns 'Bar N.b' for off-bar times", () => {
+			expect(formatBarLabel(0.62, map, 0.12)).to.equal("Bar 1.2");
+		});
+
+		it("returns empty string when map is undefined", () => {
+			expect(formatBarLabel(1, undefined)).to.equal("");
 		});
 	});
 });

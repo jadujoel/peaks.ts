@@ -340,7 +340,7 @@ test.describe("pixi rendering @ main-example", () => {
 		await expect(page.locator("#loop-status")).toHaveText("(none)");
 
 		// Pause so the playhead stops drifting and the canvas stabilises.
-		await page.locator('button[data-action="pause"]').click();
+		await page.locator('button[data-action="play-pause"]').click();
 		await settle(page);
 		const afterStop = await statsForCanvas(zoom);
 		expect(afterStop.nonTransparent).toBeGreaterThan(500);
@@ -537,7 +537,7 @@ test.describe("pixi rendering @ main-example", () => {
 		const errs = await gotoReady(page);
 		const zoom = page.locator("#zoomview-container canvas").first();
 
-		await page.locator('button[data-action="play"]').click();
+		await page.locator('button[data-action="play-pause"]').click();
 		await expect
 			.poll(async () => getPlayheadTime(page), { timeout: 5_000 })
 			.toBeGreaterThan(0);
@@ -546,7 +546,7 @@ test.describe("pixi rendering @ main-example", () => {
 		const playing = await statsForCanvas(zoom);
 		expect(playing.nonTransparent).toBeGreaterThan(500);
 
-		await page.locator('button[data-action="pause"]').click();
+		await page.locator('button[data-action="play-pause"]').click();
 		await settle(page);
 		const paused = await statsForCanvas(zoom);
 		expect(paused.nonTransparent).toBeGreaterThan(500);

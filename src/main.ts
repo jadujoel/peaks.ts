@@ -57,7 +57,7 @@ export {
 export { Point } from "./point";
 export { Segment } from "./segment";
 export type { GridStep, TempoSection, TimeSignature } from "./tempo-map";
-export { TempoMap } from "./tempo-map";
+export { barNumberAt, formatBarLabel, snapTime, TempoMap } from "./tempo-map";
 export type { SnapEvent, SnapKind } from "./tempo-map-context";
 export { TempoMapContext } from "./tempo-map-context";
 export type {

@@ -471,7 +471,7 @@ export class SegmentShape {
 
 		if (createSegmentMarkerFn) {
 			startMarker = createSegmentMarkerFn({
-				color: segmentOptions.startMarkerColor,
+				color: this.segment.color ?? segmentOptions.startMarkerColor,
 				editable: editable,
 				fontFamily: viewOptions.fontFamily,
 				fontSize: viewOptions.fontSize,
@@ -503,7 +503,7 @@ export class SegmentShape {
 
 		if (createSegmentMarkerFn) {
 			endMarker = createSegmentMarkerFn({
-				color: segmentOptions.endMarkerColor,
+				color: this.segment.color ?? segmentOptions.endMarkerColor,
 				editable: editable,
 				fontFamily: viewOptions.fontFamily,
 				fontSize: viewOptions.fontSize,

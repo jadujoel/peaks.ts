@@ -62,6 +62,7 @@ async function configureTempo(
 							| {
 									setTempoMap: (map: unknown) => void;
 									setGridStep: (step: string) => void;
+									setGridOffset: (seconds: number) => void;
 									setSnapEnabled: (kind: string, enabled: boolean) => void;
 							  }
 							| undefined;
@@ -80,6 +81,7 @@ async function configureTempo(
 		if (!view) throw new Error("no zoomview");
 		view.setTempoMap(map);
 		view.setGridStep(opts.gridStep);
+		view.setGridOffset(0);
 		for (const kind of [
 			"segments",
 			"segmentMarkers",

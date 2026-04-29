@@ -897,6 +897,11 @@ export class WaveformZoomView implements WaveformViewAPI, WaveformViewHooks {
 		this.axisLayer.draw();
 	}
 
+	setShowBarLabels(visible: boolean): void {
+		this.view.gridLayer?.setShowBarLabels(visible);
+		this.axisLayer.draw();
+	}
+
 	setSnapEnabled(kind: SnapKind, enabled: boolean): void {
 		this.peaksOptions.tempoMapContext?.setSnapEnabled(kind, enabled);
 	}

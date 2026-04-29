@@ -506,6 +506,7 @@ export interface WaveformZoomviewAPI extends WaveformViewColorAPI {
 	setGridStep(step: GridStep): void;
 	getGridStep(): GridStep;
 	setGridVisible(visible: boolean): void;
+	setShowBarLabels(visible: boolean): void;
 	setSnapEnabled(kind: SnapKind, enabled: boolean): void;
 	isSnapEnabled(kind: SnapKind): boolean;
 	setSnapStep(step: GridStep | undefined): void;

@@ -279,72 +279,73 @@ async function main(): Promise<void> {
 	wireFileUpload(state, peaks);
 
 	// Seed the demo with example segments and one point so the UI
-	// has interactive content immediately. Times correspond to the
-	// pre-computed `angsten.opus` waveform shipped with the demo.
+	// has interactive content immediately. Times are aligned to the
+	// 120 BPM grid (one bar = 2.0s) shifted by the audio's leading
+	// silence (0.12s) so each region starts on a bar line.
 	peaks.segments.add([
 		{
 			color: "#22c55e",
 			editable: true,
-			endTime: 3.93,
+			endTime: 4.12,
 			id: "segment-intro",
 			labelText: "Intro",
-			startTime: 0,
+			startTime: 0.12,
 		},
 		{
 			color: "#facc15",
 			editable: true,
-			endTime: 19.97,
+			endTime: 20.12,
 			id: "segment-verse-1",
 			labelText: "Verse",
-			startTime: 3.93,
+			startTime: 4.12,
 		},
 		{
 			color: "#7dd3fc",
 			editable: true,
-			endTime: 35.93,
+			endTime: 28.12,
 			id: "segment-prechorus",
 			labelText: "PreChorus",
-			startTime: 19.97,
+			startTime: 20.12,
 		},
 		{
 			color: "#f472b6",
 			editable: true,
-			endTime: 51.97,
+			endTime: 44.12,
 			id: "segment-chorus",
 			labelText: "Chorus",
-			startTime: 35.93,
+			startTime: 28.12,
 		},
 		{
 			color: "#a78bfa",
 			editable: true,
-			endTime: 67.84,
+			endTime: 52.12,
 			id: "segment-bridge",
 			labelText: "Bridge",
-			startTime: 51.97,
+			startTime: 44.12,
 		},
 		{
 			color: "#ef4444",
 			editable: true,
-			endTime: 83.97,
+			endTime: 68.12,
 			id: "segment-solo",
 			labelText: "Solo",
-			startTime: 67.84,
+			startTime: 52.12,
 		},
 		{
 			color: "#facc15",
 			editable: true,
-			endTime: 91.99,
+			endTime: 84.12,
 			id: "segment-verse-2",
 			labelText: "Verse",
-			startTime: 84.15,
+			startTime: 68.12,
 		},
 		{
 			color: "#3b82f6",
 			editable: true,
-			endTime: 118.95,
+			endTime: 118.12,
 			id: "segment-outro",
 			labelText: "Outro",
-			startTime: 91.99,
+			startTime: 84.12,
 		},
 	]);
 	peaks.points.add([
@@ -353,14 +354,14 @@ async function main(): Promise<void> {
 			editable: true,
 			id: "point-1",
 			labelText: "Marker",
-			time: 20,
+			time: 20.12,
 		},
 		{
 			color: "#f97316",
 			editable: true,
 			id: "point-hit",
 			labelText: "Hit",
-			time: 28,
+			time: 28.12,
 		},
 	]);
 

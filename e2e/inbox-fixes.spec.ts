@@ -165,7 +165,7 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 			() => (globalThis as unknown as { __seekCalls: number[] }).__seekCalls,
 		);
 		expect(calls).toHaveLength(1);
-		expect(calls[0]).toBeCloseTo(0, 5);
+		expect(calls[0]).toBeCloseTo(0.12, 5);
 	});
 
 	test("width slider has been removed (waveform is full-width)", async ({
@@ -447,7 +447,7 @@ test.describe("inbox fixes (waveform color persists across resize)", () => {
 		const insertedIndex = ids.indexOf("segment-z-inserted");
 		expect(insertedIndex).toBeGreaterThan(0);
 		expect(insertedIndex).toBeLessThan(ids.length - 1);
-		// Must sit between segment-verse-1 (3.93) and segment-prechorus (19.97).
+		// Must sit between segment-verse-1 (4.12-20.12) and segment-prechorus (20.12-28.12).
 		expect(ids[insertedIndex - 1]).toBe("segment-verse-1");
 		expect(ids[insertedIndex + 1]).toBe("segment-prechorus");
 	});

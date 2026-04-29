@@ -5,7 +5,12 @@ import type {
 	SnapKind,
 	TimeSignature,
 } from "@jadujoel/peaks.ts";
-import { TempoMap } from "@jadujoel/peaks.ts";
+import {
+	barNumberAt,
+	formatBarLabel,
+	snapTime,
+	TempoMap,
+} from "@jadujoel/peaks.ts";
 import { div, input, output, select } from "./dom";
 
 export type ChannelSwitcher = (mode: "mono" | "stereo") => Promise<void>;
@@ -68,6 +73,9 @@ export class Controls {
 		this.peaks.events.addEventListener("player.seeked", (event) => {
 			playheadTime.value = event.time.toFixed(2);
 		});
+		this.peaks.events.addEventListener("player.playing", this.syncPlayPause);
+		this.peaks.events.addEventListener("player.pause", this.syncPlayPause);
+		this.peaks.events.addEventListener("player.ended", this.syncPlayPause);
 		this.peaks.events.addEventListener("segments.add", this.renderSegments);
 		this.peaks.events.addEventListener("segments.remove", this.renderSegments);
 		this.peaks.events.addEventListener("segments.dragend", this.renderSegments);
@@ -79,6 +87,7 @@ export class Controls {
 		document.body.addEventListener("click", this.onActionClick);
 		document.body.addEventListener("click", this.onDocumentClickDismiss, true);
 		document.addEventListener("keydown", this.onDocumentKeydown);
+		this.syncPlayPause();
 	};
 
 	private onActionClick = (event: MouseEvent): void => {
@@ -100,6 +109,9 @@ export class Controls {
 				return;
 			case "pause":
 				this.peaks.player.pause();
+				return;
+			case "play-pause":
+				this.togglePlayPause();
 				return;
 			case "stop":
 				this.peaks.player.pause();
@@ -123,6 +135,9 @@ export class Controls {
 				return;
 			case "add-segment":
 				this.peaks.segments.addAtPlayhead();
+				return;
+			case "snap-all-segments":
+				this.snapAllSegments();
 				return;
 			case "jump-segment":
 				if (id) {
@@ -359,9 +374,15 @@ export class Controls {
 	private wireTempoGrid = (): void => {
 		this.applyTempo();
 		const visible = input("grid-visible");
-		visible.addEventListener("change", () => {
-			this.zoomView()?.setGridVisible(visible.checked);
-		});
+		const applyVisible = (): void => {
+			const view = this.zoomView();
+			view?.setGridVisible(visible.checked);
+			view?.setShowBarLabels(visible.checked);
+			this.renderSegments();
+			this.renderPoints();
+		};
+		visible.addEventListener("change", applyVisible);
+		applyVisible();
 		const snapKinds: readonly SnapKind[] = [
 			"segments",
 			"segmentMarkers",
@@ -395,6 +416,37 @@ export class Controls {
 		view.setTempoMap(map);
 		view.setGridStep(step);
 		view.setGridOffset(Number.isFinite(offset) ? offset : 0);
+		this.renderSegments();
+		this.renderPoints();
+	};
+
+	private isGridActive(): boolean {
+		const grid = document.getElementById("grid-visible");
+		if (!(grid instanceof HTMLInputElement)) return false;
+		return grid.checked && this.zoomView()?.getTempoMap() !== undefined;
+	}
+
+	private formatTime = (time: number): string => {
+		if (this.isGridActive()) {
+			const view = this.zoomView();
+			const map = view?.getTempoMap();
+			if (map) return formatBarLabel(time, map, view?.getGridOffset() ?? 0);
+		}
+		return time.toFixed(2);
+	};
+
+	private formatRange = (start: number, end: number): string => {
+		if (this.isGridActive()) {
+			const view = this.zoomView();
+			const map = view?.getTempoMap();
+			if (map) {
+				const offset = view?.getGridOffset() ?? 0;
+				const a = barNumberAt(map, start, offset);
+				const b = barNumberAt(map, end, offset);
+				return `Bar ${a}–${b}`;
+			}
+		}
+		return `${start.toFixed(2)}–${end.toFixed(2)}`;
 	};
 
 	// ─── Right-click context menu on the waveform views ────────────────
@@ -480,7 +532,7 @@ export class Controls {
 				`<li class="compact-list__item" data-segment-id="${id}">` +
 				`<button type="button" class="compact-list__btn" data-action="jump-segment" data-id="${id}">` +
 				`<span class="compact-list__label">${labelText}</span>` +
-				`<span class="compact-list__time mono">${segment.startTime.toFixed(2)}–${segment.endTime.toFixed(2)}</span>` +
+				`<span class="compact-list__time mono">${this.escape(this.formatRange(segment.startTime, segment.endTime))}</span>` +
 				`</button></li>`
 			);
 		});
@@ -508,7 +560,7 @@ export class Controls {
 				`<li class="compact-list__item" data-point-id="${id}">` +
 				`<button type="button" class="compact-list__btn" data-action="jump-point" data-id="${id}">` +
 				`<span class="compact-list__label">${labelText}</span>` +
-				`<span class="compact-list__time mono">${point.time.toFixed(2)}</span>` +
+				`<span class="compact-list__time mono">${this.escape(this.formatTime(point.time))}</span>` +
 				`</button></li>`
 			);
 		});
@@ -739,6 +791,75 @@ export class Controls {
 	private onDocumentKeydown = (event: KeyboardEvent): void => {
 		if (event.key === "Escape") {
 			this.dismissOverlays();
+			return;
+		}
+		if (event.code === "Space" || event.key === " ") {
+			if (this.isTypingTarget(event.target)) return;
+			event.preventDefault();
+			this.togglePlayPause();
+		}
+	};
+
+	private isTypingTarget(target: EventTarget | null): boolean {
+		if (!(target instanceof HTMLElement)) return false;
+		if (target.isContentEditable) return true;
+		const tag = target.tagName;
+		if (tag === "INPUT") {
+			const type = (target as HTMLInputElement).type;
+			// Allow space to trigger play/pause when focus is on a button-like
+			// input; intercept only for text-entry fields.
+			return (
+				type === "text" ||
+				type === "search" ||
+				type === "email" ||
+				type === "url" ||
+				type === "number" ||
+				type === "password" ||
+				type === "tel"
+			);
+		}
+		return tag === "TEXTAREA" || tag === "SELECT";
+	}
+
+	private togglePlayPause = (): void => {
+		if (this.peaks.player.isPlaying()) {
+			this.peaks.player.pause();
+		} else {
+			this.peaks.player.play().catch((error: unknown) => {
+				console.warn("play failed", error);
+			});
+		}
+	};
+
+	private syncPlayPause = (): void => {
+		const button = document.getElementById("play-pause");
+		if (!(button instanceof HTMLButtonElement)) return;
+		const playing = this.peaks.player.isPlaying();
+		button.textContent = playing ? "❚❚ Pause" : "▶ Play";
+		button.setAttribute(
+			"aria-label",
+			playing ? "Pause (Spacebar)" : "Play (Spacebar)",
+		);
+	};
+
+	private snapAllSegments = (): void => {
+		const view = this.zoomView();
+		const map = view?.getTempoMap();
+		if (!view || !map) return;
+		const step = view.getGridStep();
+		const offset = view.getGridOffset();
+		const snap = (time: number): number => {
+			const shifted = Math.max(0, time - offset);
+			return offset + snapTime(map, step, shifted);
+		};
+		for (const segment of this.peaks.segments.getSegments()) {
+			const start = snap(segment.startTime);
+			let end = snap(segment.endTime);
+			if (end <= start) {
+				const stepSeconds = Math.max(0.001, snap(start + 0.001) - start);
+				end = start + stepSeconds;
+			}
+			segment.update({ endTime: end, startTime: start });
 		}
 	};
 

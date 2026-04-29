@@ -1,5 +1,6 @@
 import type { DriverContext, DriverLayer, DriverShape } from "./driver/types";
 import {
+	barNumberAt,
 	DEFAULT_TIME_SIGNATURE,
 	gridTimes,
 	stepDurationSeconds,
@@ -15,13 +16,19 @@ export interface GridLayerOptions {
 	readonly showBarLines: boolean;
 	readonly barLineWidth: number;
 	readonly visible: boolean;
+	readonly showBarLabels: boolean;
+	readonly barLabelColor: string;
+	readonly barLabelFont: string;
 }
 
 const DEFAULT_OPTIONS: GridLayerOptions = {
+	barLabelColor: "#cccccc",
+	barLabelFont: "11px sans-serif",
 	barLineWidth: 2,
 	color: "#cccccc",
 	minPixelSpacing: 6,
 	opacity: 0.4,
+	showBarLabels: false,
 	showBarLines: true,
 	visible: true,
 };
@@ -84,6 +91,14 @@ export class GridLayer {
 		this.opts.minPixelSpacing = Math.max(1, min);
 	}
 
+	setShowBarLabels(visible: boolean): void {
+		this.opts.showBarLabels = visible;
+	}
+
+	isShowBarLabels(): boolean {
+		return this.opts.showBarLabels;
+	}
+
 	private draw(context: DriverContext): void {
 		if (!this.opts.visible) return;
 		const map = this.context.getTempoMap();
@@ -122,6 +137,8 @@ export class GridLayer {
 		let beatsPerBar = (firstSection.signature ?? DEFAULT_TIME_SIGNATURE)
 			.numerator;
 		let beatSeconds = 60 / firstSection.bpm;
+
+		const barLabels: { x: number; bar: number }[] = [];
 
 		const shiftedStart = Math.max(0, startTime - offset);
 		const shiftedEnd = endTime - offset;
@@ -168,9 +185,23 @@ export class GridLayer {
 			context.moveTo(x, 0);
 			context.lineTo(x, height);
 			context.stroke();
+
+			if (isBar && this.opts.showBarLabels) {
+				const bar = barNumberAt(map, drawnTime, offset);
+				barLabels.push({ bar, x });
+			}
 		}
 
 		context.setAttr("globalAlpha", 1);
+
+		if (this.opts.showBarLabels && barLabels.length > 0) {
+			context.setAttr("font", this.opts.barLabelFont);
+			context.setAttr("fillStyle", this.opts.barLabelColor);
+			const y = height - 2;
+			for (const { bar, x } of barLabels) {
+				context.fillText(String(bar), x + 3, y);
+			}
+		}
 	}
 }
 
