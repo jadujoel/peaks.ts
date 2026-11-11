@@ -6,3 +6,5 @@
 *.mp3 binary
 *.png binary
 *.wav binary
+*.opus binary
+*.sha256 text eol=lf
