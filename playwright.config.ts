@@ -32,7 +32,7 @@ export default defineConfig({
 	reporter: [["html", { open: "never" }]],
 	// One worker on CI: parallel pages with software rendering starve each
 	// other of CPU and stall requestAnimationFrame.
-	workers: process.env.CI ? 1 : undefined,
+	...(process.env.CI ? { workers: 1 } : {}),
 	testDir: "./e2e",
 	use: {
 		baseURL: "http://127.0.0.1:8090",
