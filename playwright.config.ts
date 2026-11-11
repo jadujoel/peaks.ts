@@ -4,7 +4,14 @@ export default defineConfig({
 	projects: [
 		{
 			name: "chromium",
-			use: { ...devices["Desktop Chrome"] },
+			use: {
+				...devices["Desktop Chrome"],
+				launchOptions: {
+					// Chromium's autoplay policy depends on site engagement, which
+					// grows during a run. Pin it so the AudioContext always runs.
+					args: ["--autoplay-policy=no-user-gesture-required"],
+				},
+			},
 		},
 		{
 			name: "firefox",
