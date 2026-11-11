@@ -15,5 +15,7 @@ test-results
 CLAUDE.md
 research
 workspaces/**/dist
-workspaces/**/public
+workspaces/**/public/*
+# Generated demo audio is committed so CI needs no ffmpeg or audiowaveform.
+!workspaces/main-example/public/angsten.*
 workspaces/**/node_modules

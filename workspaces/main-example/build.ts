@@ -14,6 +14,10 @@ const angstenWav = resolve(repoRoot, "sounds", "angsten.wav");
 const angstenOpus = resolve(publicDir, "angsten.opus");
 const angstenMp3 = resolve(publicDir, "angsten.mp3");
 const angstenDat = resolve(publicDir, "angsten.dat");
+// SHA-256 of the source WAV the committed assets were generated from. A
+// content hash (not mtime) keeps fresh checkouts from regenerating, so CI
+// does not need ffmpeg or audiowaveform.
+const angstenStamp = resolve(publicDir, "angsten.source.sha256");
 
 async function fileExists(path: string): Promise<boolean> {
 	try {
@@ -24,13 +28,17 @@ async function fileExists(path: string): Promise<boolean> {
 	}
 }
 
-async function isUpToDate(source: string, target: string): Promise<boolean> {
-	try {
-		const [src, tgt] = await Promise.all([stat(source), stat(target)]);
-		return tgt.mtimeMs >= src.mtimeMs;
-	} catch {
-		return false;
+async function sha256(path: string): Promise<string> {
+	const hasher = new Bun.CryptoHasher("sha256");
+	hasher.update(await Bun.file(path).arrayBuffer());
+	return hasher.digest("hex");
+}
+
+async function readStamp(path: string): Promise<string | undefined> {
+	if (!(await fileExists(path))) {
+		return undefined;
 	}
+	return (await Bun.file(path).text()).trim();
 }
 
 async function run(cmd: readonly string[], label: string): Promise<void> {
@@ -67,9 +75,11 @@ async function ensureAngstenAssets(): Promise<void> {
 		throw new Error(`Source audio missing: ${angstenWav}`);
 	}
 
-	const opusFresh = await isUpToDate(angstenWav, angstenOpus);
-	const mp3Fresh = await isUpToDate(angstenWav, angstenMp3);
-	const datFresh = await isUpToDate(angstenWav, angstenDat);
+	const sourceHash = await sha256(angstenWav);
+	const stampFresh = (await readStamp(angstenStamp)) === sourceHash;
+	const opusFresh = stampFresh && (await fileExists(angstenOpus));
+	const mp3Fresh = stampFresh && (await fileExists(angstenMp3));
+	const datFresh = stampFresh && (await fileExists(angstenDat));
 	if (opusFresh && mp3Fresh && datFresh) return;
 
 	if (!opusFresh) {
@@ -134,6 +144,7 @@ async function ensureAngstenAssets(): Promise<void> {
 			"audiowaveform",
 		);
 	}
+	await Bun.write(angstenStamp, `${sourceHash}\n`);
 }
 
 async function copyAssets(): Promise<void> {
