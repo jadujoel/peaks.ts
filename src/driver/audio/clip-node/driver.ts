@@ -278,7 +278,16 @@ export class ClipNodeAudioDriver implements AudioDriver {
 		node.onseeked = () => {
 			events.dispatch("player.seeked", { time: this.getCurrentTime() });
 		};
+		// The worklet reports frames on every audio block, also while the
+		// node is stopped or paused. Forward a time update only when playback
+		// runs or the time changed (e.g. after a seek). Otherwise every view
+		// auto-scrolls back to an idle playhead a few times per second.
+		let lastTime = node.currentTime;
 		node.ontimeupdate = (time: number) => {
+			if (time === lastTime && !PLAYING_STATES.has(node.state)) {
+				return;
+			}
+			lastTime = time;
 			events.dispatch("player.timeupdate", { time });
 		};
 		node.ondurationchange = (duration: number) => {
