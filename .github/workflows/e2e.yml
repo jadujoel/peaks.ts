@@ -33,6 +33,13 @@ jobs:
 
       - name: Build main example
         run: bun run example:build
+      - name: Start virtual audio device (PulseAudio null sink)
+        run: |
+          sudo apt-get install -y pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_null
+          pactl set-default-sink ci_null
+          pactl info
       - name: Run E2E tests (${{ matrix.project }})
         run: bunx playwright test --project=${{ matrix.project }}
       - name: Upload test report

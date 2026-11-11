@@ -8,7 +8,17 @@ export default defineConfig({
 		},
 		{
 			name: "firefox",
-			use: { ...devices["Desktop Firefox"] },
+			use: {
+				...devices["Desktop Firefox"],
+				launchOptions: {
+					// Allow Web Audio to start without a real user gesture, so
+					// AudioContext.resume() does not stay pending in headless runs.
+					firefoxUserPrefs: {
+						"media.autoplay.block-webaudio": false,
+						"media.autoplay.default": 0,
+					},
+				},
+			},
 		},
 		{
 			name: "webkit",
